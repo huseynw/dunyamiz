@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H &infin; C | Bizim Dünyamız</title>
+    <link rel="stylesheet" href="hcstil.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div id="welcome-screen">
+        <div class="welcome-content">
+            <div class="rose-wrapper">
+                <div class="rose-flower">
+                    <div class="flower-pot">
+                        <div class="petal"></div>
+                        <div class="petal"></div>
+                        <div class="petal"></div>
+                        <div class="petal"></div>
+                        <div class="petal"></div>
+                    </div>
+                    <div class="leaf">
+                        <div class="stem"></div>
+                        <div class="leafs"></div>
+                        <div class="leafs"></div>
+                    </div>
+                </div>
+            </div>
+            <h1>Xoş Gəldin, Cəmaləm</h1>
+            <button id="enter-btn">Toxun <i class="fas fa-heart"></i></button>
+            <div id="password-panel" class="hidden" style="margin-top: 20px; display: none; flex-direction: column; align-items: center; gap: 15px;">
+            <input type="password" id="pass-input" placeholder="Şifrəni yaz" 
+                   style="padding: 15px; border-radius: 50px; border: 1px solid var(--primary); background: rgba(255,255,255,0.1); color: white; text-align: center; outline: none; width: 200px;">
+            <p id="error-msg" style="color: #ff4d6d; font-size: 0.8rem; display: none;">Kül başıva düz yaz!</p>
+            <button id="verify-btn" style="padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 50px; cursor: pointer;">Təsdiqlə</button>
+            </div>
+        </div>
+    </div>
+    <main id="main-content" class="hidden">
+        <header>
+            <div class="logo-container">
+                <span class="letter">H</span>
+                <div class="infinity-wrapper">
+                    <svg viewBox="0 0 100 50" class="infinity-svg">
+                        <path d="M20,25 C20,9 46,9 50,25 C54,41 80,41 80,25 C80,9 54,9 50,25 C46,41 20,41 20,25" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <span class="letter">C</span>
+            </div>
+        </header>
+        <section class="counter-section">
+            <h2>Birlikdə keçən zaman</h2>
+            <div id="timer" class="timer-grid">
+                <div class="time-box"><span id="days">0</span><label>Gün</label></div>
+                <div class="time-box"><span id="hours">0</span><label>Saat</label></div>
+                <div class="time-box"><span id="minutes">0</span><label>Dəqiqə</label></div>
+                <div class="time-box"><span id="seconds">0</span><label>Saniyə</label></div>
+            </div>
+            <div class="meeting-count">
+                <i class="fas fa-map-marker-alt"></i> Görüş sayımız: <span id="meet-count">0</span>
+            </div>
+            <div class="first-meeting">
+                <i class="fas fa-calendar-check"></i> İlk görüş: <span> 22.10.2025 </span>
+            </div>
+        </section>
+        <section class="meeting-section">
+            <div class="counter-section meeting-timer">
+                <h3>Növbəti Görüşümüzə Qalan Vaxt:</h3>
+                <p id="next-meeting-date" class="meeting-date-text"></p> 
+                <div class="timer-grid">
+                    <div class="time-box">
+                        <span id="meet-days">00</span>
+                        <label>Gün</label>
+                    </div>
+                    <div class="time-box">
+                        <span id="meet-hours">00</span>
+                        <label>Saat</label>
+                    </div>
+                    <div class="time-box">
+                        <span id="meet-minutes">00</span>
+                        <label>Dəqiqə</label>
+                    </div>
+                    <div class="time-box">
+                        <span id="meet-seconds">00</span>
+                        <label>Saniyə</label>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="gallery-section">
+            <h3>Qaleryamız</h3>
+            <p class="hint">Şəkillərə baxmaq üçün toxun</p>
+            <div class="stacked-gallery" id="gallery-stack">
+                </div>
+        </section>
+        <section class="letters-section">
+            <h3>Məni hiss etdiyində...</h3>
+            <div class="envelopes-grid">
+                <div class="envelope" onclick="openLetter('miss')">
+                    <i class="fas fa-envelope-open-text"></i>
+                    <span>Darıxanda</span>
+                </div>
+                <div class="envelope" onclick="openLetter('sad')">
+                    <i class="fas fa-cloud-rain"></i>
+                    <span>Kefin olmayanda</span>
+                </div>
+                <div class="envelope" onclick="openLetter('happy')">
+                    <i class="fas fa-sun"></i>
+                    <span>Xoşbəxt olanda</span>
+                </div>
+                <div class="envelope" onclick="openLetter('us')">
+                    <i class="fas fa-heart"></i>
+                    <span>Bizim üçün</span>
+                </div>
+            </div>
+        </section>
+        <div id="letter-modal" class="letter-modal">
+            <div class="letter-content">
+                <span class="close-letter" onclick="closeLetter()">&times;</span>
+                <h2 id="letter-title">Başlıq</h2>
+                <p id="letter-text">Məktub mətni...</p>
+            </div>
+        </div>
+        <div class="love-switcher">
+            <span id="changing-love">Səni sevirəm</span> <span style="color: #ff4d6d;">🤍</span>
+        </div>
+        <section class="music-player">
+            <div class="player-card">
+                <div class="cover-art">
+                    <img src="assets/music-cover.jpg" alt="Cover" id="track-art">
+                </div>
+                <div class="track-info">
+                    <h4 id="track-name">Gözlərin dəydi gözümə🤍</h4>
+                    <div class="progress-container">
+                        <span id="curr-time">00:00</span>
+                        <input type="range" min="0" max="100" value="0" class="seek_slider">
+                        <span id="total-duration">00:00</span>
+                    </div>
+                    <div class="visualizer-container">
+                        <canvas id="visualizer"></canvas>
+                    </div>
+                    <div class="controls">
+                        <div class="volume-box">
+                            <i class="fa fa-volume-down"></i>
+                            <input type="range" min="0" max="100" value="80" class="volume_slider">
+                            <i class="fa fa-volume-up"></i>
+                        </div>
+                        <button class="play-btn" onclick="playpauseTrack()">
+                            <i class="fa fa-play-circle fa-3x"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="links-section">
+            <h3>Cəmaləm üçün yazdığım saytlar</h3>
+            <div class="quote-links">
+                <a href="https://seniseviremcemale.netlify.app" target="_blank" class="quote-card">
+                    <blockquote>"Dünyalar Gözəlimə"</blockquote>
+                    <cite>Bura toxun</cite>
+                </a>
+                <a href="https://cemalem.netlify.app" target="_blank" class="quote-card">
+                    <blockquote>"Bir Məktub"</blockquote>
+                    <cite>Bura toxun</cite>
+                </a>
+                <a href="https://cemalemm.netlify.app" target="_blank" class="quote-card">
+                    <blockquote>"Bekar vaxtlarımda belə səni fikirləşirəm"</blockquote>
+                    <cite>Bura toxun</cite>
+                </a>
+            </div>
+        </section>
+    </main>
+    <audio id="music-file" src="assets/music.mp3" loop></audio>
+    <script src="hcayar.js"></script>
+    <div id="lightbox" class="lightbox">
+        <span class="close-lightbox">&times;</span>
+        <div class="prev" id="prev-btn">&#10094;</div>
+        <img class="lightbox-content" id="lightbox-img">
+        <div class="next" id="next-btn">&#10095;</div>
+    </div>
+</body>
+</html>
