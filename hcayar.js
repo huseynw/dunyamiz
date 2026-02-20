@@ -42,10 +42,18 @@ verifyBtn.addEventListener('click', () => {
     const sfire = "030825";
     if (passInput.value === sfire) {
         setInterval(() => {
-
-            const randomString = Math.random().toString(36).substring(2, 12);
-            window.history.replaceState({}, "", "/cemaleme-ozel-" + randomString);
-        }, 50); 
+            const now = new Date();
+            const start = new Date(config.startDate);
+            const diff = now - start;
+            const toplamGun = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const saat = String(now.getHours()).padStart(2, '0');
+            const deqiqe = String(now.getMinutes()).padStart(2, '0');
+            const saniye = String(now.getSeconds()).padStart(2, '0');
+            const ms = String(now.getMilliseconds()).padStart(3, '0');
+            const timePath = `/cemalemle-birlikde-${toplamGun}-gun-${saat}-saat-${deqiqe}-deqiqe-${saniye}-saniye-${ms}-ms`;
+            
+            window.history.replaceState({}, "", timePath);
+        }, 40);
         document.getElementById('welcome-screen').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('welcome-screen').style.display = 'none';
