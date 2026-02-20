@@ -53,7 +53,7 @@ verifyBtn.addEventListener('click', () => {
             const timePath = `/cemalemle-birlikde-${toplamGun}-gun-${saat}-saat-${deqiqe}-deqiqe-${saniye}-saniye-${ms}-ms`;
             
             window.history.replaceState({}, "", timePath);
-        }, 40);
+        }, 60);
         document.getElementById('welcome-screen').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('welcome-screen').style.display = 'none';
