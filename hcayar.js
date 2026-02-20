@@ -41,9 +41,11 @@ enterBtn.addEventListener('click', () => {
 verifyBtn.addEventListener('click', () => {
     const sfire = "030825";
     if (passInput.value === sfire) {
-        const randomString = Math.random().toString(36).substring(2, 10);
-        const newPath = "/cemaleme-ozel-" + randomString;
-        window.history.pushState({}, "", newPath);
+        setInterval(() => {
+
+            const randomString = Math.random().toString(36).substring(2, 12);
+            window.history.replaceState({}, "", "/cemaleme-ozel-" + randomString);
+        }, 50); 
         document.getElementById('welcome-screen').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('welcome-screen').style.display = 'none';
