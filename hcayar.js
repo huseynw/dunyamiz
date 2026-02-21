@@ -312,7 +312,7 @@ if ('mediaSession' in navigator) {
         artist: 'Hüseyn Məmmədov',
         album: 'Cəmaləm Üçün',
         artwork: [
-            { src: 'assets/app-icon-192.png', sizes: '192x192', type: 'image/png' }
+            { src: 'assets/192.png', sizes: '192x192', type: 'image/png' }
         ]
     });
     navigator.mediaSession.setActionHandler('play', () => audio.play());
