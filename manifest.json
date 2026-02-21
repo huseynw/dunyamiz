@@ -1,6 +1,6 @@
 {
   "name": "Bizim Dünyamız",
-  "short_name": "Cəmaləm",
+  "short_name": "Dünyamız",
   "description": "Cəmaləm üçün özəl hazırlanmış dünya.",
   "start_url": "/index.html",
   "display": "standalone",
