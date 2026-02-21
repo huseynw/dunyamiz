@@ -304,7 +304,7 @@ if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
         title: config.musicTitle,
         artist: 'Hüseyn Məmmədov',
-        album: 'Cəmaləm Üçün',
+        album: 'Gözlərin dəydi gözümə',
         artwork: [
             { src: 'assets/192.png', sizes: '192x192', type: 'image/png' }
         ]
