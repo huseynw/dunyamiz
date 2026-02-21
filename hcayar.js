@@ -282,16 +282,23 @@ const targetDate = new Date("2026-02-15T13:00:00");
 function updateMeetingTimer() {
     const now = new Date();
     const diff = targetDate - now;
-    const options = { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' };
-    document.getElementById('next-meeting-date').innerText = "Görüş vaxtı: " + targetDate.toLocaleDateString('az-AZ', options);
+    const aylar = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
+    const gun = targetDate.getDate();
+    const ayAdı = aylar[targetDate.getMonth()];
+    const saat = String(targetDate.getHours()).padStart(2, '0');
+    const deqiqe = String(targetDate.getMinutes()).padStart(2, '0');
+    const formatliTarix = `${gun} ${ayAdı} saat ${saat}:${deqiqe}`;
+    document.getElementById('next-meeting-date').innerText = "Görüş vaxtı: " + formatliTarix;
+
     if (diff <= 0) {
-        document.querySelector('.meeting-timer h3').innerText = "Növbəti Görüş: Bilinmir";
+        document.querySelector('.meeting-timer h3').innerText = "Görüş vaxtı gəldi!";
         return;
     }
     const d = Math.floor(diff / (1000 * 60 * 60 * 24));
     const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const s = Math.floor((diff % (1000 * 60)) / 1000);
+
     document.getElementById('meet-days').innerText = d < 10 ? "0" + d : d;
     document.getElementById('meet-hours').innerText = h < 10 ? "0" + h : h;
     document.getElementById('meet-minutes').innerText = m < 10 ? "0" + m : m;
@@ -299,3 +306,21 @@ function updateMeetingTimer() {
 }
 setInterval(updateMeetingTimer, 1000);
 updateMeetingTimer();
+if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: config.musicTitle,
+        artist: 'Hüseyn Məmmədov',
+        album: 'Cəmaləm Üçün',
+        artwork: [
+            { src: 'assets/app-icon-192.png', sizes: '192x192', type: 'image/png' }
+        ]
+    });
+    navigator.mediaSession.setActionHandler('play', () => audio.play());
+    navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+}
+
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && isPlaying) {
+        audio.play().catch(e => console.log("Yenidən başlatma cəhdi..."));
+    }
+});
