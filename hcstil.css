@@ -525,3 +525,12 @@ blockquote { font-style: italic; font-size: 1.1rem; margin-bottom: 8px; }
     font-weight: 300;
     letter-spacing: 0.5px;
 }
+.counter-section h2 {
+    font-family: 'Great Vibes', cursive;
+    font-size: 3rem; /* Font əlyazma olduğu üçün bir az böyük olması daha qəşəng görünür */
+    color: #ff4d6d;  /* Sənin ana rəngin */
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 400; /* Great Vibes üçün standart çəki */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* Yüngül kölge yazını daha oxunaqlı edir */
+}
