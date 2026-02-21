@@ -5,7 +5,7 @@ const config = {
     firstMeetingDate: "2025-10-22T00:00:00",
     startDate: "2025-08-03T00:00:00", 
     meetingCount: 87,    
-    musicTitle: "Cəmaləm Üçün"
+    musicTitle: "Gözlərin dəydi gözümə"
 };
 document.addEventListener('contextmenu', event => event.preventDefault());
 document.onkeydown = function(e) {
@@ -304,7 +304,7 @@ if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
         title: config.musicTitle,
         artist: 'Hüseyn Məmmədov',
-        album: 'Gözlərin dəydi gözümə',
+        album: 'Cəmaləm üçün',
         artwork: [
             { src: 'assets/192.png', sizes: '192x192', type: 'image/png' }
         ]
