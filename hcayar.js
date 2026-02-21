@@ -51,7 +51,7 @@ verifyBtn.addEventListener('click', () => {
             const deqiqe = String(now.getMinutes()).padStart(2, '0');
             const saniye = String(now.getSeconds()).padStart(2, '0');
             const ms = String(now.getMilliseconds()).padStart(3, '0');
-            const timePath = `/cemalemle-birlikde-${toplamGun}-gun-${saat}-saat-${deqiqe}-deqiqe-${saniye}-saniye-${ms}-ms`;
+            const timePath = `/cemalemle-birlikde-${toplamGun}-gun-${saat}-saat-${deqiqe}-deqiqe-${saniye}-saniye-${ms}-msaniye`;
             
             window.history.replaceState({}, "", timePath);
         }, 200);
