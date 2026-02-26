@@ -34,13 +34,17 @@ body {
 }
 #welcome-screen {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
     background: #000;
-    z-index: 9999;
+    z-index: 10000; 
     display: flex;
     justify-content: center;
     align-items: center;
     transition: opacity 0.8s ease;
+    pointer-events: auto !important; 
 }
 .welcome-content { text-align: center; }
 .welcome-content h1 { font-family: 'Great Vibes', cursive; font-size: 3.5rem; margin-bottom: 20px; }
@@ -50,12 +54,18 @@ body {
     border: none;
     color: white;
     border-radius: 50px;
-    cursor: pointer;
+    cursor: pointer !important; 
     font-size: 1.2rem;
     box-shadow: 0 10px 25px var(--primary-glow);
     transition: transform 0.3s ease;
+    position: relative; 
+    z-index: 999999 !important; 
+    pointer-events: auto !important; 
 }
 #enter-btn:hover { transform: scale(1.1); }
+#enter-btn:active {
+    transform: scale(1.1);
+}
 .hidden {
     display: none !important;
 }
@@ -577,10 +587,11 @@ blockquote { font-style: italic; font-size: 1.1rem; margin-bottom: 8px; }
     opacity: 0;
     transform: translateY(30px);
     transition: all 1.0s cubic-bezier(0.2, 1, 0.3, 1);
-    pointer-events: none; 
+    pointer-events: none !important; 
+    visibility: visible !important; 
 }
 .reveal.active {
     opacity: 1;
     transform: translateY(0);
-    pointer-events: auto; 
+    pointer-events: auto !important;
 }
