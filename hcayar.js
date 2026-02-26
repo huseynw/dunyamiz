@@ -272,7 +272,7 @@ function initVisualizer(audioElement) {
         console.error("Vizualizator xətası:", e);
     }
 }
-const targetDate = new Date("2026-02-15T13:00:00"); 
+const targetDate = new Date("2026-02-28T13:00:00"); 
 function updateMeetingTimer() {
     const now = new Date();
     const diff = targetDate - now;
