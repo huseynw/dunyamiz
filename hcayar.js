@@ -34,9 +34,14 @@ const passPanel = document.getElementById('password-panel');
 const verifyBtn = document.getElementById('verify-btn');
 const passInput = document.getElementById('pass-input');
 const errorMsg = document.getElementById('error-msg');
-enterBtn.addEventListener('click', () => {
+enterBtn.style.position = "relative";
+enterBtn.style.zIndex = "9999";
+enterBtn.style.pointerEvents = "auto";
+enterBtn.addEventListener('click', (e) => {
+    console.log("Düymə işləyir!"); 
     enterBtn.style.display = 'none'; 
     passPanel.style.display = 'flex'; 
+    passPanel.classList.remove('hidden');
     passInput.focus();
 });
 verifyBtn.addEventListener('click', () => {
