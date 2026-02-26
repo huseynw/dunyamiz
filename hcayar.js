@@ -34,16 +34,29 @@ const passPanel = document.getElementById('password-panel');
 const verifyBtn = document.getElementById('verify-btn');
 const passInput = document.getElementById('pass-input');
 const errorMsg = document.getElementById('error-msg');
-enterBtn.style.position = "relative";
-enterBtn.style.zIndex = "9999";
-enterBtn.style.pointerEvents = "auto";
-enterBtn.addEventListener('click', (e) => {
-    console.log("Düymə işləyir!"); 
-    enterBtn.style.display = 'none'; 
-    passPanel.style.display = 'flex'; 
-    passPanel.classList.remove('hidden');
-    passInput.focus();
-});
+if (enterBtn) {
+    enterBtn.style.cssText = `
+        position: relative !important;
+        z-index: 999999 !important;
+        pointer-events: auto !important;
+        display: block !important;
+        cursor: pointer !important;
+    `;
+
+    // Klik hadisəsi
+    enterBtn.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log("Düymə işlədi!");
+        
+        enterBtn.style.display = 'none'; 
+        if (passPanel) {
+            passPanel.classList.remove('hidden');
+            passPanel.style.display = 'flex';
+            if (passInput) passInput.focus();
+        }
+    };
+}
 verifyBtn.addEventListener('click', () => {
     const sfire = "030825";
     if (passInput.value === sfire) {
