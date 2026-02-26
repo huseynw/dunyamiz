@@ -28,7 +28,7 @@
 </head>
 <body>
     <div id="welcome-screen">
-        <div class="welcome-content" style="position: relative; z-index: 100000;">
+        <div class="welcome-content">
             <div class="rose-wrapper">
                 <div class="rose-flower">
                     <div class="flower-pot">
@@ -56,7 +56,7 @@
         </div>
     </div>
     <main id="main-content" class="hidden">
-        <header class="reveal">
+        <header class="animate-item delay-1">
             <div class="logo-container">
                 <span class="letter">H</span>
                 <div class="infinity-wrapper">
@@ -71,7 +71,7 @@
                 <p id="live-clock"></p>
             </div>
         </header>
-        <section class="counter-section reveal">
+        <section class="counter-section animate-item delay-2">
             <h2>Birlikdə keçən zaman</h2>
             <div id="timer" class="timer-grid">
                 <div class="time-box"><span id="days">0</span><label>Gün</label></div>
@@ -86,7 +86,7 @@
                 <i class="fas fa-calendar-check"></i> İlk görüş: <span> 22.10.2025 </span>
             </div>
         </section>
-        <section class="meeting-section reveal">
+        <section class="meeting-section animate-item delay-3">
             <div class="counter-section meeting-timer">
                 <h3>Növbəti Görüşümüzə Qalan Vaxt:</h3>
                 <p id="next-meeting-date" class="meeting-date-text"></p> 
@@ -110,13 +110,13 @@
                 </div>
             </div>
         </section>
-        <section class="gallery-section reveal">
+        <section class="gallery-section animate-item delay-4">
             <h3>Qaleryamız</h3>
             <p class="hint">Şəkillərə baxmaq üçün toxun</p>
             <div class="stacked-gallery" id="gallery-stack">
                 </div>
         </section>
-        <section class="letters-section reveal">
+        <section class="letters-section animate-item delay-5">
             <h3>Məni hiss etdiyində...</h3>
             <div class="envelopes-grid">
                 <div class="envelope" onclick="openLetter('miss')">
@@ -147,7 +147,7 @@
         <div class="love-switcher">
             <span id="changing-love">Səni sevirəm</span> <span style="color: #ff4d6d;">🤍</span>
         </div>
-        <section class="music-player reveal">
+        <section class="music-player animate-item delay-6">
             <div class="player-card">
                 <div class="cover-art">
                     <img src="assets/music-cover.jpg" alt="Cover" id="track-art">
@@ -175,7 +175,7 @@
                 </div>
             </div>
         </section>
-        <section class="links-section reveal">
+        <section class="links-section" animated-item delay-7>
             <h3>Cəmaləm üçün yazdığım saytlar</h3>
             <div class="quote-links">
                 <a href="https://seniseviremcemale.netlify.app" target="_blank" class="quote-card">
