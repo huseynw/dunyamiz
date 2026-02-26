@@ -566,7 +566,7 @@ blockquote { font-style: italic; font-size: 1.1rem; margin-bottom: 8px; }
     transform: translateY(20px);
     transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1); 
 }
-.main-active .animate-item {
+.animate-start .animate-item {
     opacity: 1;
     transform: translateY(0);
 }
