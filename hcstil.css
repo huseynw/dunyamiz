@@ -571,3 +571,14 @@ blockquote { font-style: italic; font-size: 1.1rem; margin-bottom: 8px; }
     opacity: 1;
     transform: translateY(0);
 }
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 1.0s cubic-bezier(0.2, 1, 0.3, 1);
+    pointer-events: none; 
+}
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto; 
+}
