@@ -527,10 +527,34 @@ blockquote { font-style: italic; font-size: 1.1rem; margin-bottom: 8px; }
 }
 .counter-section h2 {
     font-family: 'Great Vibes', cursive;
-    font-size: 3rem; /* Font əlyazma olduğu üçün bir az böyük olması daha qəşəng görünür */
-    color: #ff4d6d;  /* Sənin ana rəngin */
+    font-size: 3rem; 
+    color: #ff4d6d;  
     text-align: center;
     margin-bottom: 20px;
-    font-weight: 400; /* Great Vibes üçün standart çəki */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* Yüngül kölge yazını daha oxunaqlı edir */
+    font-weight: 400; 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); 
+}
+.greeting-box {
+    text-align: center;
+    padding: 20px 10px;
+    margin-top: 10px;
+}
+
+#dynamic-greeting {
+    font-family: 'Great Vibes', cursive;
+    font-size: 3rem;
+    color: white;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 8px rgba(255, 77, 109, 0.5);
+}
+
+#live-clock {
+    font-family: 'Poppins', sans-serif; 
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 77, 109, 0.15);
+    display: inline-block;
+    padding: 6px 15px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 77, 109, 0.3);
 }
