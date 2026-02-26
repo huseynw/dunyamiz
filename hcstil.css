@@ -56,7 +56,9 @@ body {
     transition: transform 0.3s ease;
 }
 #enter-btn:hover { transform: scale(1.1); }
-.hidden { display: none; }
+.hidden {
+    display: none !important;
+}
 main {
     max-width: 800px;
     margin: 0 auto;
