@@ -58,7 +58,8 @@ verifyBtn.addEventListener('click', () => {
         document.getElementById('welcome-screen').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('welcome-screen').style.display = 'none';
-            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('main-content').classList.remove('hidden');\
+            setTimeout(scrollReveal, 100);
         }, 800);
         fetchImages();
         if (audio) {
@@ -351,3 +352,15 @@ function updateDynamicContent() {
 }
 setInterval(updateDynamicContent, 1000);
 updateDynamicContent();
+function scrollReveal() {
+    const reveals = document.querySelectorAll(".reveal");
+    const windowHeight = window.innerHeight;
+    reveals.forEach(element => {
+        const elementTop = element.getBoundingClientRect().top;
+        const elementVisible = 100;
+        if (elementTop < windowHeight - elementVisible) {
+            element.classList.add("active");
+        }
+    });
+}
+window.addEventListener("scroll", scrollReveal);
