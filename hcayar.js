@@ -333,16 +333,20 @@ function updateDynamicContent() {
     }
     const greetingElement = document.getElementById("dynamic-greeting");
     if (greetingElement) {
-        greetingElement.innerHTML = greeting + ", Cəmaləm <span style='color: #ff4d6d;'>🤍</span>";
+        greetingElement.innerHTML = greeting + ", Cəmaləm! <span style='color: #ff4d6d;'>🤍</span>";
     }
     const minute = String(now.getMinutes()).padStart(2, '0');
     const second = String(now.getSeconds()).padStart(2, '0');
     const timeString = `${String(hour).padStart(2, '0')}:${minute}:${second}`;
     const aylar = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
-    const dateString = `${now.getDate()} ${aylar[now.getMonth()]} ${now.getFullYear()}`;
+    const gunler = ["Bazar", "Bazar ertəsi", "Çərşənbə axşamı", "Çərşənbə", "Cümə axşamı", "Cümə", "Şənbə"];
+    const gunAdi = gunler[now.getDay()];
+    const ayGun = now.getDate();
+    const ayAdi = aylar[now.getMonth()];
+    const il = now.getFullYear();
     const clockElement = document.getElementById("live-clock");
     if (clockElement) {
-        clockElement.innerText = `${timeString} | ${dateString}`;
+        clockElement.innerText = `${timeString} | ${gunAdi}, ${ayGun} ${ayAdi} ${il}`;
     }
 }
 setInterval(updateDynamicContent, 1000);
