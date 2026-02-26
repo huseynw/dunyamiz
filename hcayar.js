@@ -58,7 +58,11 @@ verifyBtn.addEventListener('click', () => {
         document.getElementById('welcome-screen').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('welcome-screen').style.display = 'none';
-            document.getElementById('main-content').classList.remove('hidden');
+            const mainContent = document.getElementById('main-content');
+            mainContent.classList.remove('hidden');
+            setTimeout(() => {
+                mainContent.classList.add('animate-start');
+            }, 100);
         }, 800);
         fetchImages();
         if (audio) {
