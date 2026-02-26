@@ -1,4 +1,4 @@
-
+const targetDate = new Date("2026-03-01T13:00:00"); 
 const config = {
     githubUsername: "huseynw", 
     repoName: "dunyamiz",              
@@ -280,7 +280,6 @@ function initVisualizer(audioElement) {
         console.error("Vizualizator xətası:", e);
     }
 }
-const targetDate = new Date("2026-03-08T13:00:00"); 
 function updateMeetingTimer() {
     const now = new Date();
     const diff = targetDate - now;
