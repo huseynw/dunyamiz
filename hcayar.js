@@ -318,3 +318,32 @@ document.addEventListener("visibilitychange", () => {
         audio.play().catch(e => console.log("Yenidən başlatma cəhdi..."));
     }
 });
+function updateDynamicContent() {
+    const now = new Date();
+    const hour = now.getHours();
+    let greeting = "";
+    if (hour >= 5 && hour < 12) {
+        greeting = "Sabahın xeyir";
+    } else if (hour >= 12 && hour < 18) {
+        greeting = "Günortan xeyir";
+    } else if (hour >= 18 && hour < 23) {
+        greeting = "Axşamın xeyir";
+    } else {
+        greeting = "Gecən xeyirə qalsın";
+    }
+    const greetingElement = document.getElementById("dynamic-greeting");
+    if (greetingElement) {
+        greetingElement.innerHTML = greeting + ", Cəmaləm <span style='color: #ff4d6d;'>🤍</span>";
+    }
+    const minute = String(now.getMinutes()).padStart(2, '0');
+    const second = String(now.getSeconds()).padStart(2, '0');
+    const timeString = `${String(hour).padStart(2, '0')}:${minute}:${second}`;
+    const aylar = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
+    const dateString = `${now.getDate()} ${aylar[now.getMonth()]} ${now.getFullYear()}`;
+    const clockElement = document.getElementById("live-clock");
+    if (clockElement) {
+        clockElement.innerText = `${timeString} | ${dateString}`;
+    }
+}
+setInterval(updateDynamicContent, 1000);
+updateDynamicContent();
