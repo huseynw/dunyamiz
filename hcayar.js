@@ -34,29 +34,11 @@ const passPanel = document.getElementById('password-panel');
 const verifyBtn = document.getElementById('verify-btn');
 const passInput = document.getElementById('pass-input');
 const errorMsg = document.getElementById('error-msg');
-if (enterBtn) {
-    enterBtn.style.cssText = `
-        position: relative !important;
-        z-index: 999999 !important;
-        pointer-events: auto !important;
-        display: block !important;
-        cursor: pointer !important;
-    `;
-
-    // Klik hadisəsi
-    enterBtn.onclick = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log("Düymə işlədi!");
-        
-        enterBtn.style.display = 'none'; 
-        if (passPanel) {
-            passPanel.classList.remove('hidden');
-            passPanel.style.display = 'flex';
-            if (passInput) passInput.focus();
-        }
-    };
-}
+enterBtn.addEventListener('click', () => {
+    enterBtn.style.display = 'none'; 
+    passPanel.style.display = 'flex'; 
+    passInput.focus();
+});
 verifyBtn.addEventListener('click', () => {
     const sfire = "030825";
     if (passInput.value === sfire) {
@@ -76,8 +58,7 @@ verifyBtn.addEventListener('click', () => {
         document.getElementById('welcome-screen').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('welcome-screen').style.display = 'none';
-            document.getElementById('main-content').classList.remove('hidden');\
-            setTimeout(scrollReveal, 100);
+            document.getElementById('main-content').classList.remove('hidden');
         }, 800);
         fetchImages();
         if (audio) {
@@ -370,15 +351,3 @@ function updateDynamicContent() {
 }
 setInterval(updateDynamicContent, 1000);
 updateDynamicContent();
-function scrollReveal() {
-    const reveals = document.querySelectorAll(".reveal");
-    const windowHeight = window.innerHeight;
-    reveals.forEach(element => {
-        const elementTop = element.getBoundingClientRect().top;
-        const elementVisible = 100;
-        if (elementTop < windowHeight - elementVisible) {
-            element.classList.add("active");
-        }
-    });
-}
-window.addEventListener("scroll", scrollReveal);
