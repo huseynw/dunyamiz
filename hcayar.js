@@ -333,7 +333,7 @@ function updateDynamicContent() {
     }
     const greetingElement = document.getElementById("dynamic-greeting");
     if (greetingElement) {
-        greetingElement.innerHTML = greeting + ", Cəmaləm! <span style='color: #ff4d6d;'>🤍</span>";
+        greetingElement.innerHTML = greeting + ", Cəmaləm <span style='color: #ff4d6d;'>🤍</span>";
     }
     const minute = String(now.getMinutes()).padStart(2, '0');
     const second = String(now.getSeconds()).padStart(2, '0');
