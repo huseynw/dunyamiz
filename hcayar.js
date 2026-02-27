@@ -17,8 +17,12 @@ const config = {
         }
     });
 })();
-const audio = document.getElementById('music-file');
-const playBtn = document.querySelector('.play-btn');
+const audio = document.getElementById('audio');
+const playPauseBtn = document.getElementById('playPauseBtn');
+const muteBtn = document.getElementById('muteBtn');
+const seekBar = document.getElementById('seekBar');
+const currentTimeEl = document.getElementById('currentTime');
+const durationEl = document.getElementById('duration');
 const seekSlider = document.querySelector('.seek_slider');
 const volumeSlider = document.querySelector('.volume_slider');
 const currTimeText = document.getElementById('curr-time');
@@ -358,3 +362,39 @@ function updateDynamicContent() {
 }
 setInterval(updateDynamicContent, 1000);
 updateDynamicContent();
+function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+audio.addEventListener('loadedmetadata', () => {
+    seekBar.max = Math.floor(audio.duration);
+    durationEl.textContent = formatTime(audio.duration);
+});
+
+audio.addEventListener('timeupdate', () => {
+    seekBar.value = Math.floor(audio.currentTime);
+    currentTimeEl.textContent = formatTime(audio.currentTime);
+});
+
+seekBar.addEventListener('input', () => {
+    audio.currentTime = seekBar.value;
+});
+
+playPauseBtn.addEventListener('click', () => {
+    if (audio.paused) {
+        audio.play();
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    } else {
+        audio.pause();
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+    }
+});
+
+muteBtn.addEventListener('click', () => {
+    audio.muted = !audio.muted;
+    muteBtn.innerHTML = audio.muted
+        ? '<i class="fas fa-volume-mute"></i>'
+        : '<i class="fas fa-volume-up"></i>';
+});
