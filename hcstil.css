@@ -136,45 +136,81 @@ header { text-align: center; margin-bottom: 40px; }
     transform: rotate(0deg) translateY(-10px) scale(1.05);
 }
 .music-player {
-    background: var(--glass);
-    backdrop-filter: blur(20px);
-    border-radius: 30px;
-    padding: 25px;
-    margin-bottom: 50px;
-    border: 1px solid var(--glass-border);
-}
-.player-card {
     display: flex;
     align-items: center;
-    gap: 25px;
+    background: rgba(255, 255, 255, 0.12); /* Sənin saytındakı şüşə effekti ilə uyğunlaşdırıldı */
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    border-radius: 20px;
+    margin: 20px auto;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(255, 77, 109, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 15px;
 }
-.cover-art img {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    border: 3px solid var(--primary);
+
+.song-image {
+    width: 65px;
+    height: 65px;
+    border-radius: 12px;
     object-fit: cover;
-    animation: rotate 12s linear infinite;
-    animation-play-state: paused;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
-.cover-art img.playing { animation-play-state: running; }
-.track-info { flex: 1; }
-.progress-container {
+
+.song-info {
+    flex-grow: 1;
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 15px 0;
+    flex-direction: column;
+    gap: 5px;
+    text-align: left;
 }
-.seek_slider { flex: 1; height: 6px; accent-color: var(--primary); cursor: pointer; }
+
+.song-info h2 {
+    font-size: 1rem !important;
+    font-weight: 600;
+    color: white;
+    margin: 0;
+}
+
 .controls {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 15px;
 }
-.volume-box { display: flex; align-items: center; gap: 10px; }
-.volume_slider { width: 80px; accent-color: #fff; cursor: pointer; }
-.play-btn { background: none; border: none; color: white; cursor: pointer; transition: 0.3s; }
-.play-btn:hover { transform: scale(1.2); color: var(--primary); }
+
+.icon-button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.icon-button:hover {
+    color: var(--primary); /* Saytındakı çəhrayı rəng */
+    transform: scale(1.1);
+}
+
+.progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.progress span {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.8);
+}
+
+#seekBar {
+    flex: 1;
+    height: 4px;
+    cursor: pointer;
+    accent-color: var(--primary);
+}
 .quote-card {
     display: block;
     text-decoration: none;
