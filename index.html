@@ -148,30 +148,22 @@
             <span id="changing-love">Səni sevirəm</span> <span style="color: #ff4d6d;">🤍</span>
         </div>
         <section class="music-player animate-item delay-6">
-            <div class="player-card">
-                <div class="cover-art">
-                    <img src="assets/music-cover.jpg" alt="Cover" id="track-art">
+            <img src="assets/music-cover.jpg" alt="Mahnı şəkli" class="song-image" id="track-art" />
+            <div class="song-info">
+                <h2 id="song-title">Gözlərin dəydi gözümə 🤍</h2>
+                <audio id="audio" preload="metadata">
+                    <source src="assets/music.mp3" type="audio/mpeg" />
+                </audio>
+
+                <div class="controls">
+                    <button id="playPauseBtn" class="icon-button"><i class="fas fa-play"></i></button>
+                    <button id="muteBtn" class="icon-button"><i class="fas fa-volume-up"></i></button>
                 </div>
-                <div class="track-info">
-                    <h4 id="track-name">Gözlərin dəydi gözümə🤍</h4>
-                    <div class="progress-container">
-                        <span id="curr-time">00:00</span>
-                        <input type="range" min="0" max="100" value="0" class="seek_slider">
-                        <span id="total-duration">00:00</span>
-                    </div>
-                    <div class="visualizer-container">
-                        <canvas id="visualizer"></canvas>
-                    </div>
-                    <div class="controls">
-                        <div class="volume-box">
-                            <i class="fa fa-volume-down"></i>
-                            <input type="range" min="0" max="100" value="80" class="volume_slider">
-                            <i class="fa fa-volume-up"></i>
-                        </div>
-                        <button class="play-btn" onclick="playpauseTrack()">
-                            <i class="fa fa-play-circle fa-3x"></i>
-                        </button>
-                    </div>
+
+                <div class="progress">
+                    <span id="currentTime">00:00</span>
+                    <input type="range" id="seekBar" value="0" min="0" step="1">
+                    <span id="duration">00:00</span>
                 </div>
             </div>
         </section>
