@@ -1,4 +1,4 @@
-const targetDate = new Date("2026-03-01T13:00:00"); 
+const targetDate = new Date("2026-03-08T13:00:00"); 
 const config = {
     githubUsername: "huseynw", 
     repoName: "dunyamiz",              
