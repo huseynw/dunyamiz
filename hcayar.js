@@ -398,3 +398,52 @@ muteBtn.addEventListener('click', () => {
         ? '<i class="fas fa-volume-mute"></i>'
         : '<i class="fas fa-volume-up"></i>';
 });
+let holdTimer;
+let power = 0;
+const heartBtn = document.getElementById('hold-heart');
+const percentText = document.getElementById('power-percent');
+const loveBg = document.createElement('div');
+loveBg.className = 'love-active-bg';
+document.body.appendChild(loveBg);
+function startHolding() {
+    holdTimer = setInterval(() => {
+        if (power < 100) {
+            power += 2;
+            updatePower();
+        }
+    }, 50);
+}
+function stopHolding() {
+    clearInterval(holdTimer);
+    const drainTimer = setInterval(() => {
+        if (power > 0) {
+            power -= 4;
+            updatePower();
+        } else {
+            clearInterval(drainTimer);
+        }
+    }, 30);
+}
+function updatePower() {
+    percentText.innerText = power + "%";
+    heartBtn.style.transform = `scale(${1 + (power / 100)})`;
+    loveBg.style.opacity = power / 100;
+    if (power >= 100) {
+        heartBtn.style.filter = `drop-shadow(0 0 30px #ff4d6d)`;
+        percentText.innerText = "Səni Çox Sevirəm 🤍";
+    } else {
+        heartBtn.style.filter = `drop-shadow(0 0 ${power/3}px #ff4d6d)`;
+    }
+}
+
+
+heartBtn.addEventListener('mousedown', startHolding);
+heartBtn.addEventListener('mouseup', stopHolding);
+heartBtn.addEventListener('mouseleave', stopHolding);
+
+heartBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startHolding();
+});
+heartBtn.addEventListener('touchend', stopHolding);
+
