@@ -53,8 +53,7 @@ verifyBtn.addEventListener('click', () => {
         setInterval(() => {
             const randomSimvollar = getRandomString(12);
             const randomSimvollar1 = getRandomString(12);
-            const timePath = `/cemaleme-ozel-${randomSimvollar}-${randomSimvollar1}`;
-            window.history.replaceState(null, "", timePath);
+            window.location.hash = `cemaleme-ozel-${randomSimvollar}-${randomSimvollar1}`;
         }, 40);
         document.getElementById('welcome-screen').style.opacity = '0';
         setTimeout(() => {
