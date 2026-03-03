@@ -51,18 +51,10 @@ verifyBtn.addEventListener('click', () => {
     const sfire = "030825";
     if (passInput.value === sfire) {
         setInterval(() => {
-            const now = new Date();
-            const start = new Date(config.startDate);
-            const diff = now - start;
-            const toplamGun = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const saat = String(now.getHours()).padStart(2, '0');
-            const deqiqe = String(now.getMinutes()).padStart(2, '0');
-            const saniye = String(now.getSeconds()).padStart(2, '0');
-            const ms = String(now.getMilliseconds()).padStart(3, '0');
-            const timePath = `/cemalemle-birlikde-${toplamGun}-gun-${saat}-saat-${deqiqe}-deqiqe-${saniye}-saniye-${ms}-msaniye`;
-            
-            window.history.replaceState({}, "", timePath);
-        }, 200);
+            const randomSimvollar = getRandomString(12); 
+            const timePath = `/cemaleme-ozel-${randomSimvollar}-${randomSimvollar}`;
+            window.history.replaceState(null, "", timePath);
+        }, 40);
         document.getElementById('welcome-screen').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('welcome-screen').style.display = 'none';
@@ -138,6 +130,14 @@ function changeImage(step) {
             lbImg.style.opacity = "1";
         }, 150);
     }
+}
+function getRandomString(length) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
 }
 function openLightbox(index) {
     const lb = document.getElementById('lightbox');
