@@ -133,7 +133,7 @@ function changeImage(step) {
 function getDynamicPath() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const minLen = 8;
-    const maxLen = 25;
+    const maxLen = 60;
     const length = Math.floor(Math.random() * (maxLen - minLen + 1)) + minLen;
     
     let result = '';
