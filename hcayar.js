@@ -52,8 +52,7 @@ verifyBtn.addEventListener('click', () => {
     if (passInput.value === sfire) {
         setInterval(() => {
             const randomSimvollar = getRandomString(12);
-            const randomSimvollar1 = getRandomString(12);
-            window.location.hash = `cemaleme-ozel-${randomSimvollar}-${randomSimvollar1}`;
+            window.location.hash = `cemaleme-ozel-${randomSimvollar}`;
         }, 40);
         document.getElementById('welcome-screen').style.opacity = '0';
         setTimeout(() => {
@@ -131,8 +130,12 @@ function changeImage(step) {
         }, 150);
     }
 }
-function getRandomString(length) {
+function getDynamicPath() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const minLen = 8;
+    const maxLen = 25;
+    const length = Math.floor(Math.random() * (maxLen - minLen + 1)) + minLen;
+    
     let result = '';
     for (let i = 0; i < length; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
