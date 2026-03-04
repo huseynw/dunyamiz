@@ -763,4 +763,24 @@ blockquote { font-style: italic; font-size: 1.1rem; margin-bottom: 8px; }
     opacity: 0;
     transition: opacity 0.3s ease;
 }
-
+.trail-particle {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10001; 
+    box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary-glow);
+    animation: particleFade 1.2s ease-out forwards;
+}
+@keyframes particleFade {
+    0% { transform: scale(1) translateY(0); opacity: 1; }
+    100% { transform: scale(0) translateY(-30px); opacity: 0; }
+}
+.time-box, .music-player, .quote-card, .stack-item {
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+    will-change: transform;
+}
