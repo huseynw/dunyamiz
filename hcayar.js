@@ -443,10 +443,41 @@ function updatePower() {
 heartBtn.addEventListener('mousedown', startHolding);
 heartBtn.addEventListener('mouseup', stopHolding);
 heartBtn.addEventListener('mouseleave', stopHolding);
-
 heartBtn.addEventListener('touchstart', (e) => {
     e.preventDefault();
     startHolding();
 });
 heartBtn.addEventListener('touchend', stopHolding);
-
+function createParticle(x, y) {
+    const p = document.createElement('div');
+    p.className = 'trail-particle';
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    
+    const size = Math.random() * 7 + 3; 
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1200);
+}
+document.addEventListener('mousemove', (e) => createParticle(e.clientX, e.clientY));
+document.addEventListener('touchmove', (e) => createParticle(e.touches[0].clientX, e.touches[0].clientY));
+const tiltElements = document.querySelectorAll('.time-box, .music-player, .quote-card');
+tiltElements.forEach(el => {
+    el.addEventListener('mousemove', (e) => {
+        const rect = el.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = (centerY - y) / 8;
+        const rotateY = (x - centerX) / 8;
+        el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+        el.style.boxShadow = `0 20px 40px rgba(0,0,0,0.5), 0 0 25px var(--primary-glow)`;
+    });
+    el.addEventListener('mouseleave', () => {
+        el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+        el.style.boxShadow = '';
+    });
+});
