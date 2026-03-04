@@ -51,7 +51,7 @@ verifyBtn.addEventListener('click', () => {
     const sfire = "030825";
     if (passInput.value === sfire) {
         setInterval(() => {
-            const randomSimvollar = getRandomString(12);
+            const randomSimvollar = getDynamicPath();
             window.location.hash = `cemaleme-ozel-${randomSimvollar}`;
         }, 40);
         document.getElementById('welcome-screen').style.opacity = '0';
