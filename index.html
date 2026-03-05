@@ -204,5 +204,26 @@
         <img class="lightbox-content" id="lightbox-img">
         <div class="next" id="next-btn">&#10095;</div>
     </div>
+    <div id="admin-panel" style="display: none;">
+        <div class="admin-content">
+            <span class="close-admin" onclick="document.getElementById('admin-panel').style.display='none'">&times;</span>
+            <h2>Admin Panel ⚙️</h2>   
+            <label>GitHub Token (Bir dəfə daxil et):</label>
+            <input type="password" id="github-token" placeholder="ghp_...">    
+            <hr>
+            <label>Yeni Görüş Tarixi (Məs: 2026-03-08T13:00):</label>
+            <input type="datetime-local" id="admin-date">
+            <label>Görüş Sayı:</label>
+            <input type="number" id="admin-count">
+            <button onclick="updateConfigOnGithub()">Məlumatları Yenilə</button>
+            <hr>
+            <label>Qalereyaya Şəkil Əlavə Et:</label>
+            <input type="file" id="admin-file" accept="image/png, image/jpeg, image/jpg">
+            <button onclick="uploadImageToGithub()">Şəkli Yüklə</button>
+            <hr>
+            <label>Təsdiq Şifrəsi:</label>
+            <input type="password" id="admin-password" placeholder="Şifrəni yaz...">
+        </div>
+    </div>
 </body>
 </html>
