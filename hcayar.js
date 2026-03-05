@@ -500,3 +500,108 @@ allBoxes.forEach(el => {
         el.style.boxShadow = '';
     });
 });
+// --- ADMIN PANEL FUNKSİYALARI ---
+
+let clickCount = 0;
+let clickTimer;
+document.body.addEventListener('click', (e) => {
+    if(e.target.closest('#admin-panel') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+    clickCount++;
+    clearTimeout(clickTimer);
+    if(clickCount === 4) {
+        document.getElementById('admin-panel').style.display = 'flex';
+        const savedToken = localStorage.getItem('hc_gh_token');
+        if(savedToken) document.getElementById('github-token').value = savedToken;
+        clickCount = 0;
+    }
+    clickTimer = setTimeout(() => clickCount = 0, 1000); 
+});
+const decodeB64 = (b64) => decodeURIComponent(escape(atob(b64)));
+const encodeB64 = (str) => btoa(unescape(encodeURIComponent(str)));
+
+function validateAdmin() {
+    const token = document.getElementById('github-token').value;
+    const password = document.getElementById('admin-password').value;
+    
+    if(!token) { alert("GitHub Token daxil edilməlidir!"); return false; }
+    if(password !== "030825") { alert("Şifrə səhvdir!"); return false; }
+    
+    localStorage.setItem('hc_gh_token', token); 
+    return token;
+}
+async function updateConfigOnGithub() {
+    const token = validateAdmin();
+    if(!token) return;
+    const newDate = document.getElementById('admin-date').value;
+    const newCount = document.getElementById('admin-count').value;
+    if(!newDate || !newCount) return alert("Tarix və sayı daxil edin!");
+
+    const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/hcayar.js`;
+    try {
+        const res = await fetch(url, { headers: { Authorization: `token ${token}` } });
+        const fileData = await res.json();
+        let content = decodeB64(fileData.content);
+        content = content.replace(/const targetDate = new Date\("[^"]+"\);/, `const targetDate = new Date("${newDate}:00");`);
+        content = content.replace(/meetingCount: \d+,/, `meetingCount: ${newCount},`);
+        const updateRes = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                Authorization: `token ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: "Admin Paneldən yeniləndi: Görüş vaxtı və sayı",
+                content: encodeB64(content),
+                sha: fileData.sha
+            })
+        });
+        if(updateRes.ok) {
+            alert("Uğurla yeniləndi! Saytın Netlify-da yenidən deploy olması bir neçə dəqiqə çəkə bilər.");
+            document.getElementById('admin-panel').style.display = 'none';
+        } else {
+            alert("Xəta baş verdi. Tokeni və ya icazələri yoxla.");
+        }
+    } catch(err) {
+        console.error(err);
+        alert("Server ilə əlaqə qurula bilmədi!");
+    }
+}
+async function uploadImageToGithub() {
+    const token = validateAdmin();
+    if(!token) return;
+    const fileInput = document.getElementById('admin-file');
+    if(fileInput.files.length === 0) return alert("Zəhmət olmasa bir şəkil seçin!");
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const base64Content = e.target.result.split(',')[1];
+        const fileName = Date.now() + "_" + file.name.replace(/\s+/g, '-');
+        const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery/${fileName}`;
+
+        try {
+            const uploadRes = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    Authorization: `token ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: "Admin Paneldən yeni şəkil əlavə edildi",
+                    content: base64Content
+                })
+            });
+            if(uploadRes.ok) {
+                alert("Şəkil uğurla Qalereyaya əlavə edildi! Netlify dəyişikliyi tezliklə sayta tətbiq edəcək.");
+                document.getElementById('admin-panel').style.display = 'none';
+                fileInput.value = "";
+            } else {
+                alert("Xəta baş verdi. Repo adını və tokeni yoxlayın.");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Şəkil yüklənərkən xəta yarandı.");
+        }
+    };
+    
+    reader.readAsDataURL(file);
+}
