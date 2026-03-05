@@ -207,22 +207,25 @@
     <div id="admin-panel" style="display: none;">
         <div class="admin-content">
             <span class="close-admin" onclick="document.getElementById('admin-panel').style.display='none'">&times;</span>
-            <h2>Admin Panel ⚙️</h2>   
-            <label>GitHub Token (Bir dəfə daxil et):</label>
-            <input type="password" id="github-token" placeholder="ghp_...">    
+            <h2>Admin Panel ⚙️</h2>
+            <div class="input-group">
+                <label>Görüş Tarixi:</label>
+                <input type="datetime-local" id="admin-date">
+                <label>Görüş Sayı:</label>
+                <input type="number" id="admin-count">
+                <button onclick="handleAdminUpdate('update_config')">Məlumatları Yenilə</button>
+            </div>
             <hr>
-            <label>Yeni Görüş Tarixi (Məs: 2026-03-08T13:00):</label>
-            <input type="datetime-local" id="admin-date">
-            <label>Görüş Sayı:</label>
-            <input type="number" id="admin-count">
-            <button onclick="updateConfigOnGithub()">Məlumatları Yenilə</button>
+            <div class="input-group">
+                <label>Qalereyaya Şəkil:</label>
+                <input type="file" id="admin-file" accept="image/*">
+                <button onclick="handleAdminUpdate('upload_image')">Şəkli Yüklə</button>
+            </div>
             <hr>
-            <label>Qalereyaya Şəkil Əlavə Et:</label>
-            <input type="file" id="admin-file" accept="image/png, image/jpeg, image/jpg">
-            <button onclick="uploadImageToGithub()">Şəkli Yüklə</button>
-            <hr>
-            <label>Təsdiq Şifrəsi:</label>
-            <input type="password" id="admin-password" placeholder="Şifrəni yaz...">
+            <div class="input-group">
+                <label>Təsdiq Şifrəsi:</label>
+                <input type="password" id="admin-password" placeholder="Şifrə...">
+            </div>
         </div>
     </div>
 </body>
