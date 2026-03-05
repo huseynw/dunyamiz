@@ -500,123 +500,54 @@ allBoxes.forEach(el => {
         el.style.boxShadow = '';
     });
 });
-// --- ADMIN PANEL LOGIC ---
+// --- ADMİN PANEL  ---
 
-let bgClickCount = 0;
-let bgClickTimer;
+const toB64 = (str) => btoa(unescape(encodeURIComponent(str)));
+async function handleAdminUpdate(type) {
+    const password = document.getElementById('admin-password').value;
+    if (!password) return alert("Şifrəni daxil et!");
+    let payload = {};
+    if (type === 'update_config') {
+        const newDate = document.getElementById('admin-date').value;
+        const newCount = document.getElementById('admin-count').value;
+        if (!newDate && !newCount) return alert("Dəyişiklik yoxdur!");
+        const currentFileRes = await fetch(`https://api.github.com/repos/huseynw/dunyamiz/contents/hcayar.js`);
+        const currentFileData = await currentFileRes.json();
+        let content = decodeURIComponent(escape(atob(currentFileData.content)));
 
-// Arxa fona 4 dəfə basanda açılması
-document.body.addEventListener('click', (e) => {
-    if (e.target.closest('.admin-content') || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
-    
-    bgClickCount++;
-    clearTimeout(bgClickTimer);
-    
-    if (bgClickCount === 4) {
-        document.getElementById('admin-panel').style.display = 'flex';
-        const savedToken = localStorage.getItem('hc_gh_token');
-        if (savedToken) document.getElementById('github-token').value = savedToken;
-        bgClickCount = 0;
-    }
-    
-    bgClickTimer = setTimeout(() => bgClickCount = 0, 1000);
-});
+        if (newDate) content = content.replace(/const targetDate = new Date\("[^"]+"\);/, `const targetDate = new Date("${newDate}:00");`);
+        if (newCount) content = content.replace(/meetingCount: \d+,/, `meetingCount: ${newCount},`);
 
-// Yardımçı funksiyalar
-const b64EncodeUnicode = (str) => btoa(unescape(encodeURIComponent(str)));
-const b64DecodeUnicode = (str) => decodeURIComponent(escape(atob(str)));
+        payload = { path: "hcayar.js", content: toB64(content) };
+    } 
+    else if (type === 'upload_image') {
+        const fileInput = document.getElementById('admin-file');
+        const file = fileInput.files[0];
+        if (!file) return alert("Şəkil seçin!");
 
-function getAdminAuth() {
-    const token = document.getElementById('github-token').value;
-    const pass = document.getElementById('admin-password').value;
-    
-    if (!token) { alert("GitHub Token yazılmayıb!"); return null; }
-    if (pass !== "030825") { alert("Şifrə səhvdir!"); return null; }
-    
-    localStorage.setItem('hc_gh_token', token);
-    return token;
-}
-
-// 1. Məlumatları Yeniləmə (Tarix və ya Say)
-async function updateConfigOnGithub() {
-    const token = getAdminAuth();
-    if (!token) return;
-
-    const newDate = document.getElementById('admin-date').value;
-    const newCount = document.getElementById('admin-count').value;
-
-    if (!newDate && !newCount) return alert("Heç bir məlumat daxil edilməyib!");
-
-    const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/hcayar.js`;
-
-    try {
-        const res = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
-        const data = await res.json();
-        let content = b64DecodeUnicode(data.content);
-
-        if (newDate) {
-            content = content.replace(/const targetDate = new Date\("[^"]+"\);/, `const targetDate = new Date("${newDate}:00");`);
-        }
-        if (newCount) {
-            content = content.replace(/meetingCount: \d+,/, `meetingCount: ${newCount},`);
-        }
-
-        const updateRes = await fetch(url, {
-            method: 'PUT',
-            headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                message: "Admin: Tarix/Say yeniləndi",
-                content: b64EncodeUnicode(content),
-                sha: data.sha
-            })
+        const base64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result.split(',')[1]);
+            reader.readAsDataURL(file);
         });
-
-        if (updateRes.ok) {
-            alert("Uğurla yeniləndi! Sayt 1 dəqiqəyə dəyişəcək.");
+        payload = { 
+            path: `gallery/${Date.now()}_${file.name.replace(/\s+/g, '_')}`, 
+            content: base64 
+        };
+    }
+    try {
+        const response = await fetch('/.netlify/functions/admin-proxy', {
+            method: 'POST',
+            body: JSON.stringify({ type, password, payload })
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert("Uğurla yerinə yetirildi! Sayt tezliklə yenilənəcək.");
             location.reload();
         } else {
-            alert("GitHub xətası! Tokeni yoxlayın.");
+            alert("Xəta: " + (result.error || "Bilinməyən xəta"));
         }
     } catch (err) {
-        alert("Bağlantı xətası!");
+        alert("Server bağlantısı uğursuz oldu.");
     }
-}
-
-// 2. Şəkil Yükləmə (Galery folderinə)
-async function uploadImageToGithub() {
-    const token = getAdminAuth();
-    if (!token) return;
-
-    const fileInput = document.getElementById('admin-file');
-    if (!fileInput.files[0]) return alert("Şəkil seçilməyib!");
-
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-
-    reader.onload = async (e) => {
-        const base64Content = e.target.result.split(',')[1];
-        const fileName = `gallery/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-        const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/${fileName}`;
-
-        try {
-            const res = await fetch(url, {
-                method: 'PUT',
-                headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message: "Admin: Yeni şəkil əlavə edildi",
-                    content: base64Content
-                })
-            });
-
-            if (res.ok) {
-                alert("Şəkil qalereyaya əlavə edildi!");
-                location.reload();
-            } else {
-                alert("Yükləmə alınmadı.");
-            }
-        } catch (err) {
-            alert("Xəta!");
-        }
-    };
-    reader.readAsDataURL(file);
 }
