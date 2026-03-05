@@ -780,6 +780,19 @@ blockquote { font-style: italic; font-size: 1.1rem; margin-bottom: 8px; }
     0% { transform: scale(1) translateY(0); opacity: 1; }
     100% { transform: scale(0) translateY(-30px); opacity: 0; }
 }
+.time-box, 
+.counter-section, 
+.music-player, 
+.quote-card, 
+.stacked-gallery {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    will-change: transform;
+    cursor: pointer;
+}
+.time-box span {
+    transform: translateZ(20px);
+    display: block;
+}
 .time-box, .music-player, .quote-card, .stack-item {
     transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
     will-change: transform;
