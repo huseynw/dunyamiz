@@ -500,108 +500,123 @@ allBoxes.forEach(el => {
         el.style.boxShadow = '';
     });
 });
-// --- ADMIN PANEL FUNKSİYALARI ---
+// --- ADMIN PANEL LOGIC ---
 
-let clickCount = 0;
-let clickTimer;
+let bgClickCount = 0;
+let bgClickTimer;
+
+// Arxa fona 4 dəfə basanda açılması
 document.body.addEventListener('click', (e) => {
-    if(e.target.closest('#admin-panel') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
-    clickCount++;
-    clearTimeout(clickTimer);
-    if(clickCount === 4) {
+    if (e.target.closest('.admin-content') || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+    
+    bgClickCount++;
+    clearTimeout(bgClickTimer);
+    
+    if (bgClickCount === 4) {
         document.getElementById('admin-panel').style.display = 'flex';
         const savedToken = localStorage.getItem('hc_gh_token');
-        if(savedToken) document.getElementById('github-token').value = savedToken;
-        clickCount = 0;
+        if (savedToken) document.getElementById('github-token').value = savedToken;
+        bgClickCount = 0;
     }
-    clickTimer = setTimeout(() => clickCount = 0, 1000); 
+    
+    bgClickTimer = setTimeout(() => bgClickCount = 0, 1000);
 });
-const decodeB64 = (b64) => decodeURIComponent(escape(atob(b64)));
-const encodeB64 = (str) => btoa(unescape(encodeURIComponent(str)));
 
-function validateAdmin() {
+// Yardımçı funksiyalar
+const b64EncodeUnicode = (str) => btoa(unescape(encodeURIComponent(str)));
+const b64DecodeUnicode = (str) => decodeURIComponent(escape(atob(str)));
+
+function getAdminAuth() {
     const token = document.getElementById('github-token').value;
-    const password = document.getElementById('admin-password').value;
+    const pass = document.getElementById('admin-password').value;
     
-    if(!token) { alert("GitHub Token daxil edilməlidir!"); return false; }
-    if(password !== "030825") { alert("Şifrə səhvdir!"); return false; }
+    if (!token) { alert("GitHub Token yazılmayıb!"); return null; }
+    if (pass !== "030825") { alert("Şifrə səhvdir!"); return null; }
     
-    localStorage.setItem('hc_gh_token', token); 
+    localStorage.setItem('hc_gh_token', token);
     return token;
 }
+
+// 1. Məlumatları Yeniləmə (Tarix və ya Say)
 async function updateConfigOnGithub() {
-    const token = validateAdmin();
-    if(!token) return;
+    const token = getAdminAuth();
+    if (!token) return;
+
     const newDate = document.getElementById('admin-date').value;
     const newCount = document.getElementById('admin-count').value;
-    if(!newDate || !newCount) return alert("Tarix və sayı daxil edin!");
+
+    if (!newDate && !newCount) return alert("Heç bir məlumat daxil edilməyib!");
 
     const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/hcayar.js`;
+
     try {
-        const res = await fetch(url, { headers: { Authorization: `token ${token}` } });
-        const fileData = await res.json();
-        let content = decodeB64(fileData.content);
-        content = content.replace(/const targetDate = new Date\("[^"]+"\);/, `const targetDate = new Date("${newDate}:00");`);
-        content = content.replace(/meetingCount: \d+,/, `meetingCount: ${newCount},`);
+        const res = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+        const data = await res.json();
+        let content = b64DecodeUnicode(data.content);
+
+        if (newDate) {
+            content = content.replace(/const targetDate = new Date\("[^"]+"\);/, `const targetDate = new Date("${newDate}:00");`);
+        }
+        if (newCount) {
+            content = content.replace(/meetingCount: \d+,/, `meetingCount: ${newCount},`);
+        }
+
         const updateRes = await fetch(url, {
             method: 'PUT',
-            headers: {
-                Authorization: `token ${token}`,
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                message: "Admin Paneldən yeniləndi: Görüş vaxtı və sayı",
-                content: encodeB64(content),
-                sha: fileData.sha
+                message: "Admin: Tarix/Say yeniləndi",
+                content: b64EncodeUnicode(content),
+                sha: data.sha
             })
         });
-        if(updateRes.ok) {
-            alert("Uğurla yeniləndi! Saytın Netlify-da yenidən deploy olması bir neçə dəqiqə çəkə bilər.");
-            document.getElementById('admin-panel').style.display = 'none';
+
+        if (updateRes.ok) {
+            alert("Uğurla yeniləndi! Sayt 1 dəqiqəyə dəyişəcək.");
+            location.reload();
         } else {
-            alert("Xəta baş verdi. Tokeni və ya icazələri yoxla.");
+            alert("GitHub xətası! Tokeni yoxlayın.");
         }
-    } catch(err) {
-        console.error(err);
-        alert("Server ilə əlaqə qurula bilmədi!");
+    } catch (err) {
+        alert("Bağlantı xətası!");
     }
 }
+
+// 2. Şəkil Yükləmə (Galery folderinə)
 async function uploadImageToGithub() {
-    const token = validateAdmin();
-    if(!token) return;
+    const token = getAdminAuth();
+    if (!token) return;
+
     const fileInput = document.getElementById('admin-file');
-    if(fileInput.files.length === 0) return alert("Zəhmət olmasa bir şəkil seçin!");
+    if (!fileInput.files[0]) return alert("Şəkil seçilməyib!");
+
     const file = fileInput.files[0];
     const reader = new FileReader();
+
     reader.onload = async (e) => {
         const base64Content = e.target.result.split(',')[1];
-        const fileName = Date.now() + "_" + file.name.replace(/\s+/g, '-');
-        const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery/${fileName}`;
+        const fileName = `gallery/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+        const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/${fileName}`;
 
         try {
-            const uploadRes = await fetch(url, {
+            const res = await fetch(url, {
                 method: 'PUT',
-                headers: {
-                    Authorization: `token ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    message: "Admin Paneldən yeni şəkil əlavə edildi",
+                    message: "Admin: Yeni şəkil əlavə edildi",
                     content: base64Content
                 })
             });
-            if(uploadRes.ok) {
-                alert("Şəkil uğurla Qalereyaya əlavə edildi! Netlify dəyişikliyi tezliklə sayta tətbiq edəcək.");
-                document.getElementById('admin-panel').style.display = 'none';
-                fileInput.value = "";
+
+            if (res.ok) {
+                alert("Şəkil qalereyaya əlavə edildi!");
+                location.reload();
             } else {
-                alert("Xəta baş verdi. Repo adını və tokeni yoxlayın.");
+                alert("Yükləmə alınmadı.");
             }
-        } catch(err) {
-            console.error(err);
-            alert("Şəkil yüklənərkən xəta yarandı.");
+        } catch (err) {
+            alert("Xəta!");
         }
     };
-    
     reader.readAsDataURL(file);
 }
