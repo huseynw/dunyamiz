@@ -1,0 +1,11 @@
+{
+  "name": "dunyamiz-admin-proxy",
+  "version": "1.0.0",
+  "description": "Admin paneli üçün GitHub proxy funksiyası",
+  "main": "index.js",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
