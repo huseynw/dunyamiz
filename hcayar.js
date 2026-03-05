@@ -500,25 +500,42 @@ allBoxes.forEach(el => {
         el.style.boxShadow = '';
     });
 });
-// --- ADMİN PANEL  ---
+// --- ADMIN PANEL AÇILMASI (4 KLİK) ---
+let clicks = 0;
+let clickTimer;
 
-const toB64 = (str) => btoa(unescape(encodeURIComponent(str)));
+window.addEventListener('click', (e) => {
+    // Əgər klik panelin özünə və ya düymələrə dəyibsə sayma
+    if (e.target.closest('.admin-content') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+
+    clicks++;
+    clearTimeout(clickTimer);
+    
+    if (clicks === 4) {
+        document.getElementById('admin-panel').style.display = 'flex';
+        clicks = 0;
+    }
+    
+    clickTimer = setTimeout(() => { clicks = 0; }, 1500); // 1.5 saniyə vaxt veririk
+});
+
+// --- ADMIN ƏMƏLİYYATLARI ---
 async function handleAdminUpdate(type) {
     const password = document.getElementById('admin-password').value;
     if (!password) return alert("Şifrəni daxil et!");
-    let payload = {};
+
+    let requestPayload = { path: "" };
+
     if (type === 'update_config') {
         const newDate = document.getElementById('admin-date').value;
         const newCount = document.getElementById('admin-count').value;
         if (!newDate && !newCount) return alert("Dəyişiklik yoxdur!");
-        const currentFileRes = await fetch(`https://api.github.com/repos/huseynw/dunyamiz/contents/hcayar.js`);
-        const currentFileData = await currentFileRes.json();
-        let content = decodeURIComponent(escape(atob(currentFileData.content)));
-
-        if (newDate) content = content.replace(/const targetDate = new Date\("[^"]+"\);/, `const targetDate = new Date("${newDate}:00");`);
-        if (newCount) content = content.replace(/meetingCount: \d+,/, `meetingCount: ${newCount},`);
-
-        payload = { path: "hcayar.js", content: toB64(content) };
+        
+        requestPayload = { 
+            path: "hcayar.js", 
+            newDate: newDate, 
+            newCount: newCount 
+        };
     } 
     else if (type === 'upload_image') {
         const fileInput = document.getElementById('admin-file');
@@ -530,24 +547,28 @@ async function handleAdminUpdate(type) {
             reader.onload = (e) => resolve(e.target.result.split(',')[1]);
             reader.readAsDataURL(file);
         });
-        payload = { 
+
+        requestPayload = { 
             path: `gallery/${Date.now()}_${file.name.replace(/\s+/g, '_')}`, 
             content: base64 
         };
     }
+
     try {
         const response = await fetch('/.netlify/functions/admin-proxy', {
             method: 'POST',
-            body: JSON.stringify({ type, password, payload })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, password, payload: requestPayload })
         });
+
         const result = await response.json();
         if (result.success) {
-            alert("Uğurla yerinə yetirildi! Sayt tezliklə yenilənəcək.");
+            alert("Uğurla yerinə yetirildi!");
             location.reload();
         } else {
-            alert("Xəta: " + (result.error || "Bilinməyən xəta"));
+            alert("Xəta baş verdi. Şifrəni və ya Netlify loglarını yoxlayın.");
         }
     } catch (err) {
-        alert("Server bağlantısı uğursuz oldu.");
+        alert("Serverə qoşulmaq mümkün olmadı.");
     }
 }
