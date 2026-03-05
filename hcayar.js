@@ -500,37 +500,28 @@ allBoxes.forEach(el => {
         el.style.boxShadow = '';
     });
 });
-// --- ADMIN PANEL AÇILMASI (4 KLİK) ---
+// --- ADMIN PANEL  ---
 let clicks = 0;
 let clickTimer;
-
 window.addEventListener('click', (e) => {
-    // Əgər klik panelin özünə və ya düymələrə dəyibsə sayma
     if (e.target.closest('.admin-content') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
 
     clicks++;
     clearTimeout(clickTimer);
-    
     if (clicks === 4) {
         document.getElementById('admin-panel').style.display = 'flex';
         clicks = 0;
     }
-    
-    clickTimer = setTimeout(() => { clicks = 0; }, 1500); // 1.5 saniyə vaxt veririk
+    clickTimer = setTimeout(() => { clicks = 0; }, 500); 
 });
-
-// --- ADMIN ƏMƏLİYYATLARI ---
 async function handleAdminUpdate(type) {
     const password = document.getElementById('admin-password').value;
     if (!password) return alert("Şifrəni daxil et!");
-
     let requestPayload = { path: "" };
-
     if (type === 'update_config') {
         const newDate = document.getElementById('admin-date').value;
         const newCount = document.getElementById('admin-count').value;
         if (!newDate && !newCount) return alert("Dəyişiklik yoxdur!");
-        
         requestPayload = { 
             path: "hcayar.js", 
             newDate: newDate, 
@@ -541,26 +532,22 @@ async function handleAdminUpdate(type) {
         const fileInput = document.getElementById('admin-file');
         const file = fileInput.files[0];
         if (!file) return alert("Şəkil seçin!");
-
         const base64 = await new Promise((resolve) => {
             const reader = new FileReader();
             reader.onload = (e) => resolve(e.target.result.split(',')[1]);
             reader.readAsDataURL(file);
         });
-
         requestPayload = { 
             path: `gallery/${Date.now()}_${file.name.replace(/\s+/g, '_')}`, 
             content: base64 
         };
     }
-
     try {
         const response = await fetch('/.netlify/functions/admin-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type, password, payload: requestPayload })
         });
-
         const result = await response.json();
         if (result.success) {
             alert("Uğurla yerinə yetirildi!");
