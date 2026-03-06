@@ -851,3 +851,29 @@ blockquote { font-style: italic; font-size: 1.1rem; margin-bottom: 8px; }
     cursor: pointer;
     color: white;
 }
+/* --- ADMIN PANEL MOBİL  --- */
+@media (max-width: 650px) {
+    #admin-panel .admin-content {
+        width: 90% !important;
+        padding: 25px 20px !important;
+        box-sizing: border-box !important;
+    }
+    #admin-panel .admin-content div {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        align-items: stretch !important;
+    }
+    #admin-panel .admin-content label {
+        width: 100% !important;
+        text-align: left !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    #admin-panel .admin-content input, 
+    #admin-panel .admin-content button {
+        width: 100% !important;
+        margin: 5px 0 0 0 !important;
+        box-sizing: border-box !important;
+    }
+}
