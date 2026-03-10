@@ -7,11 +7,8 @@ const config = {
     meetingCount: 91,    
     musicTitle: "Gözlərin dəydi gözümə"
 };
-// --- 1. SAĞ DÜYMƏNİ VƏ QISAYOLLARI BLOKLA ---
 document.addEventListener('contextmenu', event => event.preventDefault());
-
 document.onkeydown = function(e) {
-    // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U bloklamaq
     if (e.keyCode == 123 || 
         (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || 
         (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
@@ -575,3 +572,63 @@ async function handleAdminUpdate(type) {
         alert("Serverə qoşulmaq mümkün olmadı.");
     }
 }
+const canvas = document.getElementById('scratch-canvas');
+const ctx = canvas.getContext('2d');
+ctx.fillStyle = '#444'; 
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+function scratch(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX || e.touches[0].clientX) - rect.left;
+    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+    
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.fill();
+}
+canvas.addEventListener('mousemove', (e) => { if(e.buttons === 1) scratch(e); });
+canvas.addEventListener('touchmove', scratch);
+async function updateWeatherTheme() {
+    try {
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.3777&longitude=49.892&current_weather=true');
+        const data = await res.json();
+        const code = data.current_weather.weathercode;
+        const temp = data.current_weather.temperature;
+        const statusText = document.getElementById('weather-status');
+        let message = "";
+        let bgColor = "#000000"; 
+        if (code === 0 || code === 1) { 
+            message = `Bakıda hava tərtəmizdir (${temp}°C) - Sənin kimi.. ☀️`;
+            bgColor = "#0a0a0a";
+        } 
+        else if ([2, 3].includes(code)) {
+            message = `Bakı bu gün bir az buludludur (${temp}°C) ☁️`;
+            bgColor = "#1a1a1a";
+        } 
+        else if ([45, 48].includes(code)) { 
+            message = `Hər tərəf dumanlıdır (${temp}°C), amma mən səni görürəm 🌫️`;
+            bgColor = "#2c3e50";
+        } 
+        else if ([51, 53, 55, 61, 63, 65].includes(code)) { 
+            message = `Bakıda yağış yağır (${temp}°C). Əynini qalın geyin çöldə tufan var 🌧️`;
+            bgColor = "#1e272e";
+        } 
+        else if ([71, 73, 75, 77, 85, 86].includes(code)) { 
+            message = `Hava qarlıdır (${temp}°C) ❄️ Tenin kimi`;
+            bgColor = "#2f3640";
+        } 
+        else if ([95, 96, 99].includes(code)) { 
+            message = `İldırım çaxır (${temp}°C)! Qorxma, mən həmişə yanındayam ⚡`;
+            bgColor = "#0f141a";
+        }
+        else {
+            message = `Bakıda hava bir qəribədir (${temp}°C), amma mənim sənə olan sevgim dəyişməz 🤍`;
+        }
+        statusText.innerText = message;
+        document.body.style.transition = "background 2s ease"; 
+        document.body.style.backgroundColor = bgColor;
+    } catch (err) {
+        console.log("Hava çəkilə bilmədi:", err);
+    }
+}
+updateWeatherTheme();
