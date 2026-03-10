@@ -7,16 +7,32 @@ const config = {
     meetingCount: 91,    
     musicTitle: "Gözlərin dəydi gözümə"
 };
-(function() {
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-        if (e.key === "F12" || 
-           (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) || 
-           (e.ctrlKey && e.key === "u")) {
-            e.preventDefault();
-        }
-    });
-})();
+// --- 1. SAĞ DÜYMƏNİ VƏ QISAYOLLARI BLOKLA ---
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+document.onkeydown = function(e) {
+    // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U bloklamaq
+    if (e.keyCode == 123 || 
+        (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || 
+        (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
+        return false;
+    }
+};
+
+setInterval(function() {
+    checkDevTools();
+}, 1000);
+function checkDevTools() {
+    const start = new Date();
+    debugger; 
+    const end = new Date();
+    if (end - start > 100) {
+        document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:20%; font-family:sans-serif;'>Giriş Qadağandır! 🛑</h1>";
+    }
+}
+setInterval(() => {
+    console.clear();
+}, 100);
 const audio = document.getElementById('audio');
 const playPauseBtn = document.getElementById('playPauseBtn');
 const muteBtn = document.getElementById('muteBtn');
