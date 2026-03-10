@@ -572,22 +572,23 @@ async function handleAdminUpdate(type) {
         alert("Serverə qoşulmaq mümkün olmadı.");
     }
 }
-const canvas = document.getElementById('scratch-canvas');
-const ctx = canvas.getContext('2d');
-ctx.fillStyle = '#444'; 
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-function scratch(e) {
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches[0].clientY) - rect.top;
-    
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath();
-    ctx.arc(x, y, 20, 0, Math.PI * 2);
-    ctx.fill();
+const scratchCanvas = document.getElementById('scratch-canvas');
+if (scratchCanvas) {
+    const sCtx = scratchCanvas.getContext('2d');
+    sCtx.fillStyle = '#444'; 
+    sCtx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+    function scratch(e) {
+        const rect = scratchCanvas.getBoundingClientRect();
+        const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+        const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+        sCtx.globalCompositeOperation = 'destination-out';
+        sCtx.beginPath();
+        sCtx.arc(x, y, 20, 0, Math.PI * 2);
+        sCtx.fill();
+    }
+    scratchCanvas.addEventListener('mousemove', (e) => { if(e.buttons === 1) scratch(e); });
+    scratchCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); scratch(e); }, {passive: false});
 }
-canvas.addEventListener('mousemove', (e) => { if(e.buttons === 1) scratch(e); });
-canvas.addEventListener('touchmove', scratch);
 async function updateWeatherTheme() {
     try {
         const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.3777&longitude=49.892&current_weather=true');
