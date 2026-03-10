@@ -613,23 +613,31 @@ async function updateWeatherTheme() {
 function initScratchCard() {
     const sCanvas = document.getElementById('scratch-canvas');
     if (!sCanvas) return;
-    const sCtx = sCanvas.getContext('2d');
-    sCtx.fillStyle = '#444'; 
-    sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+    const sCtx = sCanvas.getContext('2d', { willReadFrequently: true });
+    sCtx.fillStyle = '#444444'; 
+    sCtx.beginPath();
+    sCtx.rect(0, 0, sCanvas.width, sCanvas.height);
+    sCtx.fill();
     function scratch(e) {
         const rect = sCanvas.getBoundingClientRect();
         const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
         const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
         sCtx.globalCompositeOperation = 'destination-out';
         sCtx.beginPath();
-        sCtx.arc(x, y, 22, 0, Math.PI * 2); 
+        sCtx.arc(x, y, 25, 0, Math.PI * 2); 
         sCtx.fill();
     }
-    sCanvas.addEventListener('mousemove', (e) => { if(e.buttons === 1) scratch(e); });
+    sCanvas.addEventListener('mousedown', () => {
+        sCanvas.addEventListener('mousemove', scratch);
+    });
+    window.addEventListener('mouseup', () => {
+        sCanvas.removeEventListener('mousemove', scratch);
+    });
     sCanvas.addEventListener('touchmove', (e) => { 
-        e.preventDefault();
+        e.preventDefault(); 
         scratch(e); 
     }, {passive: false});
 }
+window.addEventListener('DOMContentLoaded', initScratchCard);
 updateWeatherTheme();
-initScratchCard();
+
