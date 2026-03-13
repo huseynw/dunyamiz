@@ -640,4 +640,16 @@ function initScratchCard() {
 }
 window.addEventListener('DOMContentLoaded', initScratchCard);
 updateWeatherTheme();
+document.addEventListener('DOMContentLoaded', () => {
+    const updateBtn = document.getElementById('update-config-btn');
+    const uploadBtn = document.getElementById('upload-image-btn');
+
+    if (updateBtn) {
+        updateBtn.onclick = () => handleAdminUpdate('update_config');
+    }
+    if (uploadBtn) {
+        uploadBtn.onclick = () => handleAdminUpdate('upload_image');
+    }
+});
+
 
