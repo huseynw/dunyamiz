@@ -295,16 +295,16 @@ const letters = {
     }
 };
 
-function openLetter(type) {
+window.openLetter = function(type) {
     const modal = document.getElementById('letter-modal');
     document.getElementById('letter-title').innerText = letters[type].title;
     document.getElementById('letter-text').innerText = letters[type].text;
     modal.style.display = 'flex';
-}
+};
 
-function closeLetter() { 
+window.closeLetter = function() { 
     document.getElementById('letter-modal').style.display = 'none'; 
-}
+};
 
 // ========== LOVE PHRASES ==========
 const lovePhrases = [
