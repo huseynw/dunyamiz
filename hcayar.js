@@ -145,6 +145,34 @@ passInput.addEventListener('keypress', (e) => {
 });
 
 // ========== TIME TOGETHER COUNTER (ASCENDING) ==========
+// 1. Rəqəmləri artıran köməkçi funksiya
+function animateValue(id, start, end, duration) {
+    const obj = document.getElementById(id);
+    if (!obj) return;
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 4);
+        const current = Math.floor(easeOut * (end - start) + start);
+        
+        if (id === 'total-minutes-love' || id === 'total-hours-love') {
+            obj.innerText = current.toLocaleString('tr-TR');
+        } else {
+            obj.innerText = current;
+        }
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            obj.innerText = (id === 'total-minutes-love' || id === 'total-hours-love') 
+                ? end.toLocaleString('tr-TR') : end;
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+// 2. Təkmilləşdirilmiş updateCounter funksiyası
 function updateCounter() {
     const start = new Date(config.startDate).getTime();
     const now = new Date().getTime();
@@ -156,26 +184,55 @@ function updateCounter() {
     const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const s = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    // Main time together card (Home page)
-    if(document.getElementById('total-days')) document.getElementById('total-days').innerText = d;
+    const totalHours = Math.floor(diff / (1000 * 60 * 60));
+    const totalMinutes = Math.floor(diff / (1000 * 60));
+
+    // Animasiya zamanı saniyəölçənin rəqəmləri sıfırlamaması üçün şərt
+    if (!window.isAnimating) {
+        if(document.getElementById('total-days')) document.getElementById('total-days').innerText = d;
+        if(document.getElementById('detail-days')) document.getElementById('detail-days').innerText = d;
+        if(document.getElementById('total-hours-love')) document.getElementById('total-hours-love').innerText = totalHours.toLocaleString('tr-TR');
+        if(document.getElementById('total-minutes-love')) document.getElementById('total-minutes-love').innerText = totalMinutes.toLocaleString('tr-TR');
+        if(document.getElementById('meet-count')) document.getElementById('meet-count').innerText = config.meetingCount;
+    }
+
+    // Saniyələr və saatlar həmişə normal işləyir
     if(document.getElementById('hours')) document.getElementById('hours').innerText = h < 10 ? '0' + h : h;
     if(document.getElementById('minutes')) document.getElementById('minutes').innerText = m < 10 ? '0' + m : m;
     if(document.getElementById('seconds')) document.getElementById('seconds').innerText = s < 10 ? '0' + s : s;
-    
-    // Detailed time (Time page)
-    if(document.getElementById('detail-days')) document.getElementById('detail-days').innerText = d;
     if(document.getElementById('detail-hours')) document.getElementById('detail-hours').innerText = h;
     if(document.getElementById('detail-minutes')) document.getElementById('detail-minutes').innerText = m;
     if(document.getElementById('detail-seconds')) document.getElementById('detail-seconds').innerText = s;
-    
-    // Total experience
-    const totalHours = Math.floor(diff / (1000 * 60 * 60));
-    const totalMinutes = Math.floor(diff / (1000 * 60));
-    
-    if(document.getElementById('total-hours-love')) document.getElementById('total-hours-love').innerText = totalHours.toLocaleString();
-    if(document.getElementById('total-minutes-love')) document.getElementById('total-minutes-love').innerText = totalMinutes.toLocaleString();
 }
+
+// 3. Animasiyanı başladan tirtikləyici (DOMContentLoaded içində)
+document.addEventListener('DOMContentLoaded', () => {
+    const start = new Date(config.startDate).getTime();
+    const now = new Date().getTime();
+    const diff = now - start;
+    
+    if (!isNaN(diff)) {
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const totalHours = Math.floor(diff / (1000 * 60 * 60));
+        const totalMinutes = Math.floor(diff / (1000 * 60));
+
+        window.isAnimating = true;
+
+        // Rəqəmləri artırırıq (2 saniyə ərzində)
+        animateValue('meet-count', 0, config.meetingCount, 2000);
+        animateValue('total-days', 0, d, 2000);
+        animateValue('detail-days', 0, d, 2000);
+        animateValue('total-hours-love', 0, totalHours, 2000);
+        animateValue('total-minutes-love', 0, totalMinutes, 2000);
+
+        setTimeout(() => { window.isAnimating = false; }, 2100);
+    }
+    
+    // Sayğacı başladır
+    updateCounter();
+    setInterval(updateCounter, 1000);
+});
+
 
 // ========== GALLERY ==========
 async function fetchImages() {
