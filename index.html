@@ -6,20 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hüseyn və Cəmalənin Dünyası</title>
     <meta name="description" content="Hüseyn və Cəmalənin özəl dünyası. Birlikdə keçən zamanımız, xatirələrimiz və sevgimiz...">
+    <meta name="keywords" content="Hüseyn və Cəmalə, Hüseyn Cəmalə, Bizim Dünyamız, sevgi saytı">
     <meta property="og:title" content="Hüseyn və Cəmalənin Dünyası ❤️">
     <meta property="og:description" content="Bizim kiçik, gizli və sevgi dolu dünyamız. Giriş yalnız icazə ilədir... ✨">
     <meta property="og:image" content="https://www.dunyamiz.me/assets/192.png"> 
     <meta property="og:url" content="https://www.dunyamiz.me">
     <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Hüseyn və Cəmalənin Dünyası">
+    <meta name="twitter:description" content="Bizim dünyamıza xoş gəldin.">
+    <meta name="twitter:image" content="https://www.dunyamiz.me/assets/192.png">
     <link rel="stylesheet" href="hcstil.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dünyamız">
     <link rel="apple-touch-icon" href="assets/192.png">
     <meta name="theme-color" content="#ff4d6d">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
 <body>
+    <!-- Welcome Screen -->
     <div id="welcome-screen">
         <div class="welcome-content">
             <div class="rose-wrapper">
@@ -41,174 +49,294 @@
             <h1>Xoş Gəldin, Cəmaləm</h1>
             <button id="enter-btn">Toxun <i class="fas fa-heart"></i></button>
             <div id="password-panel" class="hidden" style="margin-top: 20px; display: none; flex-direction: column; align-items: center; gap: 15px;">
-                <input type="password" id="pass-input" placeholder="Şifrəni yaz" style="padding: 15px; border-radius: 50px; border: 1px solid var(--primary); background: rgba(255,255,255,0.1); color: white; text-align: center; outline: none; width: 200px;">
-                <p id="error-msg" style="color: #ff4d6d; font-size: 0.8rem; display: none;">Kül başıva düz yaz!</p>
-                <button id="verify-btn" style="padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 50px; cursor: pointer;">Təsdiqlə</button>
+            <input type="password" id="pass-input" placeholder="Şifrəni yaz" 
+                   style="padding: 15px; border-radius: 50px; border: 1px solid var(--primary); background: rgba(255,255,255,0.1); color: white; text-align: center; outline: none; width: 200px;">
+            <p id="error-msg" style="color: #ff4d6d; font-size: 0.8rem; display: none;">Kül başına düz yaz!</p>
+            <button id="verify-btn" style="padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 50px; cursor: pointer;">Təsdiqlə</button>
             </div>
         </div>
     </div>
 
+    <!-- Main Content -->
     <main id="main-content" class="hidden">
-        
-        <div id="home-page" class="page-section active">
-            <header class="animate-item delay-1">
-                <div class="logo-container">
-                    <span class="letter">H</span>
-                    <div class="infinity-wrapper">
-                        <svg viewBox="0 0 100 50" class="infinity-svg">
-                            <path d="M20,25 C20,9 46,9 50,25 C54,41 80,41 80,25 C80,9 54,9 50,25 C46,41 20,41 20,25" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <span class="letter">C</span>
+        <!-- Header - Always Visible -->
+        <header class="animate-item delay-1">
+            <div class="logo-container">
+                <span class="letter">H</span>
+                <div class="infinity-wrapper">
+                    <svg viewBox="0 0 100 50" class="infinity-svg">
+                        <path d="M20,25 C20,9 46,9 50,25 C54,41 80,41 80,25 C80,9 54,9 50,25 C46,41 20,41 20,25" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                    </svg>
                 </div>
-                <div class="greeting-box">
-                    <h2 id="dynamic-greeting"></h2>
-                    <p id="live-clock"></p>
-                </div>
-                <div id="weather-container" style="text-align: center; padding: 15px; font-family: sans-serif; transition: all 1s ease;">
-                    <span id="weather-status" style="color: #aaa; font-size: 14px; letter-spacing: 1px;">Bakıda hava yoxlanılır...</span>
-                </div>
-            </header>
+                <span class="letter">C</span>
+            </div>
+            <div class="greeting-box">
+                <h2 id="dynamic-greeting"></h2>
+                <p id="live-clock"></p>
+            </div>
+            <div id="weather-container" style="text-align: center; padding: 15px; font-family: sans-serif; transition: all 1s ease;">
+                <span id="weather-status" style="color: #aaa; font-size: 14px; letter-spacing: 1px;">Bakıda hava yoxlanılır...</span>
+            </div>
+        </header>
 
-            <section class="meeting-section animate-item delay-2">
-                <div class="counter-section meeting-timer">
-                    <h3>Növbəti Görüşümüzə Qalan Vaxt</h3>
-                    <p id="next-meeting-date" class="meeting-date-text"></p> 
-                    <div class="timer-grid">
-                        <div class="time-box"><span id="meet-days">00</span><label>Gün</label></div>
-                        <div class="time-box"><span id="meet-hours">00</span><label>Saat</label></div>
-                        <div class="time-box"><span id="meet-minutes">00</span><label>Dəqiqə</label></div>
-                        <div class="time-box"><span id="meet-seconds">00</span><label>Saniyə</label></div>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <div id="time-page" class="page-section">
-            <section class="counter-section animate-item delay-1">
-                <h2>Birlikdə keçən zamanımız</h2>
-                <div class="meeting-count" style="margin-bottom: 20px;">
-                    <i class="fas fa-heart" style="color: var(--primary);"></i> Hər saniyəmiz dəyərlidir...
-                </div>
-                <div id="timer" class="timer-grid">
-                    <div class="time-box"><span id="days">0</span><label>Gün</label></div>
-                    <div class="time-box"><span id="hours">0</span><label>Saat</label></div>
-                    <div class="time-box"><span id="minutes">0</span><label>Dəqiqə</label></div>
-                    <div class="time-box"><span id="seconds">0</span><label>Saniyə</label></div>
-                </div>
-                
-                <div class="meeting-count" style="margin-top: 20px;">
-                    <i class="fas fa-map-marker-alt"></i> Görüş sayımız: <span id="meet-count">0</span>
-                </div>
-                <div class="first-meeting" style="margin-top: 10px;">
-                    <i class="fas fa-calendar-check"></i> İlk görüş: <span> 22.10.2025 </span>
-                </div>
-            </section>
+        <!-- SPA Pages Container -->
+        <div class="spa-container">
             
-            <section class="love-power-section animate-item delay-2">
-                <div class="love-container">
-                    <p>Ürəyə basılı tut...</p>
-                    <div id="hold-heart" class="heart-trigger">
-                        <i class="fas fa-heart"></i>
+            <!-- Page 1: Əsas (Home) -->
+            <section class="spa-page active" id="page-home">
+                <div class="page-content animate-item delay-2">
+                    <!-- Time Together Counter - Modern Card -->
+                    <div class="time-together-card">
+                        <div class="time-together-header">
+                            <i class="fas fa-heart"></i>
+                            <h2>Birlikdə Keçən Zaman</h2>
+                        </div>
+                        <div class="time-together-display">
+                            <div class="big-time">
+                                <span id="total-days">0</span>
+                                <label>Gün</label>
+                            </div>
+                            <div class="time-divider"></div>
+                            <div class="small-time-grid">
+                                <div class="small-time">
+                                    <span id="hours">00</span>
+                                    <label>Saat</label>
+                                </div>
+                                <div class="small-time">
+                                    <span id="minutes">00</span>
+                                    <label>Dəqiqə</label>
+                                </div>
+                                <div class="small-time">
+                                    <span id="seconds">00</span>
+                                    <label>Saniyə</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="meeting-info">
+                            <div class="info-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Görüş sayımız: <strong id="meet-count">0</strong></span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>İlk görüş: <strong>22.10.2025</strong></span>
+                            </div>
+                        </div>
                     </div>
-                    <span id="power-percent">0%</span>
+
+                    <!-- Next Meeting Timer -->
+                    <div class="counter-section meeting-timer">
+                        <h3>Növbəti Görüşümüzə Qalan Vaxt:</h3>
+                        <p id="next-meeting-date" class="meeting-date-text"></p> 
+                        <div class="timer-grid">
+                            <div class="time-box">
+                                <span id="meet-days">00</span>
+                                <label>Gün</label>
+                            </div>
+                            <div class="time-box">
+                                <span id="meet-hours">00</span>
+                                <label>Saat</label>
+                            </div>
+                            <div class="time-box">
+                                <span id="meet-minutes">00</span>
+                                <label>Dəqiqə</label>
+                            </div>
+                            <div class="time-box">
+                                <span id="meet-seconds">00</span>
+                                <label>Saniyə</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Love Power Section -->
+                    <section class="love-power-section animate-item delay-3">
+                        <div class="love-container">
+                            <p>Ürəyə basılı tut...</p>
+                            <div id="hold-heart" class="heart-trigger">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <span id="power-percent">0%</span>
+                        </div>
+                    </section>
+
+                    <!-- Scratch Card -->
+                    <div class="scratch-section">
+                        <p class="scratch-hint">Aşağıdakı qutunu sil</p>
+                        <div class="scratch-container">
+                            <div class="secret-message">
+                                <h3>Sən mənim hərşeyimsən 🤍</h3>
+                                <p>Hər zaman yanımda olduğun üçün təşəkkür edirəm.</p>
+                            </div>
+                            <canvas id="scratch-canvas" width="300" height="150"></canvas>
+                        </div>
+                    </div>
                 </div>
             </section>
+
+            <!-- Page 2: Zamanımız (Time) -->
+            <section class="spa-page" id="page-time">
+                <div class="page-content">
+                    <h2 class="page-title">Zamanımız</h2>
+                    
+                    <!-- Detailed Time Together -->
+                    <div class="detailed-time-card">
+                        <div class="detailed-header">
+                            <i class="fas fa-clock"></i>
+                            <span>Birlikdə Hər Anımız</span>
+                        </div>
+                        <div class="detailed-stats">
+                            <div class="stat-item">
+                                <span class="stat-value" id="detail-days">0</span>
+                                <span class="stat-label">Gün</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="detail-hours">0</span>
+                                <span class="stat-label">Saat</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="detail-minutes">0</span>
+                                <span class="stat-label">Dəqiqə</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="detail-seconds">0</span>
+                                <span class="stat-label">Saniyə</span>
+                            </div>
+                        </div>
+                        <div class="total-experience">
+                            <div class="exp-item">
+                                <i class="fas fa-heart"></i>
+                                <span id="total-hours-love">0</span>
+                                <label>saat sevgi</label>
+                            </div>
+                            <div class="exp-item">
+                                <i class="fas fa-star"></i>
+                                <span id="total-minutes-love">0</span>
+                                <label>dəqiqə xoşbəxtlik</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Love Switcher -->
+                    <div class="love-switcher">
+                        <span id="changing-love">Səni sevirəm</span> <span style="color: #ff4d6d;">🤍</span>
+                    </div>
+
+                    <!-- Links Section -->
+                    <section class="links-section">
+                        <h3>Cəmaləm üçün yazdığım saytlar</h3>
+                        <div class="quote-links">
+                            <a href="https://seniseviremcemale.netlify.app" target="_blank" class="quote-card">
+                                <blockquote>"Dünyalar Gözəlimə"</blockquote>
+                                <cite>Bura toxun</cite>
+                            </a>
+                            <a href="https://cemalem.netlify.app" target="_blank" class="quote-card">
+                                <blockquote>"Bir Məktub"</blockquote>
+                                <cite>Bura toxun</cite>
+                            </a>
+                            <a href="https://cemalemm.netlify.app" target="_blank" class="quote-card">
+                                <blockquote>"Bekar vaxtlarımda belə səni fikirləşirəm"</blockquote>
+                                <cite>Bura toxun</cite>
+                            </a>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <!-- Page 3: Qalereya (Gallery) -->
+            <section class="spa-page" id="page-gallery">
+                <div class="page-content">
+                    <h2 class="page-title">Qalereyamız</h2>
+                    <p class="hint">Şəkillərə baxmaq üçün toxun</p>
+                    <div class="stacked-gallery" id="gallery-stack"></div>
+                    
+                    <!-- Music Player in Gallery -->
+                    <section class="music-player animate-item">
+                        <img src="assets/music-cover.jpg" alt="Mahnı şəkli" class="song-image" id="track-art" />
+                        <div class="song-info">
+                            <h2 id="song-title">Gözlərin dəydi gözümə 🤍</h2>
+                            <audio id="audio" preload="metadata">
+                                <source src="assets/music.mp3" type="audio/mpeg" />
+                            </audio>
+                            <div class="controls">
+                                <button id="playPauseBtn" class="icon-button"><i class="fas fa-play"></i></button>
+                                <button id="muteBtn" class="icon-button"><i class="fas fa-volume-up"></i></button>
+                            </div>
+                            <div class="progress">
+                                <span id="currentTime">00:00</span>
+                                <input type="range" id="seekBar" value="0" min="0" step="1">
+                                <span id="duration">00:00</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <!-- Page 4: Məktublar (Letters) -->
+            <section class="spa-page" id="page-letters">
+                <div class="page-content">
+                    <h2 class="page-title">Məni hiss etdiyində...</h2>
+                    <div class="envelopes-grid">
+                        <div class="envelope" onclick="openLetter('miss')">
+                            <i class="fas fa-envelope-open-text"></i>
+                            <span>Darıxanda</span>
+                        </div>
+                        <div class="envelope" onclick="openLetter('sad')">
+                            <i class="fas fa-cloud-rain"></i>
+                            <span>Kefin olmayanda</span>
+                        </div>
+                        <div class="envelope" onclick="openLetter('happy')">
+                            <i class="fas fa-sun"></i>
+                            <span>Xoşbəxt olanda</span>
+                        </div>
+                        <div class="envelope" onclick="openLetter('us')">
+                            <i class="fas fa-heart"></i>
+                            <span>Bizim üçün</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Love Note -->
+                    <div class="love-note-card">
+                        <div class="note-icon">💌</div>
+                        <p class="note-text">Hər məktub sənə ürəyimdən yazılıb. Oxuduqda məni hiss edəcəksən...</p>
+                    </div>
+                </div>
+            </section>
+
         </div>
 
-        <div id="gallery-page" class="page-section">
-            <section class="gallery-section animate-item delay-1">
-                <h3>Qalereyamız</h3>
-                <p class="hint">Şəkillərə baxmaq üçün toxun</p>
-                <div class="stacked-gallery" id="gallery-stack"></div>
-            </section>
-
-            <section class="music-player animate-item delay-2">
-                <img src="assets/music-cover.jpg" alt="Mahnı şəkli" class="song-image" id="track-art" />
-                <div class="song-info">
-                    <h2 id="song-title">Gözlərin dəydi gözümə 🤍</h2>
-                    <audio id="audio" preload="metadata">
-                        <source src="assets/music.mp3" type="audio/mpeg" />
-                    </audio>
-                    <div class="controls">
-                        <button id="playPauseBtn" class="icon-button"><i class="fas fa-play"></i></button>
-                        <button id="muteBtn" class="icon-button"><i class="fas fa-volume-up"></i></button>
-                    </div>
-                    <div class="progress">
-                        <span id="currentTime">00:00</span>
-                        <input type="range" id="seekBar" value="0" min="0" step="1">
-                        <span id="duration">00:00</span>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <div id="extras-page" class="page-section">
-            <section class="letters-section animate-item delay-1">
-                <h3>Məni hiss etdiyində...</h3>
-                <div class="envelopes-grid">
-                    <div class="envelope" onclick="openLetter('miss')">
-                        <i class="fas fa-envelope-open-text"></i>
-                        <span>Darıxanda</span>
-                    </div>
-                    <div class="envelope" onclick="openLetter('sad')">
-                        <i class="fas fa-cloud-rain"></i>
-                        <span>Kefin olmayanda</span>
-                    </div>
-                    <div class="envelope" onclick="openLetter('happy')">
-                        <i class="fas fa-sun"></i>
-                        <span>Xoşbəxt olanda</span>
-                    </div>
-                    <div class="envelope" onclick="openLetter('us')">
-                        <i class="fas fa-heart"></i>
-                        <span>Bizim üçün</span>
-                    </div>
-                </div>
-            </section>
-
-            <div class="love-switcher animate-item delay-2">
-                <span id="changing-love">Səni sevirəm</span> <span style="color: #ff4d6d;">🤍</span>
-            </div>
-
-            <section class="links-section animate-item delay-3">
-                <h3>Cəmaləm üçün yazdığım saytlar</h3>
-                <div class="quote-links">
-                    <a href="https://seniseviremcemale.netlify.app" target="_blank" class="quote-card">
-                        <blockquote>"Dünyalar Gözəlimə"</blockquote>
-                        <cite>Bura toxun</cite>
-                    </a>
-                    <a href="https://cemalem.netlify.app" target="_blank" class="quote-card">
-                        <blockquote>"Bir Məktub"</blockquote>
-                        <cite>Bura toxun</cite>
-                    </a>
-                    <a href="https://cemalemm.netlify.app" target="_blank" class="quote-card">
-                        <blockquote>"Bekar vaxtlarımda belə səni fikirləşirəm"</blockquote>
-                        <cite>Bura toxun</cite>
-                    </a>
-                </div>
-            </section>
-
-            <div class="scratch-section animate-item delay-4" style="text-align: center; margin-top: 30px; padding-bottom: 20px;">
-                <p style="color: #555; font-size: 13px; margin-bottom: 15px;">Aşağıdakı qutunu sil</p>
-                <div class="scratch-container" style="position: relative; width: 300px; height: 150px; margin: 0 auto; border-radius: 15px; overflow: hidden; background: #111;">
-                    <div class="secret-message" style="position: absolute; z-index: 1; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #ff4d6d; pointer-events: none;">
-                        <h3 style="margin: 0;">Sən mənim hərşeyimsən 🤍</h3>
-                        <p style="margin: 5px 0 0;">Hər zaman yanımda olduğun üçün təşəkkür edirəm.</p>
-                    </div>
-                    <canvas id="scratch-canvas" width="300" height="150" style="position: absolute; top: 0; left: 0; z-index: 2; cursor: crosshair; touch-action: none;"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <nav class="bottom-nav">
-            <div class="nav-item active" data-target="home-page"><i class="fas fa-home"></i></div>
-            <div class="nav-item" data-target="time-page"><i class="fas fa-hourglass-half"></i></div>
-            <div class="nav-item" data-target="gallery-page"><i class="fas fa-images"></i></div>
-            <div class="nav-item" data-target="extras-page"><i class="fas fa-envelope-open-text"></i></div>
+        <!-- Glassmorphism Navigation Bar -->
+        <nav class="spa-navbar">
+            <button class="nav-item active" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Əsas</span>
+            </button>
+            <button class="nav-item" data-page="time">
+                <i class="fas fa-clock"></i>
+                <span>Zamanımız</span>
+            </button>
+            <button class="nav-item" data-page="gallery">
+                <i class="fas fa-images"></i>
+                <span>Qalereya</span>
+            </button>
+            <button class="nav-item" data-page="letters">
+                <i class="fas fa-envelope"></i>
+                <span>Məktublar</span>
+            </button>
         </nav>
-
     </main>
 
+    <audio id="music-file" src="assets/music.mp3" loop></audio>
+    <script src="hcayar.js"></script>
+    
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox">
+        <span class="close-lightbox">&times;</span>
+        <div class="prev" id="prev-btn">&#10094;</div>
+        <img class="lightbox-content" id="lightbox-img">
+        <div class="next" id="next-btn">&#10095;</div>
+    </div>
+    
+    <!-- Letter Modal -->
     <div id="letter-modal" class="letter-modal">
         <div class="letter-content">
             <span class="close-letter" onclick="closeLetter()">&times;</span>
@@ -216,14 +344,8 @@
             <p id="letter-text">Məktub mətni...</p>
         </div>
     </div>
-
-    <div id="lightbox" class="lightbox">
-        <span class="close-lightbox">&times;</span>
-        <div class="prev" id="prev-btn">&#10094;</div>
-        <img class="lightbox-content" id="lightbox-img">
-        <div class="next" id="next-btn">&#10095;</div>
-    </div>
-
+    
+    <!-- Admin Panel -->
     <div id="admin-panel" style="display: none;">
         <div class="admin-content">
             <span class="close-admin" onclick="document.getElementById('admin-panel').style.display='none'">&times;</span>
@@ -248,7 +370,5 @@
             </div>
         </div>
     </div>
-
-    <script src="hcayar.js"></script>
 </body>
 </html>
