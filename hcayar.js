@@ -114,14 +114,34 @@ verifyBtn.addEventListener('click', () => {
             window.location.hash = `cemaleme-ozel-${randomSimvollar}`;
         }, 40);
         document.getElementById('welcome-screen').style.opacity = '0';
+        
         setTimeout(() => {
             document.getElementById('welcome-screen').style.display = 'none';
             const mainContent = document.getElementById('main-content');
             mainContent.classList.remove('hidden');
+            
+            // --- ANIMASİYA BAŞLANĞICI ---
+            const startVal = new Date(config.startDate).getTime();
+            const diffVal = new Date().getTime() - startVal;
+            const dVal = Math.floor(diffVal / (1000 * 60 * 60 * 24));
+            const hVal = Math.floor(diffVal / (1000 * 60 * 60));
+            const mVal = Math.floor(diffVal / (1000 * 60));
+
+            window.isAnimating = true;
+            animateValue('meet-count', 0, config.meetingCount, 2500);
+            animateValue('total-days', 0, dVal, 2500);
+            animateValue('detail-days', 0, dVal, 2500);
+            animateValue('total-hours-love', 0, hVal, 2500);
+            animateValue('total-minutes-love', 0, mVal, 2500);
+            
+            setTimeout(() => { window.isAnimating = false; }, 2600);
+            // ----------------------------
+
             setTimeout(() => {
                 mainContent.classList.add('animate-start');
             }, 100);
         }, 800);
+
         fetchImages();
         if (audio) {
             initVisualizer(audio);
@@ -146,38 +166,10 @@ passInput.addEventListener('keypress', (e) => {
 
 // ========== TIME TOGETHER COUNTER (ASCENDING) ==========
 // 1. Rəqəmləri artıran köməkçi funksiya
-function animateValue(id, start, end, duration) {
-    const obj = document.getElementById(id);
-    if (!obj) return;
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const easeOut = 1 - Math.pow(1 - progress, 4);
-        const current = Math.floor(easeOut * (end - start) + start);
-        
-        if (id === 'total-minutes-love' || id === 'total-hours-love') {
-            obj.innerText = current.toLocaleString('tr-TR');
-        } else {
-            obj.innerText = current;
-        }
-        
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        } else {
-            obj.innerText = (id === 'total-minutes-love' || id === 'total-hours-love') 
-                ? end.toLocaleString('tr-TR') : end;
-        }
-    };
-    window.requestAnimationFrame(step);
-}
-
-// 2. Təkmilləşdirilmiş updateCounter funksiyası
 function updateCounter() {
     const start = new Date(config.startDate).getTime();
     const now = new Date().getTime();
     const diff = now - start;
-    
     if (isNaN(diff)) return;
     
     const d = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -187,7 +179,6 @@ function updateCounter() {
     const totalHours = Math.floor(diff / (1000 * 60 * 60));
     const totalMinutes = Math.floor(diff / (1000 * 60));
 
-    // Animasiya zamanı saniyəölçənin rəqəmləri sıfırlamaması üçün şərt
     if (!window.isAnimating) {
         if(document.getElementById('total-days')) document.getElementById('total-days').innerText = d;
         if(document.getElementById('detail-days')) document.getElementById('detail-days').innerText = d;
@@ -196,7 +187,6 @@ function updateCounter() {
         if(document.getElementById('meet-count')) document.getElementById('meet-count').innerText = config.meetingCount;
     }
 
-    // Saniyələr və saatlar həmişə normal işləyir
     if(document.getElementById('hours')) document.getElementById('hours').innerText = h < 10 ? '0' + h : h;
     if(document.getElementById('minutes')) document.getElementById('minutes').innerText = m < 10 ? '0' + m : m;
     if(document.getElementById('seconds')) document.getElementById('seconds').innerText = s < 10 ? '0' + s : s;
@@ -204,35 +194,6 @@ function updateCounter() {
     if(document.getElementById('detail-minutes')) document.getElementById('detail-minutes').innerText = m;
     if(document.getElementById('detail-seconds')) document.getElementById('detail-seconds').innerText = s;
 }
-
-// 3. Animasiyanı başladan tirtikləyici (DOMContentLoaded içində)
-document.addEventListener('DOMContentLoaded', () => {
-    const start = new Date(config.startDate).getTime();
-    const now = new Date().getTime();
-    const diff = now - start;
-    
-    if (!isNaN(diff)) {
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const totalHours = Math.floor(diff / (1000 * 60 * 60));
-        const totalMinutes = Math.floor(diff / (1000 * 60));
-
-        window.isAnimating = true;
-
-        // Rəqəmləri artırırıq (2 saniyə ərzində)
-        animateValue('meet-count', 0, config.meetingCount, 2000);
-        animateValue('total-days', 0, d, 2000);
-        animateValue('detail-days', 0, d, 2000);
-        animateValue('total-hours-love', 0, totalHours, 2000);
-        animateValue('total-minutes-love', 0, totalMinutes, 2000);
-
-        setTimeout(() => { window.isAnimating = false; }, 2100);
-    }
-    
-    // Sayğacı başladır
-    updateCounter();
-    setInterval(updateCounter, 1000);
-});
-
 
 // ========== GALLERY ==========
 async function fetchImages() {
@@ -849,3 +810,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+function animateValue(id, start, end, duration) {
+    const obj = document.getElementById(id);
+    if (!obj) return;
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 4);
+        const current = Math.floor(easeOut * (end - start) + start);
+        
+        if (id === 'total-minutes-love' || id === 'total-hours-love') {
+            obj.innerText = current.toLocaleString('tr-TR');
+        } else {
+            obj.innerText = current;
+        }
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            obj.innerText = (id === 'total-minutes-love' || id === 'total-hours-love') 
+                ? end.toLocaleString('tr-TR') : end;
+        }
+    };
+    window.requestAnimationFrame(step);
+}
