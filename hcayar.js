@@ -804,3 +804,33 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadBtn.onclick = () => handleAdminUpdate('upload_image');
     }
 });
+// ========== MƏKTUB AÇMA FUNKSİYASI ==========
+function openLetter(title, text) {
+    const modal = document.getElementById('letter-modal');
+    const lTitle = document.getElementById('letter-title');
+    const lText = document.getElementById('letter-text');
+
+    if (modal && lTitle && lText) {
+        lTitle.innerText = title;
+        lText.innerText = text;
+        modal.style.display = 'flex'; // Modalı görünən edir
+        document.body.style.overflow = 'hidden'; // Arxa fonun sürüşməsini dayandırır
+    }
+}
+
+// ========== MƏKTUB BAĞLAMA FUNKSİYASI ==========
+function closeLetter() {
+    const modal = document.getElementById('letter-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto'; // Sürüşməni bərpa edir
+    }
+}
+
+// Modalın kənarına basanda bağlanması üçün
+window.onclick = function(event) {
+    const modal = document.getElementById('letter-modal');
+    if (event.target == modal) {
+        closeLetter();
+    }
+}
