@@ -336,18 +336,31 @@ const letters = {
 };
 
 function openLetter(type) {
-    if (!letters[type]) return;
+    if (!letters || !letters[type]) return; // Əgər məktub yoxdursa, heç nə etmə
+    
     const modal = document.getElementById('letter-modal');
-    if (!modal) return;
-    document.getElementById('letter-title').innerText = letters[type].title;
-    document.getElementById('letter-text').innerText = letters[type].text;
-    modal.style.cssText = 'display: flex !important; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 99999; padding: 20px; box-sizing: border-box;';
+    const titleEl = document.getElementById('letter-title');
+    const textEl = document.getElementById('letter-text');
+    
+    if (modal && titleEl && textEl) {
+        // Mətnləri yenilə
+        titleEl.innerText = letters[type].title;
+        textEl.innerText = letters[type].text;
+        
+        // Modalı göstər (cssText əvəzinə birbaşa display istifadə edirik)
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Arxa fonun sürüşməsini dayandır
+    }
 }
 
 function closeLetter() { 
     const modal = document.getElementById('letter-modal');
-    if (modal) modal.style.cssText = 'display: none;';
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto'; // Sürüşməni bərpa et
+    }
 }
+
 
 // ========== LOVE PHRASES ==========
 const lovePhrases = [
@@ -804,33 +817,3 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadBtn.onclick = () => handleAdminUpdate('upload_image');
     }
 });
-// ========== MƏKTUB AÇMA FUNKSİYASI ==========
-function openLetter(title, text) {
-    const modal = document.getElementById('letter-modal');
-    const lTitle = document.getElementById('letter-title');
-    const lText = document.getElementById('letter-text');
-
-    if (modal && lTitle && lText) {
-        lTitle.innerText = title;
-        lText.innerText = text;
-        modal.style.display = 'flex'; // Modalı görünən edir
-        document.body.style.overflow = 'hidden'; // Arxa fonun sürüşməsini dayandırır
-    }
-}
-
-// ========== MƏKTUB BAĞLAMA FUNKSİYASI ==========
-function closeLetter() {
-    const modal = document.getElementById('letter-modal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto'; // Sürüşməni bərpa edir
-    }
-}
-
-// Modalın kənarına basanda bağlanması üçün
-window.onclick = function(event) {
-    const modal = document.getElementById('letter-modal');
-    if (event.target == modal) {
-        closeLetter();
-    }
-}
