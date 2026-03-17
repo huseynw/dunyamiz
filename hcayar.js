@@ -1,11 +1,11 @@
-const targetDate = new Date("2026-03-17T12:05:00"); 
+const targetDate = new Date("2026-03-15T13:31:00"); 
 
 const config = {
     githubUsername: "huseynw",
     repoName: "dunyamiz",              
     firstMeetingDate: "2025-10-22T00:00:00",
     startDate: "2025-08-03T00:00:00", 
-    meetingCount: 94,    
+    meetingCount: 95,    
     musicTitle: "Gözlərin dəydi gözümə"
 };
 
