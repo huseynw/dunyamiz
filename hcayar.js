@@ -651,3 +651,35 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadBtn.onclick = () => handleAdminUpdate('upload_image');
     }
 });
+// --- SPA NAVBAR LOGIC (Səhifələrə Ayırma) ---
+document.addEventListener('DOMContentLoaded', () => {
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages = document.querySelectorAll('.page-section');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            // Aktiv class-ı ikonlardan sil
+            navItems.forEach(nav => nav.classList.remove('active'));
+            // Kliklənən ikona əlavə et
+            item.classList.add('active');
+            
+            const targetId = item.getAttribute('data-target');
+            
+            // Səhifələri dəyişdir
+            pages.forEach(page => {
+                page.classList.remove('active');
+                if(page.id === targetId) {
+                    page.classList.add('active');
+                    
+                    // Səhifəyə keçəndə animasiyaları sıfırlayıb yenidən başlatmaq üçün
+                    const animateItems = page.querySelectorAll('.animate-item');
+                    animateItems.forEach(el => {
+                        el.style.animation = 'none';
+                        el.offsetHeight; /* Trigger reflow */
+                        el.style.animation = null; 
+                    });
+                }
+            });
+        });
+    });
+});
