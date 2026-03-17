@@ -4,7 +4,7 @@ const config = {
     githubUsername: "huseynw",
     repoName: "dunyamiz",              
     firstMeetingDate: "2025-10-22T00:00:00",
-    startDate: "2026-03-17T00:00:00", 
+    startDate: "2025-08-03T00:00:00", 
     meetingCount: 95,    
     musicTitle: "Gözlərin dəydi gözümə"
 };
