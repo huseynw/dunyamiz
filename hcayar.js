@@ -761,3 +761,34 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadBtn.onclick = () => handleAdminUpdate('upload_image');
     }
 });
+// Bu kodu hcayar.js faylının ən sonuna yapışdır
+document.addEventListener('DOMContentLoaded', () => {
+    const letterTypes = {
+        'env-miss': 'miss',
+        'env-sad': 'sad',
+        'env-happy': 'happy',
+        'env-us': 'us'
+    };
+
+    // Məktubları açmaq üçün
+    for (const [id, type] of Object.entries(letterTypes)) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('click', () => {
+                const modal = document.getElementById('letter-modal');
+                // Sizin letters obyektinizdən məlumatları çəkir
+                document.getElementById('letter-title').innerText = letters[type].title;
+                document.getElementById('letter-text').innerText = letters[type].text;
+                modal.style.display = 'flex';
+            });
+        }
+    }
+
+    // Modalın bağlanması üçün
+    const closeBtn = document.getElementById('close-modal-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            document.getElementById('letter-modal').style.display = 'none';
+        });
+    }
+});
