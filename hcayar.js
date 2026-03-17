@@ -1,12 +1,15 @@
 const targetDate = new Date("2026-03-15T13:31:00"); 
+
 const config = {
-    githubUsername: "huseynw", 
+    githubUsername: "huseynw",
     repoName: "dunyamiz",              
     firstMeetingDate: "2025-10-22T00:00:00",
-    startDate: "2025-08-03T00:00:00", 
-    meetingCount: 94,    
+    startDate: "2026-03-17T00:00:00", 
+    meetingCount: 95,    
     musicTitle: "Gözlərin dəydi gözümə"
 };
+
+// Security - Disable right-click and dev tools
 document.addEventListener('contextmenu', event => event.preventDefault());
 document.onkeydown = function(e) {
     if (e.keyCode == 123 || 
@@ -19,47 +22,90 @@ document.onkeydown = function(e) {
 setInterval(function() {
     checkDevTools();
 }, 1000);
+
 function checkDevTools() {
     const start = new Date();
     debugger; 
     const end = new Date();
     if (end - start > 100) {
-        document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:20%; font-family:sans-serif;'>Giriş Qadağandır! 🛑</h1>";
+        document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:20%; font-family:sans-serif;'>Giriş Qadağandır! 🚱</h1>";
     }
 }
+
 setInterval(() => {
     console.clear();
 }, 100);
+
+// Audio Elements
 const audio = document.getElementById('audio');
 const playPauseBtn = document.getElementById('playPauseBtn');
 const muteBtn = document.getElementById('muteBtn');
 const seekBar = document.getElementById('seekBar');
 const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
-const seekSlider = document.querySelector('.seek_slider');
-const volumeSlider = document.querySelector('.volume_slider');
-const currTimeText = document.getElementById('curr-time');
-const totalDurText = document.getElementById('total-duration');
-const trackArt = document.getElementById('track-art');
+
 let allImages = []; 
 let currentImgIdx = 0;
 let isPlaying = false;
+
+// ========== SPA NAVIGATION ==========
+function initSPANavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages = document.querySelectorAll('.spa-page');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const targetPage = item.getAttribute('data-page');
+            
+            // Update nav items
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+            
+            // Animate page transition
+            pages.forEach(page => {
+                if (page.classList.contains('active')) {
+                    page.classList.add('exit-up');
+                    setTimeout(() => {
+                        page.classList.remove('active', 'exit-up');
+                    }, 300);
+                }
+            });
+            
+            // Show target page with animation
+            setTimeout(() => {
+                const targetElement = document.getElementById(`page-${targetPage}`);
+                if (targetElement) {
+                    targetElement.classList.add('active');
+                }
+            }, 150);
+        });
+    });
+}
+
+// Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+    initSPANavigation();
+    
     const meetEl = document.getElementById('meet-count');
     if(meetEl) meetEl.innerText = config.meetingCount;
+    
     updateCounter();
     setInterval(updateCounter, 1000);
 });
+
+// ========== PASSWORD SYSTEM ==========
 const enterBtn = document.getElementById('enter-btn');
 const passPanel = document.getElementById('password-panel');
 const verifyBtn = document.getElementById('verify-btn');
 const passInput = document.getElementById('pass-input');
 const errorMsg = document.getElementById('error-msg');
+
 enterBtn.addEventListener('click', () => {
     enterBtn.style.display = 'none'; 
     passPanel.style.display = 'flex'; 
     passInput.focus();
 });
+
 verifyBtn.addEventListener('click', () => {
     const sfire = "030825";
     if (passInput.value === sfire) {
@@ -81,9 +127,8 @@ verifyBtn.addEventListener('click', () => {
             initVisualizer(audio);
             audio.play().then(() => {
                 isPlaying = true;
-                if(trackArt) trackArt.classList.add('playing');
-                const icon = document.querySelector('.play-btn i');
-                if(icon) icon.classList.replace('fa-play-circle', 'fa-pause-circle');
+                if(document.getElementById('track-art')) document.getElementById('track-art').classList.add('playing');
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
             }).catch(e => console.log("Musiqi gözləmədə..."));
         }
     } else {
@@ -94,31 +139,55 @@ verifyBtn.addEventListener('click', () => {
         ], { duration: 200 });
     }
 });
+
 passInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') verifyBtn.click();
 });
+
+// ========== TIME TOGETHER COUNTER (ASCENDING) ==========
 function updateCounter() {
     const start = new Date(config.startDate).getTime();
     const now = new Date().getTime();
     const diff = now - start;
+    
     if (isNaN(diff)) return;
+    
     const d = Math.floor(diff / (1000 * 60 * 60 * 24));
     const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const s = Math.floor((diff % (1000 * 60)) / 1000);
-    if(document.getElementById('days')) document.getElementById('days').innerText = d;
+    
+    // Main time together card (Home page)
+    if(document.getElementById('total-days')) document.getElementById('total-days').innerText = d;
     if(document.getElementById('hours')) document.getElementById('hours').innerText = h < 10 ? '0' + h : h;
     if(document.getElementById('minutes')) document.getElementById('minutes').innerText = m < 10 ? '0' + m : m;
     if(document.getElementById('seconds')) document.getElementById('seconds').innerText = s < 10 ? '0' + s : s;
+    
+    // Detailed time (Time page)
+    if(document.getElementById('detail-days')) document.getElementById('detail-days').innerText = d;
+    if(document.getElementById('detail-hours')) document.getElementById('detail-hours').innerText = h;
+    if(document.getElementById('detail-minutes')) document.getElementById('detail-minutes').innerText = m;
+    if(document.getElementById('detail-seconds')) document.getElementById('detail-seconds').innerText = s;
+    
+    // Total experience
+    const totalHours = Math.floor(diff / (1000 * 60 * 60));
+    const totalMinutes = Math.floor(diff / (1000 * 60));
+    
+    if(document.getElementById('total-hours-love')) document.getElementById('total-hours-love').innerText = totalHours.toLocaleString();
+    if(document.getElementById('total-minutes-love')) document.getElementById('total-minutes-love').innerText = totalMinutes.toLocaleString();
 }
+
+// ========== GALLERY ==========
 async function fetchImages() {
     const stack = document.getElementById('gallery-stack');
     if(!stack) return;
+    
     const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery`;
     try {
         const response = await fetch(url);
         const files = await response.json();
         allImages = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
+        
         if(allImages.length > 0) {
             let html = '';
             allImages.slice(-4).forEach((img, idx) => {
@@ -131,6 +200,7 @@ async function fetchImages() {
         console.error("Qalereya xətası:", e);
     }
 }
+
 function changeImage(step) {
     if (allImages.length === 0) return;
     currentImgIdx = (currentImgIdx + step + allImages.length) % allImages.length;
@@ -143,6 +213,7 @@ function changeImage(step) {
         }, 150);
     }
 }
+
 function getDynamicPath() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const minLen = 8;
@@ -155,25 +226,30 @@ function getDynamicPath() {
     }
     return result;
 }
+
 function openLightbox(index) {
     const lb = document.getElementById('lightbox');
     const lbImg = document.getElementById('lightbox-img');
     const nBtn = document.getElementById('next-btn');
     const pBtn = document.getElementById('prev-btn');
+    
     if (!lb || !lbImg) {
-        console.error("Lightbox və ya Şəkil elementi tapılmadı! HTML-i yoxla.");
+        console.error("Lightbox və ya Şəkil elementi tapılmadı!");
         return;
     }
+    
     currentImgIdx = index;
     lbImg.src = allImages[currentImgIdx].download_url;
     lb.style.display = "flex";
     lb.classList.add('active');
+    
     if (nBtn) {
         nBtn.onclick = (e) => { e.stopPropagation(); changeImage(1); };
     }
     if (pBtn) {
         pBtn.onclick = (e) => { e.stopPropagation(); changeImage(-1); };
     }
+    
     const closeBtn = document.querySelector('.close-lightbox');
     if (closeBtn) {
         closeBtn.onclick = () => {
@@ -182,37 +258,8 @@ function openLightbox(index) {
         };
     }
 }
-function playpauseTrack() {
-    if (audio.paused) {
-        audio.play();
-        if(trackArt) trackArt.classList.add('playing');
-        playBtn.querySelector('i').classList.replace('fa-play-circle', 'fa-pause-circle');
-    } else {
-        audio.pause();
-        if(trackArt) trackArt.classList.remove('playing');
-        playBtn.querySelector('i').classList.replace('fa-pause-circle', 'fa-play-circle');
-    }
-}
-if(audio) {
-    audio.ontimeupdate = () => {
-        if (audio.duration) {
-            seekSlider.value = (audio.currentTime / audio.duration) * 100;
-            currTimeText.innerText = formatTime(audio.currentTime);
-            totalDurText.innerText = formatTime(audio.duration);
-        }
-    };
-    function formatTime(sec) {
-        let m = Math.floor(sec / 60);
-        let s = Math.floor(sec % 60);
-        return (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
-    }
-}
-if(seekSlider) {
-    seekSlider.oninput = () => { audio.currentTime = (seekSlider.value / 100) * audio.duration; };
-}
-if(volumeSlider) {
-    volumeSlider.oninput = () => { audio.volume = volumeSlider.value / 100; };
-}
+
+// ========== HEART PARTICLES ==========
 function createHeart() {
     const heart = document.createElement('div');
     heart.classList.add('heart-particle');
@@ -225,7 +272,10 @@ function createHeart() {
         heart.remove();
     }, 4000);
 }
+
 setInterval(createHeart, 500);
+
+// ========== LETTERS ==========
 const letters = {
     "miss": {
         title: "Darıxanda...",
@@ -237,35 +287,47 @@ const letters = {
     },
     "happy": {
         title: "Xoşbəxt olanda...",
-        text: "Bax bunu eşitmək istəyirəm. Sənin xoşbəxtliyin mənim üçün hər şeydən önəmlidir. Bu günün dadını çıxar, gül, əylən. Sən xoşbəxt olanda mən də dünyanın ən xoşbəxt adamı oluram. Həmişə belə parılda, günəşim!"
+        text: "Bax bunu eşitmək istəyirəm. Sənin xoşbəxtliyin mənim üçün hər şeydən önəmlidir. Bu gününün dadını çıxar, gül, əylən. Sən xoşbəxt olanda mən də dünyanın ən xoşbəxt adamı oluram. Həmişə belə parılda, günəşim!"
     },
     "us": {
         title: "Bizim üçün...",
-        text: "Nə yaxşı ki, həyat yollarımızı kəsişdirib. Sən mənim təkcə sevgilim yox, həm də ən yaxşı dostumsan. Səninlə keçən hər saniyə mənim üçün hədiyyədir. Birlikdə hələ neçə gözəl günlərimiz olacaq. Yaxşı ki varsan, Cəmaləm."
+        text: "Nə yaxşı ki, həyat yollarımız kəsişdirib. Sən mənim təkcə sevgilim yox, həm də ən yaxşı dostumsan. Səninlə keçən hər saniyə mənim üçün hədiyyədir. Birlikdə hələ neçə gözəl günlərimiz olacaq. Yaxşı ki varsan, Cəmaləm."
     }
 };
+
 function openLetter(type) {
     const modal = document.getElementById('letter-modal');
     document.getElementById('letter-title').innerText = letters[type].title;
     document.getElementById('letter-text').innerText = letters[type].text;
     modal.style.display = 'flex';
 }
-function closeLetter() { document.getElementById('letter-modal').style.display = 'none'; }
+
+function closeLetter() { 
+    document.getElementById('letter-modal').style.display = 'none'; 
+}
+
+// ========== LOVE PHRASES ==========
 const lovePhrases = [
     "Səni sevirəm", "I Love You", "Seni Seviyorum", "Je t'aime", "Ich liebe dich", "Te amo", "Ti amo", "Eu te amo", 
-    "Ik hou van jou", "Jag älskar dig", "Jeg elsker deg", "Kocham Cię", "Szeretlek", "Miluji tě", "Te iubesc", 
+    "Ik hou van jou", "Jag älskar dig", "Jeg elsker dig", "Kocham Cię", "Szeretlek", "Miluji tě", "Te iubesc", 
     "Volim te", "Σ' αγαπώ", "Я тебя люблю", "Men seni sevaman", "S'agapo", "Ana behibek", "Mahal kita", 
     "Wo ai ni", "Aishiteru", "Saranghae", "Ami tomake bhalobashi", "Naku penda", "Mən səni sevirəm"
 ];
+
 let phraseIndex = 0;
+
 function fastChangeLoveText() {
     const textElement = document.getElementById('changing-love');
     if (!textElement) return;
     phraseIndex = (phraseIndex + 1) % lovePhrases.length;
     textElement.innerText = lovePhrases[phraseIndex];
 }
+
 setInterval(fastChangeLoveText, 200);
+
+// ========== AUDIO VISUALIZER ==========
 let audioContext, analyser, source, canvas, ctx;
+
 function initVisualizer(audioElement) {
     if (audioContext) return; 
     try {
@@ -275,17 +337,24 @@ function initVisualizer(audioElement) {
         source.connect(analyser);
         analyser.connect(audioContext.destination);
         analyser.fftSize = 64; 
+        
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
+        
         canvas = document.getElementById('visualizer');
+        if (!canvas) return;
+        
         ctx = canvas.getContext('2d');
+        
         function draw() {
             requestAnimationFrame(draw); 
             analyser.getByteFrequencyData(dataArray); 
             ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            
             const barWidth = (canvas.width / bufferLength) * 2;
             let barHeight;
             let x = 0;
+            
             for (let i = 0; i < bufferLength; i++) {
                 barHeight = dataArray[i] / 2.5; 
                 ctx.fillStyle = `rgba(254, 118, 150, ${barHeight / 100 + 0.4})`;
@@ -300,33 +369,43 @@ function initVisualizer(audioElement) {
         console.error("Vizualizator xətası:", e);
     }
 }
+
+// ========== MEETING TIMER ==========
 function updateMeetingTimer() {
     const now = new Date();
     const diff = targetDate - now;
+    
     const aylar = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
     const gun = targetDate.getDate();
     const ayAdı = aylar[targetDate.getMonth()];
     const saat = String(targetDate.getHours()).padStart(2, '0');
     const deqiqe = String(targetDate.getMinutes()).padStart(2, '0');
     const formatliTarix = `${gun} ${ayAdı} saat ${saat}:${deqiqe}`;
-    document.getElementById('next-meeting-date').innerText = "Görüş vaxtı: " + formatliTarix;
+    
+    const dateEl = document.getElementById('next-meeting-date');
+    if (dateEl) dateEl.innerText = "Görüş vaxtı: " + formatliTarix;
 
     if (diff <= 0) {
-        document.querySelector('.meeting-timer h3').innerText = "Görüş vaxtı gəldi!";
+        const h3El = document.querySelector('.meeting-timer h3');
+        if (h3El) h3El.innerText = "Görüş vaxtı gəldi!";
         return;
     }
+    
     const d = Math.floor(diff / (1000 * 60 * 60 * 24));
     const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-    document.getElementById('meet-days').innerText = d < 10 ? "0" + d : d;
-    document.getElementById('meet-hours').innerText = h < 10 ? "0" + h : h;
-    document.getElementById('meet-minutes').innerText = m < 10 ? "0" + m : m;
-    document.getElementById('meet-seconds').innerText = s < 10 ? "0" + s : s;
+    if(document.getElementById('meet-days')) document.getElementById('meet-days').innerText = d < 10 ? "0" + d : d;
+    if(document.getElementById('meet-hours')) document.getElementById('meet-hours').innerText = h < 10 ? "0" + h : h;
+    if(document.getElementById('meet-minutes')) document.getElementById('meet-minutes').innerText = m < 10 ? "0" + m : m;
+    if(document.getElementById('meet-seconds')) document.getElementById('meet-seconds').innerText = s < 10 ? "0" + s : s;
 }
+
 setInterval(updateMeetingTimer, 1000);
 updateMeetingTimer();
+
+// ========== MEDIA SESSION ==========
 if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
         title: config.musicTitle,
@@ -345,10 +424,13 @@ document.addEventListener("visibilitychange", () => {
         audio.play().catch(e => console.log("Yenidən başlatma cəhdi..."));
     }
 });
+
+// ========== DYNAMIC CONTENT ==========
 function updateDynamicContent() {
     const now = new Date();
     const hour = now.getHours();
     let greeting = "";
+    
     if (hour >= 5 && hour < 12) {
         greeting = "Sabahın xeyir";
     } else if (hour >= 12 && hour < 18) {
@@ -358,62 +440,75 @@ function updateDynamicContent() {
     } else {
         greeting = "Gecən xeyirə qalsın";
     }
+    
     const greetingElement = document.getElementById("dynamic-greeting");
     if (greetingElement) {
         greetingElement.innerHTML = greeting + ", Cəmaləm <span style='color: #ff4d6d;'>🤍</span>";
     }
+    
     const minute = String(now.getMinutes()).padStart(2, '0');
     const second = String(now.getSeconds()).padStart(2, '0');
     const timeString = `${String(hour).padStart(2, '0')}:${minute}:${second}`;
+    
     const aylar = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
     const gunler = ["Bazar", "Bazar ertəsi", "Çərşənbə axşamı", "Çərşənbə", "Cümə axşamı", "Cümə", "Şənbə"];
     const gunAdi = gunler[now.getDay()];
     const ayGun = now.getDate();
     const ayAdi = aylar[now.getMonth()];
     const il = now.getFullYear();
+    
     const clockElement = document.getElementById("live-clock");
     if (clockElement) {
         clockElement.innerText = `${timeString} | ${gunAdi}, ${ayGun} ${ayAdi} ${il}`;
     }
 }
+
 setInterval(updateDynamicContent, 1000);
 updateDynamicContent();
+
+// ========== AUDIO CONTROLS ==========
 function formatTime(seconds) {
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-audio.addEventListener('loadedmetadata', () => {
-    seekBar.max = Math.floor(audio.duration);
-    durationEl.textContent = formatTime(audio.duration);
-});
+if(audio) {
+    audio.addEventListener('loadedmetadata', () => {
+        seekBar.max = Math.floor(audio.duration);
+        durationEl.textContent = formatTime(audio.duration);
+    });
 
-audio.addEventListener('timeupdate', () => {
-    seekBar.value = Math.floor(audio.currentTime);
-    currentTimeEl.textContent = formatTime(audio.currentTime);
-});
+    audio.addEventListener('timeupdate', () => {
+        seekBar.value = Math.floor(audio.currentTime);
+        currentTimeEl.textContent = formatTime(audio.currentTime);
+    });
 
-seekBar.addEventListener('input', () => {
-    audio.currentTime = seekBar.value;
-});
+    seekBar.addEventListener('input', () => {
+        audio.currentTime = seekBar.value;
+    });
 
-playPauseBtn.addEventListener('click', () => {
-    if (audio.paused) {
-        audio.play();
-        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-    } else {
-        audio.pause();
-        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-    }
-});
+    playPauseBtn.addEventListener('click', () => {
+        if (audio.paused) {
+            audio.play();
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            isPlaying = true;
+        } else {
+            audio.pause();
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            isPlaying = false;
+        }
+    });
 
-muteBtn.addEventListener('click', () => {
-    audio.muted = !audio.muted;
-    muteBtn.innerHTML = audio.muted
-        ? '<i class="fas fa-volume-mute"></i>'
-        : '<i class="fas fa-volume-up"></i>';
-});
+    muteBtn.addEventListener('click', () => {
+        audio.muted = !audio.muted;
+        muteBtn.innerHTML = audio.muted
+            ? '<i class="fas fa-volume-mute"></i>'
+            : '<i class="fas fa-volume-up"></i>';
+    });
+}
+
+// ========== LOVE POWER (HEART HOLD) ==========
 let holdTimer;
 let power = 0;
 const heartBtn = document.getElementById('hold-heart');
@@ -421,6 +516,7 @@ const percentText = document.getElementById('power-percent');
 const loveBg = document.createElement('div');
 loveBg.className = 'love-active-bg';
 document.body.appendChild(loveBg);
+
 function startHolding() {
     holdTimer = setInterval(() => {
         if (power < 100) {
@@ -429,6 +525,7 @@ function startHolding() {
         }
     }, 50);
 }
+
 function stopHolding() {
     clearInterval(holdTimer);
     const drainTimer = setInterval(() => {
@@ -440,10 +537,12 @@ function stopHolding() {
         }
     }, 30);
 }
+
 function updatePower() {
     percentText.innerText = power + "%";
     heartBtn.style.transform = `scale(${1 + (power / 100)})`;
     loveBg.style.opacity = power / 100;
+    
     if (power >= 100) {
         heartBtn.style.filter = `drop-shadow(0 0 30px #ff4d6d)`;
         percentText.innerText = "Səni Çox Sevirəm 🤍";
@@ -452,15 +551,18 @@ function updatePower() {
     }
 }
 
+if(heartBtn) {
+    heartBtn.addEventListener('mousedown', startHolding);
+    heartBtn.addEventListener('mouseup', stopHolding);
+    heartBtn.addEventListener('mouseleave', stopHolding);
+    heartBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        startHolding();
+    });
+    heartBtn.addEventListener('touchend', stopHolding);
+}
 
-heartBtn.addEventListener('mousedown', startHolding);
-heartBtn.addEventListener('mouseup', stopHolding);
-heartBtn.addEventListener('mouseleave', stopHolding);
-heartBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    startHolding();
-});
-heartBtn.addEventListener('touchend', stopHolding);
+// ========== TRAIL PARTICLES ==========
 function createParticle(x, y) {
     const p = document.createElement('div');
     p.className = 'trail-particle';
@@ -474,28 +576,14 @@ function createParticle(x, y) {
     document.body.appendChild(p);
     setTimeout(() => p.remove(), 1200);
 }
+
 document.addEventListener('mousemove', (e) => createParticle(e.clientX, e.clientY));
 document.addEventListener('touchmove', (e) => createParticle(e.touches[0].clientX, e.touches[0].clientY));
-const tiltElements = document.querySelectorAll('.time-box, .music-player, .quote-card');
+
+// ========== TILT EFFECT ==========
+const tiltElements = document.querySelectorAll('.time-box, .music-player, .quote-card, .envelope');
+
 tiltElements.forEach(el => {
-    el.addEventListener('mousemove', (e) => {
-        const rect = el.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        const rotateX = (centerY - y) / 8;
-        const rotateY = (x - centerX) / 8;
-        el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
-        el.style.boxShadow = `0 20px 40px rgba(0,0,0,0.5), 0 0 25px var(--primary-glow)`;
-    });
-    el.addEventListener('mouseleave', () => {
-        el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
-        el.style.boxShadow = '';
-    });
-});
-const allBoxes = document.querySelectorAll('.time-box, .music-player, .quote-card, .counter-section, .stacked-gallery');
-allBoxes.forEach(el => {
     el.addEventListener('mousemove', (e) => {
         const rect = el.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -508,14 +596,17 @@ allBoxes.forEach(el => {
         el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
         el.style.boxShadow = `0 20px 40px rgba(0,0,0,0.4), 0 0 25px var(--primary-glow)`;
     });
+    
     el.addEventListener('mouseleave', () => {
         el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
         el.style.boxShadow = '';
     });
 });
-// --- ADMIN PANEL  ---
+
+// ========== ADMIN PANEL ==========
 let clicks = 0;
 let clickTimer;
+
 window.addEventListener('click', (e) => {
     if (e.target.closest('.admin-content') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
 
@@ -527,10 +618,13 @@ window.addEventListener('click', (e) => {
     }
     clickTimer = setTimeout(() => { clicks = 0; }, 500); 
 });
+
 async function handleAdminUpdate(type) {
     const password = document.getElementById('admin-password').value;
     if (!password) return alert("Şifrəni daxil et!");
+    
     let requestPayload = { path: "" };
+    
     if (type === 'update_config') {
         const newDate = document.getElementById('admin-date').value;
         const newCount = document.getElementById('admin-count').value;
@@ -545,16 +639,19 @@ async function handleAdminUpdate(type) {
         const fileInput = document.getElementById('admin-file');
         const file = fileInput.files[0];
         if (!file) return alert("Şəkil seçin!");
+        
         const base64 = await new Promise((resolve) => {
             const reader = new FileReader();
             reader.onload = (e) => resolve(e.target.result.split(',')[1]);
             reader.readAsDataURL(file);
         });
+        
         requestPayload = { 
             path: `gallery/${Date.now()}_${file.name.replace(/\s+/g, '_')}`, 
             content: base64 
         };
     }
+    
     try {
         const response = await fetch('/.netlify/functions/admin-proxy', {
             method: 'POST',
@@ -572,6 +669,8 @@ async function handleAdminUpdate(type) {
         alert("Serverə qoşulmaq mümkün olmadı.");
     }
 }
+
+// ========== WEATHER API ==========
 async function updateWeatherTheme() {
     try {
         const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.3777&longitude=49.892&current_weather=true');
@@ -580,8 +679,10 @@ async function updateWeatherTheme() {
         const temp = Math.round(data.current_weather.temperature);
         const statusText = document.getElementById('weather-status');
         if (!statusText) return;
+        
         let message = "";
         let bgColor = "#000000"; 
+        
         if ([0, 1].includes(code)) {
             message = `Bakıda hava tərtəmizdir (${temp}°C) - Sənin kimi... ☀️`;
             bgColor = "#0a0a0a";
@@ -589,7 +690,7 @@ async function updateWeatherTheme() {
             message = `Bakı bu gün bir az buludludur (${temp}°C) ☁️`;
             bgColor = "#111111";
         } else if ([45, 48].includes(code)) {
-            message = `Hər tərəf dumanlıdır (${temp}°C), amma mən səni görürəm 🌫️`;
+            message = `Hər tərəf dumanlıdır (${temp}°C), amma məni görürəm 🌫️`;
             bgColor = "#2c3e50";
         } else if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) {
             message = `Bakıda yağış yağır (${temp}°C). Əynini qalın geyin çöldə tufan var... 🌧️`;
@@ -603,6 +704,7 @@ async function updateWeatherTheme() {
         } else {
             message = `Bakıda hava bir qəribədir (${temp}°C), amma sənə olan sevgim dəyişməz 🤍`;
         }
+        
         statusText.innerText = message;
         document.body.style.transition = "background 2s ease";
         document.body.style.backgroundColor = bgColor;
@@ -610,14 +712,18 @@ async function updateWeatherTheme() {
         console.error("Hava məlumatı alınmadı.");
     }
 }
+
+// ========== SCRATCH CARD ==========
 function initScratchCard() {
     const sCanvas = document.getElementById('scratch-canvas');
     if (!sCanvas) return;
+    
     const sCtx = sCanvas.getContext('2d', { willReadFrequently: true });
     sCtx.fillStyle = '#444444'; 
     sCtx.beginPath();
     sCtx.rect(0, 0, sCanvas.width, sCanvas.height);
     sCtx.fill();
+    
     function scratch(e) {
         const rect = sCanvas.getBoundingClientRect();
         const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
@@ -627,6 +733,7 @@ function initScratchCard() {
         sCtx.arc(x, y, 25, 0, Math.PI * 2); 
         sCtx.fill();
     }
+    
     sCanvas.addEventListener('mousedown', () => {
         sCanvas.addEventListener('mousemove', scratch);
     });
@@ -638,8 +745,11 @@ function initScratchCard() {
         scratch(e); 
     }, {passive: false});
 }
+
 window.addEventListener('DOMContentLoaded', initScratchCard);
 updateWeatherTheme();
+
+// ========== ADMIN BUTTONS ==========
 document.addEventListener('DOMContentLoaded', () => {
     const updateBtn = document.getElementById('update-config-btn');
     const uploadBtn = document.getElementById('upload-image-btn');
@@ -650,36 +760,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (uploadBtn) {
         uploadBtn.onclick = () => handleAdminUpdate('upload_image');
     }
-});
-// --- SPA NAVBAR LOGIC (Səhifələrə Ayırma) ---
-document.addEventListener('DOMContentLoaded', () => {
-    const navItems = document.querySelectorAll('.nav-item');
-    const pages = document.querySelectorAll('.page-section');
-
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            // Aktiv class-ı ikonlardan sil
-            navItems.forEach(nav => nav.classList.remove('active'));
-            // Kliklənən ikona əlavə et
-            item.classList.add('active');
-            
-            const targetId = item.getAttribute('data-target');
-            
-            // Səhifələri dəyişdir
-            pages.forEach(page => {
-                page.classList.remove('active');
-                if(page.id === targetId) {
-                    page.classList.add('active');
-                    
-                    // Səhifəyə keçəndə animasiyaları sıfırlayıb yenidən başlatmaq üçün
-                    const animateItems = page.querySelectorAll('.animate-item');
-                    animateItems.forEach(el => {
-                        el.style.animation = 'none';
-                        el.offsetHeight; /* Trigger reflow */
-                        el.style.animation = null; 
-                    });
-                }
-            });
-        });
-    });
 });
