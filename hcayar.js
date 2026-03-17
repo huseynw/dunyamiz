@@ -91,6 +91,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     updateCounter();
     setInterval(updateCounter, 1000);
+
+    // Letter modal - arxa fona klik edəndə bağla
+    const letterModal = document.getElementById('letter-modal');
+    if (letterModal) {
+        letterModal.addEventListener('click', function(e) {
+            if (e.target === letterModal) closeLetter();
+        });
+    }
 });
 
 // ========== PASSWORD SYSTEM ==========
@@ -328,14 +336,17 @@ const letters = {
 };
 
 function openLetter(type) {
+    if (!letters[type]) return;
     const modal = document.getElementById('letter-modal');
+    if (!modal) return;
     document.getElementById('letter-title').innerText = letters[type].title;
     document.getElementById('letter-text').innerText = letters[type].text;
-    modal.style.display = 'flex';
+    modal.style.cssText = 'display: flex !important; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 99999; padding: 20px; box-sizing: border-box;';
 }
 
 function closeLetter() { 
-    document.getElementById('letter-modal').style.display = 'none'; 
+    const modal = document.getElementById('letter-modal');
+    if (modal) modal.style.cssText = 'display: none;';
 }
 
 // ========== LOVE PHRASES ==========
