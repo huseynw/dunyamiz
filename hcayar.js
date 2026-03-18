@@ -835,3 +835,21 @@ function animateValue(id, start, end, duration) {
     };
     window.requestAnimationFrame(step);
 }
+document.addEventListener('DOMContentLoaded', () => {
+    const closeAdminBtn = document.querySelector('.close-admin');
+    const adminPanel = document.getElementById('admin-panel');
+
+    // X düyməsinə basanda bağlamaq üçün
+    if (closeAdminBtn && adminPanel) {
+        closeAdminBtn.addEventListener('click', () => {
+            adminPanel.style.display = 'none';
+        });
+    }
+
+    // Əlavə olaraq: Panelin kənarına (boz arxafona) basanda da bağlanması üçün
+    window.addEventListener('click', (event) => {
+        if (event.target === adminPanel) {
+            adminPanel.style.display = 'none';
+        }
+    });
+});
