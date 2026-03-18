@@ -71,17 +71,28 @@ function initSPANavigation() {
                 }
             });
             
-            // Show target page with animation
+            // Show target page
             setTimeout(() => {
                 const targetElement = document.getElementById(`page-${targetPage}`);
                 if (targetElement) {
                     targetElement.classList.add('active');
                 }
             }, 150);
+
+            // 🔥 BURASI YENİ ƏLAVƏ (ANİMASİYA)
+            setTimeout(() => {
+                if (typeof startCountersAnimation === "function") {
+                    startCountersAnimation();
+                }
+
+                // fallback (əgər startCountersAnimation yoxdursa)
+                if (typeof updateCounter === "function") {
+                    updateCounter();
+                }
+            }, 200);
         });
     });
 }
-
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
     initSPANavigation();
@@ -164,37 +175,38 @@ passInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') verifyBtn.click();
 });
 
-// ========== TIME TOGETHER COUNTER (ASCENDING) ==========
-// 1. Rəqəmləri artıran köməkçi funksiya
-function updateCounter() {
+// ========== TIME TOGETHER COUNTER (function updateCounter() {
     const start = new Date(config.startDate).getTime();
     const now = new Date().getTime();
     const diff = now - start;
     if (isNaN(diff)) return;
-    
+
     const d = Math.floor(diff / (1000 * 60 * 60 * 24));
     const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const s = Math.floor((diff % (1000 * 60)) / 1000);
+
     const totalHours = Math.floor(diff / (1000 * 60 * 60));
     const totalMinutes = Math.floor(diff / (1000 * 60));
 
+    // böyük rəqəmlər
     if (!window.isAnimating) {
-        if(document.getElementById('total-days')) document.getElementById('total-days').innerText = d;
-        if(document.getElementById('detail-days')) document.getElementById('detail-days').innerText = d;
-        if(document.getElementById('total-hours-love')) document.getElementById('total-hours-love').innerText = totalHours.toLocaleString('tr-TR');
-        if(document.getElementById('total-minutes-love')) document.getElementById('total-minutes-love').innerText = totalMinutes.toLocaleString('tr-TR');
-        if(document.getElementById('meet-count')) document.getElementById('meet-count').innerText = config.meetingCount;
+        animateLiveValue('total-days', d);
+        animateLiveValue('detail-days', d);
+        animateLiveValue('total-hours-love', totalHours);
+        animateLiveValue('total-minutes-love', totalMinutes);
+        animateLiveValue('meet-count', config.meetingCount);
     }
 
-    if(document.getElementById('hours')) document.getElementById('hours').innerText = h < 10 ? '0' + h : h;
-    if(document.getElementById('minutes')) document.getElementById('minutes').innerText = m < 10 ? '0' + m : m;
-    if(document.getElementById('seconds')) document.getElementById('seconds').innerText = s < 10 ? '0' + s : s;
-    if(document.getElementById('detail-hours')) document.getElementById('detail-hours').innerText = h;
-    if(document.getElementById('detail-minutes')) document.getElementById('detail-minutes').innerText = m;
-    if(document.getElementById('detail-seconds')) document.getElementById('detail-seconds').innerText = s;
-}
+    // canlı saat sistemi (YouTube style)
+    animateLiveValue('hours', h, 300);
+    animateLiveValue('minutes', m, 300);
+    animateLiveValue('seconds', s, 150);
 
+    animateLiveValue('detail-hours', h);
+    animateLiveValue('detail-minutes', m);
+    animateLiveValue('detail-seconds', s);
+}
 // ========== GALLERY ==========
 async function fetchImages() {
     const stack = document.getElementById('gallery-stack');
@@ -853,3 +865,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+function animateLiveValue(id, newValue, duration = 500) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const current = parseInt(el.innerText.replace(/,/g, '')) || 0;
+    const start = current;
+    const end = newValue;
+
+    let startTime = null;
+
+    function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+
+        let value = Math.floor(start + (end - start) * ease);
+
+        // Saat/dəqiqə formatı
+        if (id === 'hours' || id === 'minutes' || id === 'seconds') {
+            el.innerText = value < 10 ? '0' + value : value;
+        } 
+        else if (id.includes('minutes') || id.includes('hours')) {
+            el.innerText = value.toLocaleString('tr-TR');
+        } 
+        else {
+            el.innerText = value;
+        }
+
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        }
+    }
+
+    requestAnimationFrame(step);
+}
