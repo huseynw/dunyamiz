@@ -71,25 +71,21 @@ function initSPANavigation() {
                 }
             });
             
-            // Show target page
+            // Show target page + ANİMASİYA BURDA
             setTimeout(() => {
                 const targetElement = document.getElementById(`page-${targetPage}`);
+                
                 if (targetElement) {
                     targetElement.classList.add('active');
+
+                    // 🔥 ƏN DOĞRU YER
+                    setTimeout(() => {
+                        startCountersAnimation(); // əsas animasiya
+                        updateCounter(); // fallback + live update
+                    }, 50);
                 }
+
             }, 150);
-
-            // 🔥 BURASI YENİ ƏLAVƏ (ANİMASİYA)
-            setTimeout(() => {
-                if (typeof startCountersAnimation === "function") {
-                    startCountersAnimation();
-                }
-
-                // fallback (əgər startCountersAnimation yoxdursa)
-                if (typeof updateCounter === "function") {
-                    updateCounter();
-                }
-            }, 200);
         });
     });
 }
