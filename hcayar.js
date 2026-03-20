@@ -854,14 +854,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 // Notlar funksiyası
+// Notlar funksiyası
 window.showNote = function(i) {
-    if (!window.currentNotes || !window.currentNotes[i]) return;
-    const n = window.currentNotes[i];
-    document.getElementById('view-note-title').innerText = n.title;
-    document.getElementById('view-note-author').innerText = n.author + " tərəfindən";
-    document.getElementById('view-note-text').innerText = n.content;
-    document.getElementById('view-note-date').innerText = n.dateStr;
-    document.getElementById('view-note-modal').style.display = 'flex';
+    try {
+        if (!window.currentNotes || !window.currentNotes[i]) return;
+        const n = window.currentNotes[i];
+        
+        document.getElementById('view-note-title').innerText = n.title;
+        document.getElementById('view-note-author').innerText = n.author + " tərəfindən";
+        document.getElementById('view-note-text').innerText = n.content;
+        
+        // Saat ikonunu qorumaq üçün innerText əvəzinə innerHTML istifadə edirik:
+        document.getElementById('view-note-date').innerHTML = `<i class="far fa-clock"></i> ${n.dateStr}`;
+        
+        document.getElementById('view-note-modal').style.display = 'flex';
+    } catch (err) {
+        console.error("Not açılarkən xəta baş verdi:", err);
+        alert("Notu açmaq mümkün olmadı.");
+    }
 };
 
 async function loadNotes() {
@@ -871,7 +881,10 @@ async function loadNotes() {
     try {
         const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/notlar`;
         const res = await fetch(url);
-        if(!res.ok) { container.innerHTML = "<p style='opacity:0.6;'>Hələ ki, not yoxdur.</p>"; return; }
+        if(!res.ok) { 
+            container.innerHTML = "<p style='opacity:0.6;'>Hələ ki, not yoxdur.</p>"; 
+            return; 
+        }
         
         const files = await res.json();
         let notesData = [];
@@ -885,16 +898,28 @@ async function loadNotes() {
         notesData.sort((a,b) => new Date(b.dateIso) - new Date(a.dateIso));
         window.currentNotes = notesData;
 
+        // "onclick" atributunu çıxarır və məlumatı "data-index" kimi saxlayırıq
         container.innerHTML = notesData.map((n, i) => `
-            <div class="note-card" onclick="showNote(${i})">
+            <div class="note-card" data-index="${i}">
                 <span class="note-card-author">${n.author}</span>
                 <h3 class="note-card-title">${n.title}</h3>
                 <span class="note-card-date">${n.dateStr}</span>
             </div>
         `).join('');
-    } catch(e) { container.innerHTML = "Notlar yüklənərkən xəta baş verdi."; }
-}
 
+        // Bütün kartlara klik (click) funksiyasını təhlükəsiz yolla bağlayırıq
+        document.querySelectorAll('.note-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const index = this.getAttribute('data-index');
+                window.showNote(parseInt(index));
+            });
+        });
+
+    } catch(e) { 
+        console.error("Xəta:", e);
+        container.innerHTML = "<p style='opacity:0.6; color:#ff4d6d;'>Notlar yüklənərkən xəta baş verdi.</p>"; 
+    }
+}
 document.addEventListener('DOMContentLoaded', () => {
     loadNotes();
     
