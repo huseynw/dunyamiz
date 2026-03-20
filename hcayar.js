@@ -854,6 +854,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 // Notlar funksiyası
+window.showNote = function(i) {
+    if (!window.currentNotes || !window.currentNotes[i]) return;
+    const n = window.currentNotes[i];
+    document.getElementById('view-note-title').innerText = n.title;
+    document.getElementById('view-note-author').innerText = n.author + " tərəfindən";
+    document.getElementById('view-note-text').innerText = n.content;
+    document.getElementById('view-note-date').innerText = n.dateStr;
+    document.getElementById('view-note-modal').style.display = 'flex';
+};
+
 async function loadNotes() {
     const container = document.getElementById('notes-container');
     if(!container) return;
@@ -861,11 +871,13 @@ async function loadNotes() {
     try {
         const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/notlar`;
         const res = await fetch(url);
-        if(!res.ok) { container.innerHTML = "Not yoxdur."; return; }
+        if(!res.ok) { container.innerHTML = "<p style='opacity:0.6;'>Hələ ki, not yoxdur.</p>"; return; }
         
         const files = await res.json();
         let notesData = [];
-        for(let f of files.filter(x => x.name.endsWith('.json'))) {
+        const jsonFiles = files.filter(x => x.name.endsWith('.json'));
+        
+        for(let f of jsonFiles) {
             const dataRes = await fetch(f.download_url);
             notesData.push(await dataRes.json());
         }
@@ -880,59 +892,64 @@ async function loadNotes() {
                 <span class="note-card-date">${n.dateStr}</span>
             </div>
         `).join('');
-    } catch(e) { container.innerHTML = "Yüklənmədə xəta."; }
+    } catch(e) { container.innerHTML = "Notlar yüklənərkən xəta baş verdi."; }
 }
 
-function showNote(i) {
-    const n = window.currentNotes[i];
-    document.getElementById('view-note-title').innerText = n.title;
-    document.getElementById('view-note-author').innerText = n.author + " tərəfindən";
-    document.getElementById('view-note-text').innerText = n.content;
-    document.getElementById('view-note-date').innerText = n.dateStr;
-    document.getElementById('view-note-modal').style.display = 'flex';
-}
-
-// Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     loadNotes();
     
-    document.getElementById('open-add-note-btn').onclick = () => document.getElementById('add-note-modal').style.display = 'flex';
-    document.getElementById('close-add-note-btn').onclick = () => document.getElementById('add-note-modal').style.display = 'none';
-    document.getElementById('close-view-note-btn').onclick = () => document.getElementById('view-note-modal').style.display = 'none';
+    // Modal idarəetmələri
+    const addModal = document.getElementById('add-note-modal');
+    const viewModal = document.getElementById('view-note-modal');
+    
+    document.getElementById('open-add-note-btn').onclick = () => addModal.style.display = 'flex';
+    document.getElementById('close-add-note-btn').onclick = () => addModal.style.display = 'none';
+    document.getElementById('close-view-note-btn').onclick = () => viewModal.style.display = 'none';
 
+    // Not əlavə etmə məntiqi
     document.getElementById('submit-note-btn').onclick = async () => {
         const author = document.getElementById('note-author').value;
         let title = document.getElementById('note-title').value.trim();
         const content = document.getElementById('note-content').value.trim();
         const pass = prompt("Admin şifrəsi:");
 
-        if(!content || !pass) return;
+        if(!content || !pass) return alert("Məzmun və şifrə mütləqdir!");
 
         const now = new Date();
         const dateStr = now.toLocaleString('az-AZ').replace(',', '');
         if(!title) title = dateStr;
 
         const noteObj = { author, title, content, dateStr, dateIso: now.toISOString() };
+        // UTF-8 dəstəyi ilə Base64-ə çevirmə
         const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(noteObj))));
 
         const btn = document.getElementById('submit-note-btn');
         btn.innerText = "Yüklənir...";
+        btn.disabled = true;
         
-        const res = await fetch('/.netlify/functions/admin-proxy', {
-            method: 'POST',
-            body: JSON.stringify({
-                type: 'upload_note',
-                password: pass,
-                payload: { path: `notlar/not_${Date.now()}.json`, content: b64 }
-            })
-        });
+        try {
+            const res = await fetch('/.netlify/functions/admin-proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'upload_note',
+                    password: pass,
+                    payload: { path: `notlar/not_${Date.now()}.json`, content: b64 }
+                })
+            });
 
-        if(res.ok) {
-            alert("Uğurla əlavə edildi!");
-            location.reload();
-        } else {
-            alert("Xəta baş verdi!");
+            if(res.ok) {
+                alert("Not uğurla əlavə edildi! 🤍");
+                location.reload();
+            } else {
+                alert("Xəta: Şifrə yanlış ola bilər.");
+                btn.innerText = "Təsdiqlə";
+                btn.disabled = false;
+            }
+        } catch(e) {
+            alert("Sistem xətası baş verdi.");
             btn.innerText = "Təsdiqlə";
+            btn.disabled = false;
         }
     };
 });
