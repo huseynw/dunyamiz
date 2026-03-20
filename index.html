@@ -301,6 +301,17 @@
                     </div>
                 </div>
             </section>
+            <section class="spa-page" id="page-notes">
+                <div class="page-content">
+                    <h2 class="page-title">Notlarımız</h2>
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <button id="open-add-note-btn" class="custom-btn" style="background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; box-shadow: 0 5px 15px var(--primary-glow); transition: 0.3s;"><i class="fas fa-plus"></i> Yeni Not Əlavə Et</button>
+                    </div>
+                    <div class="notes-grid" id="notes-container">
+                        <p style="text-align:center; opacity:0.7;">Notlar yüklənir...</p>
+                    </div>
+                </div>
+            </section>
 
         </div>
 
@@ -322,6 +333,10 @@
                 <i class="fas fa-envelope"></i>
                 <span>Məktublar</span>
             </button>
+            <button class="nav-item" data-page="notes">
+                <i class="fas fa-sticky-note"></i>
+                <span>Notlar</span>
+            </button>
         </nav>
     </main>
 
@@ -342,6 +357,40 @@
             <span class="close-letter" id="close-modal-btn">&times;</span>
             <h2 id="letter-title">Başlıq</h2>
             <p id="letter-text">Məktub mətni...</p>
+        </div>
+    </div>
+    <div id="add-note-modal" class="letter-modal">
+        <div class="letter-content" style="max-width: 450px; padding: 30px 25px;">
+            <span class="close-letter" id="close-add-note-btn">&times;</span>
+            <h2 style="font-size: 2.2rem;">Yeni Not</h2>
+            <div style="text-align: left; margin-bottom: 15px;">
+                <label style="font-size: 0.9rem; color: #555; font-weight: 600;">Kim yazır?</label>
+                <select id="note-author" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; outline: none; margin-top: 5px; font-family: 'Poppins', sans-serif;">
+                    <option value="Hüseyn">Hüseyn</option>
+                    <option value="Cəmalə">Cəmalə</option>
+                </select>
+            </div>
+            <div style="text-align: left; margin-bottom: 15px;">
+                <label style="font-size: 0.9rem; color: #555; font-weight: 600;">Başlıq (boş qoysan tarix olacaq):</label>
+                <input type="text" id="note-title" placeholder="Məs: Bu gün çox gözəl idi..." style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; outline: none; margin-top: 5px; font-family: 'Poppins', sans-serif;">
+            </div>
+            <div style="text-align: left; margin-bottom: 20px;">
+                <label style="font-size: 0.9rem; color: #555; font-weight: 600;">Məzmun:</label>
+                <textarea id="note-content" rows="4" placeholder="Ürəyindən keçənləri yaz..." style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; outline: none; margin-top: 5px; resize: vertical; font-family: 'Poppins', sans-serif;"></textarea>
+            </div>
+            <button id="submit-note-btn" style="width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; box-shadow: 0 5px 15px var(--primary-glow); transition: 0.3s;">Təsdiqlə və Göndər</button>
+        </div>
+    </div>
+
+    <div id="view-note-modal" class="letter-modal">
+        <div class="letter-content" style="max-width: 500px; text-align: left;">
+            <span class="close-letter" id="close-view-note-btn">&times;</span>
+            <h2 id="view-note-title" style="font-size: 1.8rem; margin-bottom: 5px;">Başlıq</h2>
+            <p id="view-note-author" style="font-style: italic; color: var(--primary); font-size: 0.95rem; font-weight: 600; margin-bottom: 20px;">Hüseyn tərəfindən</p>
+            <p id="view-note-text" style="white-space: pre-wrap; line-height: 1.6; font-size: 1rem; color: #333; max-height: 50vh; overflow-y: auto;">Məzmun...</p>
+            <div style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 10px; text-align: right;">
+                <span id="view-note-date" style="font-size: 0.8rem; color: #888; background: #f5f5f5; padding: 5px 10px; border-radius: 15px;"><i class="far fa-clock"></i> Tarix</span>
+            </div>
         </div>
     </div>
     
