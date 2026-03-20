@@ -27,7 +27,6 @@
 <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
 <body>
-    <!-- Welcome Screen -->
     <div id="welcome-screen">
         <div class="welcome-content">
             <div class="rose-wrapper">
@@ -56,10 +55,7 @@
             </div>
         </div>
     </div>
-
-    <!-- Main Content -->
     <main id="main-content" class="hidden">
-        <!-- Header - Always Visible -->
         <header class="animate-item delay-1">
             <div class="logo-container">
                 <span class="letter">H</span>
@@ -78,14 +74,9 @@
                 <span id="weather-status" style="color: #aaa; font-size: 14px; letter-spacing: 1px;">Bakıda hava yoxlanılır...</span>
             </div>
         </header>
-
-        <!-- SPA Pages Container -->
         <div class="spa-container">
-            
-            <!-- Page 1: Əsas (Home) -->
             <section class="spa-page active" id="page-home">
                 <div class="page-content animate-item delay-2">
-                    <!-- Time Together Counter - Modern Card -->
                     <div class="time-together-card">
                         <div class="time-together-header">
                             <i class="fas fa-heart"></i>
@@ -123,8 +114,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Next Meeting Timer -->
                     <div class="counter-section meeting-timer">
                         <h3>Növbəti Görüşümüzə Qalan Vaxt:</h3>
                         <p id="next-meeting-date" class="meeting-date-text"></p> 
@@ -147,8 +136,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Love Power Section -->
                     <section class="love-power-section animate-item delay-3">
                         <div class="love-container">
                             <p>Ürəyə basılı tut...</p>
@@ -158,8 +145,6 @@
                             <span id="power-percent">0%</span>
                         </div>
                     </section>
-
-                    <!-- Scratch Card -->
                     <div class="scratch-section">
                         <p class="scratch-hint">Aşağıdakı qutunu sil</p>
                         <div class="scratch-container">
@@ -172,13 +157,9 @@
                     </div>
                 </div>
             </section>
-
-            <!-- Page 2: Zamanımız (Time) -->
             <section class="spa-page" id="page-time">
                 <div class="page-content">
                     <h2 class="page-title">Zamanımız</h2>
-                    
-                    <!-- Detailed Time Together -->
                     <div class="detailed-time-card">
                         <div class="detailed-header">
                             <i class="fas fa-clock"></i>
@@ -215,13 +196,9 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Love Switcher -->
                     <div class="love-switcher">
                         <span id="changing-love">Səni sevirəm</span> <span style="color: #ff4d6d;">🤍</span>
                     </div>
-
-                    <!-- Links Section -->
                     <section class="links-section">
                         <h3>Cəmaləm üçün yazdığım saytlar</h3>
                         <div class="quote-links">
@@ -241,15 +218,11 @@
                     </section>
                 </div>
             </section>
-
-            <!-- Page 3: Qalereya (Gallery) -->
             <section class="spa-page" id="page-gallery">
                 <div class="page-content">
                     <h2 class="page-title">Qalereyamız</h2>
                     <p class="hint">Şəkillərə baxmaq üçün toxun</p>
                     <div class="stacked-gallery" id="gallery-stack"></div>
-                    
-                    <!-- Music Player in Gallery -->
                     <section class="music-player animate-item">
                         <img src="assets/music-cover.jpg" alt="Mahnı şəkli" class="song-image" id="track-art" />
                         <div class="song-info">
@@ -270,8 +243,6 @@
                     </section>
                 </div>
             </section>
-
-            <!-- Page 4: Məktublar (Letters) -->
             <section class="spa-page" id="page-letters">
                 <div class="page-content">
                     <h2 class="page-title">Məni hiss etdiyində...</h2>
@@ -293,8 +264,6 @@
                             <span>Bizim üçün</span>
                         </div>
                     </div>
-                    
-                    <!-- Additional Love Note -->
                     <div class="love-note-card">
                         <div class="note-icon">💌</div>
                         <p class="note-text">Hər məktub sənə ürəyimdən yazılıb.</p>
@@ -312,10 +281,7 @@
                     </div>
                 </div>
             </section>
-
         </div>
-
-        <!-- Glassmorphism Navigation Bar -->
         <nav class="spa-navbar">
             <button class="nav-item active" data-page="home">
                 <i class="fas fa-home"></i>
@@ -339,19 +305,14 @@
             </button>
         </nav>
     </main>
-
     <audio id="music-file" src="assets/music.mp3" loop></audio>
     <script src="hcayar.js"></script>
-    
-    <!-- Lightbox -->
     <div id="lightbox" class="lightbox">
         <span class="close-lightbox">&times;</span>
         <div class="prev" id="prev-btn">&#10094;</div>
         <img class="lightbox-content" id="lightbox-img">
         <div class="next" id="next-btn">&#10095;</div>
     </div>
-    
-    <!-- Letter Modal -->
     <div id="letter-modal" class="letter-modal">
         <div class="letter-content">
             <span class="close-letter" id="close-modal-btn">&times;</span>
@@ -381,7 +342,6 @@
             <button id="submit-note-btn" style="width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; box-shadow: 0 5px 15px var(--primary-glow); transition: 0.3s;">Təsdiqlə və Göndər</button>
         </div>
     </div>
-
     <div id="view-note-modal" class="letter-modal">
         <div class="letter-content" style="max-width: 500px; text-align: left;">
             <span class="close-letter" id="close-view-note-btn">&times;</span>
@@ -393,8 +353,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- Admin Panel -->
     <div id="admin-panel" style="display: none;">
         <div class="admin-content">
             <span class="close-admin" onclick="document.getElementById('admin-panel').style.display='none'">&times;</span>
