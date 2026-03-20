@@ -1431,3 +1431,33 @@ header { text-align: center; margin-bottom: 30px; }
         font-size: 2.5rem;
     }
 }
+.notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 10px;
+}
+
+.note-card {
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    padding: 20px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+    border-left: 4px solid var(--primary);
+}
+
+.note-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.15); }
+
+.note-card-author { font-size: 0.8rem; color: var(--primary); font-weight: 600; }
+.note-card-title { font-size: 1.1rem; margin: 8px 0; color: white; }
+.note-card-date { font-size: 0.75rem; opacity: 0.6; display: block; text-align: right; }
+
+/* Mobil üçün tam uyğunluq */
+@media (max-width: 768px) {
+    .notes-grid { grid-template-columns: 1fr; }
+    .letter-content { width: 92% !important; padding: 25px 15px !important; }
+    #submit-note-btn { padding: 15px; }
+}
