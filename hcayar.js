@@ -853,3 +853,86 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+// Notlar funksiyası
+async function loadNotes() {
+    const container = document.getElementById('notes-container');
+    if(!container) return;
+    
+    try {
+        const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/notlar`;
+        const res = await fetch(url);
+        if(!res.ok) { container.innerHTML = "Not yoxdur."; return; }
+        
+        const files = await res.json();
+        let notesData = [];
+        for(let f of files.filter(x => x.name.endsWith('.json'))) {
+            const dataRes = await fetch(f.download_url);
+            notesData.push(await dataRes.json());
+        }
+
+        notesData.sort((a,b) => new Date(b.dateIso) - new Date(a.dateIso));
+        window.currentNotes = notesData;
+
+        container.innerHTML = notesData.map((n, i) => `
+            <div class="note-card" onclick="showNote(${i})">
+                <span class="note-card-author">${n.author}</span>
+                <h3 class="note-card-title">${n.title}</h3>
+                <span class="note-card-date">${n.dateStr}</span>
+            </div>
+        `).join('');
+    } catch(e) { container.innerHTML = "Yüklənmədə xəta."; }
+}
+
+function showNote(i) {
+    const n = window.currentNotes[i];
+    document.getElementById('view-note-title').innerText = n.title;
+    document.getElementById('view-note-author').innerText = n.author + " tərəfindən";
+    document.getElementById('view-note-text').innerText = n.content;
+    document.getElementById('view-note-date').innerText = n.dateStr;
+    document.getElementById('view-note-modal').style.display = 'flex';
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+    loadNotes();
+    
+    document.getElementById('open-add-note-btn').onclick = () => document.getElementById('add-note-modal').style.display = 'flex';
+    document.getElementById('close-add-note-btn').onclick = () => document.getElementById('add-note-modal').style.display = 'none';
+    document.getElementById('close-view-note-btn').onclick = () => document.getElementById('view-note-modal').style.display = 'none';
+
+    document.getElementById('submit-note-btn').onclick = async () => {
+        const author = document.getElementById('note-author').value;
+        let title = document.getElementById('note-title').value.trim();
+        const content = document.getElementById('note-content').value.trim();
+        const pass = prompt("Admin şifrəsi:");
+
+        if(!content || !pass) return;
+
+        const now = new Date();
+        const dateStr = now.toLocaleString('az-AZ').replace(',', '');
+        if(!title) title = dateStr;
+
+        const noteObj = { author, title, content, dateStr, dateIso: now.toISOString() };
+        const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(noteObj))));
+
+        const btn = document.getElementById('submit-note-btn');
+        btn.innerText = "Yüklənir...";
+        
+        const res = await fetch('/.netlify/functions/admin-proxy', {
+            method: 'POST',
+            body: JSON.stringify({
+                type: 'upload_note',
+                password: pass,
+                payload: { path: `notlar/not_${Date.now()}.json`, content: b64 }
+            })
+        });
+
+        if(res.ok) {
+            alert("Uğurla əlavə edildi!");
+            location.reload();
+        } else {
+            alert("Xəta baş verdi!");
+            btn.innerText = "Təsdiqlə";
+        }
+    };
+});
