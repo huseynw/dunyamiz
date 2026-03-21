@@ -194,9 +194,9 @@ function updateCounter() {
     if(document.getElementById('detail-minutes')) document.getElementById('detail-minutes').innerText = m;
     if(document.getElementById('detail-seconds')) document.getElementById('detail-seconds').innerText = s;
 }
-function formatAzDate(date) {
+function formatAzDate(dateIso) {
     const months = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
-    const d = new Date(date);
+    const d = new Date(dateIso);
     const day = d.getDate();
     const month = months[d.getMonth()];
     const year = d.getFullYear();
@@ -259,7 +259,7 @@ window.openLightbox = function(index) {
     }
 };
 
-// 4. Pəncərəni bağlamaq (X düyməsi və kənar üçün)
+// 3. Qalereya pəncərəsini bağlamaq
 window.closeLightbox = function() {
     const lb = document.getElementById('lightbox');
     if (lb) {
@@ -268,22 +268,31 @@ window.closeLightbox = function() {
     }
 };
 
-// 5. Şəkillər arası keçid (Oxlar üçün)
+// 4. Şəkillər arası keçid (Oxlar üçün)
 window.changeImage = function(step) {
     if (allImages.length === 0) return;
     currentImgIdx = (currentImgIdx + step + allImages.length) % allImages.length;
     updateLightboxContent();
 };
 
-// 6. Məzmunu və Tarixi yeniləmək
+// 5. Şəkli, Tarixi və Yükləmə linkini yeniləmək
 async function updateLightboxContent() {
     const imgData = allImages[currentImgIdx];
     const lbImg = document.getElementById('lightbox-img');
     const dateEl = document.getElementById('image-date');
+    const dLink = document.getElementById('download-link');
 
     if (!imgData) return;
 
+    // Şəkli dəyiş
     lbImg.src = imgData.download_url;
+    
+    // Yükləmə düyməsini birbaşa funksiyaya bağla (GitHub Raw xətası üçün)
+    dLink.onclick = function(e) {
+        e.preventDefault();
+        downloadImageFile(imgData.download_url, imgData.name);
+    };
+
     if (dateEl) dateEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Tarix alınır...`;
 
     try {
@@ -302,28 +311,26 @@ async function updateLightboxContent() {
     }
 }
 
-// 7. Şəkli birbaşa cihaza yükləmək (GitHub səhifəsi açılmadan)
-window.downloadImage = async function() {
-    const imgData = allImages[currentImgIdx];
-    if(!imgData) return;
-
+// 6. Şəkli brauzerdə açmaq əvəzinə birbaşa cihaza yükləyən funksiya
+async function downloadImageFile(url, filename) {
     try {
-        const response = await fetch(imgData.download_url);
+        const response = await fetch(url);
         const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
+        const blobUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.style.display = 'none';
-        a.href = url;
-        a.download = imgData.name; 
+        a.href = blobUrl;
+        a.download = filename || 'bizim_xatira.jpg';
         document.body.appendChild(a);
         a.click();
-        window.URL.revokeObjectURL(url);
+        window.URL.revokeObjectURL(blobUrl);
+        document.body.removeChild(a);
     } catch (error) {
-        window.open(imgData.download_url, '_blank');
+        window.open(url, '_blank');
     }
-};
+}
 
-// 8. ESC düyməsi ilə bağlamaq
+// 7. Klaviatura dəstəyi
 document.addEventListener('keydown', function(event) {
     if (event.key === "Escape") closeLightbox();
     if (event.key === "ArrowRight") changeImage(1);
