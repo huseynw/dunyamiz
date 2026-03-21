@@ -345,14 +345,14 @@
     
     <!-- Lightbox -->
     <div id="lightbox" class="lightbox">
-        <span class="close-lightbox" onclick="closeLightbox()">&times;</span>
+        <span id="close-lb-btn" class="close-lightbox">&times;</span>
         <div class="lightbox-container">
             <div class="lightbox-header">
                 <h3>Qalereyamız ✨</h3>
             </div>
 
             <div class="lightbox-main">
-                <button class="lightbox-nav prev-btn" onclick="changeImage(-1)">
+                <button id="prev-btn" class="lightbox-nav prev-btn">
                     <i class="fas fa-chevron-left"></i>
                 </button>
             
@@ -360,16 +360,16 @@
                     <img id="lightbox-img" src="" alt="Bizim Xatirəmiz">
                 </div>
 
-                <button class="lightbox-nav next-btn" onclick="changeImage(1)">
+                <button id="next-btn" class="lightbox-nav next-btn">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
 
             <div class="lightbox-footer">
                 <p id="image-date"><i class="far fa-calendar-alt"></i> Tarix alınır...</p>
-                <a id="download-link" href="javascript:void(0)" class="download-btn">
+                <button id="download-btn" class="download-btn">
                     <i class="fas fa-download"></i> Şəkli Yüklə
-                </a>
+                </button>
             </div>
         </div>
     </div>
