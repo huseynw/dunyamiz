@@ -195,8 +195,6 @@ function updateCounter() {
     if(document.getElementById('detail-seconds')) document.getElementById('detail-seconds').innerText = s;
 }
 
-// ========== GALLERY ==========
-// ========== TƏKMİLLƏŞDİRİLMİŞ QALEREYA VƏ FETCH ==========
 async function fetchImages() {
     const stack = document.getElementById('gallery-stack');
     if(!stack) return;
@@ -216,14 +214,24 @@ async function fetchImages() {
         if(allImages.length > 0) {
             let html = '';
             allImages.forEach((img, idx) => {
+                // onclick əvəzinə data-index istifadə edirik və gallery-item class-ı veririk
                 html += `
-                    <div class="photo-frame" onclick="openLightbox(${idx})">
+                    <div class="photo-frame gallery-item" data-index="${idx}">
                         <img src="${img.download_url}" loading="lazy" alt="Bizim Xatirəmiz">
                         <div class="hover-heart"><i class="fas fa-heart"></i></div>
                     </div>
                 `;
             });
             stack.innerHTML = html;
+
+            // YENİ ƏLAVƏ: Şəkillər yükləndikdən sonra klikləri təhlükəsiz bağlayırıq
+            document.querySelectorAll('.gallery-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    window.openLightbox(index);
+                });
+            });
+
         } else {
             stack.innerHTML = '<p style="text-align:center; color: white;">Hələ ki, şəkil yoxdur.</p>';
         }
@@ -232,9 +240,7 @@ async function fetchImages() {
         stack.innerHTML = '<p style="text-align:center; color: white;">GitHub qoşulmasında xəta!</p>';
     }
 }
-
-// ========== LIGHTBOX İDARƏETMƏSİ ==========
-function openLightbox(index) {
+window.openLightbox = function(index) {
     currentImgIdx = index;
     const lb = document.getElementById('lightbox');
     if (lb) {
@@ -242,21 +248,20 @@ function openLightbox(index) {
         lb.style.display = "flex";
         updateLightboxContent();
     }
-}
+};
 
-function closeLightbox() {
+window.closeLightbox = function() {
     const lb = document.getElementById('lightbox');
     if (lb) {
         lb.classList.remove('active');
         lb.style.display = "none";
     }
-}
+};
 
-function changeImage(step) {
+window.changeImage = function(step) {
     currentImgIdx = (currentImgIdx + step + allImages.length) % allImages.length;
     updateLightboxContent();
-}
-
+};
 async function updateLightboxContent() {
     const imgData = allImages[currentImgIdx];
     const lbImg = document.getElementById('lightbox-img');
