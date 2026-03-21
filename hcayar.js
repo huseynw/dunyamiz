@@ -307,38 +307,6 @@ function getDynamicPath() {
     return result;
 }
 
-function openLightbox(index) {
-    const lb = document.getElementById('lightbox');
-    const lbImg = document.getElementById('lightbox-img');
-    const nBtn = document.getElementById('next-btn');
-    const pBtn = document.getElementById('prev-btn');
-    
-    if (!lb || !lbImg) {
-        console.error("Lightbox və ya Şəkil elementi tapılmadı!");
-        return;
-    }
-    
-    currentImgIdx = index;
-    lbImg.src = allImages[currentImgIdx].download_url;
-    lb.style.display = "flex";
-    lb.classList.add('active');
-    
-    if (nBtn) {
-        nBtn.onclick = (e) => { e.stopPropagation(); changeImage(1); };
-    }
-    if (pBtn) {
-        pBtn.onclick = (e) => { e.stopPropagation(); changeImage(-1); };
-    }
-    
-    const closeBtn = document.querySelector('.close-lightbox');
-    if (closeBtn) {
-        closeBtn.onclick = () => {
-            lb.style.display = "none";
-            lb.classList.remove('active');
-        };
-    }
-}
-
 // ========== HEART PARTICLES ==========
 function createHeart() {
     const heart = document.createElement('div');
