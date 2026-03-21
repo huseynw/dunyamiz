@@ -196,6 +196,7 @@ function updateCounter() {
 }
 
 // ========== GALLERY ==========
+// ========== TƏKMİLLƏŞDİRİLMİŞ QALEREYA VƏ FETCH ==========
 async function fetchImages() {
     const stack = document.getElementById('gallery-stack');
     if(!stack) return;
@@ -204,11 +205,12 @@ async function fetchImages() {
     stack.innerHTML = '<p style="text-align:center; width:100%; color: white;"><i class="fas fa-spinner fa-spin"></i> Xatirələr yüklənir...</p>';
     
     const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery`;
+    
     try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error("GitHub API xətası");
-        
         const files = await response.json();
+        
+        // Şəkil fayllarını süzgəcdən keçiririk
         allImages = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
         
         if(allImages.length > 0) {
@@ -223,40 +225,67 @@ async function fetchImages() {
             });
             stack.innerHTML = html;
         } else {
-            stack.innerHTML = '<p style="text-align:center; width:100%; color: white;">Hələ ki, şəkil yoxdur. Qalereyaya şəkil əlavə edin.</p>';
+            stack.innerHTML = '<p style="text-align:center; color: white;">Hələ ki, şəkil yoxdur.</p>';
         }
     } catch (e) {
-        console.error("Qalereya xətası:", e);
-        stack.innerHTML = '<p style="text-align:center; width:100%; color: white;">Şəkilləri yükləyərkən xəta baş verdi.</p>';
+        console.error("Fetch xətası:", e);
+        stack.innerHTML = '<p style="text-align:center; color: white;">GitHub qoşulmasında xəta!</p>';
     }
 }
 
-// ========== LIGHTBOX MƏNTİQİ ==========
+// ========== LIGHTBOX İDARƏETMƏSİ ==========
 function openLightbox(index) {
-    currentImageIndex = index;
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightbox-img');
-    
-    if(lightbox && lightboxImg && allImages[index]) {
-        lightboxImg.src = allImages[index].download_url;
-        lightbox.style.display = 'flex';
+    currentImgIdx = index;
+    const lb = document.getElementById('lightbox');
+    if (lb) {
+        lb.classList.add('active');
+        lb.style.display = "flex";
+        updateLightboxContent();
     }
 }
+
 function closeLightbox() {
-    const lightbox = document.getElementById('lightbox');
-    if(lightbox) lightbox.style.display = 'none';
-}
-function changeImage(step) {
-    currentImageIndex += step;
-    if (currentImageIndex >= allImages.length) {
-        currentImageIndex = 0;
-    } else if (currentImageIndex < 0) {
-        currentImageIndex = allImages.length - 1;
+    const lb = document.getElementById('lightbox');
+    if (lb) {
+        lb.classList.remove('active');
+        lb.style.display = "none";
     }
-    
-    const lightboxImg = document.getElementById('lightbox-img');
-    if(lightboxImg && allImages[currentImageIndex]) {
-        lightboxImg.src = allImages[currentImageIndex].download_url;
+}
+
+function changeImage(step) {
+    currentImgIdx = (currentImgIdx + step + allImages.length) % allImages.length;
+    updateLightboxContent();
+}
+
+async function updateLightboxContent() {
+    const imgData = allImages[currentImgIdx];
+    const lbImg = document.getElementById('lightbox-img');
+    const dBtn = document.getElementById('download-link');
+    const dateEl = document.getElementById('image-date');
+
+    if (!imgData) return;
+
+    lbImg.src = imgData.download_url;
+    if (dBtn) dBtn.href = imgData.download_url;
+    if (dateEl) dateEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Tarix alınır...`;
+
+    // GitHub-dan yüklənmə tarixini çəkirik
+    try {
+        const repo = `${config.githubUsername}/${config.repoName}`;
+        const res = await fetch(`https://api.github.com/repos/${repo}/commits?path=gallery/${imgData.name}&per_page=1`);
+        const commitData = await res.json();
+
+        if (commitData && commitData[0]) {
+            const rawDate = new Date(commitData[0].commit.committer.date);
+            const formattedDate = rawDate.toLocaleDateString('az-AZ', {
+                day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+            dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> ${formattedDate}`;
+        } else {
+            dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> Tarix tapılmadı`;
+        }
+    } catch (err) {
+        dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> Tarix alınmadı`;
     }
 }
 document.addEventListener('keydown', function(event) {
