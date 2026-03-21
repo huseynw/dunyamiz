@@ -44,7 +44,7 @@ const seekBar = document.getElementById('seekBar');
 const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
 
-let allImages = []; 
+window.allImages = []; 
 let currentImgIdx = 0;
 let isPlaying = false;
 
@@ -163,8 +163,6 @@ verifyBtn.addEventListener('click', () => {
 passInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') verifyBtn.click();
 });
-window.currentImgIdx = 0;
-window.allImages = [];
 // ========== TIME TOGETHER COUNTER (ASCENDING) ==========
 // 1. Rəqəmləri artıran köməkçi funksiya
 function updateCounter() {
@@ -198,12 +196,8 @@ function updateCounter() {
 function formatAzDate(dateIso) {
     const months = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
     const d = new Date(dateIso);
-    const day = d.getDate();
-    const month = months[d.getMonth()];
-    const year = d.getFullYear();
-    const hour = String(d.getHours()).padStart(2, '0');
-    const minute = String(d.getMinutes()).padStart(2, '0');
-    return `${day} ${month} ${year}, ${hour}:${minute}`;
+    if (isNaN(d)) return "Tarix bilinmir";
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 async function fetchImages() {
     const stack = document.getElementById('gallery-stack');
@@ -218,13 +212,12 @@ async function fetchImages() {
         const response = await fetch(url);
         const files = await response.json();
         
-        // Şəkil fayllarını süzgəcdən keçiririk
-        allImages = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
+        // Şəkilləri süzürük və QLOBAL massivə yazırıq
+        window.allImages = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
         
-        if(allImages.length > 0) {
+        if(window.allImages.length > 0) {
             let html = '';
-            allImages.forEach((img, idx) => {
-                // onclick əvəzinə data-index istifadə edirik və gallery-item class-ı veririk
+            window.allImages.forEach((img, idx) => {
                 html += `
                     <div class="photo-frame gallery-item" data-index="${idx}">
                         <img src="${img.download_url}" loading="lazy" alt="Bizim Xatirəmiz">
@@ -234,24 +227,22 @@ async function fetchImages() {
             });
             stack.innerHTML = html;
 
-            // YENİ ƏLAVƏ: Şəkillər yükləndikdən sonra klikləri təhlükəsiz bağlayırıq
+            // Klikləri bağlayırıq
             document.querySelectorAll('.gallery-item').forEach(item => {
-                item.addEventListener('click', function() {
+                item.onclick = function() {
                     const index = parseInt(this.getAttribute('data-index'));
                     window.openLightbox(index);
-                });
+                };
             });
-
         } else {
             stack.innerHTML = '<p style="text-align:center; color: white;">Hələ ki, şəkil yoxdur.</p>';
         }
     } catch (e) {
         console.error("Fetch xətası:", e);
-        stack.innerHTML = '<p style="text-align:center; color: white;">GitHub qoşulmasında xəta!</p>';
+        stack.innerHTML = '<p style="text-align:center; color: white;">Sistem xətası!</p>';
     }
 }
 window.openLightbox = function(index) {
-    allImages = window.allImages; // Global massivdən götürürük
     currentImgIdx = index;
     const lb = document.getElementById('lightbox');
     if (lb) {
@@ -260,63 +251,11 @@ window.openLightbox = function(index) {
         updateLightboxContent();
     }
 };
-document.addEventListener('DOMContentLoaded', () => {
-    const lb = document.getElementById('lightbox');
-    const closeBtn = document.getElementById('close-lb-btn');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
-    const downloadBtn = document.getElementById('download-btn');
-
-    // Bağlamaq
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            lb.style.display = "none";
-            lb.classList.remove('active');
-        });
-    }
-
-    // Geri
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            currentImgIdx = (currentImgIdx - 1 + allImages.length) % allImages.length;
-            updateLightboxContent();
-        });
-    }
-
-    // İrəli
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            currentImgIdx = (currentImgIdx + 1) % allImages.length;
-            updateLightboxContent();
-        });
-    }
-
-    // Şəkli yükləmək (GitHub səhifəsi açılmadan)
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', async () => {
-            const imgData = allImages[currentImgIdx];
-            try {
-                const response = await fetch(imgData.download_url);
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = imgData.name;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            } catch (e) {
-                window.open(imgData.download_url, '_blank');
-            }
-        });
-    }
-});
-
 
 // 5. Şəkli, Tarixi və Yükləmə linkini yeniləmək
 async function updateLightboxContent() {
-    const imgData = allImages[currentImgIdx];
+    const images = window.allImages;
+    const imgData = images[currentImgIdx];
     const lbImg = document.getElementById('lightbox-img');
     const dateEl = document.getElementById('image-date');
 
@@ -336,6 +275,60 @@ async function updateLightboxContent() {
         if (dateEl) dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> Tarix tapılmadı`;
     }
 }
+document.addEventListener('DOMContentLoaded', () => {
+    const lb = document.getElementById('lightbox');
+    
+    // Bağlamaq
+    document.getElementById('close-lb-btn')?.addEventListener('click', () => {
+        lb.style.display = "none";
+        lb.classList.remove('active');
+    });
+
+    // Geri
+    document.getElementById('prev-btn')?.addEventListener('click', () => {
+        if (window.allImages.length === 0) return;
+        currentImgIdx = (currentImgIdx - 1 + window.allImages.length) % window.allImages.length;
+        updateLightboxContent();
+    });
+
+    // İrəli
+    document.getElementById('next-btn')?.addEventListener('click', () => {
+        if (window.allImages.length === 0) return;
+        currentImgIdx = (currentImgIdx + 1) % window.allImages.length;
+        updateLightboxContent();
+    });
+
+    // Yükləmək
+    document.getElementById('download-btn')?.addEventListener('click', async () => {
+        const imgData = window.allImages[currentImgIdx];
+        if(!imgData) return;
+        try {
+            const response = await fetch(imgData.download_url);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = imgData.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (e) {
+            window.open(imgData.download_url, '_blank');
+        }
+    });
+});
+document.addEventListener('keydown', (e) => {
+    const lb = document.getElementById('lightbox');
+    if (!lb || lb.style.display === "none") return;
+
+    if (e.key === "Escape") {
+        lb.style.display = "none";
+        lb.classList.remove('active');
+    }
+    if (e.key === "ArrowRight") document.getElementById('next-btn').click();
+    if (e.key === "ArrowLeft") document.getElementById('prev-btn').click();
+});
 // 6. Şəkli brauzerdə açmaq əvəzinə birbaşa cihaza yükləyən funksiya
 async function downloadImageFile(url, filename) {
     try {
@@ -355,11 +348,12 @@ async function downloadImageFile(url, filename) {
     }
 }
 
-// 7. Klaviatura dəstəyi
-document.addEventListener('keydown', function(event) {
-    if (event.key === "Escape") closeLightbox();
-    if (event.key === "ArrowRight") changeImage(1);
-    if (event.key === "ArrowLeft") changeImage(-1);
+// DOMContentLoaded içində isə belə çağır:
+document.getElementById('download-btn')?.addEventListener('click', () => {
+    const imgData = window.allImages[currentImgIdx];
+    if (imgData) {
+        downloadImageFile(imgData.download_url, imgData.name);
+    }
 });
 function getDynamicPath() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
