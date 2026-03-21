@@ -163,7 +163,8 @@ verifyBtn.addEventListener('click', () => {
 passInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') verifyBtn.click();
 });
-
+window.currentImgIdx = 0;
+window.allImages = [];
 // ========== TIME TOGETHER COUNTER (ASCENDING) ==========
 // 1. Rəqəmləri artıran köməkçi funksiya
 function updateCounter() {
@@ -250,6 +251,7 @@ async function fetchImages() {
     }
 }
 window.openLightbox = function(index) {
+    allImages = window.allImages; // Global massivdən götürürük
     currentImgIdx = index;
     const lb = document.getElementById('lightbox');
     if (lb) {
@@ -258,59 +260,82 @@ window.openLightbox = function(index) {
         updateLightboxContent();
     }
 };
-
-// 3. Qalereya pəncərəsini bağlamaq
-window.closeLightbox = function() {
+document.addEventListener('DOMContentLoaded', () => {
     const lb = document.getElementById('lightbox');
-    if (lb) {
-        lb.style.display = "none";
-        lb.classList.remove('active');
-    }
-};
+    const closeBtn = document.getElementById('close-lb-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const downloadBtn = document.getElementById('download-btn');
 
-// 4. Şəkillər arası keçid (Oxlar üçün)
-window.changeImage = function(step) {
-    if (allImages.length === 0) return;
-    currentImgIdx = (currentImgIdx + step + allImages.length) % allImages.length;
-    updateLightboxContent();
-};
+    // Bağlamaq
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            lb.style.display = "none";
+            lb.classList.remove('active');
+        });
+    }
+
+    // Geri
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            currentImgIdx = (currentImgIdx - 1 + allImages.length) % allImages.length;
+            updateLightboxContent();
+        });
+    }
+
+    // İrəli
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            currentImgIdx = (currentImgIdx + 1) % allImages.length;
+            updateLightboxContent();
+        });
+    }
+
+    // Şəkli yükləmək (GitHub səhifəsi açılmadan)
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', async () => {
+            const imgData = allImages[currentImgIdx];
+            try {
+                const response = await fetch(imgData.download_url);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = imgData.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } catch (e) {
+                window.open(imgData.download_url, '_blank');
+            }
+        });
+    }
+});
+
 
 // 5. Şəkli, Tarixi və Yükləmə linkini yeniləmək
 async function updateLightboxContent() {
     const imgData = allImages[currentImgIdx];
     const lbImg = document.getElementById('lightbox-img');
     const dateEl = document.getElementById('image-date');
-    const dLink = document.getElementById('download-link');
 
-    if (!imgData) return;
+    if (!imgData || !lbImg) return;
 
-    // Şəkli dəyiş
     lbImg.src = imgData.download_url;
-    
-    // Yükləmə düyməsini birbaşa funksiyaya bağla (GitHub Raw xətası üçün)
-    dLink.onclick = function(e) {
-        e.preventDefault();
-        downloadImageFile(imgData.download_url, imgData.name);
-    };
-
     if (dateEl) dateEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Tarix alınır...`;
 
     try {
         const repo = `${config.githubUsername}/${config.repoName}`;
         const res = await fetch(`https://api.github.com/repos/${repo}/commits?path=gallery/${imgData.name}&per_page=1`);
         const commitData = await res.json();
-
-        if (commitData && commitData[0] && dateEl) {
-            const rawDate = commitData[0].commit.committer.date;
-            dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> ${formatAzDate(rawDate)}`;
-        } else if (dateEl) {
-            dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> Tarix bilinmir`;
+        if (commitData[0] && dateEl) {
+            dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> ${formatAzDate(commitData[0].commit.committer.date)}`;
         }
     } catch (err) {
-        if (dateEl) dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> Tarix alınmadı`;
+        if (dateEl) dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> Tarix tapılmadı`;
     }
 }
-
 // 6. Şəkli brauzerdə açmaq əvəzinə birbaşa cihaza yükləyən funksiya
 async function downloadImageFile(url, filename) {
     try {
