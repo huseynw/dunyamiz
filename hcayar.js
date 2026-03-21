@@ -194,7 +194,16 @@ function updateCounter() {
     if(document.getElementById('detail-minutes')) document.getElementById('detail-minutes').innerText = m;
     if(document.getElementById('detail-seconds')) document.getElementById('detail-seconds').innerText = s;
 }
-
+function formatAzDate(date) {
+    const months = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
+    const d = new Date(date);
+    const day = d.getDate();
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+    const hour = String(d.getHours()).padStart(2, '0');
+    const minute = String(d.getMinutes()).padStart(2, '0');
+    return `${day} ${month} ${year}, ${hour}:${minute}`;
+}
 async function fetchImages() {
     const stack = document.getElementById('gallery-stack');
     if(!stack) return;
@@ -244,61 +253,82 @@ window.openLightbox = function(index) {
     currentImgIdx = index;
     const lb = document.getElementById('lightbox');
     if (lb) {
-        lb.classList.add('active');
         lb.style.display = "flex";
+        lb.classList.add('active');
         updateLightboxContent();
     }
 };
 
+// 4. Pəncərəni bağlamaq (X düyməsi və kənar üçün)
 window.closeLightbox = function() {
     const lb = document.getElementById('lightbox');
     if (lb) {
-        lb.classList.remove('active');
         lb.style.display = "none";
+        lb.classList.remove('active');
     }
 };
 
+// 5. Şəkillər arası keçid (Oxlar üçün)
 window.changeImage = function(step) {
+    if (allImages.length === 0) return;
     currentImgIdx = (currentImgIdx + step + allImages.length) % allImages.length;
     updateLightboxContent();
 };
+
+// 6. Məzmunu və Tarixi yeniləmək
 async function updateLightboxContent() {
     const imgData = allImages[currentImgIdx];
     const lbImg = document.getElementById('lightbox-img');
-    const dBtn = document.getElementById('download-link');
     const dateEl = document.getElementById('image-date');
 
     if (!imgData) return;
 
     lbImg.src = imgData.download_url;
-    if (dBtn) dBtn.href = imgData.download_url;
     if (dateEl) dateEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Tarix alınır...`;
 
-    // GitHub-dan yüklənmə tarixini çəkirik
     try {
         const repo = `${config.githubUsername}/${config.repoName}`;
         const res = await fetch(`https://api.github.com/repos/${repo}/commits?path=gallery/${imgData.name}&per_page=1`);
         const commitData = await res.json();
 
-        if (commitData && commitData[0]) {
-            const rawDate = new Date(commitData[0].commit.committer.date);
-            const formattedDate = rawDate.toLocaleDateString('az-AZ', {
-                day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
-            });
-            dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> ${formattedDate}`;
-        } else {
-            dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> Tarix tapılmadı`;
+        if (commitData && commitData[0] && dateEl) {
+            const rawDate = commitData[0].commit.committer.date;
+            dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> ${formatAzDate(rawDate)}`;
+        } else if (dateEl) {
+            dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> Tarix bilinmir`;
         }
     } catch (err) {
-        dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> Tarix alınmadı`;
+        if (dateEl) dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> Tarix alınmadı`;
     }
 }
-document.addEventListener('keydown', function(event) {
-    if (event.key === "Escape") {
-        closeLightbox();
-    }
-});
 
+// 7. Şəkli birbaşa cihaza yükləmək (GitHub səhifəsi açılmadan)
+window.downloadImage = async function() {
+    const imgData = allImages[currentImgIdx];
+    if(!imgData) return;
+
+    try {
+        const response = await fetch(imgData.download_url);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = imgData.name; 
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        window.open(imgData.download_url, '_blank');
+    }
+};
+
+// 8. ESC düyməsi ilə bağlamaq
+document.addEventListener('keydown', function(event) {
+    if (event.key === "Escape") closeLightbox();
+    if (event.key === "ArrowRight") changeImage(1);
+    if (event.key === "ArrowLeft") changeImage(-1);
+});
 function getDynamicPath() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const minLen = 8;
