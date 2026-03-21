@@ -344,12 +344,33 @@
     <script src="hcayar.js"></script>
     
     <!-- Lightbox -->
-    <div id="lightbox" class="lightbox" style="display: none;">
+    <div id="lightbox" class="lightbox">
         <span class="close-lightbox" onclick="closeLightbox()">&times;</span>
-        <div class="lightbox-content">
-            <img id="lightbox-img" src="" alt="Bizim Xatirəmiz">
-            <button class="lightbox-btn prev-btn" onclick="changeImage(-1)"><i class="fas fa-chevron-left"></i></button>
-            <button class="lightbox-btn next-btn" onclick="changeImage(1)"><i class="fas fa-chevron-right"></i></button>
+        <div class="lightbox-container">
+            <div class="lightbox-header">
+                <h3>Qalereyamız ✨</h3>
+            </div>
+
+            <div class="lightbox-main">
+                <button class="lightbox-nav prev-btn" onclick="changeImage(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            
+                <div class="image-wrapper">
+                    <img id="lightbox-img" src="" alt="Bizim Xatirəmiz">
+                </div>
+
+                <button class="lightbox-nav next-btn" onclick="changeImage(1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <div class="lightbox-footer">
+                <p id="image-date"><i class="far fa-calendar-alt"></i> Tarix alınır...</p>
+                <a id="download-link" href="" download class="download-btn">
+                    <i class="fas fa-download"></i> Şəkli Yüklə
+                </a>
+            </div>
         </div>
     </div>
     
