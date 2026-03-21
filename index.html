@@ -344,11 +344,13 @@
     <script src="hcayar.js"></script>
     
     <!-- Lightbox -->
-    <div id="lightbox" class="lightbox">
-        <span class="close-lightbox">&times;</span>
-        <div class="prev" id="prev-btn">&#10094;</div>
-        <img class="lightbox-content" id="lightbox-img">
-        <div class="next" id="next-btn">&#10095;</div>
+    <div id="lightbox" class="lightbox" style="display: none;">
+        <span class="close-lightbox" onclick="closeLightbox()">&times;</span>
+        <div class="lightbox-content">
+            <img id="lightbox-img" src="" alt="Bizim Xatirəmiz">
+            <button class="lightbox-btn prev-btn" onclick="changeImage(-1)"><i class="fas fa-chevron-left"></i></button>
+            <button class="lightbox-btn next-btn" onclick="changeImage(1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
     </div>
     
     <!-- Letter Modal -->
