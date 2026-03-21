@@ -200,37 +200,70 @@ async function fetchImages() {
     const stack = document.getElementById('gallery-stack');
     if(!stack) return;
     
+    stack.className = 'modern-gallery-grid';
+    stack.innerHTML = '<p style="text-align:center; width:100%; color: white;"><i class="fas fa-spinner fa-spin"></i> Xatirələr yüklənir...</p>';
+    
     const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery`;
     try {
         const response = await fetch(url);
+        if (!response.ok) throw new Error("GitHub API xətası");
+        
         const files = await response.json();
         allImages = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
         
         if(allImages.length > 0) {
             let html = '';
-            allImages.slice(-4).forEach((img, idx) => {
-                html += `<img src="${img.download_url}" class="stack-item" style="z-index:${idx}">`;
+            allImages.forEach((img, idx) => {
+                html += `
+                    <div class="photo-frame" onclick="openLightbox(${idx})">
+                        <img src="${img.download_url}" loading="lazy" alt="Bizim Xatirəmiz">
+                        <div class="hover-heart"><i class="fas fa-heart"></i></div>
+                    </div>
+                `;
             });
             stack.innerHTML = html;
-            stack.onclick = () => openLightbox(allImages.length - 1);
+        } else {
+            stack.innerHTML = '<p style="text-align:center; width:100%; color: white;">Hələ ki, şəkil yoxdur. Qalereyaya şəkil əlavə edin.</p>';
         }
     } catch (e) {
         console.error("Qalereya xətası:", e);
+        stack.innerHTML = '<p style="text-align:center; width:100%; color: white;">Şəkilləri yükləyərkən xəta baş verdi.</p>';
     }
 }
 
-function changeImage(step) {
-    if (allImages.length === 0) return;
-    currentImgIdx = (currentImgIdx + step + allImages.length) % allImages.length;
-    const lbImg = document.getElementById('lightbox-img');
-    if (lbImg) {
-        lbImg.style.opacity = "0"; 
-        setTimeout(() => {
-            lbImg.src = allImages[currentImgIdx].download_url;
-            lbImg.style.opacity = "1";
-        }, 150);
+// ========== LIGHTBOX MƏNTİQİ ==========
+function openLightbox(index) {
+    currentImageIndex = index;
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    
+    if(lightbox && lightboxImg && allImages[index]) {
+        lightboxImg.src = allImages[index].download_url;
+        lightbox.style.display = 'flex';
     }
 }
+function closeLightbox() {
+    const lightbox = document.getElementById('lightbox');
+    if(lightbox) lightbox.style.display = 'none';
+}
+function changeImage(step) {
+    currentImageIndex += step;
+    if (currentImageIndex >= allImages.length) {
+        currentImageIndex = 0;
+    } else if (currentImageIndex < 0) {
+        currentImageIndex = allImages.length - 1;
+    }
+    
+    const lightboxImg = document.getElementById('lightbox-img');
+    if(lightboxImg && allImages[currentImageIndex]) {
+        lightboxImg.src = allImages[currentImageIndex].download_url;
+    }
+}
+document.addEventListener('keydown', function(event) {
+    if (event.key === "Escape") {
+        closeLightbox();
+    }
+});
 
 function getDynamicPath() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
