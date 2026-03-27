@@ -1346,3 +1346,21 @@ document.querySelectorAll('.nav-item').forEach(btn => {
         }
     });
 });
+// Düyməni tapmaq üçün xüsusi funksiya
+function activateMusicButton() {
+    const btn = document.getElementById('upload-music-btn');
+    if (btn) {
+        console.log("Musiqi düyməsi tapıldı və aktiv edildi! ✅");
+        btn.onclick = function() {
+            // Düyməyə basanda ilk bu işləməlidir
+            alert("Düymə işləyir! İndi şifrə sorğusu gələcək...");
+            // Burada sənin əsas yükləmə funksiyan çağırılmalıdır
+            handleMusicUpload(); 
+        };
+    } else {
+        console.log("XƏTA: 'upload-music-btn' ID-li düymə tapılmadı! ❌");
+    }
+}
+
+// Səhifə yüklənəndən 2 saniyə sonra düyməni yoxla
+setTimeout(activateMusicButton, 2000);
