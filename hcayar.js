@@ -1118,29 +1118,47 @@ async function uploadFinalMusic(file, title, artist, lType, lText, cover, pass, 
 }
 
 // --- Player və Lyrics Məntiqi ---
-let audio = document.getElementById("main-audio");
+// Dəyişən adını 'songPlayer' etdik ki, 'audio' ilə toqquşmasın
+let songPlayer = document.getElementById("main-audio");
 let syncedLyrics = [];
 
 async function loadMusicList() {
     const listDiv = document.getElementById('music-list');
-    listDiv.innerHTML = "Yüklənir...";
-    const res = await fetch(`https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/musiqi`);
-    const files = await res.json();
-    const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+    if(!listDiv) return; // Səhifədə element yoxdursa dayandır
     
-    listDiv.innerHTML = "";
-    for(let f of jsonFiles) {
-        const dataRes = await fetch(f.download_url);
-        const data = await dataRes.json();
-        const id = f.name.replace('.json', '');
-        const div = document.createElement('div');
-        div.className = 'music-item';
-        div.innerHTML = `<img src="${data.cover || 'assets/default-cover.png'}"><div><h3>${data.title}</h3><p>${data.artist}</p></div>`;
-        div.onclick = () => {
-            const mp3 = `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqi/${id}.mp3`;
-            openPlayer(mp3, data);
-        };
-        listDiv.appendChild(div);
+    listDiv.innerHTML = "Musiqilər yüklənir... ✨";
+    
+    try {
+        const res = await fetch(`https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/musiqi`);
+        const files = await res.json();
+        
+        // Yalnız .json fayllarını (metadata) seçirik
+        const jsonFiles = files.filter(f => f.name && f.name.endsWith('.json'));
+        
+        listDiv.innerHTML = "";
+        for(let f of jsonFiles) {
+            const dataRes = await fetch(f.download_url);
+            const data = await dataRes.json();
+            const id = f.name.replace('.json', '');
+            
+            const div = document.createElement('div');
+            div.className = 'music-item';
+            div.innerHTML = `
+                <img src="${data.cover || 'assets/default-cover.png'}">
+                <div>
+                    <h3>${data.title}</h3>
+                    <p>${data.artist}</p>
+                </div>
+            `;
+            div.onclick = () => {
+                const mp3 = `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqi/${id}.mp3`;
+                openPlayer(mp3, data);
+            };
+            listDiv.appendChild(div);
+        }
+    } catch (error) {
+        console.error("Musiqi listi yüklənərkən xəta:", error);
+        listDiv.innerHTML = "Musiqiləri yükləmək mümkün olmadı. ❌";
     }
 }
 
@@ -1149,16 +1167,22 @@ function openPlayer(url, data) {
     document.getElementById("player-title").innerText = data.title;
     document.getElementById("player-artist").innerText = data.artist;
     document.getElementById("player-cover").src = data.cover || 'assets/default-cover.png';
-    audio.src = url;
-    audio.play();
+    
+    songPlayer.src = url; // 'audio' əvəzinə 'songPlayer'
+    songPlayer.play();
     setupLyrics(data.lyrics, data.lyricsType);
 }
 
 function setupLyrics(text, type) {
     const cont = document.getElementById("lyrics-content");
-    cont.innerHTML = ""; syncedLyrics = [];
-    if(type === "plain") cont.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`;
-    else if(type === "synced") {
+    cont.innerHTML = ""; 
+    syncedLyrics = [];
+    
+    if(!text) return;
+
+    if(type === "plain") {
+        cont.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`;
+    } else if(type === "synced") {
         text.split('\n').forEach((line, i) => {
             const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
             if(m) {
@@ -1170,26 +1194,59 @@ function setupLyrics(text, type) {
     }
 }
 
-audio.ontimeupdate = () => {
-    const cur = audio.currentTime;
-    document.getElementById("progress-bar").value = (cur / audio.duration) * 100 || 0;
-    document.getElementById("current-time").innerText = formatTime(cur);
-    document.getElementById("total-duration").innerText = formatTime(audio.duration || 0);
-    
-    // Synced highlight
-    let active = syncedLyrics.filter(l => l.time <= cur).pop();
-    if(active) {
-        document.querySelectorAll("#lyrics-content p").forEach(p => p.classList.remove("active"));
-        const el = document.getElementById(`l-${active.i}`);
-        if(el) { el.classList.add("active"); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+// Playerin gedişatını izləmək
+if (songPlayer) {
+    songPlayer.ontimeupdate = () => {
+        const cur = songPlayer.currentTime;
+        const dur = songPlayer.duration;
+
+        const progressBar = document.getElementById("progress-bar");
+        if(progressBar && dur) {
+            progressBar.value = (cur / dur) * 100;
+        }
+        
+        document.getElementById("current-time").innerText = formatTime(cur);
+        document.getElementById("total-duration").innerText = formatTime(dur || 0);
+        
+        // Sinxron sözləri rəngləmək
+        if(syncedLyrics.length > 0) {
+            let active = syncedLyrics.filter(l => l.time <= cur).pop();
+            if(active) {
+                document.querySelectorAll("#lyrics-content p").forEach(p => p.classList.remove("active"));
+                const el = document.getElementById(`l-${active.i}`);
+                if(el) { 
+                    el.classList.add("active"); 
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+                }
+            }
+        }
+    };
+}
+
+// Play/Pause düyməsi
+document.getElementById("play-pause-btn").onclick = () => {
+    if (songPlayer.paused) {
+        songPlayer.play();
+        document.querySelector("#play-pause-btn i").className = "fas fa-pause";
+    } else {
+        songPlayer.pause();
+        document.querySelector("#play-pause-btn i").className = "fas fa-play";
     }
 };
 
-document.getElementById("play-pause-btn").onclick = () => audio.paused ? audio.play() : audio.pause();
-function closePlayer() { document.getElementById("music-player").style.display = "none"; audio.pause(); }
-function formatTime(s) { return Math.floor(s/60) + ":" + Math.floor(s%60).toString().padStart(2,'0'); }
+function closePlayer() { 
+    document.getElementById("music-player").style.display = "none"; 
+    songPlayer.pause(); 
+}
 
-// Navbar keçidi üçün
+function formatTime(s) { 
+    if(isNaN(s)) return "0:00";
+    return Math.floor(s/60) + ":" + Math.floor(s%60).toString().padStart(2,'0'); 
+}
+
+// Navbar keçidi zamanı listi yüklə
 document.querySelectorAll('.nav-item').forEach(btn => {
-    btn.addEventListener('click', () => { if(btn.dataset.page === 'music') loadMusicList(); });
+    btn.addEventListener('click', () => { 
+        if(btn.dataset.page === 'music') loadMusicList(); 
+    });
 });
