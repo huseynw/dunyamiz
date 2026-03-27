@@ -36,10 +36,18 @@ exports.handler = async (event) => {
             commitMessage = "Admin: Yeni şəkil yükləndi";
         } else if (type === "upload_note") {
             commitMessage = "Admin: not əlavə edildi"; 
-        } else if (type === "upload_music") { 
-            commitMessage = "Admin: Yeni musiqi əlavə edildi 🎵"; 
-        }
-
+        } else if (type === "upload_music") {
+            // 1. MP3 faylını yükləyirik
+            const mp3Url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/musiqi/${payload.id}.mp3`;
+            await fetch(mp3Url, {
+                method: 'PUT',
+                headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ message: "Admin: MP3", content: payload.audioBase64 })
+            });
+            // 2. JSON metadata faylını yükləyirik
+            url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/musiqi/${payload.id}.json`;
+            finalContent = payload.jsonBase64;
+            commitMessage = "Admin: Musiqi Məlumatları 🎵";
         const ghResponse = await fetch(url, {
             method: 'PUT',
             headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" },
