@@ -36,6 +36,8 @@ exports.handler = async (event) => {
             commitMessage = "Admin: Yeni şəkil yükləndi";
         } else if (type === "upload_note") {
             commitMessage = "Admin: not əlavə edildi"; 
+        } else if (type === "upload_music") { 
+            commitMessage = "Admin: Yeni musiqi əlavə edildi 🎵"; 
         }
 
         const ghResponse = await fetch(url, {
