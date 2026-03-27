@@ -1069,3 +1069,127 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+// --- Musiqi Yükləmə Funksiyası ---
+document.getElementById('upload-music-btn')?.addEventListener('click', async () => {
+    const file = document.getElementById('admin-music-file').files[0];
+    const title = document.getElementById('admin-music-title').value;
+    const artist = document.getElementById('admin-music-artist').value;
+    const lType = document.getElementById('admin-lyrics-type').value;
+    const lText = document.getElementById('admin-music-lyrics').value;
+    const pass = prompt("Şifrə:");
+
+    if(!file || !title || !pass) return alert("Məlumatları tam doldur!");
+
+    const btn = document.getElementById('upload-music-btn');
+    btn.innerText = "Hazırlanır..."; btn.disabled = true;
+
+    // Şəkil çıxarma və Base64-ə çevirmə
+    jsmediatags.read(file, {
+        onSuccess: function(tag) {
+            let cover = "";
+            if(tag.tags.picture) {
+                const { data, format } = tag.tags.picture;
+                let base64 = "";
+                for (let i = 0; i < data.length; i++) base64 += String.fromCharCode(data[i]);
+                cover = `data:${format};base64,${btoa(base64)}`;
+            }
+            uploadFinalMusic(file, title, artist, lType, lText, cover, pass, btn);
+        },
+        onError: () => uploadFinalMusic(file, title, artist, lType, lText, "", pass, btn)
+    });
+});
+
+async function uploadFinalMusic(file, title, artist, lType, lText, cover, pass, btn) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+        const audioBase64 = reader.result.split(',')[1];
+        const musicId = `m_${Date.now()}`;
+        const metadata = { title, artist, lyricsType: lType, lyrics: lText, cover };
+        const jsonBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(metadata))));
+
+        const res = await fetch('/.netlify/functions/admin-proxy', {
+            method: 'POST',
+            body: JSON.stringify({ type: 'upload_music', password: pass, payload: { id: musicId, audioBase64, jsonBase64 }})
+        });
+        if(res.ok) { alert("Uğurla yükləndi!"); location.reload(); }
+        else { alert("Xəta!"); btn.disabled = false; }
+    };
+}
+
+// --- Player və Lyrics Məntiqi ---
+let audio = document.getElementById("main-audio");
+let syncedLyrics = [];
+
+async function loadMusicList() {
+    const listDiv = document.getElementById('music-list');
+    listDiv.innerHTML = "Yüklənir...";
+    const res = await fetch(`https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/musiqi`);
+    const files = await res.json();
+    const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+    
+    listDiv.innerHTML = "";
+    for(let f of jsonFiles) {
+        const dataRes = await fetch(f.download_url);
+        const data = await dataRes.json();
+        const id = f.name.replace('.json', '');
+        const div = document.createElement('div');
+        div.className = 'music-item';
+        div.innerHTML = `<img src="${data.cover || 'assets/default-cover.png'}"><div><h3>${data.title}</h3><p>${data.artist}</p></div>`;
+        div.onclick = () => {
+            const mp3 = `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqi/${id}.mp3`;
+            openPlayer(mp3, data);
+        };
+        listDiv.appendChild(div);
+    }
+}
+
+function openPlayer(url, data) {
+    document.getElementById("music-player").style.display = "flex";
+    document.getElementById("player-title").innerText = data.title;
+    document.getElementById("player-artist").innerText = data.artist;
+    document.getElementById("player-cover").src = data.cover || 'assets/default-cover.png';
+    audio.src = url;
+    audio.play();
+    setupLyrics(data.lyrics, data.lyricsType);
+}
+
+function setupLyrics(text, type) {
+    const cont = document.getElementById("lyrics-content");
+    cont.innerHTML = ""; syncedLyrics = [];
+    if(type === "plain") cont.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`;
+    else if(type === "synced") {
+        text.split('\n').forEach((line, i) => {
+            const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+            if(m) {
+                const time = parseInt(m[1]) * 60 + parseFloat(m[2]);
+                syncedLyrics.push({ time, i });
+                cont.innerHTML += `<p id="l-${i}">${m[3].trim()}</p>`;
+            }
+        });
+    }
+}
+
+audio.ontimeupdate = () => {
+    const cur = audio.currentTime;
+    document.getElementById("progress-bar").value = (cur / audio.duration) * 100 || 0;
+    document.getElementById("current-time").innerText = formatTime(cur);
+    document.getElementById("total-duration").innerText = formatTime(audio.duration || 0);
+    
+    // Synced highlight
+    let active = syncedLyrics.filter(l => l.time <= cur).pop();
+    if(active) {
+        document.querySelectorAll("#lyrics-content p").forEach(p => p.classList.remove("active"));
+        const el = document.getElementById(`l-${active.i}`);
+        if(el) { el.classList.add("active"); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    }
+};
+
+document.getElementById("play-pause-btn").onclick = () => audio.paused ? audio.play() : audio.pause();
+function closePlayer() { document.getElementById("music-player").style.display = "none"; audio.pause(); }
+function formatTime(s) { return Math.floor(s/60) + ":" + Math.floor(s%60).toString().padStart(2,'0'); }
+
+// Navbar keçidi üçün
+document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => { if(btn.dataset.page === 'music') loadMusicList(); });
+});
