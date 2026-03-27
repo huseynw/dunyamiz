@@ -1562,3 +1562,32 @@ header { text-align: center; margin-bottom: 30px; }
     .letter-content { width: 92% !important; padding: 25px 15px !important; }
     #submit-note-btn { padding: 15px; }
 }
+/* Music Page & Player */
+.music-list { display: grid; gap: 15px; padding: 10px; }
+.music-item {
+    display: flex; align-items: center; background: var(--glass);
+    padding: 12px; border-radius: 12px; cursor: pointer; transition: 0.3s;
+}
+.music-item:hover { background: rgba(255,255,255,0.2); transform: scale(1.02); }
+.music-item img { width: 55px; height: 55px; border-radius: 8px; margin-right: 15px; object-fit: cover; }
+
+.music-player-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to bottom, #1a1a1a, #000);
+    z-index: 2000; display: flex; flex-direction: column; padding: 20px;
+}
+.player-header { display: flex; justify-content: space-between; padding: 10px 0; font-size: 1.2rem; }
+.player-body { flex: 1; display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding-top: 20px; }
+#player-cover { width: 280px; height: 280px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); margin-bottom: 25px; }
+.player-info { text-align: center; margin-bottom: 20px; }
+.player-info h2 { font-size: 1.6rem; }
+
+.lyrics-container { width: 100%; text-align: center; padding: 20px 0; min-height: 150px; }
+#lyrics-content p { font-size: 1.2rem; color: #777; transition: 0.3s; padding: 8px 0; margin: 0; }
+#lyrics-content p.active { color: #fff; font-size: 1.5rem; font-weight: 600; text-shadow: 0 0 15px rgba(255,255,255,0.4); }
+
+.player-controls-bottom { padding: 20px 0; }
+.progress-box { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+#progress-bar { flex: 1; accent-color: var(--primary); height: 5px; cursor: pointer; }
+.control-btns { display: flex; justify-content: space-around; align-items: center; font-size: 1.5rem; }
+.play-main { width: 65px; height: 65px; background: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #000; }
