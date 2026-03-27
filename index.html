@@ -338,6 +338,10 @@
                 <i class="fas fa-sticky-note"></i>
                 <span>Notlar</span>
             </button>
+            <button class="nav-item" data-page="music">
+                <i class="fas fa-music"></i>
+                <span>Musiqi</span>
+            </button>
         </nav>
     </main>
 
@@ -417,6 +421,47 @@
             </div>
         </div>
     </div>
+    <div id="music" class="page-section" style="display: none;">
+        <h1 class="page-title"> Musiqilərimiz 🎧</h1>
+        <div id="music-list" class="music-list">
+            </div>
+
+        <div id="music-player" class="music-player-overlay" style="display: none;">
+            <div class="player-header">
+                <i class="fas fa-chevron-down" onclick="closePlayer()"></i>
+                <span>İndi Səslənir</span>
+                <i class="fas fa-ellipsis-v"></i>
+            </div>
+            
+            <div class="player-body">
+                <img id="player-cover" src="assets/default-cover.png" alt="Cover">
+                <div class="player-info">
+                    <h2 id="player-title">Mahnı Adı</h2>
+                    <p id="player-artist">Sənətçi</p>
+                </div>
+
+                <div class="lyrics-container" id="lyrics-container">
+                    <div id="lyrics-content"></div>
+                </div>
+            </div>
+
+            <div class="player-controls-bottom">
+                <div class="progress-box">
+                    <span id="current-time">0:00</span>
+                    <input type="range" id="progress-bar" value="0" min="0" max="100">
+                    <span id="total-duration">0:00</span>
+                </div>
+                <div class="control-btns">
+                    <i class="fas fa-random"></i>
+                    <i class="fas fa-step-backward"></i>
+                    <div id="play-pause-btn" class="play-main"><i class="fas fa-play"></i></div>
+                    <i class="fas fa-step-forward"></i>
+                    <i class="fas fa-redo"></i>
+                </div>
+            </div>
+            <audio id="main-audio"></audio>
+        </div>
+    </div>
     
     <!-- Admin Panel -->
     <div id="admin-panel" style="display: none;">
@@ -440,6 +485,20 @@
             <div class="input-group">
                 <label>Təsdiq Şifrəsi:</label>
                 <input type="password" id="admin-password" placeholder="Şifrə...">
+            </div>
+            <hr>
+            <div class="input-group">
+                <h3>Musiqi Əlavə Et 🎵</h3>
+                <input type="file" id="admin-music-file" accept="audio/mp3">
+                <input type="text" id="admin-music-title" placeholder="Mahnı adı">
+                <input type="text" id="admin-music-artist" placeholder="Sənətçi">
+                <select id="admin-lyrics-type">
+                    <option value="none">Sözsüz</option>
+                    <option value="plain">Sadə (Plain Text)</option>
+                    <option value="synced">Sinxron (LRC format)</option>
+                </select>
+                <textarea id="admin-music-lyrics" placeholder="Sözləri buraya yazın..." rows="3"></textarea>
+                <button id="upload-music-btn" type="button">Musiqini yüklə</button>
             </div>
         </div>
     </div>
