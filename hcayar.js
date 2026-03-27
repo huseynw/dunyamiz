@@ -1122,21 +1122,31 @@ async function uploadFinalMusic(file, title, artist, lType, lText, cover, pass, 
 let songPlayer = document.getElementById("main-audio");
 let syncedLyrics = [];
 
+// 1. Musiqi Siyahısını Yüklə (GitHub-dan)
 async function loadMusicList() {
     const listDiv = document.getElementById('music-list');
-    if(!listDiv) return; // Səhifədə element yoxdursa dayandır
+    if (!listDiv) return;
     
-    listDiv.innerHTML = "Musiqilər yüklənir... ✨";
+    listDiv.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>Musiqilər yüklənir... ✨</p>";
     
     try {
         const res = await fetch(`https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/musiqi`);
         const files = await res.json();
         
-        // Yalnız .json fayllarını (metadata) seçirik
-        const jsonFiles = files.filter(f => f.name && f.name.endsWith('.json'));
-        
+        if (!Array.isArray(files)) {
+             listDiv.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>Hələ ki, musiqi yüklənməyib. 🎵</p>";
+             return;
+        }
+
+        const jsonFiles = files.filter(f => f.name.endsWith('.json'));
         listDiv.innerHTML = "";
-        for(let f of jsonFiles) {
+
+        if (jsonFiles.length === 0) {
+            listDiv.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>Musiqi tapılmadı. 🎵</p>";
+            return;
+        }
+
+        for (let f of jsonFiles) {
             const dataRes = await fetch(f.download_url);
             const data = await dataRes.json();
             const id = f.name.replace('.json', '');
@@ -1156,36 +1166,43 @@ async function loadMusicList() {
             };
             listDiv.appendChild(div);
         }
-    } catch (error) {
-        console.error("Musiqi listi yüklənərkən xəta:", error);
-        listDiv.innerHTML = "Musiqiləri yükləmək mümkün olmadı. ❌";
+    } catch (err) {
+        console.error(err);
+        listDiv.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>Bağlantı xətası. 😔</p>";
     }
 }
 
+// 2. Pleyeri Aç və Çal
 function openPlayer(url, data) {
-    document.getElementById("music-player").style.display = "flex";
+    const playerOverlay = document.getElementById("music-player");
+    playerOverlay.style.display = "flex";
     document.getElementById("player-title").innerText = data.title;
     document.getElementById("player-artist").innerText = data.artist;
     document.getElementById("player-cover").src = data.cover || 'assets/default-cover.png';
     
-    songPlayer.src = url; // 'audio' əvəzinə 'songPlayer'
+    songPlayer.src = url;
     songPlayer.play();
+    document.querySelector("#play-pause-btn i").className = "fas fa-pause";
     setupLyrics(data.lyrics, data.lyricsType);
 }
 
+// 3. Sözləri Qur
 function setupLyrics(text, type) {
     const cont = document.getElementById("lyrics-content");
     cont.innerHTML = ""; 
     syncedLyrics = [];
     
-    if(!text) return;
+    if (!text) {
+        cont.innerHTML = "<p style='opacity:0.5;'>Sözlər əlavə edilməyib.</p>";
+        return;
+    }
 
-    if(type === "plain") {
+    if (type === "plain") {
         cont.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`;
-    } else if(type === "synced") {
+    } else if (type === "synced") {
         text.split('\n').forEach((line, i) => {
             const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
-            if(m) {
+            if (m) {
                 const time = parseInt(m[1]) * 60 + parseFloat(m[2]);
                 syncedLyrics.push({ time, i });
                 cont.innerHTML += `<p id="l-${i}">${m[3].trim()}</p>`;
@@ -1194,27 +1211,24 @@ function setupLyrics(text, type) {
     }
 }
 
-// Playerin gedişatını izləmək
+// 4. Player Proqres və Sinxron Sözlər
 if (songPlayer) {
     songPlayer.ontimeupdate = () => {
         const cur = songPlayer.currentTime;
         const dur = songPlayer.duration;
-
-        const progressBar = document.getElementById("progress-bar");
-        if(progressBar && dur) {
-            progressBar.value = (cur / dur) * 100;
+        
+        if (dur) {
+            document.getElementById("progress-bar").value = (cur / dur) * 100;
+            document.getElementById("current-time").innerText = formatTime(cur);
+            document.getElementById("total-duration").innerText = formatTime(dur);
         }
         
-        document.getElementById("current-time").innerText = formatTime(cur);
-        document.getElementById("total-duration").innerText = formatTime(dur || 0);
-        
-        // Sinxron sözləri rəngləmək
-        if(syncedLyrics.length > 0) {
+        if (syncedLyrics.length > 0) {
             let active = syncedLyrics.filter(l => l.time <= cur).pop();
-            if(active) {
+            if (active) {
                 document.querySelectorAll("#lyrics-content p").forEach(p => p.classList.remove("active"));
                 const el = document.getElementById(`l-${active.i}`);
-                if(el) { 
+                if (el) { 
                     el.classList.add("active"); 
                     el.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
                 }
@@ -1223,7 +1237,7 @@ if (songPlayer) {
     };
 }
 
-// Play/Pause düyməsi
+// 5. Düymə Funksiyaları
 document.getElementById("play-pause-btn").onclick = () => {
     if (songPlayer.paused) {
         songPlayer.play();
@@ -1240,13 +1254,95 @@ function closePlayer() {
 }
 
 function formatTime(s) { 
-    if(isNaN(s)) return "0:00";
+    if (isNaN(s)) return "0:00";
     return Math.floor(s/60) + ":" + Math.floor(s%60).toString().padStart(2,'0'); 
 }
 
-// Navbar keçidi zamanı listi yüklə
+// 6. ADMİN: Musiqi Yükləmə Məntiqi
+document.getElementById('upload-music-btn')?.addEventListener('click', async () => {
+    const fileInput = document.getElementById('admin-music-file');
+    const title = document.getElementById('admin-music-title').value.trim();
+    const artist = document.getElementById('admin-music-artist').value.trim() || "Naməlum";
+    const lType = document.getElementById('admin-lyrics-type').value;
+    const lText = document.getElementById('admin-music-lyrics').value.trim();
+    const pass = prompt("Təsdiq üçün admin şifrəsini yazın:");
+
+    if (!fileInput.files.length || !title || !pass) {
+        return alert("Fayl, mahnı adı və şifrə mütləqdir!");
+    }
+
+    const file = fileInput.files[0];
+    const btn = document.getElementById('upload-music-btn');
+    btn.innerText = "Yüklənir... ⏳";
+    btn.disabled = true;
+
+    // MP3-dən şəkil çıxarma
+    jsmediatags.read(file, {
+        onSuccess: function(tag) {
+            let coverData = "";
+            if (tag.tags.picture) {
+                const { data, format } = tag.tags.picture;
+                let base64 = "";
+                for (let i = 0; i < data.length; i++) base64 += String.fromCharCode(data[i]);
+                coverData = `data:${format};base64,${btoa(base64)}`;
+            }
+            sendMusicToProxy(file, title, artist, lType, lText, coverData, pass, btn);
+        },
+        onError: () => sendMusicToProxy(file, title, artist, lType, lText, "", pass, btn)
+    });
+});
+
+async function sendMusicToProxy(file, title, artist, lType, lText, cover, pass, btn) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+        const audioBase64 = reader.result.split(',')[1];
+        const musicId = `m_${Date.now()}`;
+
+        try {
+            // Addım 1: MP3 yüklə
+            const res1 = await fetch('/.netlify/functions/admin-proxy', {
+                method: 'POST',
+                body: JSON.stringify({
+                    type: 'upload_music',
+                    password: pass,
+                    payload: { path: `musiqi/${musicId}.mp3`, content: audioBase64 }
+                })
+            });
+            if (!res1.ok) throw new Error("MP3 faylı göndərilmədi.");
+
+            // Addım 2: JSON yüklə
+            const metadata = { title, artist, lyricsType: lType, lyrics: lText, cover };
+            const jsonBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(metadata))));
+
+            const res2 = await fetch('/.netlify/functions/admin-proxy', {
+                method: 'POST',
+                body: JSON.stringify({
+                    type: 'upload_music',
+                    password: pass,
+                    payload: { path: `musiqi/${musicId}.json`, content: jsonBase64 }
+                })
+            });
+
+            if (res2.ok) {
+                alert("Musiqi uğurla dünyamıza əlavə edildi! ❤️");
+                location.reload();
+            } else {
+                throw new Error("Məlumatlar yüklənmədi.");
+            }
+        } catch (e) {
+            alert("Xəta baş verdi: " + e.message);
+            btn.innerText = "Musiqini Dünyamıza Qat";
+            btn.disabled = false;
+        }
+    };
+}
+
+// 7. SPA Naviqasiya Dəstəyi
 document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => { 
-        if(btn.dataset.page === 'music') loadMusicList(); 
+        if (btn.dataset.page === 'music') {
+            loadMusicList();
+        }
     });
 });
