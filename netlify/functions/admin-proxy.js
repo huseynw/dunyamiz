@@ -36,18 +36,14 @@ exports.handler = async (event) => {
             commitMessage = "Admin: Yeni şəkil yükləndi";
         } else if (type === "upload_note") {
             commitMessage = "Admin: not əlavə edildi"; 
-        } else if (type === "upload_music") { 
-            // Musiqi üçün xüsusi commit mesajı
-            commitMessage = "Admin: Yeni musiqi və məlumatları əlavə edildi 🎵"; 
         }
 
-        // GitHub-a göndərmə əməliyyatı
         const ghResponse = await fetch(url, {
             method: 'PUT',
             headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" },
             body: JSON.stringify({
                 message: commitMessage,
-                content: finalContent, // hcayar.js-dən gələn base64 buraya düşür
+                content: finalContent,
                 sha: sha || undefined
             })
         });
