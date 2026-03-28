@@ -271,6 +271,82 @@
                     </section>
                 </div>
             </section>
+            <!-- Page 4: Musiqi -->
+            <section class="spa-page" id="page-music">
+                <div class="page-content">
+                    <h2 class="page-title">Musiqilərimiz 🎵</h2>
+                    <div class="yt-music-shell">
+                        <div class="yt-music-header">
+                            <div>
+                                <p class="yt-music-kicker">YouTube Music stilində</p>
+                                <h3>Playlist</h3>
+                            </div>
+                            <div class="yt-music-meta">
+                                <span id="music-track-count">0 mahnı</span>
+                            </div>
+                        </div>
+                        <div id="music-playlist" class="yt-playlist">
+                            <div class="music-loading-state">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Musiqilər yüklənir...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <audio id="yt-audio" preload="metadata"></audio>
+                <div id="yt-active-player" class="yt-active-player">
+                    <div class="yt-player-handle"></div>
+                    <div class="yt-player-top">
+                        <button id="yt-minimize-btn" class="yt-mini-btn" type="button" aria-label="Kiçilt">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="yt-now-playing">
+                            <span id="yt-now-label">İndi səslənir</span>
+                            <strong id="yt-player-title">Mahnı seçin</strong>
+                            <small id="yt-player-artist">Artist</small>
+                        </div>
+                        <button id="yt-lyrics-toggle" class="yt-mini-btn" type="button" aria-label="Sözlər">
+                            <i class="fas fa-align-left"></i>
+                        </button>
+                    </div>
+                    <div class="yt-player-body">
+                        <div class="yt-player-art-wrap">
+                            <div class="yt-rotating-disc" id="yt-rotating-disc">
+                                <img id="yt-cover-image" src="assets/music-cover.jpg" alt="Cover">
+                            </div>
+                        </div>
+                        <div class="yt-tabs">
+                            <button class="yt-tab active" data-music-tab="upnext" type="button">Mahnı</button>
+                            <button class="yt-tab" data-music-tab="lyrics" type="button" id="yt-lyrics-tab-btn">Sözlər</button>
+                        </div>
+                        <div class="yt-tab-panel active" id="yt-tab-upnext">
+                            <div class="yt-progress-area">
+                                <input type="range" id="yt-seekbar" min="0" value="0" step="0.1">
+                                <div class="yt-time-row">
+                                    <span id="yt-current-time">00:00</span>
+                                    <span id="yt-duration">00:00</span>
+                                </div>
+                            </div>
+                            <div class="yt-controls-row">
+                                <button id="yt-prev-btn" class="yt-control-btn" type="button">
+                                    <i class="fas fa-backward-step"></i>
+                                </button>
+                                <button id="yt-play-btn" class="yt-play-btn" type="button">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button id="yt-next-btn" class="yt-control-btn" type="button">
+                                    <i class="fas fa-forward-step"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="yt-tab-panel" id="yt-tab-lyrics">
+                            <div id="yt-lyrics-container" class="yt-lyrics-container">
+                                <div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
             <!-- Page 4: Məktublar (Letters) -->
             <section class="spa-page" id="page-letters">
                 <div class="page-content">
@@ -336,6 +412,10 @@
             <button class="nav-item" data-page="notes">
                 <i class="fas fa-sticky-note"></i>
                 <span>Notlar</span>
+            </button>
+            <button class="nav-item" data-page="music">
+                <i class="fas fa-music"></i>
+                <span>Musiqi</span>
             </button>
         </nav>
     </main>
@@ -434,6 +514,31 @@
                 <label>Qalereyaya Şəkil:</label>
                 <input type="file" id="admin-file" accept="image/*">
                 <button id="upload-image-btn" type="button">Şəkli Yüklə</button>
+            </div>
+            <hr>
+            <div class="input-group">
+                <label>Musiqi faylı (MP3):</label>
+                <input type="file" id="admin-music-file" accept=".mp3,audio/mpeg">
+                <label>Mahnı adı (Track):</label>
+                <input type="text" id="admin-music-title" placeholder="Mahnı adı">
+                <label>Oxuyan (Artist):</label>
+                <input type="text" id="admin-music-artist" placeholder="Artist adı">
+                <label>Sözlərin növü:</label>
+                <select id="admin-lyrics-type" style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.5);color:white;outline:none;">
+                    <option value="none">Yoxdur</option>
+                    <option value="plain">Plain Text</option>
+                    <option value="synced">Synced LRC</option>
+                </select>
+                <label>Sözlər:</label>
+                <textarea
+                    id="admin-lyrics-text"
+                    rows="8"
+                    placeholder="[00:12.00] İlk sətir
+            [00:18.20] İkinci sətir"
+                    style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.5);color:white;outline:none;resize:vertical;"
+                ></textarea>
+
+                <button id="upload-music-btn" type="button">Musiqini Yüklə</button>
             </div>
             <hr>
             <div class="input-group">
