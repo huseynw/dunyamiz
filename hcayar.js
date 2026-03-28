@@ -727,54 +727,167 @@ window.addEventListener('click', (e) => {
     }
     clickTimer = setTimeout(() => { clicks = 0; }, 500); 
 });
+function slugifyMusicName(str = "") {
+    return str
+        .toString()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/ə/g, 'e')
+        .replace(/Ə/g, 'E')
+        .replace(/ı/g, 'i')
+        .replace(/İ/g, 'I')
+        .replace(/ö/g, 'o')
+        .replace(/Ö/g, 'O')
+        .replace(/ü/g, 'u')
+        .replace(/Ü/g, 'U')
+        .replace(/ş/g, 's')
+        .replace(/Ş/g, 'S')
+        .replace(/ç/g, 'c')
+        .replace(/Ç/g, 'C')
+        .replace(/ğ/g, 'g')
+        .replace(/Ğ/g, 'G')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .trim();
+}
 
+function encodeBase64Utf8(text) {
+    return btoa(unescape(encodeURIComponent(text)));
+}
+
+function readFileAsArrayBuffer(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+function arrayBufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const chunkSize = 0x8000;
+
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize);
+        binary += String.fromCharCode.apply(null, chunk);
+    }
+
+    return btoa(binary);
+}
+
+async function convertAudioFileToBase64(file) {
+    const buffer = await readFileAsArrayBuffer(file);
+    return arrayBufferToBase64(buffer);
+}
 async function handleAdminUpdate(type) {
     const password = document.getElementById('admin-password').value;
     if (!password) return alert("Şifrəni daxil et!");
-    
+
     let requestPayload = { path: "" };
-    
+
     if (type === 'update_config') {
         const newDate = document.getElementById('admin-date').value;
         const newCount = document.getElementById('admin-count').value;
-        if (!newDate && !newCount) return alert("Dəyişiklik yoxdur!");
-        requestPayload = { 
-            path: "hcayar.js", 
-            newDate: newDate, 
-            newCount: newCount 
+
+        if (!newDate && !newCount) {
+            return alert("Dəyişiklik yoxdur!");
+        }
+
+        requestPayload = {
+            path: "hcayar.js",
+            newDate,
+            newCount
         };
-    } 
+    }
+
     else if (type === 'upload_image') {
         const fileInput = document.getElementById('admin-file');
         const file = fileInput.files[0];
+
         if (!file) return alert("Şəkil seçin!");
-        
+
         const base64 = await new Promise((resolve) => {
             const reader = new FileReader();
             reader.onload = (e) => resolve(e.target.result.split(',')[1]);
             reader.readAsDataURL(file);
         });
-        
-        requestPayload = { 
-            path: `gallery/${Date.now()}_${file.name.replace(/\s+/g, '_')}`, 
-            content: base64 
+
+        requestPayload = {
+            path: `gallery/${Date.now()}_${file.name.replace(/\s+/g, '_')}`,
+            content: base64
         };
     }
-    
+
+    else if (type === 'upload_music') {
+        const audioFile = document.getElementById('admin-music-file')?.files?.[0];
+        const title = document.getElementById('admin-music-title')?.value.trim();
+        const artist = document.getElementById('admin-music-artist')?.value.trim();
+        const lyricsType = document.getElementById('admin-lyrics-type')?.value || 'none';
+        const lyricsText = document.getElementById('admin-lyrics-text')?.value || '';
+
+        if (!audioFile) return alert("MP3 faylı seç!");
+        if (!title) return alert("Mahnı adını yaz!");
+        if (!artist) return alert("Artist adını yaz!");
+
+        const fileExt = audioFile.name.split('.').pop()?.toLowerCase();
+        if (fileExt !== 'mp3') {
+            return alert("Yalnız MP3 faylı yüklə!");
+        }
+
+        if (lyricsType !== 'none' && !lyricsText.trim()) {
+            return alert("Söz növü seçmisənsə, sözləri də yazmalısan.");
+        }
+
+        const slugBase = slugifyMusicName(`${title}-${artist}`) || `track-${Date.now()}`;
+        const slug = `${slugBase}-${Date.now()}`;
+
+        const audioBase64 = await convertAudioFileToBase64(audioFile);
+
+        const musicMeta = {
+            id: slug,
+            title,
+            artist,
+            file: `${slug}.mp3`,
+            lyrics: {
+                type: lyricsType,
+                text: lyricsText.trim()
+            },
+            uploadedAt: new Date().toISOString()
+        };
+
+        requestPayload = {
+            slug,
+            audioPath: `musiqiler/${slug}.mp3`,
+            jsonPath: `musiqiler/${slug}.json`,
+            audioContent: audioBase64,
+            jsonContent: encodeBase64Utf8(JSON.stringify(musicMeta, null, 2))
+        };
+    }
+
     try {
         const response = await fetch('/.netlify/functions/admin-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type, password, payload: requestPayload })
+            body: JSON.stringify({
+                type,
+                password,
+                payload: requestPayload
+            })
         });
+
         const result = await response.json();
+
         if (result.success) {
             alert("Uğurla yerinə yetirildi!");
             location.reload();
         } else {
-            alert("Xəta baş verdi. Şifrəni və ya Netlify loglarını yoxlayın.");
+            alert(result?.error || "Xəta baş verdi. Şifrəni və ya Netlify loglarını yoxlayın.");
         }
     } catch (err) {
+        console.error(err);
         alert("Serverə qoşulmaq mümkün olmadı.");
     }
 }
@@ -861,13 +974,19 @@ updateWeatherTheme();
 // ========== ADMIN BUTTONS ==========
 document.addEventListener('DOMContentLoaded', () => {
     const updateBtn = document.getElementById('update-config-btn');
-    const uploadBtn = document.getElementById('upload-image-btn');
+    const uploadImageBtn = document.getElementById('upload-image-btn');
+    const uploadMusicBtn = document.getElementById('upload-music-btn');
 
     if (updateBtn) {
         updateBtn.onclick = () => handleAdminUpdate('update_config');
     }
-    if (uploadBtn) {
-        uploadBtn.onclick = () => handleAdminUpdate('upload_image');
+
+    if (uploadImageBtn) {
+        uploadImageBtn.onclick = () => handleAdminUpdate('upload_image');
+    }
+
+    if (uploadMusicBtn) {
+        uploadMusicBtn.onclick = () => handleAdminUpdate('upload_music');
     }
 });
 // Bu kodu hcayar.js faylının ən sonuna yapışdır
@@ -1069,3 +1188,469 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+window.musicLibrary = [];
+window.currentMusic = null;
+window.currentMusicIndex = -1;
+window.currentMusicLyricsParsed = [];
+window.currentMusicLyricsType = 'none';
+window.currentLyricsActiveIndex = -1;
+
+const DEFAULT_MUSIC_COVER = 'assets/music-cover.jpg';
+
+function formatMusicTime(seconds = 0) {
+    if (!isFinite(seconds)) return '00:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function escapeHtmlMusic(text = '') {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function parseLrcTimeToSeconds(timeStr) {
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?$/);
+    if (!match) return null;
+
+    const minutes = parseInt(match[1], 10);
+    const seconds = parseInt(match[2], 10);
+    const fractionRaw = match[3] || '0';
+    const fraction = parseInt(fractionRaw.padEnd(3, '0').slice(0, 3), 10) / 1000;
+
+    return minutes * 60 + seconds + fraction;
+}
+
+function parseSyncedLyrics(lrcText = '') {
+    const lines = lrcText.split(/\r?\n/);
+    const parsed = [];
+
+    for (const rawLine of lines) {
+        const timeTags = [...rawLine.matchAll(/\[(\d{1,2}:\d{2}(?:\.\d{1,3})?)\]/g)];
+        const text = rawLine.replace(/\[(\d{1,2}:\d{2}(?:\.\d{1,3})?)\]/g, '').trim();
+
+        if (!timeTags.length) continue;
+
+        for (const tag of timeTags) {
+            const seconds = parseLrcTimeToSeconds(tag[1]);
+            if (seconds === null) continue;
+
+            parsed.push({
+                time: seconds,
+                text: text || '…'
+            });
+        }
+    }
+
+    parsed.sort((a, b) => a.time - b.time);
+    return parsed;
+}
+
+function getMusicDom() {
+    return {
+        playlist: document.getElementById('music-playlist'),
+        trackCount: document.getElementById('music-track-count'),
+        audio: document.getElementById('yt-audio'),
+        activePlayer: document.getElementById('yt-active-player'),
+        minimizeBtn: document.getElementById('yt-minimize-btn'),
+        lyricsToggle: document.getElementById('yt-lyrics-toggle'),
+        title: document.getElementById('yt-player-title'),
+        artist: document.getElementById('yt-player-artist'),
+        cover: document.getElementById('yt-cover-image'),
+        disc: document.getElementById('yt-rotating-disc'),
+        seekbar: document.getElementById('yt-seekbar'),
+        currentTime: document.getElementById('yt-current-time'),
+        duration: document.getElementById('yt-duration'),
+        prevBtn: document.getElementById('yt-prev-btn'),
+        playBtn: document.getElementById('yt-play-btn'),
+        nextBtn: document.getElementById('yt-next-btn'),
+        lyricsContainer: document.getElementById('yt-lyrics-container'),
+        lyricsTabBtn: document.getElementById('yt-lyrics-tab-btn')
+    };
+}
+
+async function fetchMusicJsonList() {
+    const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/musiqiler`;
+
+    const response = await fetch(url);
+    const files = await response.json();
+
+    if (!Array.isArray(files)) {
+        throw new Error(files?.message || 'musiqiler qovluğu oxunmadı');
+    }
+
+    const jsonFiles = files.filter(file => file.name.toLowerCase().endsWith('.json'));
+
+    const jsonData = await Promise.all(
+        jsonFiles.map(async (file) => {
+            const res = await fetch(file.download_url);
+            if (!res.ok) return null;
+            const data = await res.json();
+
+            return {
+                ...data,
+                jsonName: file.name,
+                audioUrl: `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${data.file}`
+            };
+        })
+    );
+
+    return jsonData
+        .filter(Boolean)
+        .sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0));
+}
+
+function renderMusicPlaylist() {
+    const { playlist, trackCount } = getMusicDom();
+    if (!playlist) return;
+
+    if (!window.musicLibrary.length) {
+        playlist.innerHTML = `<div class="music-empty-state"><i class="fas fa-music"></i><span>Hələ musiqi əlavə edilməyib.</span></div>`;
+        if (trackCount) trackCount.textContent = '0 mahnı';
+        return;
+    }
+
+    playlist.innerHTML = window.musicLibrary.map((track, index) => `
+        <div class="yt-track-item ${window.currentMusicIndex === index ? 'active' : ''}" data-music-index="${index}">
+            <img class="yt-track-thumb" src="${DEFAULT_MUSIC_COVER}" alt="${escapeHtmlMusic(track.title)}">
+            <div class="yt-track-text">
+                <div class="yt-track-title">${escapeHtmlMusic(track.title)}</div>
+                <div class="yt-track-artist">${escapeHtmlMusic(track.artist)}</div>
+            </div>
+            <div class="yt-track-meta">
+                <i class="fas fa-play"></i>
+            </div>
+        </div>
+    `).join('');
+
+    if (trackCount) {
+        trackCount.textContent = `${window.musicLibrary.length} mahnı`;
+    }
+
+    playlist.querySelectorAll('.yt-track-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const index = Number(item.dataset.musicIndex);
+            openMusicTrack(index);
+        });
+    });
+}
+
+function openMusicPlayerExpanded() {
+    const { activePlayer } = getMusicDom();
+    if (activePlayer) activePlayer.classList.add('expanded');
+}
+
+function closeMusicPlayerExpanded() {
+    const { activePlayer } = getMusicDom();
+    if (activePlayer) activePlayer.classList.remove('expanded');
+}
+
+function switchMusicTab(tabName = 'upnext') {
+    document.querySelectorAll('.yt-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.musicTab === tabName);
+    });
+
+    document.querySelectorAll('.yt-tab-panel').forEach(panel => {
+        panel.classList.remove('active');
+    });
+
+    const panel = document.getElementById(`yt-tab-${tabName}`);
+    if (panel) panel.classList.add('active');
+}
+
+function updateMusicPlayButtonState() {
+    const { audio, playBtn, disc } = getMusicDom();
+    if (!audio || !playBtn || !disc) return;
+
+    if (audio.paused) {
+        playBtn.innerHTML = '<i class="fas fa-play"></i>';
+        disc.classList.remove('playing');
+    } else {
+        playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        disc.classList.add('playing');
+    }
+}
+
+function renderPlainLyrics(text = '') {
+    const { lyricsContainer } = getMusicDom();
+    if (!lyricsContainer) return;
+
+    if (!text.trim()) {
+        lyricsContainer.innerHTML = `<div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>`;
+        return;
+    }
+
+    const html = text
+        .split(/\r?\n/)
+        .map(line => `<div class="yt-lyrics-line passed">${escapeHtmlMusic(line) || '&nbsp;'}</div>`)
+        .join('');
+
+    lyricsContainer.innerHTML = html || `<div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>`;
+}
+
+function renderSyncedLyrics(parsedLyrics = []) {
+    const { lyricsContainer } = getMusicDom();
+    if (!lyricsContainer) return;
+
+    if (!parsedLyrics.length) {
+        lyricsContainer.innerHTML = `<div class="yt-lyrics-empty">Synced lyrics tapılmadı.</div>`;
+        return;
+    }
+
+    lyricsContainer.innerHTML = parsedLyrics.map((line, index) => `
+        <div class="yt-lyrics-line" data-lyrics-index="${index}">
+            ${escapeHtmlMusic(line.text)}
+        </div>
+    `).join('');
+}
+
+function renderCurrentTrackLyrics(track) {
+    const { lyricsTabBtn } = getMusicDom();
+    const lyrics = track?.lyrics || {};
+    const type = lyrics.type || 'none';
+    const text = lyrics.text || '';
+
+    window.currentMusicLyricsType = type;
+    window.currentLyricsActiveIndex = -1;
+    window.currentMusicLyricsParsed = [];
+
+    if (lyricsTabBtn) {
+        lyricsTabBtn.style.display = 'block';
+    }
+
+    if (type === 'plain') {
+        renderPlainLyrics(text);
+    } else if (type === 'synced') {
+        const parsed = parseSyncedLyrics(text);
+        window.currentMusicLyricsParsed = parsed;
+        renderSyncedLyrics(parsed);
+    } else {
+        renderPlainLyrics('');
+    }
+}
+
+function updateSyncedLyricsByTime(currentTime) {
+    if (window.currentMusicLyricsType !== 'synced') return;
+    if (!window.currentMusicLyricsParsed.length) return;
+
+    const { lyricsContainer } = getMusicDom();
+    if (!lyricsContainer) return;
+
+    let activeIndex = -1;
+
+    for (let i = 0; i < window.currentMusicLyricsParsed.length; i++) {
+        if (currentTime >= window.currentMusicLyricsParsed[i].time) {
+            activeIndex = i;
+        } else {
+            break;
+        }
+    }
+
+    if (activeIndex === window.currentLyricsActiveIndex) return;
+    window.currentLyricsActiveIndex = activeIndex;
+
+    const lines = lyricsContainer.querySelectorAll('.yt-lyrics-line');
+
+    lines.forEach((lineEl, index) => {
+        lineEl.classList.toggle('active', index === activeIndex);
+        lineEl.classList.toggle('passed', index < activeIndex);
+    });
+
+    const activeEl = lyricsContainer.querySelector(`.yt-lyrics-line[data-lyrics-index="${activeIndex}"]`);
+    if (activeEl) {
+        const containerRect = lyricsContainer.getBoundingClientRect();
+        const itemRect = activeEl.getBoundingClientRect();
+        const delta = itemRect.top - containerRect.top - (containerRect.height / 2) + (itemRect.height / 2);
+
+        lyricsContainer.scrollTo({
+            top: lyricsContainer.scrollTop + delta,
+            behavior: 'smooth'
+        });
+    }
+}
+
+function readMusicCoverFromUrl(audioUrl) {
+    return new Promise((resolve) => {
+        if (!window.jsmediatags) {
+            resolve(DEFAULT_MUSIC_COVER);
+            return;
+        }
+
+        window.jsmediatags.read(audioUrl, {
+            onSuccess: (tag) => {
+                const picture = tag?.tags?.picture;
+                if (!picture || !picture.data || !picture.format) {
+                    resolve(DEFAULT_MUSIC_COVER);
+                    return;
+                }
+
+                let binary = '';
+                const bytes = picture.data;
+
+                for (let i = 0; i < bytes.length; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+
+                const base64String = window.btoa(binary);
+                resolve(`data:${picture.format};base64,${base64String}`);
+            },
+            onError: () => {
+                resolve(DEFAULT_MUSIC_COVER);
+            }
+        });
+    });
+}
+
+async function updateMusicCover(track) {
+    const { cover } = getMusicDom();
+    if (!cover) return;
+
+    cover.src = DEFAULT_MUSIC_COVER;
+
+    try {
+        const coverSrc = await readMusicCoverFromUrl(track.audioUrl);
+        cover.src = coverSrc || DEFAULT_MUSIC_COVER;
+
+        const currentTrackStillSame = window.currentMusic && window.currentMusic.id === track.id;
+        if (!currentTrackStillSame) return;
+
+        const playlistThumb = document.querySelector(`.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`);
+        if (playlistThumb) {
+            playlistThumb.src = cover.src;
+        }
+    } catch {
+        cover.src = DEFAULT_MUSIC_COVER;
+    }
+}
+
+async function openMusicTrack(index) {
+    const track = window.musicLibrary[index];
+    const dom = getMusicDom();
+
+    if (!track || !dom.audio) return;
+
+    window.currentMusic = track;
+    window.currentMusicIndex = index;
+
+    dom.title.textContent = track.title || 'Adsız mahnı';
+    dom.artist.textContent = track.artist || 'Naməlum artist';
+    dom.audio.src = track.audioUrl;
+    dom.seekbar.value = 0;
+    dom.currentTime.textContent = '00:00';
+    dom.duration.textContent = '00:00';
+
+    renderCurrentTrackLyrics(track);
+    renderMusicPlaylist();
+    openMusicPlayerExpanded();
+    switchMusicTab('upnext');
+    updateMusicCover(track);
+
+    try {
+        await dom.audio.play();
+    } catch (err) {
+        console.error('Music play error:', err);
+    }
+
+    updateMusicPlayButtonState();
+}
+
+function playPrevMusic() {
+    if (!window.musicLibrary.length) return;
+    const newIndex = window.currentMusicIndex <= 0
+        ? window.musicLibrary.length - 1
+        : window.currentMusicIndex - 1;
+
+    openMusicTrack(newIndex);
+}
+
+function playNextMusic() {
+    if (!window.musicLibrary.length) return;
+    const newIndex = window.currentMusicIndex >= window.musicLibrary.length - 1
+        ? 0
+        : window.currentMusicIndex + 1;
+
+    openMusicTrack(newIndex);
+}
+
+function initMusicPlayerEvents() {
+    const dom = getMusicDom();
+    if (!dom.audio) return;
+
+    dom.minimizeBtn?.addEventListener('click', closeMusicPlayerExpanded);
+
+    dom.lyricsToggle?.addEventListener('click', () => {
+        openMusicPlayerExpanded();
+        switchMusicTab('lyrics');
+    });
+
+    document.querySelectorAll('.yt-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            switchMusicTab(tab.dataset.musicTab);
+        });
+    });
+
+    dom.playBtn?.addEventListener('click', async () => {
+        if (!dom.audio.src && window.musicLibrary.length) {
+            await openMusicTrack(0);
+            return;
+        }
+
+        if (dom.audio.paused) {
+            await dom.audio.play();
+        } else {
+            dom.audio.pause();
+        }
+
+        updateMusicPlayButtonState();
+    });
+
+    dom.prevBtn?.addEventListener('click', playPrevMusic);
+    dom.nextBtn?.addEventListener('click', playNextMusic);
+
+    dom.audio.addEventListener('loadedmetadata', () => {
+        dom.seekbar.max = dom.audio.duration || 0;
+        dom.duration.textContent = formatMusicTime(dom.audio.duration);
+    });
+
+    dom.audio.addEventListener('timeupdate', () => {
+        dom.seekbar.value = dom.audio.currentTime || 0;
+        dom.currentTime.textContent = formatMusicTime(dom.audio.currentTime);
+        updateSyncedLyricsByTime(dom.audio.currentTime);
+    });
+
+    dom.seekbar?.addEventListener('input', () => {
+        dom.audio.currentTime = Number(dom.seekbar.value);
+        updateSyncedLyricsByTime(dom.audio.currentTime);
+    });
+
+    dom.audio.addEventListener('play', updateMusicPlayButtonState);
+    dom.audio.addEventListener('pause', updateMusicPlayButtonState);
+
+    dom.audio.addEventListener('ended', () => {
+        playNextMusic();
+    });
+}
+
+async function initMusicPage() {
+    try {
+        window.musicLibrary = await fetchMusicJsonList();
+        renderMusicPlaylist();
+        initMusicPlayerEvents();
+    } catch (err) {
+        console.error(err);
+        const { playlist, trackCount } = getMusicDom();
+        if (playlist) {
+            playlist.innerHTML = `
+                <div class="music-empty-state">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Musiqilər yüklənmədi.</span>
+                </div>
+            `;
+        }
+        if (trackCount) trackCount.textContent = '0 mahnı';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initMusicPage);
