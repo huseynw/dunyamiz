@@ -1314,7 +1314,11 @@ function renderMusicPlaylist() {
 
     playlist.innerHTML = window.musicLibrary.map((track, index) => `
         <div class="yt-track-item ${window.currentMusicIndex === index ? 'active' : ''}" data-music-index="${index}">
-            <img class="yt-track-thumb" src="${DEFAULT_MUSIC_COVER}" alt="${escapeHtmlMusic(track.title)}">
+            <img
+                class="yt-track-thumb"
+                src="${track.cover ? `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${encodeURIComponent(track.cover)}` : DEFAULT_MUSIC_COVER}"
+                alt="${escapeHtmlMusic(track.title)}"
+            >
             <div class="yt-track-text">
                 <div class="yt-track-title">${escapeHtmlMusic(track.title)}</div>
                 <div class="yt-track-artist">${escapeHtmlMusic(track.artist)}</div>
@@ -1520,16 +1524,31 @@ async function updateMusicCover(track) {
     const { cover } = getMusicDom();
     if (!cover) return;
 
+    if (track.cover) {
+        const explicitCoverUrl = `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${encodeURIComponent(track.cover)}`;
+        cover.src = explicitCoverUrl;
+
+        const playlistThumb = document.querySelector(
+            `.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`
+        );
+        if (playlistThumb) {
+            playlistThumb.src = explicitCoverUrl;
+        }
+        return;
+    }
+
     cover.src = DEFAULT_MUSIC_COVER;
 
     try {
         const coverSrc = await readMusicCoverFromUrl(track.audioUrl);
-        cover.src = coverSrc || DEFAULT_MUSIC_COVER;
-
         const currentTrackStillSame = window.currentMusic && window.currentMusic.id === track.id;
         if (!currentTrackStillSame) return;
 
-        const playlistThumb = document.querySelector(`.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`);
+        cover.src = coverSrc || DEFAULT_MUSIC_COVER;
+
+        const playlistThumb = document.querySelector(
+            `.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`
+        );
         if (playlistThumb) {
             playlistThumb.src = cover.src;
         }
@@ -1537,7 +1556,6 @@ async function updateMusicCover(track) {
         cover.src = DEFAULT_MUSIC_COVER;
     }
 }
-
 async function openMusicTrack(index) {
     const track = window.musicLibrary[index];
     const dom = getMusicDom();
