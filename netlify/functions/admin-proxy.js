@@ -1,7 +1,33 @@
 const fetch = require('node-fetch');
 
+async function putGitHubFile({ repoOwner, repoName, token, path, content, message }) {
+    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
+
+    const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            "Authorization": `token ${token}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            message,
+            content
+        })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data?.message || `GitHub upload failed for ${path}`);
+    }
+
+    return data;
+}
+
 exports.handler = async (event) => {
-    if (event.httpMethod !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
+    if (event.httpMethod !== "POST") {
+        return { statusCode: 405, body: "Method Not Allowed" };
+    }
 
     try {
         const { type, password, payload } = JSON.parse(event.body);
@@ -9,49 +35,173 @@ exports.handler = async (event) => {
         const repoOwner = "huseynw";
         const repoName = "dunyamiz";
 
-        if (password !== "030825") return { statusCode: 401, body: JSON.stringify({ error: "Şifrə səhvdir!" }) };
-
-        let url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${payload.path}`;
-        let sha = "";
-        let finalContent = payload.content;
-        let commitMessage = `Admin Panel: ${type}`;
-
-        if (type === "update_config") {
-            const res = await fetch(url, { headers: { "Authorization": `token ${GH_TOKEN}` } });
-            const fileData = await res.json();
-            sha = fileData.sha;
-            let oldContent = Buffer.from(fileData.content, 'base64').toString('utf-8');
-            
-            if (payload.newDate) {
-                oldContent = oldContent.replace(/const targetDate = new Date\("[^"]+"\);/, `const targetDate = new Date("${payload.newDate}:00");`);
-            }
-            if (payload.newCount) {
-                oldContent = oldContent.replace(/meetingCount: \d+,/, `meetingCount: ${payload.newCount},`);
-            }
-            
-            commitMessage = "Admin: Məlumatlar yeniləndi";
-            finalContent = Buffer.from(oldContent).toString('base64');
-
-        } else if (type === "upload_image") {
-            commitMessage = "Admin: Yeni şəkil yükləndi";
-        } else if (type === "upload_note") {
-            commitMessage = "Admin: not əlavə edildi"; 
+        if (!GH_TOKEN) {
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ error: "GH_TOKEN tapılmadı." })
+            };
         }
 
-        const ghResponse = await fetch(url, {
-            method: 'PUT',
-            headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" },
-            body: JSON.stringify({
-                message: commitMessage,
-                content: finalContent,
-                sha: sha || undefined
-            })
-        });
+        if (password !== "030825") {
+            return {
+                statusCode: 401,
+                body: JSON.stringify({ error: "Şifrə səhvdir!" })
+            };
+        }
 
-        const resData = await ghResponse.json();
-        return { statusCode: 200, body: JSON.stringify({ success: ghResponse.ok, details: resData }) };
+        // =========================
+        // CONFIG UPDATE
+        // =========================
+        if (type === "update_config") {
+            const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${payload.path}`;
+
+            const res = await fetch(url, {
+                headers: { "Authorization": `token ${GH_TOKEN}` }
+            });
+
+            const fileData = await res.json();
+
+            if (!res.ok) {
+                throw new Error(fileData?.message || "hcayar.js oxunmadı");
+            }
+
+            const sha = fileData.sha;
+            let oldContent = Buffer.from(fileData.content, 'base64').toString('utf-8');
+
+            if (payload.newDate) {
+                oldContent = oldContent.replace(
+                    /const targetDate = new Date\("[^"]+"\);/,
+                    `const targetDate = new Date("${payload.newDate}:00");`
+                );
+            }
+
+            if (payload.newCount) {
+                oldContent = oldContent.replace(
+                    /meetingCount: \d+,/,
+                    `meetingCount: ${payload.newCount},`
+                );
+            }
+
+            const finalContent = Buffer.from(oldContent).toString('base64');
+
+            const ghResponse = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    "Authorization": `token ${GH_TOKEN}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: "Admin: Məlumatlar yeniləndi",
+                    content: finalContent,
+                    sha
+                })
+            });
+
+            const resData = await ghResponse.json();
+
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ success: ghResponse.ok, details: resData })
+            };
+        }
+
+        // =========================
+        // IMAGE UPLOAD
+        // =========================
+        if (type === "upload_image") {
+            const result = await putGitHubFile({
+                repoOwner,
+                repoName,
+                token: GH_TOKEN,
+                path: payload.path,
+                content: payload.content,
+                message: "Admin: Yeni şəkil yükləndi"
+            });
+
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ success: true, details: result })
+            };
+        }
+
+        // =========================
+        // NOTE UPLOAD
+        // =========================
+        if (type === "upload_note") {
+            const result = await putGitHubFile({
+                repoOwner,
+                repoName,
+                token: GH_TOKEN,
+                path: payload.path,
+                content: payload.content,
+                message: "Admin: Not əlavə edildi"
+            });
+
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ success: true, details: result })
+            };
+        }
+
+        // =========================
+        // MUSIC UPLOAD (MP3 + JSON)
+        // =========================
+        if (type === "upload_music") {
+            const {
+                slug,
+                audioPath,
+                jsonPath,
+                audioContent,
+                jsonContent
+            } = payload;
+
+            if (!slug || !audioPath || !jsonPath || !audioContent || !jsonContent) {
+                return {
+                    statusCode: 400,
+                    body: JSON.stringify({ error: "Musiqi payload məlumatları natamamdır." })
+                };
+            }
+
+            const [audioResult, jsonResult] = await Promise.all([
+                putGitHubFile({
+                    repoOwner,
+                    repoName,
+                    token: GH_TOKEN,
+                    path: audioPath,
+                    content: audioContent,
+                    message: `Admin: Yeni musiqi əlavə edildi (${slug}.mp3)`
+                }),
+                putGitHubFile({
+                    repoOwner,
+                    repoName,
+                    token: GH_TOKEN,
+                    path: jsonPath,
+                    content: jsonContent,
+                    message: `Admin: Musiqi məlumat faylı əlavə edildi (${slug}.json)`
+                })
+            ]);
+
+            return {
+                statusCode: 200,
+                body: JSON.stringify({
+                    success: true,
+                    details: {
+                        audio: audioResult,
+                        json: jsonResult
+                    }
+                })
+            };
+        }
+
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Naməlum əməliyyat növü." })
+        };
 
     } catch (error) {
-        return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: error.message })
+        };
     }
 };
