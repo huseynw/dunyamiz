@@ -1339,12 +1339,25 @@ function renderMusicPlaylist() {
 
 function openMusicPlayerExpanded() {
     const { activePlayer } = getMusicDom();
-    if (activePlayer) activePlayer.classList.add('expanded');
+    if (!activePlayer) return;
+
+    activePlayer.style.display = 'block';
+    activePlayer.classList.add('expanded');
 }
 
 function closeMusicPlayerExpanded() {
     const { activePlayer } = getMusicDom();
-    if (activePlayer) activePlayer.classList.remove('expanded');
+    if (!activePlayer) return;
+
+    activePlayer.classList.remove('expanded');
+}
+
+function showMusicMiniPlayer() {
+    const { activePlayer } = getMusicDom();
+    if (!activePlayer) return;
+
+    activePlayer.style.display = 'block';
+    activePlayer.classList.remove('expanded');
 }
 
 function switchMusicTab(tabName = 'upnext') {
@@ -1543,7 +1556,7 @@ async function openMusicTrack(index) {
 
     renderCurrentTrackLyrics(track);
     renderMusicPlaylist();
-    openMusicPlayerExpanded();
+    showMusicMiniPlayer();
     switchMusicTab('upnext');
     updateMusicCover(track);
 
@@ -1576,6 +1589,23 @@ function playNextMusic() {
 
 function initMusicPlayerEvents() {
     const dom = getMusicDom();
+    dom.activePlayer?.addEventListener('click', (e) => {
+    if (
+        e.target.closest('#yt-minimize-btn') ||
+        e.target.closest('#yt-lyrics-toggle') ||
+        e.target.closest('#yt-play-btn') ||
+        e.target.closest('#yt-prev-btn') ||
+        e.target.closest('#yt-next-btn') ||
+        e.target.closest('.yt-tab') ||
+        e.target.closest('#yt-seekbar')
+    ) {
+        return;
+    }
+
+    if (!dom.activePlayer.classList.contains('expanded')) {
+        dom.activePlayer.classList.add('expanded');
+    }
+});
     if (!dom.audio) return;
 
     dom.minimizeBtn?.addEventListener('click', closeMusicPlayerExpanded);
