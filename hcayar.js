@@ -109,10 +109,10 @@ enterBtn.addEventListener('click', () => {
 verifyBtn.addEventListener('click', () => {
     const sfire = "030825";
     if (passInput.value === sfire) {
-        setInterval(() => {
-            const randomSimvollar = getDynamicPath();
-            window.location.hash = `cemaleme-ozel-${randomSimvollar}`;
-        }, 40);
+        //setInterval(() => {
+          //  const randomSimvollar = getDynamicPath();
+            //window.location.hash = `cemaleme-ozel-${randomSimvollar}`;
+        //}, 40);
         document.getElementById('welcome-screen').style.opacity = '0';
         
         setTimeout(() => {
