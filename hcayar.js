@@ -5,7 +5,7 @@ const config = {
     repoName: "dunyamiz",              
     firstMeetingDate: "2025-10-22T00:00:00",
     startDate: "2025-08-03T00:00:00", 
-    meetingCount: 95,    
+    meetingCount: 96,    
     musicTitle: "Gözlərin dəydi gözümə"
 };
 
