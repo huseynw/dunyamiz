@@ -1426,11 +1426,8 @@ function resolveMusicAssetUrl(value, fallback = '') {
 }
 function normalizeTrackMeta(meta = {}) {
     const audioValue = meta.audio || (meta.file ? `musiqiler/${meta.file}` : '');
-    const coverValue = /^https?:\/\//i.test(rawCover)
-        ? rawCover
-        : rawCover
-            ? (rawCover.startsWith('musiqiler/') ? rawCover : `musiqiler/${rawCover}`)
-            : '';
+    const coverValue = meta.cover || '';
+
     return {
         ...meta,
         audio: audioValue,
@@ -1638,7 +1635,9 @@ function renderMusicPlaylist() {
 
     playlist.innerHTML = window.musicLibrary.map((track, index) => {
         const isActive = window.currentMusicIndex === index;
-        const thumbSrc = track.coverUrl || DEFAULT_MUSIC_COVER;
+        const thumbSrc = track.cover
+            ? `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${encodeURIComponent(track.cover)}`
+            : DEFAULT_MUSIC_COVER;
 
         return `
             <div class="yt-track-item ${isActive ? 'active' : ''}" data-music-index="${index}">
