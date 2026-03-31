@@ -31,7 +31,7 @@ exports.handler = async (event) => {
 
     try {
         const { type, password, payload } = JSON.parse(event.body);
-        const GH_TOKEN = "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";
+        const GH_TOKEN = process.env.GH_TOKEN;
         const repoOwner = "huseynw";
         const repoName = "dunyamiz";
 
