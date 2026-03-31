@@ -1,5 +1,23 @@
 const fetch = require('node-fetch');
 
+function buildErrorResponse(statusCode, error, extra = {}) {
+    const message = error instanceof Error ? error.message : String(error || 'Naməlum xəta');
+    const stack = error instanceof Error && error.stack ? error.stack.split('\n').slice(0, 6).join('\n') : undefined;
+
+    return {
+        statusCode,
+        headers: {
+            "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify({
+            success: false,
+            error: message,
+            ...(stack ? { stack } : {}),
+            ...extra
+        })
+    };
+}
+
 async function getExistingFileSha({ repoOwner, repoName, token, path }) {
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
     const response = await fetch(url, {
@@ -62,14 +80,16 @@ exports.handler = async (event) => {
         if (!GH_TOKEN) {
             return {
                 statusCode: 500,
-                body: JSON.stringify({ error: "GH_TOKEN tapılmadı." })
+                headers: { "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({ success: false, error: "GH_TOKEN tapılmadı." })
             };
         }
 
         if (password !== "030825") {
             return {
                 statusCode: 401,
-                body: JSON.stringify({ error: "Şifrə səhvdir!" })
+                headers: { "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({ success: false, error: "Şifrə səhvdir!" })
             };
         }
 
@@ -184,7 +204,8 @@ exports.handler = async (event) => {
             if (!slug || !audioPath || !jsonPath || !audioContent || !jsonContent) {
                 return {
                     statusCode: 400,
-                    body: JSON.stringify({ error: "Musiqi payload məlumatları natamamdır." })
+                    headers: { "Content-Type": "application/json; charset=utf-8" },
+                    body: JSON.stringify({ success: false, error: "Musiqi payload məlumatları natamamdır." })
                 };
             }
 
@@ -236,13 +257,12 @@ exports.handler = async (event) => {
 
         return {
             statusCode: 400,
-            body: JSON.stringify({ error: "Naməlum əməliyyat növü." })
+            headers: { "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify({ success: false, error: "Naməlum əməliyyat növü." })
         };
 
     } catch (error) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: error.message })
-        };
+        console.error('admin-proxy error:', error);
+        return buildErrorResponse(500, error);
     }
 };
