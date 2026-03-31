@@ -1194,6 +1194,7 @@ window.currentMusicIndex = -1;
 window.currentMusicLyricsParsed = [];
 window.currentMusicLyricsType = 'none';
 window.currentLyricsActiveIndex = -1;
+window.currentLyricsActiveWordIndex = -1;
 
 const DEFAULT_MUSIC_COVER = 'assets/music-cover.jpg';
 
@@ -1205,44 +1206,58 @@ function formatMusicTime(seconds = 0) {
 }
 
 function escapeHtmlMusic(text = '') {
-    return text
+    return String(text)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 function parseLrcTimeToSeconds(timeStr) {
-    const match = timeStr.match(/^(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?$/);
+    const cleaned = String(timeStr).replace(',', '.').trim();
+    const match = cleaned.match(/^(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?$/);
     if (!match) return null;
 
-    const minutes = parseInt(match[1], 10);
-    const seconds = parseInt(match[2], 10);
-    const fractionRaw = match[3] || '0';
-    const fraction = parseInt(fractionRaw.padEnd(3, '0').slice(0, 3), 10) / 1000;
-
+    const minutes = Number(match[1]);
+    const seconds = Number(match[2]);
+    const fraction = Number((match[3] || '0').padEnd(3, '0').slice(0, 3)) / 1000;
     return minutes * 60 + seconds + fraction;
 }
 
 function parseSyncedLyrics(lrcText = '') {
-    const lines = lrcText.split(/\r?\n/);
+    const rawLines = String(lrcText).split(/\r?\n/);
     const parsed = [];
 
-    for (const rawLine of lines) {
-        const timeTags = [...rawLine.matchAll(/\[(\d{1,2}:\d{2}(?:\.\d{1,3})?)\]/g)];
-        const text = rawLine.replace(/\[(\d{1,2}:\d{2}(?:\.\d{1,3})?)\]/g, '').trim();
+    rawLines.forEach((rawLine) => {
+        const lineTags = [...rawLine.matchAll(/\[(\d{1,2}:\d{2}(?:[\.,]\d{1,3})?)\]/g)];
+        if (!lineTags.length) return;
 
-        if (!timeTags.length) continue;
+        const content = rawLine.replace(/\[(\d{1,2}:\d{2}(?:[\.,]\d{1,3})?)\]/g, '').trim();
+        const wordMatches = [...content.matchAll(/<(\d{1,2}:\d{2}(?:[\.,]\d{1,3})?)>([^<]+)/g)];
 
-        for (const tag of timeTags) {
-            const seconds = parseLrcTimeToSeconds(tag[1]);
-            if (seconds === null) continue;
+        const words = wordMatches.map((match, wordIndex) => ({
+            index: wordIndex,
+            time: parseLrcTimeToSeconds(match[1]),
+            text: match[2] || ''
+        })).filter((word) => word.time !== null && word.text.trim());
+
+        lineTags.forEach((tag, lineIndex) => {
+            const lineTime = parseLrcTimeToSeconds(tag[1]);
+            if (lineTime === null) return;
+
+            const lineText = words.length
+                ? words.map((word) => word.text).join('').trim()
+                : content.replace(/<(\d{1,2}:\d{2}(?:[\.,]\d{1,3})?)>/g, '').trim();
 
             parsed.push({
-                time: seconds,
-                text: text || '…'
+                id: `${lineTime}-${lineIndex}`,
+                time: lineTime,
+                text: lineText || '…',
+                words
             });
-        }
-    }
+        });
+    });
 
     parsed.sort((a, b) => a.time - b.time);
     return parsed;
@@ -1252,28 +1267,93 @@ function getMusicDom() {
     return {
         playlist: document.getElementById('music-playlist'),
         trackCount: document.getElementById('music-track-count'),
-        audio: document.getElementById('yt-audio'),
         activePlayer: document.getElementById('yt-active-player'),
+        audio: document.getElementById('yt-audio'),
+        openFullBtn: document.getElementById('yt-open-full-btn'),
+        expandHitbox: document.getElementById('yt-expand-hitbox'),
         minimizeBtn: document.getElementById('yt-minimize-btn'),
         lyricsToggle: document.getElementById('yt-lyrics-toggle'),
-        title: document.getElementById('yt-player-title'),
-        artist: document.getElementById('yt-player-artist'),
-        cover: document.getElementById('yt-cover-image'),
-        disc: document.getElementById('yt-rotating-disc'),
+        closeLyricsBtn: document.querySelector('.btn-close-lyrics'),
+        lyricsPanel: document.getElementById('yt-lyrics-panel'),
+        lyricsContainer: document.getElementById('yt-lyrics-container'),
+        titleFull: document.getElementById('yt-player-title'),
+        artistFull: document.getElementById('yt-player-artist'),
+        titleMini: document.getElementById('yt-player-title-mini'),
+        artistMini: document.getElementById('yt-player-artist-mini'),
+        coverFull: document.getElementById('yt-cover-image'),
+        coverMini: document.getElementById('yt-cover-image-mini'),
         seekbar: document.getElementById('yt-seekbar'),
         currentTime: document.getElementById('yt-current-time'),
         duration: document.getElementById('yt-duration'),
+        playBtnFull: document.getElementById('yt-play-btn'),
+        playBtnMini: document.getElementById('yt-play-btn-mini'),
         prevBtn: document.getElementById('yt-prev-btn'),
-        playBtn: document.getElementById('yt-play-btn'),
+        prevBtnMini: document.getElementById('yt-prev-btn-mini'),
         nextBtn: document.getElementById('yt-next-btn'),
-        lyricsContainer: document.getElementById('yt-lyrics-container'),
-        lyricsTabBtn: document.getElementById('yt-lyrics-tab-btn')
+        nextBtnMini: document.getElementById('yt-next-btn-mini'),
+        volumeSlider: document.getElementById('volume-slider'),
+        volumeValue: document.getElementById('volume-value'),
+        rotatingDisc: document.getElementById('yt-rotating-disc')
     };
 }
 
+function setPlayerExpanded(expanded) {
+    const { activePlayer, lyricsPanel } = getMusicDom();
+    if (!activePlayer) return;
+
+    activePlayer.classList.toggle('expanded', expanded);
+    activePlayer.classList.toggle('player-mini', !expanded);
+
+    if (!expanded && lyricsPanel) {
+        lyricsPanel.classList.add('lyrics-hidden');
+        activePlayer.classList.remove('lyrics-open');
+        lyricsPanel.setAttribute('aria-hidden', 'true');
+    }
+
+    updateLyricsToggleState();
+}
+
+window.togglePlayerMode = function(forceExpanded) {
+    const { activePlayer } = getMusicDom();
+    if (!activePlayer) return;
+
+    const expanded = typeof forceExpanded === 'boolean'
+        ? forceExpanded
+        : !activePlayer.classList.contains('expanded');
+
+    setPlayerExpanded(expanded);
+};
+
+function updateLyricsToggleState() {
+    const { activePlayer, lyricsToggle, lyricsPanel } = getMusicDom();
+    if (!activePlayer || !lyricsToggle || !lyricsPanel) return;
+
+    const isExpanded = activePlayer.classList.contains('expanded');
+    const isOpen = !lyricsPanel.classList.contains('lyrics-hidden');
+    lyricsToggle.classList.toggle('is-open', isOpen && isExpanded);
+    lyricsToggle.setAttribute('aria-label', isOpen ? 'Sözləri bağla' : 'Sözləri aç');
+}
+
+window.toggleLyricsPanel = function(forceOpen) {
+    const { activePlayer, lyricsPanel } = getMusicDom();
+    if (!activePlayer || !lyricsPanel) return;
+
+    if (!activePlayer.classList.contains('expanded')) {
+        setPlayerExpanded(true);
+    }
+
+    const shouldOpen = typeof forceOpen === 'boolean'
+        ? forceOpen
+        : lyricsPanel.classList.contains('lyrics-hidden');
+
+    lyricsPanel.classList.toggle('lyrics-hidden', !shouldOpen);
+    activePlayer.classList.toggle('lyrics-open', shouldOpen);
+    lyricsPanel.setAttribute('aria-hidden', String(!shouldOpen));
+    updateLyricsToggleState();
+};
+
 async function fetchMusicJsonList() {
     const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/musiqiler`;
-
     const response = await fetch(url);
     const files = await response.json();
 
@@ -1281,7 +1361,7 @@ async function fetchMusicJsonList() {
         throw new Error(files?.message || 'musiqiler qovluğu oxunmadı');
     }
 
-    const jsonFiles = files.filter(file => file.name.toLowerCase().endsWith('.json'));
+    const jsonFiles = files.filter((file) => file.name.toLowerCase().endsWith('.json'));
 
     const jsonData = await Promise.all(
         jsonFiles.map(async (file) => {
@@ -1291,7 +1371,10 @@ async function fetchMusicJsonList() {
 
             return {
                 ...data,
+                id: data.id || file.name,
                 jsonName: file.name,
+                title: data.title || 'Adsız mahnı',
+                artist: data.artist || 'Naməlum artist',
                 audioUrl: `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${data.file}`
             };
         })
@@ -1312,82 +1395,36 @@ function renderMusicPlaylist() {
         return;
     }
 
-    playlist.innerHTML = window.musicLibrary.map((track, index) => `
-        <div class="yt-track-item ${window.currentMusicIndex === index ? 'active' : ''}" data-music-index="${index}">
-            <img
-                class="yt-track-thumb"
-                src="${track.cover ? `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${encodeURIComponent(track.cover)}` : DEFAULT_MUSIC_COVER}"
-                alt="${escapeHtmlMusic(track.title)}"
-            >
-            <div class="yt-track-text">
-                <div class="yt-track-title">${escapeHtmlMusic(track.title)}</div>
-                <div class="yt-track-artist">${escapeHtmlMusic(track.artist)}</div>
+    playlist.innerHTML = window.musicLibrary.map((track, index) => {
+        const isActive = window.currentMusicIndex === index;
+        const thumbSrc = track.cover
+            ? `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${encodeURIComponent(track.cover)}`
+            : DEFAULT_MUSIC_COVER;
+
+        return `
+            <div class="yt-track-item ${isActive ? 'active' : ''}" data-music-index="${index}">
+                <img class="yt-track-thumb" src="${thumbSrc}" alt="${escapeHtmlMusic(track.title)}">
+                <div class="yt-track-text">
+                    <div class="yt-track-title">${escapeHtmlMusic(track.title)}</div>
+                    <div class="yt-track-artist">${escapeHtmlMusic(track.artist)}</div>
+                </div>
+                <div class="yt-track-meta">
+                    <i class="fas ${isActive ? 'fa-volume-high' : 'fa-play'}"></i>
+                </div>
             </div>
-            <div class="yt-track-meta">
-                <i class="fas fa-play"></i>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     if (trackCount) {
         trackCount.textContent = `${window.musicLibrary.length} mahnı`;
     }
 
-    playlist.querySelectorAll('.yt-track-item').forEach(item => {
+    playlist.querySelectorAll('.yt-track-item').forEach((item) => {
         item.addEventListener('click', () => {
             const index = Number(item.dataset.musicIndex);
             openMusicTrack(index);
         });
     });
-}
-
-function openMusicPlayerExpanded() {
-    const { activePlayer } = getMusicDom();
-    if (!activePlayer) return;
-
-    activePlayer.style.display = 'block';
-    activePlayer.classList.add('expanded');
-}
-
-function closeMusicPlayerExpanded() {
-    const { activePlayer } = getMusicDom();
-    if (!activePlayer) return;
-
-    activePlayer.classList.remove('expanded');
-}
-
-function showMusicMiniPlayer() {
-    const { activePlayer } = getMusicDom();
-    if (!activePlayer) return;
-
-    activePlayer.style.display = 'block';
-    activePlayer.classList.remove('expanded');
-}
-
-function switchMusicTab(tabName = 'upnext') {
-    document.querySelectorAll('.yt-tab').forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.musicTab === tabName);
-    });
-
-    document.querySelectorAll('.yt-tab-panel').forEach(panel => {
-        panel.classList.remove('active');
-    });
-
-    const panel = document.getElementById(`yt-tab-${tabName}`);
-    if (panel) panel.classList.add('active');
-}
-
-function updateMusicPlayButtonState() {
-    const { audio, playBtn, disc } = getMusicDom();
-    if (!audio || !playBtn || !disc) return;
-
-    if (audio.paused) {
-        playBtn.innerHTML = '<i class="fas fa-play"></i>';
-        disc.classList.remove('playing');
-    } else {
-        playBtn.innerHTML = '<i class="fas fa-pause"></i>';
-        disc.classList.add('playing');
-    }
 }
 
 function renderPlainLyrics(text = '') {
@@ -1401,7 +1438,7 @@ function renderPlainLyrics(text = '') {
 
     const html = text
         .split(/\r?\n/)
-        .map(line => `<div class="yt-lyrics-line passed">${escapeHtmlMusic(line) || '&nbsp;'}</div>`)
+        .map((line) => `<div class="yt-lyrics-line passed">${escapeHtmlMusic(line) || '&nbsp;'}</div>`)
         .join('');
 
     lyricsContainer.innerHTML = html || `<div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>`;
@@ -1416,26 +1453,27 @@ function renderSyncedLyrics(parsedLyrics = []) {
         return;
     }
 
-    lyricsContainer.innerHTML = parsedLyrics.map((line, index) => `
-        <div class="yt-lyrics-line" data-lyrics-index="${index}">
-            ${escapeHtmlMusic(line.text)}
-        </div>
-    `).join('');
+    lyricsContainer.innerHTML = parsedLyrics.map((line, index) => {
+        if (line.words && line.words.length) {
+            const wordsHtml = line.words.map((word, wordIndex) => `
+                <span class="yt-lyrics-word" data-lyrics-index="${index}" data-word-index="${wordIndex}" data-word-time="${word.time}">${escapeHtmlMusic(word.text)}</span>
+            `).join('');
+            return `<div class="yt-lyrics-line yt-lyrics-line--word" data-lyrics-index="${index}">${wordsHtml}</div>`;
+        }
+
+        return `<div class="yt-lyrics-line" data-lyrics-index="${index}">${escapeHtmlMusic(line.text)}</div>`;
+    }).join('');
 }
 
 function renderCurrentTrackLyrics(track) {
-    const { lyricsTabBtn } = getMusicDom();
     const lyrics = track?.lyrics || {};
     const type = lyrics.type || 'none';
     const text = lyrics.text || '';
 
     window.currentMusicLyricsType = type;
     window.currentLyricsActiveIndex = -1;
+    window.currentLyricsActiveWordIndex = -1;
     window.currentMusicLyricsParsed = [];
-
-    if (lyricsTabBtn) {
-        lyricsTabBtn.style.display = 'block';
-    }
 
     if (type === 'plain') {
         renderPlainLyrics(text);
@@ -1456,7 +1494,6 @@ function updateSyncedLyricsByTime(currentTime) {
     if (!lyricsContainer) return;
 
     let activeIndex = -1;
-
     for (let i = 0; i < window.currentMusicLyricsParsed.length; i++) {
         if (currentTime >= window.currentMusicLyricsParsed[i].time) {
             activeIndex = i;
@@ -1465,14 +1502,38 @@ function updateSyncedLyricsByTime(currentTime) {
         }
     }
 
-    if (activeIndex === window.currentLyricsActiveIndex) return;
+    const activeLine = activeIndex >= 0 ? window.currentMusicLyricsParsed[activeIndex] : null;
+    let activeWordIndex = -1;
+    if (activeLine?.words?.length) {
+        for (let i = 0; i < activeLine.words.length; i++) {
+            if (currentTime >= activeLine.words[i].time) {
+                activeWordIndex = i;
+            } else {
+                break;
+            }
+        }
+    }
+
+    if (
+        activeIndex === window.currentLyricsActiveIndex &&
+        activeWordIndex === window.currentLyricsActiveWordIndex
+    ) {
+        return;
+    }
+
     window.currentLyricsActiveIndex = activeIndex;
+    window.currentLyricsActiveWordIndex = activeWordIndex;
 
     const lines = lyricsContainer.querySelectorAll('.yt-lyrics-line');
-
     lines.forEach((lineEl, index) => {
         lineEl.classList.toggle('active', index === activeIndex);
         lineEl.classList.toggle('passed', index < activeIndex);
+
+        const wordEls = lineEl.querySelectorAll('.yt-lyrics-word');
+        wordEls.forEach((wordEl, wordIndex) => {
+            wordEl.classList.toggle('passed', index < activeIndex || (index === activeIndex && wordIndex < activeWordIndex));
+            wordEl.classList.toggle('active', index === activeIndex && wordIndex === activeWordIndex);
+        });
     });
 
     const activeEl = lyricsContainer.querySelector(`.yt-lyrics-line[data-lyrics-index="${activeIndex}"]`);
@@ -1480,7 +1541,6 @@ function updateSyncedLyricsByTime(currentTime) {
         const containerRect = lyricsContainer.getBoundingClientRect();
         const itemRect = activeEl.getBoundingClientRect();
         const delta = itemRect.top - containerRect.top - (containerRect.height / 2) + (itemRect.height / 2);
-
         lyricsContainer.scrollTo({
             top: lyricsContainer.scrollTop + delta,
             behavior: 'smooth'
@@ -1505,78 +1565,91 @@ function readMusicCoverFromUrl(audioUrl) {
 
                 let binary = '';
                 const bytes = picture.data;
-
                 for (let i = 0; i < bytes.length; i++) {
                     binary += String.fromCharCode(bytes[i]);
                 }
 
-                const base64String = window.btoa(binary);
-                resolve(`data:${picture.format};base64,${base64String}`);
+                resolve(`data:${picture.format};base64,${window.btoa(binary)}`);
             },
-            onError: () => {
-                resolve(DEFAULT_MUSIC_COVER);
-            }
+            onError: () => resolve(DEFAULT_MUSIC_COVER)
         });
     });
 }
 
 async function updateMusicCover(track) {
-    const { cover } = getMusicDom();
-    if (!cover) return;
+    const { coverFull, coverMini } = getMusicDom();
+
+    const setCover = (src) => {
+        if (coverFull) coverFull.src = src;
+        if (coverMini) coverMini.src = src;
+
+        const playlistThumb = document.querySelector(`.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`);
+        if (playlistThumb) playlistThumb.src = src;
+    };
 
     if (track.cover) {
-        const explicitCoverUrl = `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${encodeURIComponent(track.cover)}`;
-        cover.src = explicitCoverUrl;
-
-        const playlistThumb = document.querySelector(
-            `.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`
-        );
-        if (playlistThumb) {
-            playlistThumb.src = explicitCoverUrl;
-        }
+        setCover(`https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${encodeURIComponent(track.cover)}`);
         return;
     }
 
-    cover.src = DEFAULT_MUSIC_COVER;
+    setCover(DEFAULT_MUSIC_COVER);
 
     try {
         const coverSrc = await readMusicCoverFromUrl(track.audioUrl);
         const currentTrackStillSame = window.currentMusic && window.currentMusic.id === track.id;
         if (!currentTrackStillSame) return;
-
-        cover.src = coverSrc || DEFAULT_MUSIC_COVER;
-
-        const playlistThumb = document.querySelector(
-            `.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`
-        );
-        if (playlistThumb) {
-            playlistThumb.src = cover.src;
-        }
+        setCover(coverSrc || DEFAULT_MUSIC_COVER);
     } catch {
-        cover.src = DEFAULT_MUSIC_COVER;
+        setCover(DEFAULT_MUSIC_COVER);
     }
 }
+
+function updateMusicPlayButtonState() {
+    const { audio, playBtnFull, playBtnMini, rotatingDisc } = getMusicDom();
+    if (!audio) return;
+
+    const icon = audio.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
+    if (playBtnFull) playBtnFull.innerHTML = icon;
+    if (playBtnMini) playBtnMini.innerHTML = icon;
+    if (rotatingDisc) rotatingDisc.classList.toggle('playing', !audio.paused);
+}
+
+function updateVolumeUi(value) {
+    const { volumeSlider, volumeValue, audio } = getMusicDom();
+    const numericValue = Math.min(1, Math.max(0, Number(value)));
+    if (volumeSlider) volumeSlider.value = numericValue;
+    if (audio) audio.volume = numericValue;
+    if (volumeValue) volumeValue.textContent = `${Math.round(numericValue * 100)}%`;
+}
+
 async function openMusicTrack(index) {
     const track = window.musicLibrary[index];
     const dom = getMusicDom();
-
     if (!track || !dom.audio) return;
 
     window.currentMusic = track;
     window.currentMusicIndex = index;
 
-    dom.title.textContent = track.title || 'Adsız mahnı';
-    dom.artist.textContent = track.artist || 'Naməlum artist';
+    if (dom.titleFull) dom.titleFull.textContent = track.title || 'Adsız mahnı';
+    if (dom.artistFull) dom.artistFull.textContent = track.artist || 'Naməlum artist';
+    if (dom.titleMini) dom.titleMini.textContent = track.title || 'Adsız mahnı';
+    if (dom.artistMini) dom.artistMini.textContent = track.artist || 'Naməlum artist';
+
     dom.audio.src = track.audioUrl;
-    dom.seekbar.value = 0;
-    dom.currentTime.textContent = '00:00';
-    dom.duration.textContent = '00:00';
+    dom.audio.currentTime = 0;
+
+    if (dom.seekbar) dom.seekbar.value = 0;
+    if (dom.currentTime) dom.currentTime.textContent = '00:00';
+    if (dom.duration) dom.duration.textContent = '00:00';
 
     renderCurrentTrackLyrics(track);
     renderMusicPlaylist();
-    showMusicMiniPlayer();
-    switchMusicTab('upnext');
     updateMusicCover(track);
+
+    if (dom.activePlayer) {
+        dom.activePlayer.style.display = 'block';
+        setPlayerExpanded(false);
+    }
 
     try {
         await dom.audio.play();
@@ -1592,7 +1665,6 @@ function playPrevMusic() {
     const newIndex = window.currentMusicIndex <= 0
         ? window.musicLibrary.length - 1
         : window.currentMusicIndex - 1;
-
     openMusicTrack(newIndex);
 }
 
@@ -1601,45 +1673,16 @@ function playNextMusic() {
     const newIndex = window.currentMusicIndex >= window.musicLibrary.length - 1
         ? 0
         : window.currentMusicIndex + 1;
-
     openMusicTrack(newIndex);
 }
 
 function initMusicPlayerEvents() {
     const dom = getMusicDom();
-    dom.activePlayer?.addEventListener('click', (e) => {
-    if (
-        e.target.closest('#yt-minimize-btn') ||
-        e.target.closest('#yt-lyrics-toggle') ||
-        e.target.closest('#yt-play-btn') ||
-        e.target.closest('#yt-prev-btn') ||
-        e.target.closest('#yt-next-btn') ||
-        e.target.closest('.yt-tab') ||
-        e.target.closest('#yt-seekbar')
-    ) {
-        return;
-    }
+    if (!dom.activePlayer || !dom.audio) return;
+    if (dom.activePlayer.dataset.bound === '1') return;
+    dom.activePlayer.dataset.bound = '1';
 
-    if (!dom.activePlayer.classList.contains('expanded')) {
-        dom.activePlayer.classList.add('expanded');
-    }
-});
-    if (!dom.audio) return;
-
-    dom.minimizeBtn?.addEventListener('click', closeMusicPlayerExpanded);
-
-    dom.lyricsToggle?.addEventListener('click', () => {
-        openMusicPlayerExpanded();
-        switchMusicTab('lyrics');
-    });
-
-    document.querySelectorAll('.yt-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            switchMusicTab(tab.dataset.musicTab);
-        });
-    });
-
-    dom.playBtn?.addEventListener('click', async () => {
+    const togglePlay = async () => {
         if (!dom.audio.src && window.musicLibrary.length) {
             await openMusicTrack(0);
             return;
@@ -1650,42 +1693,95 @@ function initMusicPlayerEvents() {
         } else {
             dom.audio.pause();
         }
+    };
 
-        updateMusicPlayButtonState();
+    dom.openFullBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.togglePlayerMode(true);
     });
 
-    dom.prevBtn?.addEventListener('click', playPrevMusic);
-    dom.nextBtn?.addEventListener('click', playNextMusic);
+    dom.expandHitbox?.addEventListener('click', () => {
+        window.togglePlayerMode(true);
+    });
 
-    dom.audio.addEventListener('loadedmetadata', () => {
-        dom.seekbar.max = dom.audio.duration || 0;
-        dom.duration.textContent = formatMusicTime(dom.audio.duration);
+    dom.minimizeBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.togglePlayerMode(false);
+    });
+
+    dom.lyricsToggle?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.toggleLyricsPanel();
+    });
+
+    dom.closeLyricsBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.toggleLyricsPanel(false);
+    });
+
+    dom.playBtnFull?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        togglePlay();
+    });
+
+    dom.playBtnMini?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        togglePlay();
+    });
+
+    dom.prevBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        playPrevMusic();
+    });
+
+    dom.prevBtnMini?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        playPrevMusic();
+    });
+
+    dom.nextBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        playNextMusic();
+    });
+
+    dom.nextBtnMini?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        playNextMusic();
     });
 
     dom.audio.addEventListener('timeupdate', () => {
-        dom.seekbar.value = dom.audio.currentTime || 0;
-        dom.currentTime.textContent = formatMusicTime(dom.audio.currentTime);
+        if (dom.seekbar) dom.seekbar.value = dom.audio.currentTime || 0;
+        if (dom.currentTime) dom.currentTime.textContent = formatMusicTime(dom.audio.currentTime);
         updateSyncedLyricsByTime(dom.audio.currentTime);
     });
+
+    dom.audio.addEventListener('loadedmetadata', () => {
+        if (dom.seekbar) dom.seekbar.max = dom.audio.duration || 0;
+        if (dom.duration) dom.duration.textContent = formatMusicTime(dom.audio.duration);
+    });
+
+    dom.audio.addEventListener('play', updateMusicPlayButtonState);
+    dom.audio.addEventListener('pause', updateMusicPlayButtonState);
+    dom.audio.addEventListener('ended', playNextMusic);
 
     dom.seekbar?.addEventListener('input', () => {
         dom.audio.currentTime = Number(dom.seekbar.value);
         updateSyncedLyricsByTime(dom.audio.currentTime);
     });
 
-    dom.audio.addEventListener('play', updateMusicPlayButtonState);
-    dom.audio.addEventListener('pause', updateMusicPlayButtonState);
-
-    dom.audio.addEventListener('ended', () => {
-        playNextMusic();
+    dom.volumeSlider?.addEventListener('input', (e) => {
+        updateVolumeUi(e.target.value);
     });
+
+    updateVolumeUi(dom.volumeSlider?.value || 0.85);
+    updateMusicPlayButtonState();
 }
 
 async function initMusicPage() {
     try {
+        initMusicPlayerEvents();
         window.musicLibrary = await fetchMusicJsonList();
         renderMusicPlaylist();
-        initMusicPlayerEvents();
     } catch (err) {
         console.error(err);
         const { playlist, trackCount } = getMusicDom();
