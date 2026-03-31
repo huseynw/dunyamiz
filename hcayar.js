@@ -1425,7 +1425,7 @@ function resolveMusicAssetUrl(value, fallback = '') {
     return `${GITHUB_RAW_BASE}${cleaned.replace(/^\/+/, '')}`;
 }
 function normalizeTrackMeta(meta = {}) {
-    const audioValue = meta.audio || meta.file || '';
+    const audioValue = meta.audio || (meta.file ? `musiqiler/${meta.file}` : '');
     const coverValue = meta.cover || '';
 
     return {
