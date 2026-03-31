@@ -294,77 +294,57 @@
                     </div>
                 </div>
                 <audio id="yt-audio" preload="metadata"></audio>
-                
-                <div id="yt-active-player" class="yt-active-player player-mini" style="display:none;">
-                    
-                    <div class="mini-player-view">
-                        <div class="mini-info" onclick="togglePlayerMode()">
-                            <img id="yt-cover-mini" src="assets/music-cover.jpg" alt="Cover">
-                            <div class="mini-text">
-                                <div id="yt-player-title-mini">Mahnı seçilməyib</div>
-                                <div id="yt-player-artist-mini">Artist</div>
+                <div id="yt-active-player" class="yt-active-player" style="display:none;">
+                    <div class="yt-player-handle"></div>
+                    <div class="yt-player-top">
+                        <button id="yt-minimize-btn" class="yt-mini-btn" type="button" aria-label="Kiçilt">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="yt-now-playing">
+                            <span id="yt-now-label">İndi səslənir</span>
+                            <strong id="yt-player-title">Mahnı seçin</strong>
+                            <small id="yt-player-artist">Artist</small>
+                        </div>
+                        <button id="yt-lyrics-toggle" class="yt-mini-btn" type="button" aria-label="Sözlər">
+                            <i class="fas fa-align-left"></i>
+                        </button>
+                    </div>
+                    <div class="yt-player-body">
+                        <div class="yt-player-art-wrap">
+                            <div class="yt-rotating-disc" id="yt-rotating-disc">
+                                <img id="yt-cover-image" src="assets/music-cover.jpg" alt="Cover">
                             </div>
                         </div>
-                        <div class="mini-controls">
-                            <button id="yt-play-btn-mini" class="icon-button"><i class="fas fa-play"></i></button>
-                            <button id="yt-next-btn-mini" class="icon-button"><i class="fas fa-step-forward"></i></button>
+                        <div class="yt-tabs">
+                            <button class="yt-tab active" data-music-tab="upnext" type="button">Mahnı</button>
+                            <button class="yt-tab" data-music-tab="lyrics" type="button" id="yt-lyrics-tab-btn">Sözlər</button>
                         </div>
-                    </div>
-
-                    <div class="full-player-view">
-                        <div class="full-header">
-                            <button class="btn-minimize" onclick="togglePlayerMode()">
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
-                            <span>İndi Oxunur</span>
-                            <button class="btn-menu"><i class="fas fa-ellipsis-h"></i></button>
-                        </div>
-
-                        <div class="cover-container">
-                            <img id="yt-cover-image" src="assets/music-cover.jpg" alt="Cover">
-                        </div>
-
-                        <div class="song-info-container">
-                            <div class="text-info">
-                                <h2 id="yt-player-title">Mahnı seçilməyib</h2>
-                                <h3 id="yt-player-artist">Artist</h3>
+                        <div class="yt-tab-panel active" id="yt-tab-upnext">
+                            <div class="yt-progress-area">
+                                <input type="range" id="yt-seekbar" min="0" value="0" step="0.1">
+                                <div class="yt-time-row">
+                                    <span id="yt-current-time">00:00</span>
+                                    <span id="yt-duration">00:00</span>
+                                </div>
                             </div>
-                            <button id="btn-open-lyrics" onclick="toggleLyricsPanel()">
-                                <i class="fas fa-quote-right"></i>
-                            </button>
+                            <div class="yt-controls-row">
+                                <button id="yt-prev-btn" class="yt-control-btn" type="button">
+                                    <i class="fas fa-backward-step"></i>
+                                </button>
+                                <button id="yt-play-btn" class="yt-play-btn" type="button">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button id="yt-next-btn" class="yt-control-btn" type="button">
+                                    <i class="fas fa-forward-step"></i>
+                                </button>
+                            </div>
                         </div>
-
-                        <div class="progress-area">
-                            <span id="yt-current-time">0:00</span>
-                            <input type="range" id="yt-seekbar" min="0" value="0" step="0.1">
-                            <span id="yt-duration">0:00</span>
-                        </div>
-
-                        <div class="main-controls">
-                            <button id="yt-prev-btn"><i class="fas fa-backward"></i></button>
-                            <button id="yt-play-btn" class="play-btn-large"><i class="fas fa-play"></i></button>
-                            <button id="yt-next-btn"><i class="fas fa-forward"></i></button>
-                        </div>
-
-                        <div class="volume-area">
-                            <i class="fas fa-volume-down"></i>
-                            <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1">
-                            <i class="fas fa-volume-up"></i>
+                        <div class="yt-tab-panel" id="yt-tab-lyrics">
+                            <div id="yt-lyrics-container" class="yt-lyrics-container">
+                                <div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>
+                            </div>
                         </div>
                     </div>
-
-                    <div id="lyrics-panel" class="lyrics-hidden">
-                        <div class="lyrics-header">
-                            <button class="btn-close-lyrics" onclick="toggleLyricsPanel()">
-                                <i class="fas fa-chevron-down"></i> Geri
-                            </button>
-                        </div>
-                        <div id="yt-lyrics-container" class="lyrics-content-area">
-                            <div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>
-                        </div>
-                    </div>
-                </div>
-
                 </div>
             </section>
             <!-- Page 4: Məktublar (Letters) -->
