@@ -1424,6 +1424,18 @@ function resolveMusicAssetUrl(value, fallback = '') {
 
     return `${GITHUB_RAW_BASE}${cleaned.replace(/^\/+/, '')}`;
 }
+function normalizeTrackMeta(meta = {}) {
+    const audioValue = meta.audio || meta.file || '';
+    const coverValue = meta.cover || '';
+
+    return {
+        ...meta,
+        audio: audioValue,
+        cover: coverValue,
+        audioUrl: resolveMusicAssetUrl(audioValue),
+        coverUrl: resolveMusicAssetUrl(coverValue, DEFAULT_MUSIC_COVER)
+    };
+}
 function formatMusicTime(seconds = 0) {
     if (!isFinite(seconds)) return '00:00';
     const mins = Math.floor(seconds / 60);
@@ -1595,17 +1607,17 @@ async function fetchMusicJsonList() {
             if (!res.ok) return null;
             const data = await res.json();
 
-            return {
+            const normalized = normalizeTrackMeta({
                 ...data,
                 id: data.id || file.name,
                 jsonName: file.name,
                 title: data.title || 'Adsız mahnı',
-                artist: data.artist || 'Naməlum artist',
-                audioUrl: `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${data.file}`
-            };
+                artist: data.artist || 'Naməlum artist'
+            });
+
+            return normalized;
         })
     );
-
     return jsonData
         .filter(Boolean)
         .sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0));
@@ -1813,8 +1825,8 @@ async function updateMusicCover(track) {
         if (playlistThumb) playlistThumb.src = src;
     };
 
-    if (track.cover) {
-        setCover(`https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${encodeURIComponent(track.cover)}`);
+    if (track.coverUrl) {
+        setCover(track.coverUrl);
         return;
     }
 
