@@ -778,96 +778,163 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary);
 }
 
+function encodeFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const result = e?.target?.result || '';
+            const base64 = String(result).split(',')[1] || '';
+            resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+function formatFileSize(bytes = 0) {
+    const size = Number(bytes) || 0;
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function setAdminStatus(message = '', type = 'info') {
+    const statusEl = document.getElementById('admin-status');
+    if (!statusEl) return;
+
+    if (!message) {
+        statusEl.textContent = '';
+        statusEl.className = 'admin-status';
+        return;
+    }
+
+    statusEl.textContent = message;
+    statusEl.className = `admin-status is-visible is-${type}`;
+}
+
+function setAdminButtonLoading(button, isLoading, label) {
+    if (!button) return;
+    if (!button.dataset.defaultLabel) {
+        button.dataset.defaultLabel = button.innerHTML;
+    }
+
+    button.disabled = isLoading;
+    button.innerHTML = isLoading
+        ? `<i class="fas fa-spinner fa-spin"></i><span>${label || 'Gözləyin...'}</span>`
+        : button.dataset.defaultLabel;
+}
+
 async function convertAudioFileToBase64(file) {
     const buffer = await readFileAsArrayBuffer(file);
     return arrayBufferToBase64(buffer);
 }
+
 async function handleAdminUpdate(type) {
-    const password = document.getElementById('admin-password').value;
-    if (!password) return alert("Şifrəni daxil et!");
-
-    let requestPayload = { path: "" };
-
-    if (type === 'update_config') {
-        const newDate = document.getElementById('admin-date').value;
-        const newCount = document.getElementById('admin-count').value;
-
-        if (!newDate && !newCount) {
-            return alert("Dəyişiklik yoxdur!");
-        }
-
-        requestPayload = {
-            path: "hcayar.js",
-            newDate,
-            newCount
-        };
+    const password = document.getElementById('admin-password').value.trim();
+    if (!password) {
+        setAdminStatus('Şifrəni daxil et!', 'error');
+        return alert('Şifrəni daxil et!');
     }
 
-    else if (type === 'upload_image') {
-        const fileInput = document.getElementById('admin-file');
-        const file = fileInput.files[0];
+    const triggerButton = {
+        update_config: document.getElementById('update-config-btn'),
+        upload_image: document.getElementById('upload-image-btn'),
+        upload_music: document.getElementById('upload-music-btn')
+    }[type];
 
-        if (!file) return alert("Şəkil seçin!");
-
-        const base64 = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result.split(',')[1]);
-            reader.readAsDataURL(file);
-        });
-
-        requestPayload = {
-            path: `gallery/${Date.now()}_${file.name.replace(/\s+/g, '_')}`,
-            content: base64
-        };
-    }
-
-    else if (type === 'upload_music') {
-        const audioFile = document.getElementById('admin-music-file')?.files?.[0];
-        const title = document.getElementById('admin-music-title')?.value.trim();
-        const artist = document.getElementById('admin-music-artist')?.value.trim();
-        const lyricsType = document.getElementById('admin-lyrics-type')?.value || 'none';
-        const lyricsText = document.getElementById('admin-lyrics-text')?.value || '';
-
-        if (!audioFile) return alert("MP3 faylı seç!");
-        if (!title) return alert("Mahnı adını yaz!");
-        if (!artist) return alert("Artist adını yaz!");
-
-        const fileExt = audioFile.name.split('.').pop()?.toLowerCase();
-        if (fileExt !== 'mp3') {
-            return alert("Yalnız MP3 faylı yüklə!");
-        }
-
-        if (lyricsType !== 'none' && !lyricsText.trim()) {
-            return alert("Söz növü seçmisənsə, sözləri də yazmalısan.");
-        }
-
-        const slugBase = slugifyMusicName(`${title}-${artist}`) || `track-${Date.now()}`;
-        const slug = `${slugBase}-${Date.now()}`;
-
-        const audioBase64 = await convertAudioFileToBase64(audioFile);
-
-        const musicMeta = {
-            id: slug,
-            title,
-            artist,
-            file: `${slug}.mp3`,
-            lyrics: {
-                type: lyricsType,
-                text: lyricsText.trim()
-            },
-            uploadedAt: new Date().toISOString()
-        };
-
-        requestPayload = {
-            slug,
-            audioPath: `musiqiler/${slug}.mp3`,
-            jsonPath: `musiqiler/${slug}.json`,
-            audioContent: audioBase64,
-            jsonContent: encodeBase64Utf8(JSON.stringify(musicMeta, null, 2))
-        };
-    }
+    let requestPayload = { path: '' };
 
     try {
+        setAdminStatus('Əməliyyat hazırlanır...', 'info');
+        setAdminButtonLoading(triggerButton, true, 'Yüklənir...');
+
+        if (type === 'update_config') {
+            const newDate = document.getElementById('admin-date').value;
+            const newCount = document.getElementById('admin-count').value;
+
+            if (!newDate && !newCount) {
+                throw new Error('Dəyişiklik yoxdur!');
+            }
+
+            requestPayload = {
+                path: 'hcayar.js',
+                newDate,
+                newCount
+            };
+        }
+
+        else if (type === 'upload_image') {
+            const fileInput = document.getElementById('admin-file');
+            const file = fileInput?.files?.[0];
+
+            if (!file) throw new Error('Şəkil seçin!');
+
+            const base64 = await encodeFileAsBase64(file);
+
+            requestPayload = {
+                path: `gallery/${Date.now()}_${file.name.replace(/\s+/g, '_')}`,
+                content: base64
+            };
+        }
+
+        else if (type === 'upload_music') {
+            const audioFile = document.getElementById('admin-music-file')?.files?.[0];
+            const coverFile = document.getElementById('admin-music-cover')?.files?.[0] || null;
+            const title = document.getElementById('admin-music-title')?.value.trim();
+            const artist = document.getElementById('admin-music-artist')?.value.trim();
+            const lyricsType = document.getElementById('admin-lyrics-type')?.value || 'none';
+            const lyricsText = document.getElementById('admin-lyrics-text')?.value || '';
+
+            if (!audioFile) throw new Error('MP3 faylı seç!');
+            if (!title) throw new Error('Mahnı adını yaz!');
+            if (!artist) throw new Error('Artist adını yaz!');
+
+            const fileExt = audioFile.name.split('.').pop()?.toLowerCase();
+            if (fileExt !== 'mp3') {
+                throw new Error('Yalnız MP3 faylı yüklə!');
+            }
+
+            if (lyricsType !== 'none' && !lyricsText.trim()) {
+                throw new Error('Söz növü seçmisənsə, sözləri də yazmalısan.');
+            }
+
+            if (coverFile && !coverFile.type.startsWith('image/')) {
+                throw new Error('Cover üçün yalnız şəkil faylı seçmək olar.');
+            }
+
+            const slugBase = slugifyMusicName(`${title}-${artist}`) || `track-${Date.now()}`;
+            const slug = `${slugBase}-${Date.now()}`;
+
+            setAdminStatus('Musiqi və cover faylları hazırlanır...', 'info');
+            const audioBase64 = await convertAudioFileToBase64(audioFile);
+            const coverBase64 = coverFile ? await encodeFileAsBase64(coverFile) : '';
+            const coverFileName = coverFile ? `${slug}.${(coverFile.name.split('.').pop() || 'jpg').toLowerCase()}` : '';
+
+            const musicMeta = {
+                id: slug,
+                title,
+                artist,
+                file: `${slug}.mp3`,
+                cover: coverFileName || undefined,
+                lyrics: {
+                    type: lyricsType,
+                    text: lyricsText.trim()
+                },
+                uploadedAt: new Date().toISOString()
+            };
+
+            requestPayload = {
+                slug,
+                audioPath: `musiqiler/${slug}.mp3`,
+                jsonPath: `musiqiler/${slug}.json`,
+                audioContent: audioBase64,
+                coverPath: coverFileName ? `musiqiler/${coverFileName}` : '',
+                coverContent: coverBase64,
+                jsonContent: encodeBase64Utf8(JSON.stringify(musicMeta, null, 2))
+            };
+        }
+
+        setAdminStatus('Serverə göndərilir...', 'info');
         const response = await fetch('/.netlify/functions/admin-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -878,17 +945,21 @@ async function handleAdminUpdate(type) {
             })
         });
 
-        const result = await response.json();
+        const result = await response.json().catch(() => ({}));
 
-        if (result.success) {
-            alert("Uğurla yerinə yetirildi!");
-            location.reload();
-        } else {
-            alert(result?.error || "Xəta baş verdi. Şifrəni və ya Netlify loglarını yoxlayın.");
+        if (!response.ok || !result.success) {
+            throw new Error(result?.error || 'Xəta baş verdi. Şifrəni və ya Netlify loglarını yoxlayın.');
         }
+
+        setAdminStatus('Uğurla yerinə yetirildi! Səhifə yenilənir...', 'success');
+        setTimeout(() => location.reload(), 900);
     } catch (err) {
         console.error(err);
-        alert("Serverə qoşulmaq mümkün olmadı.");
+        const errorMessage = err?.message || 'Serverə qoşulmaq mümkün olmadı.';
+        setAdminStatus(errorMessage, 'error');
+        alert(errorMessage);
+    } finally {
+        setAdminButtonLoading(triggerButton, false);
     }
 }
 
@@ -976,6 +1047,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateBtn = document.getElementById('update-config-btn');
     const uploadImageBtn = document.getElementById('upload-image-btn');
     const uploadMusicBtn = document.getElementById('upload-music-btn');
+    const galleryFileInput = document.getElementById('admin-file');
+    const musicFileInput = document.getElementById('admin-music-file');
+    const coverFileInput = document.getElementById('admin-music-cover');
+    const coverPreview = document.getElementById('admin-cover-preview');
+    const galleryMeta = document.getElementById('admin-file-meta');
+    const musicMeta = document.getElementById('admin-music-file-meta');
+    const coverMeta = document.getElementById('admin-music-cover-meta');
 
     if (updateBtn) {
         updateBtn.onclick = () => handleAdminUpdate('update_config');
@@ -988,6 +1066,43 @@ document.addEventListener('DOMContentLoaded', () => {
     if (uploadMusicBtn) {
         uploadMusicBtn.onclick = () => handleAdminUpdate('upload_music');
     }
+
+    galleryFileInput?.addEventListener('change', () => {
+        const file = galleryFileInput.files?.[0];
+        if (galleryMeta) {
+            galleryMeta.textContent = file
+                ? `${file.name} • ${formatFileSize(file.size)}`
+                : 'PNG, JPG, WEBP və digər şəkillər dəstəklənir.';
+        }
+    });
+
+    musicFileInput?.addEventListener('change', () => {
+        const file = musicFileInput.files?.[0];
+        if (musicMeta) {
+            musicMeta.textContent = file
+                ? `${file.name} • ${formatFileSize(file.size)}`
+                : 'Yalnız .mp3 formatı qəbul edilir.';
+        }
+    });
+
+    coverFileInput?.addEventListener('change', () => {
+        const file = coverFileInput.files?.[0];
+        if (coverMeta) {
+            coverMeta.textContent = file
+                ? `${file.name} • ${formatFileSize(file.size)}`
+                : 'İstəyə bağlıdır. Yükləsən, JSON-a da əlavə olunacaq.';
+        }
+
+        if (!coverPreview) return;
+        if (!file) {
+            coverPreview.src = DEFAULT_MUSIC_COVER;
+            return;
+        }
+
+        const previewUrl = URL.createObjectURL(file);
+        coverPreview.src = previewUrl;
+        coverPreview.onload = () => URL.revokeObjectURL(previewUrl);
+    });
 });
 // Bu kodu hcayar.js faylının ən sonuna yapışdır
 document.addEventListener('DOMContentLoaded', () => {
