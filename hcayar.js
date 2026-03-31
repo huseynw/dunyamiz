@@ -1426,8 +1426,11 @@ function resolveMusicAssetUrl(value, fallback = '') {
 }
 function normalizeTrackMeta(meta = {}) {
     const audioValue = meta.audio || (meta.file ? `musiqiler/${meta.file}` : '');
-    const coverValue = meta.cover || '';
-
+    const coverValue = /^https?:\/\//i.test(rawCover)
+        ? rawCover
+        : rawCover
+            ? (rawCover.startsWith('musiqiler/') ? rawCover : `musiqiler/${rawCover}`)
+            : '';
     return {
         ...meta,
         audio: audioValue,
