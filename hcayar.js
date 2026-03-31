@@ -1255,21 +1255,47 @@ function getMusicDom() {
         trackCount: document.getElementById('music-track-count'),
         audio: document.getElementById('yt-audio'),
         activePlayer: document.getElementById('yt-active-player'),
-        minimizeBtn: document.getElementById('yt-minimize-btn'),
-        lyricsToggle: document.getElementById('yt-lyrics-toggle'),
-        title: document.getElementById('yt-player-title'),
-        artist: document.getElementById('yt-player-artist'),
-        cover: document.getElementById('yt-cover-image'),
-        disc: document.getElementById('yt-rotating-disc'),
+        
+        // Yeni elementlər
+        titleFull: document.getElementById('yt-player-title'),
+        artistFull: document.getElementById('yt-player-artist'),
+        titleMini: document.getElementById('yt-player-title-mini'),
+        artistMini: document.getElementById('yt-player-artist-mini'),
+        coverFull: document.getElementById('yt-cover-image'),
+        coverMini: document.getElementById('yt-cover-mini'),
+        
         seekbar: document.getElementById('yt-seekbar'),
         currentTime: document.getElementById('yt-current-time'),
         duration: document.getElementById('yt-duration'),
+        
         prevBtn: document.getElementById('yt-prev-btn'),
-        playBtn: document.getElementById('yt-play-btn'),
+        playBtnFull: document.getElementById('yt-play-btn'),
+        playBtnMini: document.getElementById('yt-play-btn-mini'),
         nextBtn: document.getElementById('yt-next-btn'),
+        nextBtnMini: document.getElementById('yt-next-btn-mini'),
+        
         lyricsContainer: document.getElementById('yt-lyrics-container'),
-        lyricsTabBtn: document.getElementById('yt-lyrics-tab-btn')
+        volumeSlider: document.getElementById('volume-slider')
     };
+}
+window.togglePlayerMode = function() {
+    const { activePlayer } = getMusicDom();
+    if (!activePlayer) return;
+    
+    if (activePlayer.classList.contains('player-mini')) {
+        activePlayer.classList.remove('player-mini');
+        activePlayer.classList.add('expanded');
+    } else {
+        activePlayer.classList.remove('expanded');
+        activePlayer.classList.add('player-mini');
+        // Əgər sözlər açıqdırsa, minimallaşdıranda bağla
+        document.getElementById('lyrics-panel').classList.add('lyrics-hidden');
+    }
+}
+
+window.toggleLyricsPanel = function() {
+    const panel = document.getElementById('lyrics-panel');
+    panel.classList.toggle('lyrics-hidden');
 }
 
 async function fetchMusicJsonList() {
@@ -1343,27 +1369,21 @@ function renderMusicPlaylist() {
 }
 
 function openMusicPlayerExpanded() {
-    const { activePlayer } = getMusicDom();
-    if (!activePlayer) return;
-
-    activePlayer.style.display = 'block';
-    activePlayer.classList.add('expanded');
+    window.togglePlayerMode(); // Yeni məntiq
 }
 
 function closeMusicPlayerExpanded() {
-    const { activePlayer } = getMusicDom();
-    if (!activePlayer) return;
-
-    activePlayer.classList.remove('expanded');
+    window.togglePlayerMode(); // Yeni məntiq
 }
 
 function showMusicMiniPlayer() {
     const { activePlayer } = getMusicDom();
     if (!activePlayer) return;
-
     activePlayer.style.display = 'block';
     activePlayer.classList.remove('expanded');
+    activePlayer.classList.add('player-mini');
 }
+
 
 function switchMusicTab(tabName = 'upnext') {
     document.querySelectorAll('.yt-tab').forEach(tab => {
@@ -1379,16 +1399,12 @@ function switchMusicTab(tabName = 'upnext') {
 }
 
 function updateMusicPlayButtonState() {
-    const { audio, playBtn, disc } = getMusicDom();
-    if (!audio || !playBtn || !disc) return;
+    const { audio, playBtnFull, playBtnMini } = getMusicDom();
+    if (!audio) return;
 
-    if (audio.paused) {
-        playBtn.innerHTML = '<i class="fas fa-play"></i>';
-        disc.classList.remove('playing');
-    } else {
-        playBtn.innerHTML = '<i class="fas fa-pause"></i>';
-        disc.classList.add('playing');
-    }
+    const icon = audio.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
+    if(playBtnFull) playBtnFull.innerHTML = icon;
+    if(playBtnMini) playBtnMini.innerHTML = icon;
 }
 
 function renderPlainLyrics(text = '') {
@@ -1522,41 +1538,36 @@ function readMusicCoverFromUrl(audioUrl) {
 }
 
 async function updateMusicCover(track) {
-    const { cover } = getMusicDom();
-    if (!cover) return;
-
-    if (track.cover) {
-        const explicitCoverUrl = `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${encodeURIComponent(track.cover)}`;
-        cover.src = explicitCoverUrl;
-
+    const { coverFull, coverMini } = getMusicDom();
+    
+    const setCover = (src) => {
+        if(coverFull) coverFull.src = src;
+        if(coverMini) coverMini.src = src;
+        
         const playlistThumb = document.querySelector(
             `.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`
         );
-        if (playlistThumb) {
-            playlistThumb.src = explicitCoverUrl;
-        }
+        if (playlistThumb) playlistThumb.src = src;
+    };
+
+    if (track.cover) {
+        setCover(`https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${encodeURIComponent(track.cover)}`);
         return;
     }
 
-    cover.src = DEFAULT_MUSIC_COVER;
+    setCover(DEFAULT_MUSIC_COVER);
 
     try {
         const coverSrc = await readMusicCoverFromUrl(track.audioUrl);
         const currentTrackStillSame = window.currentMusic && window.currentMusic.id === track.id;
         if (!currentTrackStillSame) return;
 
-        cover.src = coverSrc || DEFAULT_MUSIC_COVER;
-
-        const playlistThumb = document.querySelector(
-            `.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`
-        );
-        if (playlistThumb) {
-            playlistThumb.src = cover.src;
-        }
+        setCover(coverSrc || DEFAULT_MUSIC_COVER);
     } catch {
-        cover.src = DEFAULT_MUSIC_COVER;
+        setCover(DEFAULT_MUSIC_COVER);
     }
 }
+
 async function openMusicTrack(index) {
     const track = window.musicLibrary[index];
     const dom = getMusicDom();
@@ -1566,26 +1577,37 @@ async function openMusicTrack(index) {
     window.currentMusic = track;
     window.currentMusicIndex = index;
 
-    dom.title.textContent = track.title || 'Adsız mahnı';
-    dom.artist.textContent = track.artist || 'Naməlum artist';
+    const titleText = track.title || 'Adsız mahnı';
+    const artistText = track.artist || 'Naməlum artist';
+
+    // Həm tam ekran (full), həm də mini player mətnlərini yeniləyirik
+    if(dom.titleFull) dom.titleFull.textContent = titleText;
+    if(dom.artistFull) dom.artistFull.textContent = artistText;
+    if(dom.titleMini) dom.titleMini.textContent = titleText;
+    if(dom.artistMini) dom.artistMini.textContent = artistText;
+
+    // Audio mənbəyini təyin edirik
     dom.audio.src = track.audioUrl;
-    dom.seekbar.value = 0;
-    dom.currentTime.textContent = '00:00';
-    dom.duration.textContent = '00:00';
+    
+    // UI elementlərini sıfırlayırıq
+    if(dom.seekbar) dom.seekbar.value = 0;
+    if(dom.currentTime) dom.currentTime.textContent = '00:00';
+    if(dom.duration) dom.duration.textContent = '00:00';
 
-    renderCurrentTrackLyrics(track);
-    renderMusicPlaylist();
-    showMusicMiniPlayer();
-    switchMusicTab('upnext');
-    updateMusicCover(track);
+    // Digər funksiyaları çağırırıq
+    renderCurrentTrackLyrics(track); // Sözləri hazırlayır
+    renderMusicPlaylist();           // Playlistdəki "active" statusunu yeniləyir
+    showMusicMiniPlayer();           // Playeri görünür edir (mini modda)
+    updateMusicCover(track);         // Şəkilləri həm mini, həm full üçün yeniləyir
 
+    // Mahnını başladırıq
     try {
         await dom.audio.play();
     } catch (err) {
         console.error('Music play error:', err);
     }
 
-    updateMusicPlayButtonState();
+    updateMusicPlayButtonState(); // Play/Pause ikonlarını yeniləyir
 }
 
 function playPrevMusic() {
@@ -1608,75 +1630,86 @@ function playNextMusic() {
 
 function initMusicPlayerEvents() {
     const dom = getMusicDom();
-    dom.activePlayer?.addEventListener('click', (e) => {
-    if (
-        e.target.closest('#yt-minimize-btn') ||
-        e.target.closest('#yt-lyrics-toggle') ||
-        e.target.closest('#yt-play-btn') ||
-        e.target.closest('#yt-prev-btn') ||
-        e.target.closest('#yt-next-btn') ||
-        e.target.closest('.yt-tab') ||
-        e.target.closest('#yt-seekbar')
-    ) {
-        return;
-    }
+    if (!dom.activePlayer || !dom.audio) return;
 
-    if (!dom.activePlayer.classList.contains('expanded')) {
-        dom.activePlayer.classList.add('expanded');
-    }
-});
-    if (!dom.audio) return;
-
-    dom.minimizeBtn?.addEventListener('click', closeMusicPlayerExpanded);
-
-    dom.lyricsToggle?.addEventListener('click', () => {
-        openMusicPlayerExpanded();
-        switchMusicTab('lyrics');
-    });
-
-    document.querySelectorAll('.yt-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            switchMusicTab(tab.dataset.musicTab);
-        });
-    });
-
-    dom.playBtn?.addEventListener('click', async () => {
-        if (!dom.audio.src && window.musicLibrary.length) {
-            await openMusicTrack(0);
+    // 1. Playerin böyüdülməsi (Mini playerə klikləyəndə)
+    dom.activePlayer.addEventListener('click', (e) => {
+        // Əgər kliklənən yer kontrol düymələridirsə, playeri böyütmə
+        if (
+            e.target.closest('.mini-controls') || 
+            e.target.closest('.main-controls') || 
+            e.target.closest('.progress-area') || 
+            e.target.closest('.volume-area') ||
+            e.target.closest('#btn-open-lyrics') ||
+            e.target.closest('.btn-minimize')
+        ) {
             return;
         }
 
+        // Əgər mini moddadırsa, böyüt
+        if (dom.activePlayer.classList.contains('player-mini')) {
+            window.togglePlayerMode();
+        }
+    });
+
+    // 2. Play/Pause İdarəsi (Həm mini, həm full düymələri üçün)
+    const togglePlay = async () => {
+        if (!dom.audio.src && window.musicLibrary.length > 0) {
+            await openMusicTrack(0);
+            return;
+        }
+        
         if (dom.audio.paused) {
             await dom.audio.play();
         } else {
             dom.audio.pause();
         }
-
         updateMusicPlayButtonState();
+    };
+
+    dom.playBtnFull?.addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); });
+    dom.playBtnMini?.addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); });
+
+    // 3. Növbəti və Əvvəlki mahnı
+    dom.prevBtn?.addEventListener('click', (e) => { e.stopPropagation(); playPrevMusic(); });
+    dom.nextBtn?.addEventListener('click', (e) => { e.stopPropagation(); playNextMusic(); });
+    dom.nextBtnMini?.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        playNextMusic(); 
     });
 
-    dom.prevBtn?.addEventListener('click', playPrevMusic);
-    dom.nextBtn?.addEventListener('click', playNextMusic);
+    // 4. Səs səviyyəsi (Volume) slider-i 🎚️
+    if (dom.volumeSlider) {
+        dom.volumeSlider.addEventListener('input', (e) => {
+            dom.audio.volume = e.target.value;
+        });
+    }
 
+    // 5. Seekbar (Mahnını irəli-geri çəkmək)
+    dom.seekbar?.addEventListener('input', () => {
+        dom.audio.currentTime = Number(dom.seekbar.value);
+    });
+
+    // 6. Audio Eventləri (Vaxt və status yeniləmələri)
     dom.audio.addEventListener('loadedmetadata', () => {
-        dom.seekbar.max = dom.audio.duration || 0;
-        dom.duration.textContent = formatMusicTime(dom.audio.duration);
+        if (dom.seekbar) dom.seekbar.max = dom.audio.duration || 0;
+        if (dom.duration) dom.duration.textContent = formatMusicTime(dom.audio.duration);
     });
 
     dom.audio.addEventListener('timeupdate', () => {
-        dom.seekbar.value = dom.audio.currentTime || 0;
-        dom.currentTime.textContent = formatMusicTime(dom.audio.currentTime);
-        updateSyncedLyricsByTime(dom.audio.currentTime);
-    });
-
-    dom.seekbar?.addEventListener('input', () => {
-        dom.audio.currentTime = Number(dom.seekbar.value);
-        updateSyncedLyricsByTime(dom.audio.currentTime);
+        if (dom.seekbar) dom.seekbar.value = dom.audio.currentTime || 0;
+        if (dom.currentTime) dom.currentTime.textContent = formatMusicTime(dom.audio.currentTime);
+        
+        // Sinxron sözlərin vaxta görə yenilənməsi 🎤
+        if (typeof updateSyncedLyricsByTime === 'function') {
+            updateSyncedLyricsByTime(dom.audio.currentTime);
+        }
     });
 
     dom.audio.addEventListener('play', updateMusicPlayButtonState);
     dom.audio.addEventListener('pause', updateMusicPlayButtonState);
 
+    // 7. Mahnı bitəndə avtomatik növbətiyə keçid (Auto Next) 🎧
     dom.audio.addEventListener('ended', () => {
         playNextMusic();
     });
