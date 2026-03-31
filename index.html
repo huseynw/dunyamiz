@@ -539,52 +539,149 @@
     
     <!-- Admin Panel -->
     <div id="admin-panel" style="display: none;">
-        <div class="admin-content">
-            <span class="close-admin" onclick="document.getElementById('admin-panel').style.display='none'">&times;</span>
-            <h2>Admin Panel ⚙️</h2>
-            <div class="input-group">
-                <label>Görüş Tarixi:</label>
-                <input type="datetime-local" id="admin-date">
-                <label>Görüş Sayı:</label>
-                <input type="number" id="admin-count">
-                <button id="update-config-btn" type="button">Məlumatları Yenilə</button>
-            </div>
-            <hr>
-            <div class="input-group">
-                <label>Qalereyaya Şəkil:</label>
-                <input type="file" id="admin-file" accept="image/*">
-                <button id="upload-image-btn" type="button">Şəkli Yüklə</button>
-            </div>
-            <hr>
-            <div class="input-group">
-                <label>Musiqi faylı (MP3):</label>
-                <input type="file" id="admin-music-file" accept=".mp3,audio/mpeg">
-                <label>Mahnı adı (Track):</label>
-                <input type="text" id="admin-music-title" placeholder="Mahnı adı">
-                <label>Oxuyan (Artist):</label>
-                <input type="text" id="admin-music-artist" placeholder="Artist adı">
-                <label>Sözlərin növü:</label>
-                <select id="admin-lyrics-type" style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.5);color:white;outline:none;">
-                    <option value="none">Yoxdur</option>
-                    <option value="plain">Plain Text</option>
-                    <option value="synced">Synced LRC</option>
-                </select>
-                <label>Sözlər:</label>
-                <textarea
-                    id="admin-lyrics-text"
-                    rows="8"
-                    placeholder="[00:12.00] İlk sətir
-            [00:18.20] İkinci sətir"
-                    style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.5);color:white;outline:none;resize:vertical;"
-                ></textarea>
+        <div class="admin-content admin-shell">
+            <button class="close-admin" type="button" aria-label="Admin paneli bağla">&times;</button>
 
-                <button id="upload-music-btn" type="button">Musiqini Yüklə</button>
+            <div class="admin-header">
+                <div>
+                    <p class="admin-kicker">DÜNYAMIZ ADMIN</p>
+                    <h2>Admin Panel ⚙️</h2>
+                    <p class="admin-subtitle">Mobil və kompüterdə rahat işləyən, daha səliqəli idarəetmə paneli.</p>
+                </div>
+                <div class="admin-badge">
+                    <i class="fas fa-shield-heart"></i>
+                    <span>Yalnız icazəli giriş</span>
+                </div>
             </div>
-            <hr>
-            <div class="input-group">
-                <label>Təsdiq Şifrəsi:</label>
-                <input type="password" id="admin-password" placeholder="Şifrə...">
+
+            <div id="admin-status" class="admin-status" aria-live="polite"></div>
+
+            <div class="admin-grid">
+                <section class="admin-card">
+                    <div class="admin-card-title">
+                        <i class="fas fa-calendar-days"></i>
+                        <div>
+                            <h3>Sayt məlumatları</h3>
+                            <p>Görüş tarixini və sayını buradan yenilə.</p>
+                        </div>
+                    </div>
+                    <div class="input-group admin-form-grid admin-form-grid--two">
+                        <div class="admin-field">
+                            <label for="admin-date">Görüş Tarixi</label>
+                            <input type="datetime-local" id="admin-date">
+                        </div>
+                        <div class="admin-field">
+                            <label for="admin-count">Görüş Sayı</label>
+                            <input type="number" id="admin-count" min="0" inputmode="numeric" placeholder="Məs: 96">
+                        </div>
+                    </div>
+                    <button id="update-config-btn" class="admin-btn admin-btn--primary" type="button">
+                        <i class="fas fa-rotate"></i>
+                        <span>Məlumatları yenilə</span>
+                    </button>
+                </section>
+
+                <section class="admin-card">
+                    <div class="admin-card-title">
+                        <i class="fas fa-images"></i>
+                        <div>
+                            <h3>Qalereya</h3>
+                            <p>Yeni şəkli birbaşa GitHub qalereyasına göndər.</p>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <div class="admin-field admin-file-field">
+                            <label for="admin-file">Qalereya şəkli</label>
+                            <input type="file" id="admin-file" accept="image/*">
+                            <small id="admin-file-meta" class="admin-file-meta">PNG, JPG, WEBP və digər şəkillər dəstəklənir.</small>
+                        </div>
+                    </div>
+                    <button id="upload-image-btn" class="admin-btn admin-btn--secondary" type="button">
+                        <i class="fas fa-cloud-arrow-up"></i>
+                        <span>Şəkli yüklə</span>
+                    </button>
+                </section>
             </div>
+
+            <section class="admin-card admin-card--full">
+                <div class="admin-card-title">
+                    <i class="fas fa-music"></i>
+                    <div>
+                        <h3>Musiqi əlavə et</h3>
+                        <p>Mahnı faylı, cover şəkli və sözlər birlikdə yüklənəcək.</p>
+                    </div>
+                </div>
+
+                <div class="input-group admin-form-grid admin-form-grid--music">
+                    <div class="admin-field admin-field--span-2 admin-file-field">
+                        <label for="admin-music-file">Musiqi faylı (MP3)</label>
+                        <input type="file" id="admin-music-file" accept=".mp3,audio/mpeg">
+                        <small id="admin-music-file-meta" class="admin-file-meta">Yalnız .mp3 formatı qəbul edilir.</small>
+                    </div>
+
+                    <div class="admin-field admin-file-field">
+                        <label for="admin-music-cover">Cover şəkli</label>
+                        <input type="file" id="admin-music-cover" accept="image/*">
+                        <small id="admin-music-cover-meta" class="admin-file-meta">İstəyə bağlıdır. Yükləsən, JSON-a da əlavə olunacaq.</small>
+                    </div>
+
+                    <div class="admin-field admin-cover-preview-wrap">
+                        <label>Cover önbaxış</label>
+                        <div class="admin-cover-preview-box">
+                            <img id="admin-cover-preview" src="assets/music-cover.jpg" alt="Cover önbaxış">
+                        </div>
+                    </div>
+
+                    <div class="admin-field">
+                        <label for="admin-music-title">Mahnı adı</label>
+                        <input type="text" id="admin-music-title" placeholder="Mahnı adı">
+                    </div>
+
+                    <div class="admin-field">
+                        <label for="admin-music-artist">Artist / Oxuyan</label>
+                        <input type="text" id="admin-music-artist" placeholder="Artist adı">
+                    </div>
+
+                    <div class="admin-field">
+                        <label for="admin-lyrics-type">Sözlərin növü</label>
+                        <select id="admin-lyrics-type">
+                            <option value="none">Yoxdur</option>
+                            <option value="plain">Plain Text</option>
+                            <option value="synced">Synced LRC</option>
+                        </select>
+                    </div>
+
+                    <div class="admin-field admin-field--span-2">
+                        <label for="admin-lyrics-text">Sözlər</label>
+                        <textarea
+                            id="admin-lyrics-text"
+                            rows="8"
+                            placeholder="[00:12.00] İlk sətir&#10;[00:18.20] İkinci sətir"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <button id="upload-music-btn" class="admin-btn admin-btn--primary" type="button">
+                    <i class="fas fa-music"></i>
+                    <span>Musiqini yüklə</span>
+                </button>
+            </section>
+
+            <section class="admin-card admin-card--footer">
+                <div class="admin-card-title admin-card-title--compact">
+                    <i class="fas fa-key"></i>
+                    <div>
+                        <h3>Təsdiq</h3>
+                        <p>Əməliyyatı göndərmək üçün şifrə tələb olunur.</p>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="admin-field">
+                        <label for="admin-password">Təsdiq Şifrəsi</label>
+                        <input type="password" id="admin-password" placeholder="Şifrə...">
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 </body>
