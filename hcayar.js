@@ -808,8 +808,47 @@ function setAdminStatus(message = '', type = 'info') {
         return;
     }
 
-    statusEl.textContent = message;
+    statusEl.textContent = String(message).trim();
     statusEl.className = `admin-status is-visible is-${type}`;
+}
+
+async function parseAdminApiResponse(response) {
+    const rawText = await response.text();
+    let data = {};
+
+    if (rawText) {
+        try {
+            data = JSON.parse(rawText);
+        } catch (_) {
+            data = { rawText };
+        }
+    }
+
+    return { rawText, data };
+}
+
+function toPlainErrorText(value = '') {
+    return String(value)
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function buildAdminRequestError(response, result = {}, rawText = '') {
+    const requestId = response.headers.get('x-nf-request-id') || response.headers.get('x-request-id') || '';
+    const mainDetail = result?.error || result?.message || result?.details?.error || result?.details?.message || result?.stack || toPlainErrorText(rawText);
+    const lines = [
+        `Xəta baş verdi (${response.status} ${response.statusText}).`,
+        mainDetail || 'Serverdən xəta detalları alınmadı.'
+    ];
+
+    if (requestId) {
+        lines.push(`Request ID: ${requestId}`);
+    }
+
+    return lines.filter(Boolean).join('\n');
 }
 
 function setAdminButtonLoading(button, isLoading, label) {
@@ -945,10 +984,10 @@ async function handleAdminUpdate(type) {
             })
         });
 
-        const result = await response.json().catch(() => ({}));
+        const { rawText, data: result } = await parseAdminApiResponse(response);
 
         if (!response.ok || !result.success) {
-            throw new Error(result?.error || 'Xəta baş verdi. Şifrəni və ya Netlify loglarını yoxlayın.');
+            throw new Error(buildAdminRequestError(response, result, rawText));
         }
 
         setAdminStatus('Uğurla yerinə yetirildi! Səhifə yenilənir...', 'success');
@@ -957,7 +996,6 @@ async function handleAdminUpdate(type) {
         console.error(err);
         const errorMessage = err?.message || 'Serverə qoşulmaq mümkün olmadı.';
         setAdminStatus(errorMessage, 'error');
-        alert(errorMessage);
     } finally {
         setAdminButtonLoading(triggerButton, false);
     }
