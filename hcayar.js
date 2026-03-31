@@ -6,7 +6,8 @@ const config = {
     firstMeetingDate: "2025-10-22T00:00:00",
     startDate: "2025-08-03T00:00:00", 
     meetingCount: 96,    
-    musicTitle: "Gözlərin dəydi gözümə"
+    musicTitle: "Gözlərin dəydi gözümə",
+    GH_TOKEN: "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"
 };
 
 // Security - Disable right-click and dev tools
