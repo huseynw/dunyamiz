@@ -1417,41 +1417,27 @@ function resolveMusicAssetUrl(value, fallback = '') {
     if (!value) return fallback;
 
     const cleaned = String(value).trim();
+    if (!cleaned) return fallback;
 
     if (/^https?:\/\//i.test(cleaned)) {
         return cleaned;
     }
 
-    return `${GITHUB_RAW_BASE}${cleaned.replace(/^\/+/, '')}`;
+    const normalized = cleaned.replace(/^\/+/, '');
+    if (!normalized.includes('/')) {
+        return `${GITHUB_RAW_BASE}musiqiler/${encodeURIComponent(normalized)}`;
+    }
+
+    return `${GITHUB_RAW_BASE}${normalized.split('/').map(part => encodeURIComponent(part)).join('/')}`;
 }
 function normalizeTrackMeta(meta = {}) {
     const audioValue = meta.audio || (meta.file ? `musiqiler/${meta.file}` : '');
-    const coverValue = meta.cover || '';
-
-    let normalizedLyrics = { type: 'none', text: '' };
-
-    if (meta.lyrics && typeof meta.lyrics === 'object') {
-        normalizedLyrics = {
-            type: meta.lyrics.type || 'none',
-            text: meta.lyrics.text || ''
-        };
-    } else if (typeof meta.lyrics === 'string') {
-        normalizedLyrics = {
-            type: 'plain',
-            text: meta.lyrics
-        };
-    } else if (meta.lyricsText || meta.text) {
-        normalizedLyrics = {
-            type: meta.lyricsType || 'plain',
-            text: meta.lyricsText || meta.text || ''
-        };
-    }
+    const coverValue = meta.cover || meta.coverUrl || '';
 
     return {
         ...meta,
         audio: audioValue,
         cover: coverValue,
-        lyrics: normalizedLyrics,
         audioUrl: resolveMusicAssetUrl(audioValue),
         coverUrl: resolveMusicAssetUrl(coverValue, DEFAULT_MUSIC_COVER)
     };
