@@ -1,17 +1,41 @@
 const fetch = require('node-fetch');
 
+async function getExistingFileSha({ repoOwner, repoName, token, path }) {
+    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
+    const response = await fetch(url, {
+        headers: {
+            "Authorization": `token ${token}`,
+            "Accept": "application/vnd.github+json"
+        }
+    });
+
+    if (response.status === 404) {
+        return null;
+    }
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data?.message || `GitHub faylı oxunmadı: ${path}`);
+    }
+
+    return data?.sha || null;
+}
+
 async function putGitHubFile({ repoOwner, repoName, token, path, content, message }) {
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
+    const existingSha = await getExistingFileSha({ repoOwner, repoName, token, path });
 
     const response = await fetch(url, {
         method: 'PUT',
         headers: {
             "Authorization": `token ${token}`,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Accept": "application/vnd.github+json"
         },
         body: JSON.stringify({
             message,
-            content
+            content,
+            ...(existingSha ? { sha: existingSha } : {})
         })
     });
 
@@ -152,6 +176,8 @@ exports.handler = async (event) => {
                 audioPath,
                 jsonPath,
                 audioContent,
+                coverPath,
+                coverContent,
                 jsonContent
             } = payload;
 
@@ -162,24 +188,38 @@ exports.handler = async (event) => {
                 };
             }
 
-            const [audioResult, jsonResult] = await Promise.all([
-                putGitHubFile({
+            // Vacib düzəliş:
+            // GitHub Contents API-yə paralel PUT atanda branch SHA conflict yarana bilir.
+            // Ona görə audio -> optional cover -> json ardıcıllığında yükləyirik.
+            const audioResult = await putGitHubFile({
+                repoOwner,
+                repoName,
+                token: GH_TOKEN,
+                path: audioPath,
+                content: audioContent,
+                message: `Admin: Yeni musiqi əlavə edildi (${slug}.mp3)`
+            });
+
+            let coverResult = null;
+            if (coverPath && coverContent) {
+                coverResult = await putGitHubFile({
                     repoOwner,
                     repoName,
                     token: GH_TOKEN,
-                    path: audioPath,
-                    content: audioContent,
-                    message: `Admin: Yeni musiqi əlavə edildi (${slug}.mp3)`
-                }),
-                putGitHubFile({
-                    repoOwner,
-                    repoName,
-                    token: GH_TOKEN,
-                    path: jsonPath,
-                    content: jsonContent,
-                    message: `Admin: Musiqi məlumat faylı əlavə edildi (${slug}.json)`
-                })
-            ]);
+                    path: coverPath,
+                    content: coverContent,
+                    message: `Admin: Musiqi cover şəkli əlavə edildi (${slug})`
+                });
+            }
+
+            const jsonResult = await putGitHubFile({
+                repoOwner,
+                repoName,
+                token: GH_TOKEN,
+                path: jsonPath,
+                content: jsonContent,
+                message: `Admin: Musiqi məlumat faylı əlavə edildi (${slug}.json)`
+            });
 
             return {
                 statusCode: 200,
@@ -187,6 +227,7 @@ exports.handler = async (event) => {
                     success: true,
                     details: {
                         audio: audioResult,
+                        cover: coverResult,
                         json: jsonResult
                     }
                 })
