@@ -1638,9 +1638,7 @@ function renderMusicPlaylist() {
 
     playlist.innerHTML = window.musicLibrary.map((track, index) => {
         const isActive = window.currentMusicIndex === index;
-        const thumbSrc = track.cover
-            ? `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${encodeURIComponent(track.cover)}`
-            : DEFAULT_MUSIC_COVER;
+        const thumbSrc = track.coverUrl || DEFAULT_MUSIC_COVER;
 
         return `
             <div class="yt-track-item ${isActive ? 'active' : ''}" data-music-index="${index}">
