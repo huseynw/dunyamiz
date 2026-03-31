@@ -186,6 +186,34 @@ exports.handler = async (event) => {
                 body: JSON.stringify({ success: true, details: result })
             };
         }
+        if (type === "upload_music_json") {
+            const { path, content } = payload;
+
+            if (!path || !content) {
+                return {
+                    statusCode: 400,
+                    headers: { "Content-Type": "application/json; charset=utf-8" },
+                    body: JSON.stringify({
+                        success: false,
+                        error: "Musiqi məlumatları natamamdır."
+                    })
+                };
+            }
+
+            const result = await putGitHubFile({
+                repoOwner,
+                repoName,
+                token: GH_TOKEN,
+                path,
+                content,
+                message: "Admin: Storage linkli musiqi JSON faylı əlavə edildi"
+            });
+
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ success: true, details: result })
+            };
+        }
 
         // =========================
         // MUSIC UPLOAD (MP3 + JSON)
