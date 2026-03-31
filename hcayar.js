@@ -1428,10 +1428,30 @@ function normalizeTrackMeta(meta = {}) {
     const audioValue = meta.audio || (meta.file ? `musiqiler/${meta.file}` : '');
     const coverValue = meta.cover || '';
 
+    let normalizedLyrics = { type: 'none', text: '' };
+
+    if (meta.lyrics && typeof meta.lyrics === 'object') {
+        normalizedLyrics = {
+            type: meta.lyrics.type || 'none',
+            text: meta.lyrics.text || ''
+        };
+    } else if (typeof meta.lyrics === 'string') {
+        normalizedLyrics = {
+            type: 'plain',
+            text: meta.lyrics
+        };
+    } else if (meta.lyricsText || meta.text) {
+        normalizedLyrics = {
+            type: meta.lyricsType || 'plain',
+            text: meta.lyricsText || meta.text || ''
+        };
+    }
+
     return {
         ...meta,
         audio: audioValue,
         cover: coverValue,
+        lyrics: normalizedLyrics,
         audioUrl: resolveMusicAssetUrl(audioValue),
         coverUrl: resolveMusicAssetUrl(coverValue, DEFAULT_MUSIC_COVER)
     };
@@ -1635,9 +1655,7 @@ function renderMusicPlaylist() {
 
     playlist.innerHTML = window.musicLibrary.map((track, index) => {
         const isActive = window.currentMusicIndex === index;
-        const thumbSrc = track.cover
-            ? `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${encodeURIComponent(track.cover)}`
-            : DEFAULT_MUSIC_COVER;
+        const thumbSrc = track.coverUrl || DEFAULT_MUSIC_COVER;
 
         return `
             <div class="yt-track-item ${isActive ? 'active' : ''}" data-music-index="${index}">
