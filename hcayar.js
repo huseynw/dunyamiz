@@ -1872,6 +1872,9 @@ async function openMusicTrack(index) {
     const dom = getMusicDom();
     if (!track || !dom.audio) return;
 
+    const wasExpanded = dom.activePlayer?.classList.contains('expanded') || false;
+    const wasLyricsOpen = dom.activePlayer?.classList.contains('lyrics-open') || false;
+
     window.currentMusic = track;
     window.currentMusicIndex = index;
 
@@ -1893,7 +1896,16 @@ async function openMusicTrack(index) {
 
     if (dom.activePlayer) {
         dom.activePlayer.style.display = 'block';
-        setPlayerExpanded(false);
+        setPlayerExpanded(wasExpanded);
+
+        if (wasExpanded && wasLyricsOpen) {
+            window.toggleLyricsPanel(true);
+        } else if (dom.lyricsPanel) {
+            dom.lyricsPanel.classList.add('lyrics-hidden');
+            dom.activePlayer.classList.remove('lyrics-open');
+            dom.lyricsPanel.setAttribute('aria-hidden', 'true');
+            updateLyricsToggleState();
+        }
     }
 
     try {
@@ -1904,7 +1916,6 @@ async function openMusicTrack(index) {
 
     updateMusicPlayButtonState();
 }
-
 function playPrevMusic() {
     if (!window.musicLibrary.length) return;
     const newIndex = window.currentMusicIndex <= 0
