@@ -2521,3 +2521,16 @@ header { text-align: center; margin-bottom: 30px; }
         padding: 12px;
     }
 }
+.yt-lyrics-line--clickable,
+.yt-lyrics-word {
+    cursor: pointer;
+}
+
+.yt-lyrics-line--clickable:hover {
+    background: rgba(255,255,255,0.06);
+}
+
+.yt-lyrics-word:hover {
+    color: #fff;
+    text-shadow: 0 0 14px rgba(255,255,255,0.2);
+}
