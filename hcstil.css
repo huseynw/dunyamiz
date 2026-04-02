@@ -2540,6 +2540,8 @@ header { text-align: center; margin-bottom: 30px; }
     line-height: 1.4 !important;
     text-align: center;
     white-space: pre-line;
+    opacity: 0.6;
+    transition: all 0.2s ease;
 }
 
 .yt-lyrics-container {
@@ -2551,4 +2553,9 @@ header { text-align: center; margin-bottom: 30px; }
 .yt-lyrics-word {
     display: inline;
     margin: 0 2px;
+}
+.yt-lyrics-line.active {
+    opacity: 1;
+    font-size: 1.1em;
+    color: #fff;
 }
