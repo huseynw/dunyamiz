@@ -372,7 +372,7 @@ function getDynamicPath() {
 function createHeart() {
     const heart = document.createElement('div');
     heart.classList.add('heart-particle');
-    heart.innerHTML = '♡'; 
+    heart.innerHTML = '❤︎⁠'; 
     heart.style.color = 'pink';
     heart.style.left = Math.random() * 100 + "vw";
     heart.style.fontSize = Math.random() * 20 + 10 + "px";
