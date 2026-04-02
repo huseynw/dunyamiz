@@ -1726,7 +1726,7 @@ function renderSyncedLyrics(parsedLyrics = []) {
                 data-lyrics-index="${index}"
                 data-line-time="${line.time}"
             >
-                ${escapeHtmlMusic(line.text)}
+                ${escapeHtmlMusic(line.text.trim())}
             </div>
         `;
     }).join('');
