@@ -1701,15 +1701,36 @@ function renderSyncedLyrics(parsedLyrics = []) {
     lyricsContainer.innerHTML = parsedLyrics.map((line, index) => {
         if (line.words && line.words.length) {
             const wordsHtml = line.words.map((word, wordIndex) => `
-                <span class="yt-lyrics-word" data-lyrics-index="${index}" data-word-index="${wordIndex}" data-word-time="${word.time}">${escapeHtmlMusic(word.text)}</span>
+                <span 
+                    class="yt-lyrics-word" 
+                    data-lyrics-index="${index}" 
+                    data-word-index="${wordIndex}" 
+                    data-word-time="${word.time}"
+                >${escapeHtmlMusic(word.text)}</span>
             `).join('');
-            return `<div class="yt-lyrics-line yt-lyrics-line--word" data-lyrics-index="${index}">${wordsHtml}</div>`;
+
+            return `
+                <div 
+                    class="yt-lyrics-line yt-lyrics-line--word yt-lyrics-line--clickable" 
+                    data-lyrics-index="${index}"
+                    data-line-time="${line.time}"
+                >
+                    ${wordsHtml}
+                </div>
+            `;
         }
 
-        return `<div class="yt-lyrics-line" data-lyrics-index="${index}">${escapeHtmlMusic(line.text)}</div>`;
+        return `
+            <div 
+                class="yt-lyrics-line yt-lyrics-line--clickable" 
+                data-lyrics-index="${index}"
+                data-line-time="${line.time}"
+            >
+                ${escapeHtmlMusic(line.text)}
+            </div>
+        `;
     }).join('');
 }
-
 function renderCurrentTrackLyrics(track) {
     const lyrics = track?.lyrics || {};
     const type = lyrics.type || 'none';
@@ -2054,3 +2075,16 @@ async function initMusicPage() {
 }
 
 document.addEventListener('DOMContentLoaded', initMusicPage);
+function seekToLyricsTime(time) {
+    const { audio } = getMusicDom();
+    if (!audio || Number.isNaN(Number(time))) return;
+
+    const safeTime = Math.max(0, Number(time));
+    audio.currentTime = safeTime;
+
+    updateSyncedLyricsByTime(safeTime);
+
+    if (audio.paused) {
+        audio.play().catch(err => console.error('Lyrics seek play error:', err));
+    }
+}
