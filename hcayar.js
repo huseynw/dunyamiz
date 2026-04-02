@@ -1971,7 +1971,22 @@ function initMusicPlayerEvents() {
             dom.audio.pause();
         }
     };
+    dom.lyricsContainer?.addEventListener('click', (e) => {
+        if (window.currentMusicLyricsType !== 'synced') return;
 
+        const wordEl = e.target.closest('.yt-lyrics-word');
+        if (wordEl) {
+            const wordTime = Number(wordEl.dataset.wordTime);
+            seekToLyricsTime(wordTime);
+            return;
+        }
+
+        const lineEl = e.target.closest('.yt-lyrics-line');
+        if (lineEl) {
+            const lineTime = Number(lineEl.dataset.lineTime);
+            seekToLyricsTime(lineTime);
+        }
+    });
     dom.openFullBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         window.togglePlayerMode(true);
