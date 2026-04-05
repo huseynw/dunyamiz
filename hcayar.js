@@ -165,51 +165,6 @@ passInput.addEventListener('keypress', (e) => {
 });
 // ========== TIME TOGETHER COUNTER (ASCENDING) ==========
 // 1. Rəqəmləri artıran köməkçi funksiya
-function formatCounterValue(value, useLocale = false, pad2 = false) {
-    if (pad2) return String(value).padStart(2, '0');
-    return useLocale ? Number(value).toLocaleString('tr-TR') : String(value);
-}
-
-function formatCounterValue(value, useLocale = false, pad2 = false) {
-    if (pad2) return String(value).padStart(2, '0');
-    return useLocale ? Number(value).toLocaleString('tr-TR') : String(value);
-}
-
-function animateCounterChange(el, newValue, options = {}) {
-    if (!el) return;
-
-    const {
-        useLocale = false,
-        pad2 = false,
-        duration = 320
-    } = options;
-
-    const formatted = formatCounterValue(newValue, useLocale, pad2);
-    const oldValue = el.dataset.valueFormatted ?? el.textContent.trim();
-
-    if (oldValue === formatted) return;
-
-    el.dataset.value = String(newValue);
-    el.dataset.valueFormatted = formatted;
-
-    el.classList.add('counter-slide');
-    el.style.setProperty('--counter-duration', `${duration}ms`);
-
-    el.innerHTML = `
-        <span class="counter-viewport">
-            <span class="counter-track">
-                <span class="counter-value counter-old">${oldValue || formatted}</span>
-                <span class="counter-value counter-new">${formatted}</span>
-            </span>
-        </span>
-    `;
-
-    clearTimeout(el._counterTimer);
-    el._counterTimer = setTimeout(() => {
-        el.textContent = formatted;
-        el.classList.remove('counter-slide');
-    }, duration);
-}
 function updateCounter() {
     const start = new Date(config.startDate).getTime();
     const now = new Date().getTime();
@@ -224,48 +179,19 @@ function updateCounter() {
     const totalMinutes = Math.floor(diff / (1000 * 60));
 
     if (!window.isAnimating) {
-        animateCounterChange(document.getElementById('total-days'), d);
-        animateCounterChange(document.getElementById('detail-days'), d);
-        animateCounterChange(document.getElementById('total-hours-love'), totalHours, {
-            useLocale: true,
-            duration: 320
-        });
-
-        animateCounterChange(document.getElementById('total-minutes-love'), totalMinutes, {
-            useLocale: true,
-            duration: 320
-        });
-        animateCounterChange(document.getElementById('meet-count'), config.meetingCount, {
-            duration: 300
-        });
+        if(document.getElementById('total-days')) document.getElementById('total-days').innerText = d;
+        if(document.getElementById('detail-days')) document.getElementById('detail-days').innerText = d;
+        if(document.getElementById('total-hours-love')) document.getElementById('total-hours-love').innerText = totalHours.toLocaleString('tr-TR');
+        if(document.getElementById('total-minutes-love')) document.getElementById('total-minutes-love').innerText = totalMinutes.toLocaleString('tr-TR');
+        if(document.getElementById('meet-count')) document.getElementById('meet-count').innerText = config.meetingCount;
     }
 
-    animateCounterChange(document.getElementById('hours'), h, {
-        pad2: true,
-        duration: 220
-    });
-
-    animateCounterChange(document.getElementById('minutes'), m, {
-        pad2: true,
-        duration: 220
-    });
-
-    animateCounterChange(document.getElementById('seconds'), s, {
-        pad2: true,
-        duration: 220
-    });
-
-    animateCounterChange(document.getElementById('detail-hours'), h, {
-        duration: 220
-    });
-
-    animateCounterChange(document.getElementById('detail-minutes'), m, {
-        duration: 220
-    });
-
-    animateCounterChange(document.getElementById('detail-seconds'), s, {
-        duration: 220
-    });
+    if(document.getElementById('hours')) document.getElementById('hours').innerText = h < 10 ? '0' + h : h;
+    if(document.getElementById('minutes')) document.getElementById('minutes').innerText = m < 10 ? '0' + m : m;
+    if(document.getElementById('seconds')) document.getElementById('seconds').innerText = s < 10 ? '0' + s : s;
+    if(document.getElementById('detail-hours')) document.getElementById('detail-hours').innerText = h;
+    if(document.getElementById('detail-minutes')) document.getElementById('detail-minutes').innerText = m;
+    if(document.getElementById('detail-seconds')) document.getElementById('detail-seconds').innerText = s;
 }
 function formatAzDate(dateIso) {
     const months = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
@@ -582,26 +508,11 @@ function updateMeetingTimer() {
     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-    animateCounterChange(document.getElementById('meet-days'), d, {
-        pad2: true,
-        duration: 260
-    });
-
-    animateCounterChange(document.getElementById('meet-hours'), h, {
-        pad2: true,
-        duration: 220
-    });
-
-    animateCounterChange(document.getElementById('meet-minutes'), m, {
-        pad2: true,
-        duration: 220
-    });
-
-    animateCounterChange(document.getElementById('meet-seconds'), s, {
-        pad2: true,
-        duration: 220
-    });
-    }
+    if(document.getElementById('meet-days')) document.getElementById('meet-days').innerText = d < 10 ? "0" + d : d;
+    if(document.getElementById('meet-hours')) document.getElementById('meet-hours').innerText = h < 10 ? "0" + h : h;
+    if(document.getElementById('meet-minutes')) document.getElementById('meet-minutes').innerText = m < 10 ? "0" + m : m;
+    if(document.getElementById('meet-seconds')) document.getElementById('meet-seconds').innerText = s < 10 ? "0" + s : s;
+}
 
 setInterval(updateMeetingTimer, 1000);
 updateMeetingTimer();
