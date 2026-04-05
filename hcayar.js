@@ -199,104 +199,72 @@ function formatAzDate(dateIso) {
     if (isNaN(d)) return "Tarix bilinmir";
     return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
-.netflix-gallery {
-    width: 100%;
-    max-width: 1150px;
-    margin: 25px auto 0;
-    padding: 10px 0 90px;
-}
+async function fetchImages() {
+    const stack = document.getElementById('gallery-stack');
+    if (!stack) return;
 
-.netflix-gallery-track {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 18px;
-}
+    stack.className = 'netflix-gallery';
+    stack.innerHTML = `
+        <div class="gallery-loading">
+            <i class="fas fa-spinner fa-spin"></i> Xatirələr yüklənir...
+        </div>
+    `;
 
-.netflix-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 18px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.12);
-    aspect-ratio: 2 / 3;
-    cursor: pointer;
-    transform: scale(0.92) translateY(60px);
-    opacity: 0;
-    transition:
-        transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 0.8s ease,
-        box-shadow 0.35s ease,
-        border-color 0.35s ease,
-        filter 0.35s ease;
-    will-change: transform, opacity;
-}
+    const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery`;
 
-.netflix-card.show {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-}
+    try {
+        const response = await fetch(url);
+        const files = await response.json();
 
-.netflix-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.55s ease, filter 0.35s ease;
-}
+        window.allImages = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
 
-.netflix-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.35), transparent 45%);
-    opacity: 0.65;
-    pointer-events: none;
-    transition: opacity 0.35s ease;
-}
+        if (window.allImages.length > 0) {
+            let html = `<div class="netflix-gallery-track">`;
 
-.netflix-card:hover {
-    transform: scale(1.06) translateY(-6px);
-    z-index: 5;
-    border-color: rgba(255, 77, 109, 0.7);
-    box-shadow: 0 18px 40px rgba(0,0,0,0.35), 0 0 25px rgba(255, 77, 109, 0.22);
-}
+            window.allImages.forEach((img, idx) => {
+                html += `
+                    <div class="netflix-card reveal-card" data-index="${idx}">
+                        <img src="${img.download_url}" loading="lazy" alt="Xatirə ${idx + 1}">
+                    </div>
+                `;
+            });
 
-.netflix-card:hover img {
-    transform: scale(1.08);
-    filter: brightness(1.04);
-}
+            html += `</div>`;
+            stack.innerHTML = html;
 
-.netflix-card:hover::after {
-    opacity: 0.2;
-}
+            document.querySelectorAll('.netflix-card').forEach(item => {
+                item.addEventListener('click', function () {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    window.openLightbox(index);
+                });
+            });
 
-.gallery-loading {
-    text-align: center;
-    color: white;
-    padding: 30px 0;
-    font-size: 1rem;
-}
-
-@media (max-width: 768px) {
-    .netflix-gallery-track {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
-    }
-
-    .netflix-card:hover {
-        transform: scale(1.03) translateY(-4px);
+            initGalleryReveal();
+        } else {
+            stack.innerHTML = '<p style="text-align:center; color: white;">Hələ ki, şəkil yoxdur.</p>';
+        }
+    } catch (e) {
+        console.error("Fetch xətası:", e);
+        stack.innerHTML = '<p style="text-align:center; color: white;">Sistem xətası!</p>';
     }
 }
 
-@media (max-width: 480px) {
-    .netflix-gallery-track {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-    }
+function initGalleryReveal() {
+    const cards = document.querySelectorAll('.reveal-card');
+    if (!cards.length) return;
 
-    .netflix-gallery {
-        padding-bottom: 70px;
-    }
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('show');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.18
+    });
+
+    cards.forEach(card => observer.observe(card));
 }
 window.openLightbox = function(index) {
     currentImgIdx = index;
