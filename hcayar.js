@@ -45,6 +45,10 @@ const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
 
 window.allImages = []; 
+window.visibleGalleryCount = 0;
+window.galleryBatchSize = 6;
+window.galleryLoadingMore = false;
+window.galleryObserver = null;
 let currentImgIdx = 0;
 let isPlaying = false;
 
@@ -203,7 +207,7 @@ async function fetchImages() {
     const stack = document.getElementById('gallery-stack');
     if (!stack) return;
 
-    stack.className = 'netflix-gallery';
+    stack.className = 'timeline-gallery';
     stack.innerHTML = `
         <div class="gallery-loading">
             <i class="fas fa-spinner fa-spin"></i> Xatirələr yüklənir...
@@ -217,29 +221,18 @@ async function fetchImages() {
         const files = await response.json();
 
         window.allImages = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
+        window.visibleGalleryCount = 0;
 
         if (window.allImages.length > 0) {
-            let html = `<div class="netflix-gallery-track">`;
+            stack.innerHTML = `
+                <div id="timeline-feed" class="timeline-feed"></div>
+                <div id="timeline-loader" class="timeline-loader">
+                    <span>Yüklənir...</span>
+                </div>
+            `;
 
-            window.allImages.forEach((img, idx) => {
-                html += `
-                    <div class="netflix-card reveal-card" data-index="${idx}">
-                        <img src="${img.download_url}" loading="lazy" alt="Xatirə ${idx + 1}">
-                    </div>
-                `;
-            });
-
-            html += `</div>`;
-            stack.innerHTML = html;
-
-            document.querySelectorAll('.netflix-card').forEach(item => {
-                item.addEventListener('click', function () {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    window.openLightbox(index);
-                });
-            });
-
-            initGalleryReveal();
+            renderNextGalleryBatch();
+            setupGalleryInfiniteScroll();
         } else {
             stack.innerHTML = '<p style="text-align:center; color: white;">Hələ ki, şəkil yoxdur.</p>';
         }
@@ -248,23 +241,81 @@ async function fetchImages() {
         stack.innerHTML = '<p style="text-align:center; color: white;">Sistem xətası!</p>';
     }
 }
+function renderNextGalleryBatch() {
+    const feed = document.getElementById('timeline-feed');
+    const loader = document.getElementById('timeline-loader');
+    if (!feed) return;
 
-function initGalleryReveal() {
-    const cards = document.querySelectorAll('.reveal-card');
-    if (!cards.length) return;
+    const start = window.visibleGalleryCount;
+    const end = Math.min(start + window.galleryBatchSize, window.allImages.length);
 
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry, i) => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('show');
-                observer.unobserve(entry.target);
+    for (let i = start; i < end; i++) {
+        const img = window.allImages[i];
+
+        const item = document.createElement('div');
+        item.className = `timeline-photo-item ${i % 2 === 0 ? 'left' : 'right'}`;
+        item.setAttribute('data-index', i);
+
+        item.innerHTML = `
+            <div class="timeline-photo-card gallery-item" data-index="${i}">
+                <img src="${img.download_url}" loading="lazy" alt="Xatirə ${i + 1}">
+            </div>
+        `;
+
+        feed.appendChild(item);
+
+        const card = item.querySelector('.gallery-item');
+        card.addEventListener('click', function () {
+            const index = parseInt(this.getAttribute('data-index'));
+            window.openLightbox(index);
+        });
+
+        requestAnimationFrame(() => {
+            item.classList.add('show');
+        });
+    }
+
+    window.visibleGalleryCount = end;
+
+    if (loader) {
+        if (window.visibleGalleryCount >= window.allImages.length) {
+            loader.style.display = 'none';
+        } else {
+            loader.style.display = 'flex';
+        }
+    }
+}
+
+function setupGalleryInfiniteScroll() {
+    const loader = document.getElementById('timeline-loader');
+    if (!loader) return;
+
+    if (window.galleryObserver) {
+        window.galleryObserver.disconnect();
+    }
+
+    window.galleryObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (
+                entry.isIntersecting &&
+                !window.galleryLoadingMore &&
+                window.visibleGalleryCount < window.allImages.length
+            ) {
+                window.galleryLoadingMore = true;
+
+                setTimeout(() => {
+                    renderNextGalleryBatch();
+                    window.galleryLoadingMore = false;
+                }, 250);
             }
         });
     }, {
-        threshold: 0.18
+        root: null,
+        rootMargin: '300px 0px',
+        threshold: 0
     });
 
-    cards.forEach(card => observer.observe(card));
+    window.galleryObserver.observe(loader);
 }
 window.openLightbox = function(index) {
     currentImgIdx = index;
