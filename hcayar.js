@@ -199,74 +199,103 @@ function formatAzDate(dateIso) {
     if (isNaN(d)) return "Tarix bilinmir";
     return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
-async function fetchImages() {
-    const stack = document.getElementById('gallery-stack');
-    if (!stack) return;
+.netflix-gallery {
+    width: 100%;
+    max-width: 1150px;
+    margin: 25px auto 0;
+    padding: 10px 0 90px;
+}
 
-    stack.className = 'love-timeline';
-    stack.innerHTML = '<p style="text-align:center; width:100%; color: white;"><i class="fas fa-spinner fa-spin"></i> Xatirələr yüklənir...</p>';
+.netflix-gallery-track {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 18px;
+}
 
-    const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery`;
+.netflix-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    aspect-ratio: 2 / 3;
+    cursor: pointer;
+    transform: scale(0.92) translateY(60px);
+    opacity: 0;
+    transition:
+        transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.8s ease,
+        box-shadow 0.35s ease,
+        border-color 0.35s ease,
+        filter 0.35s ease;
+    will-change: transform, opacity;
+}
 
-    try {
-        const response = await fetch(url);
-        const files = await response.json();
+.netflix-card.show {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
 
-        window.allImages = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
+.netflix-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.55s ease, filter 0.35s ease;
+}
 
-        if (window.allImages.length > 0) {
-            const repo = `${config.githubUsername}/${config.repoName}`;
+.netflix-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.35), transparent 45%);
+    opacity: 0.65;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+}
 
-            const items = await Promise.all(
-                window.allImages.map(async (img, idx) => {
-                    let formattedDate = "Tarix bilinmir";
+.netflix-card:hover {
+    transform: scale(1.06) translateY(-6px);
+    z-index: 5;
+    border-color: rgba(255, 77, 109, 0.7);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35), 0 0 25px rgba(255, 77, 109, 0.22);
+}
 
-                    try {
-                        const res = await fetch(`https://api.github.com/repos/${repo}/commits?path=gallery/${img.name}&per_page=1`);
-                        const commitData = await res.json();
-                        if (commitData[0]?.commit?.committer?.date) {
-                            formattedDate = formatAzDate(commitData[0].commit.committer.date);
-                        }
-                    } catch {}
+.netflix-card:hover img {
+    transform: scale(1.08);
+    filter: brightness(1.04);
+}
 
-                    return { ...img, idx, formattedDate };
-                })
-            );
+.netflix-card:hover::after {
+    opacity: 0.2;
+}
 
-            items.sort((a, b) => new Date(a.formattedDate) - new Date(b.formattedDate));
+.gallery-loading {
+    text-align: center;
+    color: white;
+    padding: 30px 0;
+    font-size: 1rem;
+}
 
-            let html = '';
-            items.forEach((img, i) => {
-                html += `
-                    <div class="timeline-item ${i % 2 === 0 ? 'left' : 'right'}" data-index="${img.idx}">
-                        <div class="timeline-dot"></div>
-                        <div class="timeline-card gallery-item" data-index="${img.idx}">
-                            <div class="timeline-image-wrap">
-                                <img src="${img.download_url}" loading="lazy" alt="Bizim Xatirəmiz">
-                            </div>
-                            <div class="timeline-content">
-                                <span class="timeline-date"><i class="far fa-calendar-alt"></i> ${img.formattedDate}</span>
-                                <p class="timeline-text">Bu gün də xatirəmizdə qalan bir an 🤍</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
+@media (max-width: 768px) {
+    .netflix-gallery-track {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
 
-            stack.innerHTML = html;
+    .netflix-card:hover {
+        transform: scale(1.03) translateY(-4px);
+    }
+}
 
-            document.querySelectorAll('.gallery-item').forEach(item => {
-                item.onclick = function () {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    window.openLightbox(index);
-                };
-            });
-        } else {
-            stack.innerHTML = '<p style="text-align:center; color: white;">Hələ ki, şəkil yoxdur.</p>';
-        }
-    } catch (e) {
-        console.error("Fetch xətası:", e);
-        stack.innerHTML = '<p style="text-align:center; color: white;">Sistem xətası!</p>';
+@media (max-width: 480px) {
+    .netflix-gallery-track {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .netflix-gallery {
+        padding-bottom: 70px;
     }
 }
 window.openLightbox = function(index) {
