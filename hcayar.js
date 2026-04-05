@@ -209,7 +209,7 @@ async function fetchImages() {
     const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery`;
 
     try {
-        const response = await fetch(url);
+        const response = await fetch("/.netlify/functions/github-content?path=gallery");
         const data = await response.json();
 
         if (!response.ok) {
@@ -1337,7 +1337,7 @@ async function loadNotes() {
     
     try {
         const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/notlar`;
-        const res = await fetch(url);
+        const res = await fetch('/.netlify/functions/github-content?path=notlar');
         if(!res.ok) { 
             container.innerHTML = "<p style='opacity:0.6;'>Hələ ki, not yoxdur.</p>"; 
             return; 
@@ -1631,7 +1631,7 @@ window.toggleLyricsPanel = function(forceOpen) {
 
 async function fetchMusicJsonList() {
     const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/musiqiler`;
-    const response = await fetch(url);
+    const response = await fetch("/.netlify/functions/github-content?path=musiqiler");
     const files = await response.json();
 
     if (!Array.isArray(files)) {
