@@ -206,7 +206,7 @@ async function fetchImages() {
     stack.className = 'gallery-timeline';
     stack.innerHTML = '<p class="timeline-loading"><i class="fas fa-spinner fa-spin"></i> Xatirələr yüklənir...</p>';
 
-    const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery`;
+    const url = `https://raw.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery`;
 
     try {
         const response = await fetch(url);
