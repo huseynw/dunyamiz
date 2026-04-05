@@ -2559,3 +2559,26 @@ header { text-align: center; margin-bottom: 30px; }
     font-size: 1.1em;
     color: #fff;
 }
+.counter-bump {
+    animation: counterBump var(--counter-duration, 260ms) cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, opacity, filter;
+    display: inline-block;
+}
+
+@keyframes counterBump {
+    0% {
+        transform: translateY(10px) scale(0.92);
+        opacity: 0.45;
+        filter: blur(1px);
+    }
+    45% {
+        transform: translateY(-4px) scale(1.08);
+        opacity: 1;
+        filter: blur(0);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
