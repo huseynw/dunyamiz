@@ -201,106 +201,46 @@ function formatAzDate(dateIso) {
 }
 async function fetchImages() {
     const stack = document.getElementById('gallery-stack');
-    if (!stack) return;
-
-    stack.className = 'memory-timeline';
+    if(!stack) return;
+    
+    stack.className = 'modern-gallery-grid';
     stack.innerHTML = '<p style="text-align:center; width:100%; color: white;"><i class="fas fa-spinner fa-spin"></i> Xatirələr yüklənir...</p>';
-
+    
     const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery`;
-
+    
     try {
         const response = await fetch(url);
         const files = await response.json();
-
+        
+        // Şəkilləri süzürük və QLOBAL massivə yazırıq
         window.allImages = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
-
-        if (!window.allImages.length) {
-            stack.innerHTML = '<p style="text-align:center; color: white;">Hələ ki, şəkil yoxdur.</p>';
-            return;
-        }
-
-        const repo = `${config.githubUsername}/${config.repoName}`;
-
-        const imagesWithDates = await Promise.all(
-            window.allImages.map(async (img, idx) => {
-                let commitDate = null;
-
-                try {
-                    const res = await fetch(`https://api.github.com/repos/${repo}/commits?path=gallery/${img.name}&per_page=1`);
-                    const commitData = await res.json();
-
-                    if (Array.isArray(commitData) && commitData[0]?.commit?.committer?.date) {
-                        commitDate = commitData[0].commit.committer.date;
-                    }
-                } catch (e) {
-                    commitDate = null;
-                }
-
-                return {
-                    ...img,
-                    originalIndex: idx,
-                    commitDate
-                };
-            })
-        );
-
-        imagesWithDates.sort((a, b) => {
-            const aTime = a.commitDate ? new Date(a.commitDate).getTime() : 0;
-            const bTime = b.commitDate ? new Date(b.commitDate).getTime() : 0;
-            return aTime - bTime;
-        });
-
-        window.allImages = imagesWithDates;
-
-        stack.innerHTML = imagesWithDates.map((img, idx) => {
-            const side = idx % 2 === 0 ? 'left' : 'right';
-            const formattedDate = img.commitDate ? formatAzDate(img.commitDate) : 'Tarix bilinmir';
-
-            return `
-                <div class="timeline-item ${side}">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-date">
-                        <i class="far fa-calendar-alt"></i>
-                        <span>${formattedDate}</span>
-                    </div>
-
-                    <div class="timeline-card gallery-item" data-index="${idx}">
+        
+        if(window.allImages.length > 0) {
+            let html = '';
+            window.allImages.forEach((img, idx) => {
+                html += `
+                    <div class="photo-frame gallery-item" data-index="${idx}">
                         <img src="${img.download_url}" loading="lazy" alt="Bizim Xatirəmiz">
                         <div class="hover-heart"><i class="fas fa-heart"></i></div>
                     </div>
-                </div>
-            `;
-        }).join('');
+                `;
+            });
+            stack.innerHTML = html;
 
-        document.querySelectorAll('.gallery-item').forEach(item => {
-            item.onclick = function() {
-                const index = parseInt(this.getAttribute('data-index'));
-                window.openLightbox(index);
-            };
-        });
-
-        initTimelineReveal();
-
+            // Klikləri bağlayırıq
+            document.querySelectorAll('.gallery-item').forEach(item => {
+                item.onclick = function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    window.openLightbox(index);
+                };
+            });
+        } else {
+            stack.innerHTML = '<p style="text-align:center; color: white;">Hələ ki, şəkil yoxdur.</p>';
+        }
     } catch (e) {
         console.error("Fetch xətası:", e);
         stack.innerHTML = '<p style="text-align:center; color: white;">Sistem xətası!</p>';
     }
-}
-function initTimelineReveal() {
-    const items = document.querySelectorAll('.timeline-item');
-    if (!items.length) return;
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('show');
-            }
-        });
-    }, {
-        threshold: 0.18
-    });
-
-    items.forEach((item) => observer.observe(item));
 }
 window.openLightbox = function(index) {
     currentImgIdx = index;
