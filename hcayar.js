@@ -1973,10 +1973,12 @@ function ensureQueueBuilt(startIndex = 0) {
 
 function rebuildQueueFromIndex(startIndex = 0) {
     if (!Array.isArray(window.musicLibrary) || !window.musicLibrary.length) return;
+
     window.musicQueue = [
         ...window.musicLibrary.slice(startIndex),
         ...window.musicLibrary.slice(0, startIndex)
     ];
+
     window.currentQueueIndex = 0;
     renderQueueList();
 }
@@ -2124,9 +2126,15 @@ function playNextMusic() {
 }
 
 function initMusicPlayerEvents() {
+    const dom = getMusicDom();
+    if (!dom.activePlayer || !dom.audio) return;
+    if (dom.activePlayer.dataset.bound === '1') return;
+    dom.activePlayer.dataset.bound = '1';
+
     dom.queueToggle?.addEventListener('click', (e) => {
         e.stopPropagation();
         const isOpen = dom.activePlayer.classList.contains('queue-open');
+
         if (isOpen) {
             dom.activePlayer.classList.remove('queue-open');
             dom.queuePanel?.classList.add('queue-hidden');
@@ -2138,16 +2146,19 @@ function initMusicPlayerEvents() {
             renderQueueList();
         }
     });
+
     dom.closeQueueBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
-       dom.activePlayer.classList.remove('queue-open');
-       dom.queuePanel?.classList.add('queue-hidden');
-       dom.queuePanel?.setAttribute('aria-hidden', 'true');
+        dom.activePlayer.classList.remove('queue-open');
+        dom.queuePanel?.classList.add('queue-hidden');
+        dom.queuePanel?.setAttribute('aria-hidden', 'true');
     });
+
     dom.queueList?.addEventListener('click', (e) => {
         const playBtn = e.target.closest('.yt-queue-play');
         const removeBtn = e.target.closest('.yt-queue-remove');
         const item = e.target.closest('.yt-queue-item');
+
         if (playBtn) {
             openQueueTrack(Number(playBtn.dataset.queueIndex));
             return;
@@ -2162,10 +2173,6 @@ function initMusicPlayerEvents() {
             openQueueTrack(Number(item.dataset.queueIndex));
         }
     });
-    const dom = getMusicDom();
-    if (!dom.activePlayer || !dom.audio) return;
-    if (dom.activePlayer.dataset.bound === '1') return;
-    dom.activePlayer.dataset.bound = '1';
 
     const togglePlay = async () => {
         if (!dom.audio.src && window.musicLibrary.length) {
@@ -2179,6 +2186,7 @@ function initMusicPlayerEvents() {
             dom.audio.pause();
         }
     };
+
     dom.lyricsContainer?.addEventListener('click', (e) => {
         if (window.currentMusicLyricsType !== 'synced') return;
 
@@ -2195,6 +2203,7 @@ function initMusicPlayerEvents() {
             seekToLyricsTime(lineTime);
         }
     });
+
     dom.openFullBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         window.togglePlayerMode(true);
@@ -2275,7 +2284,9 @@ function initMusicPlayerEvents() {
 
     updateVolumeUi(dom.volumeSlider?.value || 0.85);
     updateMusicPlayButtonState();
+
     const swipeSurface = dom.activePlayer;
+
     swipeSurface?.addEventListener('touchstart', (e) => {
         const touch = e.touches[0];
         window.playerTouch.startX = touch.clientX;
@@ -2309,7 +2320,6 @@ function initMusicPlayerEvents() {
         }
     });
 }
-
 async function initMusicPage() {
     try {
         initMusicPlayerEvents();
