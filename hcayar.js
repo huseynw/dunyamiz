@@ -1957,21 +1957,80 @@ function updateVolumeUi(value) {
     if (audio) audio.volume = numericValue;
     if (volumeValue) volumeValue.textContent = `${Math.round(numericValue * 100)}%`;
 }
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
+async function fadeAudio(audioEl, from, to, duration = 350) {
+    if (!audioEl) return;
+
+    const steps = 12;
+    const stepTime = duration / steps;
+    const diff = to - from;
+
+    audioEl.volume = from;
+
+    for (let i = 1; i <= steps; i++) {
+        audioEl.volume = Math.max(0, Math.min(1, from + (diff * i / steps)));
+        await sleep(stepTime);
+    }
+}
+
+async function fadeOutAndPause(audioEl, duration = 350) {
+    if (!audioEl) return;
+    const startVolume = Number(audioEl.volume ?? 1);
+
+    await fadeAudio(audioEl, startVolume, 0, duration);
+    audioEl.pause();
+    audioEl.volume = startVolume;
+}
+
+async function fadeInAndPlay(audioEl, targetVolume = 1, duration = 350) {
+    if (!audioEl) return;
+
+    audioEl.volume = 0;
+    await audioEl.play();
+    await fadeAudio(audioEl, 0, targetVolume, duration);
+}
+
+function animateTrackChange() {
+    const dom = getMusicDom();
+
+    const animTargets = [
+        dom.coverFull,
+        dom.coverMini,
+        dom.titleFull,
+        dom.artistFull,
+        dom.titleMini,
+        dom.artistMini,
+        dom.rotatingDisc
+    ].filter(Boolean);
+
+    animTargets.forEach(el => {
+        el.classList.remove('track-switch-anim');
+        void el.offsetWidth;
+        el.classList.add('track-switch-anim');
+    });
+}
 async function openMusicTrack(index) {
     const track = window.musicLibrary[index];
     const dom = getMusicDom();
     if (!track || !dom.audio) return;
-    const mainAudio = document.getElementById("audio");
-    if (mainAudio && !mainAudio.paused) {
-        mainAudio.pause();
-    }
-
-    dom.audio.src = track.audioUrl;
-    dom.audio.currentTime = 0;
 
     const wasExpanded = dom.activePlayer?.classList.contains('expanded') || false;
     const wasLyricsOpen = dom.activePlayer?.classList.contains('lyrics-open') || false;
+
+    const mainAudio = document.getElementById("audio");
+
+    // əsas musiqini yumşaq dayandır
+    if (mainAudio && !mainAudio.paused) {
+        await fadeOutAndPause(mainAudio, 400);
+    }
+
+    // əvvəlki custom mahnını yumşaq dayandır
+    if (!dom.audio.paused && dom.audio.src) {
+        await fadeOutAndPause(dom.audio, 250);
+    }
 
     window.currentMusic = track;
     window.currentMusicIndex = index;
@@ -1983,10 +2042,6 @@ async function openMusicTrack(index) {
 
     dom.audio.src = track.audioUrl;
     dom.audio.currentTime = 0;
-    const mainAudio = document.getElementById("audio");
-    if (mainAudio && !mainAudio.paused) {
-        mainAudio.pause();
-    }
 
     if (dom.seekbar) dom.seekbar.value = 0;
     if (dom.currentTime) dom.currentTime.textContent = '00:00';
@@ -1995,6 +2050,7 @@ async function openMusicTrack(index) {
     renderCurrentTrackLyrics(track);
     renderMusicPlaylist();
     updateMusicCover(track);
+    animateTrackChange();
 
     if (dom.activePlayer) {
         dom.activePlayer.style.display = 'block';
@@ -2011,7 +2067,7 @@ async function openMusicTrack(index) {
     }
 
     try {
-        await dom.audio.play();
+        await fadeInAndPlay(dom.audio, 1, 450);
     } catch (err) {
         console.error('Music play error:', err);
     }
