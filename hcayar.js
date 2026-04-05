@@ -602,8 +602,11 @@ if ('mediaSession' in navigator) {
 }
 
 document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && isPlaying) {
-        audio.play().catch(e => console.log("Yenidən başlatma cəhdi..."));
+    const dom = typeof getMusicDom === 'function' ? getMusicDom() : null;
+    const customAudioPlaying = dom?.audio && !dom.audio.paused;
+
+    if (!document.hidden && isPlaying && !customAudioPlaying) {
+        audio.play().catch(() => console.log("Yenidən başlatma cəhdi..."));
     }
 });
 
@@ -2090,6 +2093,14 @@ async function openMusicTrack(index) {
     // əsas musiqini yumşaq dayandır
     if (mainAudio && !mainAudio.paused) {
         await fadeOutAndPause(mainAudio, 400);
+
+        isPlaying = false;
+
+        if (playPauseBtn) {
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        }
+
+        document.getElementById('track-art')?.classList.remove('playing');
     }
 
     // əvvəlki custom mahnını yumşaq dayandır
