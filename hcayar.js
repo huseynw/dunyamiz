@@ -228,7 +228,7 @@ async function fetchImages() {
 
         window.allImages = data
             .filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name))
-            .sort((a, b) => a.name.localeCompare(b.name));
+            .sort((a, b) => new Date(a.git_date || a.name) - new Date(b.git_date || b.name));
 
         if (window.allImages.length === 0) {
             stack.innerHTML = '<p class="timeline-empty">Hələ ki, şəkil yoxdur.</p>';
@@ -239,12 +239,16 @@ async function fetchImages() {
 
         window.allImages.forEach((img, idx) => {
             const side = idx % 2 === 0 ? 'left' : 'right';
+            const dateText = formatAzDate(img.git_date || img.name);
 
             html += `
                 <article class="timeline-item ${side}">
                     <div class="photo-frame gallery-item" data-index="${idx}">
                         <img src="${img.download_url}" loading="lazy" alt="Bizim Xatirəmiz">
                         <div class="hover-heart"><i class="fas fa-heart"></i></div>
+                    </div>
+                    <div class="timeline-date">
+                        <i class="far fa-clock"></i> ${dateText}
                     </div>
                 </article>
             `;
@@ -302,6 +306,7 @@ async function updateLightboxContent() {
     lbImg.src = imgData.download_url;
 
     if (dateEl) {
+        const dateText = formatAzDate(imgData.git_date || imgData.name);
         dateEl.innerHTML = `<i class="far fa-image"></i> Xatirəmiz`;
     }
 }
