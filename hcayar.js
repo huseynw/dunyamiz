@@ -201,35 +201,62 @@ function formatAzDate(dateIso) {
 }
 async function fetchImages() {
     const stack = document.getElementById('gallery-stack');
-    if(!stack) return;
-    
-    stack.className = 'modern-gallery-grid';
+    if (!stack) return;
+
+    stack.className = 'love-timeline';
     stack.innerHTML = '<p style="text-align:center; width:100%; color: white;"><i class="fas fa-spinner fa-spin"></i> Xatirələr yüklənir...</p>';
-    
+
     const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery`;
-    
+
     try {
         const response = await fetch(url);
         const files = await response.json();
-        
-        // Şəkilləri süzürük və QLOBAL massivə yazırıq
+
         window.allImages = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
-        
-        if(window.allImages.length > 0) {
+
+        if (window.allImages.length > 0) {
+            const repo = `${config.githubUsername}/${config.repoName}`;
+
+            const items = await Promise.all(
+                window.allImages.map(async (img, idx) => {
+                    let formattedDate = "Tarix bilinmir";
+
+                    try {
+                        const res = await fetch(`https://api.github.com/repos/${repo}/commits?path=gallery/${img.name}&per_page=1`);
+                        const commitData = await res.json();
+                        if (commitData[0]?.commit?.committer?.date) {
+                            formattedDate = formatAzDate(commitData[0].commit.committer.date);
+                        }
+                    } catch {}
+
+                    return { ...img, idx, formattedDate };
+                })
+            );
+
+            items.sort((a, b) => new Date(a.formattedDate) - new Date(b.formattedDate));
+
             let html = '';
-            window.allImages.forEach((img, idx) => {
+            items.forEach((img, i) => {
                 html += `
-                    <div class="photo-frame gallery-item" data-index="${idx}">
-                        <img src="${img.download_url}" loading="lazy" alt="Bizim Xatirəmiz">
-                        <div class="hover-heart"><i class="fas fa-heart"></i></div>
+                    <div class="timeline-item ${i % 2 === 0 ? 'left' : 'right'}" data-index="${img.idx}">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-card gallery-item" data-index="${img.idx}">
+                            <div class="timeline-image-wrap">
+                                <img src="${img.download_url}" loading="lazy" alt="Bizim Xatirəmiz">
+                            </div>
+                            <div class="timeline-content">
+                                <span class="timeline-date"><i class="far fa-calendar-alt"></i> ${img.formattedDate}</span>
+                                <p class="timeline-text">Bu gün də xatirəmizdə qalan bir an 🤍</p>
+                            </div>
+                        </div>
                     </div>
                 `;
             });
+
             stack.innerHTML = html;
 
-            // Klikləri bağlayırıq
             document.querySelectorAll('.gallery-item').forEach(item => {
-                item.onclick = function() {
+                item.onclick = function () {
                     const index = parseInt(this.getAttribute('data-index'));
                     window.openLightbox(index);
                 };
