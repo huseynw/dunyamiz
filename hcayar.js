@@ -211,50 +211,48 @@ function updateCounter() {
     const totalMinutes = Math.floor(diff / (1000 * 60));
 
     if (!window.isAnimating) {
-    animateCounterChange(document.getElementById('total-days'), d);
-    animateCounterChange(document.getElementById('detail-days'), d);
+        animateCounterChange(document.getElementById('total-days'), d);
+        animateCounterChange(document.getElementById('detail-days'), d);
+        animateCounterChange(document.getElementById('total-hours-love'), totalHours, {
+            useLocale: true,
+            duration: 320
+        });
 
-    animateCounterChange(document.getElementById('total-hours-love'), totalHours, {
-        useLocale: true,
-        duration: 320
+        animateCounterChange(document.getElementById('total-minutes-love'), totalMinutes, {
+            useLocale: true,
+            duration: 320
+        });
+        animateCounterChange(document.getElementById('meet-count'), config.meetingCount, {
+            duration: 300
+        });
+    }
+
+    animateCounterChange(document.getElementById('hours'), h, {
+        pad2: true,
+        duration: 220
     });
 
-    animateCounterChange(document.getElementById('total-minutes-love'), totalMinutes, {
-        useLocale: true,
-        duration: 320
+    animateCounterChange(document.getElementById('minutes'), m, {
+        pad2: true,
+        duration: 220
     });
 
-    animateCounterChange(document.getElementById('meet-count'), config.meetingCount, {
-        duration: 300
+    animateCounterChange(document.getElementById('seconds'), s, {
+        pad2: true,
+        duration: 220
     });
-}
 
-animateCounterChange(document.getElementById('hours'), h, {
-    pad2: true,
-    duration: 220
-});
+    animateCounterChange(document.getElementById('detail-hours'), h, {
+        duration: 220
+    });
 
-animateCounterChange(document.getElementById('minutes'), m, {
-    pad2: true,
-    duration: 220
-});
+    animateCounterChange(document.getElementById('detail-minutes'), m, {
+        duration: 220
+    });
 
-animateCounterChange(document.getElementById('seconds'), s, {
-    pad2: true,
-    duration: 220
-});
-
-animateCounterChange(document.getElementById('detail-hours'), h, {
-    duration: 220
-});
-
-animateCounterChange(document.getElementById('detail-minutes'), m, {
-    duration: 220
-});
-
-animateCounterChange(document.getElementById('detail-seconds'), s, {
-    duration: 220
-});
+    animateCounterChange(document.getElementById('detail-seconds'), s, {
+        duration: 220
+    });
 function formatAzDate(dateIso) {
     const months = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
     const d = new Date(dateIso);
@@ -571,25 +569,25 @@ function updateMeetingTimer() {
     const s = Math.floor((diff % (1000 * 60)) / 1000);
 
     animateCounterChange(document.getElementById('meet-days'), d, {
-    pad2: true,
-    duration: 260
-});
+        pad2: true,
+        duration: 260
+    });
 
-animateCounterChange(document.getElementById('meet-hours'), h, {
-    pad2: true,
-    duration: 220
-});
+    animateCounterChange(document.getElementById('meet-hours'), h, {
+        pad2: true,
+        duration: 220
+    });
 
-animateCounterChange(document.getElementById('meet-minutes'), m, {
-    pad2: true,
-    duration: 220
-});
+    animateCounterChange(document.getElementById('meet-minutes'), m, {
+        pad2: true,
+        duration: 220
+    });
 
-animateCounterChange(document.getElementById('meet-seconds'), s, {
-    pad2: true,
-    duration: 220
-});
-}
+    animateCounterChange(document.getElementById('meet-seconds'), s, {
+        pad2: true,
+        duration: 220
+    });
+    }
 
 setInterval(updateMeetingTimer, 1000);
 updateMeetingTimer();
