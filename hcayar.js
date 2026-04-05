@@ -338,8 +338,11 @@ async function updateLightboxContent() {
     lbImg.src = imgData.download_url;
 
     if (dateEl) {
-        const dateText = formatAzDate(img.git_date);
-        dateEl.innerHTML = `<i class="far fa-image"></i> Xatirəmiz`;
+        const dateText = imgData.git_date
+            ? formatAzDate(imgData.git_date)
+            : "Tarix bilinmir";
+
+        dateEl.innerHTML = `<i class="far fa-clock"></i> ${dateText}`;
     }
 }
 document.addEventListener('DOMContentLoaded', () => {
