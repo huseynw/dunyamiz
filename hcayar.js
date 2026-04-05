@@ -201,45 +201,88 @@ function formatAzDate(dateIso) {
 }
 async function fetchImages() {
     const stack = document.getElementById('gallery-stack');
-    if(!stack) return;
-    
-    stack.className = 'modern-gallery-grid';
-    stack.innerHTML = '<p style="text-align:center; width:100%; color: white;"><i class="fas fa-spinner fa-spin"></i> Xatirələr yüklənir...</p>';
-    
+    if (!stack) return;
+
+    stack.className = 'gallery-timeline';
+    stack.innerHTML = '<p class="timeline-loading"><i class="fas fa-spinner fa-spin"></i> Xatirələr yüklənir...</p>';
+
     const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery`;
-    
+
     try {
         const response = await fetch(url);
         const files = await response.json();
-        
-        // Şəkilləri süzürük və QLOBAL massivə yazırıq
-        window.allImages = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
-        
-        if(window.allImages.length > 0) {
-            let html = '';
-            window.allImages.forEach((img, idx) => {
-                html += `
+
+        window.allImages = files
+            .filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        if (window.allImages.length === 0) {
+            stack.innerHTML = '<p class="timeline-empty">Hələ ki, şəkil yoxdur.</p>';
+            return;
+        }
+
+        const repo = `${config.githubUsername}/${config.repoName}`;
+
+        const imageDates = await Promise.all(
+            window.allImages.map(async (img) => {
+                try {
+                    const res = await fetch(`https://api.github.com/repos/${repo}/commits?path=gallery/${img.name}&per_page=1`);
+                    const commitData = await res.json();
+                    return commitData?.[0]?.commit?.committer?.date || null;
+                } catch {
+                    return null;
+                }
+            })
+        );
+
+        let html = '';
+
+        window.allImages.forEach((img, idx) => {
+            const side = idx % 2 === 0 ? 'left' : 'right';
+            const imgDate = imageDates[idx];
+
+            html += `
+                <article class="timeline-item ${side}">
                     <div class="photo-frame gallery-item" data-index="${idx}">
                         <img src="${img.download_url}" loading="lazy" alt="Bizim Xatirəmiz">
                         <div class="hover-heart"><i class="fas fa-heart"></i></div>
                     </div>
-                `;
-            });
-            stack.innerHTML = html;
+                    <div class="timeline-date">
+                        <i class="far fa-calendar-alt"></i>
+                        <span>${imgDate ? formatAzDate(imgDate) : 'Tarix bilinmir'}</span>
+                    </div>
+                </article>
+            `;
+        });
 
-            // Klikləri bağlayırıq
-            document.querySelectorAll('.gallery-item').forEach(item => {
-                item.onclick = function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    window.openLightbox(index);
-                };
+        stack.innerHTML = html;
+
+        document.querySelectorAll('.gallery-item').forEach(item => {
+            item.onclick = function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                window.openLightbox(index);
+            };
+        });
+
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show');
+                    obs.unobserve(entry.target);
+                }
             });
-        } else {
-            stack.innerHTML = '<p style="text-align:center; color: white;">Hələ ki, şəkil yoxdur.</p>';
-        }
+        }, {
+            threshold: 0.15,
+            rootMargin: '0px 0px -40px 0px'
+        });
+
+        document.querySelectorAll('.timeline-item').forEach(item => {
+            observer.observe(item);
+        });
+
     } catch (e) {
         console.error("Fetch xətası:", e);
-        stack.innerHTML = '<p style="text-align:center; color: white;">Sistem xətası!</p>';
+        stack.innerHTML = '<p class="timeline-empty">Sistem xətası!</p>';
     }
 }
 window.openLightbox = function(index) {
