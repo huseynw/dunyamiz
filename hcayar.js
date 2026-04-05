@@ -210,10 +210,24 @@ async function fetchImages() {
 
     try {
         const response = await fetch(url);
-        const files = await response.json();
+        const data = await response.json();
 
-        window.allImages = files
-            .filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i))
+        if (!response.ok) {
+            if (response.status === 403) {
+                stack.innerHTML = '<p class="timeline-empty">GitHub API limiti dolub. Bir az sonra yenidən yoxla.</p>';
+            } else {
+                stack.innerHTML = `<p class="timeline-empty">${data?.message || 'Qalereya yüklənmədi.'}</p>`;
+            }
+            return;
+        }
+
+        if (!Array.isArray(data)) {
+            stack.innerHTML = '<p class="timeline-empty">Qalereya məlumatı düzgün gəlmədi.</p>';
+            return;
+        }
+
+        window.allImages = data
+            .filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name))
             .sort((a, b) => a.name.localeCompare(b.name));
 
         if (window.allImages.length === 0) {
@@ -221,35 +235,16 @@ async function fetchImages() {
             return;
         }
 
-        const repo = `${config.githubUsername}/${config.repoName}`;
-
-        const imageDates = await Promise.all(
-            window.allImages.map(async (img) => {
-                try {
-                    const res = await fetch(`https://api.github.com/repos/${repo}/commits?path=gallery/${img.name}&per_page=1`);
-                    const commitData = await res.json();
-                    return commitData?.[0]?.commit?.committer?.date || null;
-                } catch {
-                    return null;
-                }
-            })
-        );
-
         let html = '';
 
         window.allImages.forEach((img, idx) => {
             const side = idx % 2 === 0 ? 'left' : 'right';
-            const imgDate = imageDates[idx];
 
             html += `
                 <article class="timeline-item ${side}">
                     <div class="photo-frame gallery-item" data-index="${idx}">
                         <img src="${img.download_url}" loading="lazy" alt="Bizim Xatirəmiz">
                         <div class="hover-heart"><i class="fas fa-heart"></i></div>
-                    </div>
-                    <div class="timeline-date">
-                        <i class="far fa-calendar-alt"></i>
-                        <span>${imgDate ? formatAzDate(imgDate) : 'Tarix bilinmir'}</span>
                     </div>
                 </article>
             `;
@@ -305,17 +300,9 @@ async function updateLightboxContent() {
     if (!imgData || !lbImg) return;
 
     lbImg.src = imgData.download_url;
-    if (dateEl) dateEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Tarix alınır...`;
 
-    try {
-        const repo = `${config.githubUsername}/${config.repoName}`;
-        const res = await fetch(`https://api.github.com/repos/${repo}/commits?path=gallery/${imgData.name}&per_page=1`);
-        const commitData = await res.json();
-        if (commitData[0] && dateEl) {
-            dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> ${formatAzDate(commitData[0].commit.committer.date)}`;
-        }
-    } catch (err) {
-        if (dateEl) dateEl.innerHTML = `<i class="far fa-calendar-alt"></i> Tarix tapılmadı`;
+    if (dateEl) {
+        dateEl.innerHTML = `<i class="far fa-image"></i> Xatirəmiz`;
     }
 }
 document.addEventListener('DOMContentLoaded', () => {
