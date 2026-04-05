@@ -259,15 +259,7 @@ async function fetchImages() {
 
         window.allImages = data
             .filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name))
-            .map(f => ({
-                ...f,
-                parsedDate: parseImageDate(f)
-            }))
-            .sort((a, b) => {
-                const aTime = a.parsedDate ? a.parsedDate.getTime() : 0;
-                const bTime = b.parsedDate ? b.parsedDate.getTime() : 0;
-                return aTime - bTime;
-            });
+            .sort((a, b) => new Date(a.git_date) - new Date(b.git_date));
 
 
         if (window.allImages.length === 0) {
@@ -279,7 +271,7 @@ async function fetchImages() {
 
         window.allImages.forEach((img, idx) => {
             const side = idx % 2 === 0 ? 'left' : 'right';
-            const dateText = img.parsedDate ? formatAzDate(img.parsedDate) : "Tarix bilinmir";
+            const dateText = formatAzDate(img.git_date);
 
             html += `
                 <article class="timeline-item ${side}">
@@ -346,7 +338,7 @@ async function updateLightboxContent() {
     lbImg.src = imgData.download_url;
 
     if (dateEl) {
-        const dateText = imgData.parsedDate ? formatAzDate(imgData.parsedDate) : "Tarix bilinmir";
+        const dateText = formatAzDate(img.git_date);
         dateEl.innerHTML = `<i class="far fa-image"></i> Xatirəmiz`;
     }
 }
