@@ -2559,26 +2559,49 @@ header { text-align: center; margin-bottom: 30px; }
     font-size: 1.1em;
     color: #fff;
 }
-.counter-bump {
-    animation: counterBump var(--counter-duration, 260ms) cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: transform, opacity, filter;
+.counter-slide {
     display: inline-block;
+    line-height: 1;
+    vertical-align: middle;
 }
 
-@keyframes counterBump {
+.counter-viewport {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    height: 1em;
+}
+
+.counter-track {
+    display: flex;
+    flex-direction: column;
+    transform: translateY(0);
+    animation: counterSlideUp var(--counter-duration, 320ms) cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    will-change: transform;
+}
+
+.counter-value {
+    display: block;
+    height: 1em;
+    line-height: 1em;
+    white-space: nowrap;
+}
+
+.counter-old {
+    opacity: 0.75;
+}
+
+.counter-new {
+    opacity: 1;
+}
+
+@keyframes counterSlideUp {
     0% {
-        transform: translateY(10px) scale(0.92);
-        opacity: 0.45;
+        transform: translateY(0);
         filter: blur(1px);
     }
-    45% {
-        transform: translateY(-4px) scale(1.08);
-        opacity: 1;
-        filter: blur(0);
-    }
     100% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
+        transform: translateY(-1em);
         filter: blur(0);
     }
 }
