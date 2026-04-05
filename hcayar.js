@@ -2354,3 +2354,82 @@ function seekToLyricsTime(time) {
         audio.play().catch(err => console.error('Lyrics seek play error:', err));
     }
 }
+async function fetchMusic() {
+    const container = document.getElementById('music-playlist');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="music-loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Musiqilər yüklənir...</span>
+        </div>
+    `;
+
+    try {
+        const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/musiqiler`;
+        const res = await fetch(url);
+        const files = await res.json();
+
+        const musics = files.filter(f => f.name.endsWith('.json'));
+
+        if (!musics.length) {
+            container.innerHTML = "Musiqi tapılmadı";
+            return;
+        }
+
+        let html = "";
+
+        for (let i = 0; i < musics.length; i++) {
+            const file = musics[i];
+
+            const rawUrl = `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${file.name}`;
+            const data = await fetch(rawUrl).then(r => r.json());
+
+            html += `
+                <div class="yt-track-item" onclick="playMusic(${i})">
+                    <img src="https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${data.cover}" class="yt-track-thumb">
+                    <div class="yt-track-info">
+                        <strong>${data.title}</strong>
+                        <span>${data.artist}</span>
+                    </div>
+                </div>
+            `;
+
+            window.musicQueue.push({
+                title: data.title,
+                artist: data.artist,
+                audio: `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${data.audio}`,
+                cover: data.cover
+            });
+        }
+
+        container.innerHTML = html;
+
+        document.getElementById('music-track-count').innerText = musics.length + " mahnı";
+
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = "Musiqilər yüklənmədi";
+    }
+}
+function playMusic(index) {
+    const track = window.musicQueue[index];
+    if (!track) return;
+
+    const audio = document.getElementById('yt-audio');
+    audio.src = track.audio;
+    audio.play();
+
+    document.getElementById('yt-active-player').style.display = 'block';
+
+    document.getElementById('yt-player-title').innerText = track.title;
+    document.getElementById('yt-player-artist').innerText = track.artist;
+
+    document.getElementById('yt-player-title-mini').innerText = track.title;
+    document.getElementById('yt-player-artist-mini').innerText = track.artist;
+
+    document.getElementById('yt-cover-image-mini').src =
+        `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/musiqiler/${track.cover}`;
+
+    window.currentQueueIndex = index;
+}
