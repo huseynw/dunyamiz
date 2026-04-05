@@ -193,9 +193,40 @@ function updateCounter() {
     if(document.getElementById('detail-minutes')) document.getElementById('detail-minutes').innerText = m;
     if(document.getElementById('detail-seconds')) document.getElementById('detail-seconds').innerText = s;
 }
-function formatAzDate(dateIso) {
+function parseImageDate(img) {
+    if (img.git_date) {
+        const d = new Date(img.git_date);
+        if (!isNaN(d)) return d;
+    }
+
+    const fileName = (img.name || '').replace(/\.[^.]+$/, '');
+
+    // 2026-04-06_18-30
+    let match = fileName.match(/(\d{4})-(\d{2})-(\d{2})[_ ](\d{2})-(\d{2})/);
+    if (match) {
+        const [, y, mo, da, h, mi] = match;
+        return new Date(`${y}-${mo}-${da}T${h}:${mi}:00`);
+    }
+
+    // 2026-04-06 18:30
+    match = fileName.match(/(\d{4})-(\d{2})-(\d{2})[_ ](\d{2}):(\d{2})/);
+    if (match) {
+        const [, y, mo, da, h, mi] = match;
+        return new Date(`${y}-${mo}-${da}T${h}:${mi}:00`);
+    }
+
+    // 2026-04-06
+    match = fileName.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+        const [, y, mo, da] = match;
+        return new Date(`${y}-${mo}-${da}T00:00:00`);
+    }
+
+    return null;
+}
+function formatAzDate(input) {
     const months = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
-    const d = new Date(dateIso);
+    const d = input instanceof Date ? input : new Date(input);
     if (isNaN(d)) return "Tarix bilinmir";
     return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
@@ -228,7 +259,16 @@ async function fetchImages() {
 
         window.allImages = data
             .filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name))
-            .sort((a, b) => new Date(a.git_date || a.name) - new Date(b.git_date || b.name));
+            .map(f => ({
+                ...f,
+                parsedDate: parseImageDate(f)
+            }))
+            .sort((a, b) => {
+                const aTime = a.parsedDate ? a.parsedDate.getTime() : 0;
+                const bTime = b.parsedDate ? b.parsedDate.getTime() : 0;
+                return aTime - bTime;
+            });
+
 
         if (window.allImages.length === 0) {
             stack.innerHTML = '<p class="timeline-empty">Hələ ki, şəkil yoxdur.</p>';
@@ -239,7 +279,7 @@ async function fetchImages() {
 
         window.allImages.forEach((img, idx) => {
             const side = idx % 2 === 0 ? 'left' : 'right';
-            const dateText = formatAzDate(img.git_date || img.name);
+            const dateText = img.parsedDate ? formatAzDate(img.parsedDate) : "Tarix bilinmir";
 
             html += `
                 <article class="timeline-item ${side}">
@@ -306,7 +346,7 @@ async function updateLightboxContent() {
     lbImg.src = imgData.download_url;
 
     if (dateEl) {
-        const dateText = formatAzDate(imgData.git_date || imgData.name);
+        const dateText = imgData.parsedDate ? formatAzDate(imgData.parsedDate) : "Tarix bilinmir";
         dateEl.innerHTML = `<i class="far fa-image"></i> Xatirəmiz`;
     }
 }
