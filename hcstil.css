@@ -2559,233 +2559,146 @@ header { text-align: center; margin-bottom: 30px; }
     font-size: 1.1em;
     color: #fff;
 }
-.love-timeline {
-    position: relative;
+.timeline-gallery {
     width: 100%;
-    max-width: 1000px;
-    margin: 30px auto 0;
-    padding: 20px 0 80px;
+    max-width: 900px;
+    margin: 20px auto 0;
+    padding: 10px 0 90px;
+    position: relative;
 }
 
-.love-timeline::before {
+.timeline-feed {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.timeline-feed::before {
     content: "";
     position: absolute;
     top: 0;
     bottom: 0;
     left: 50%;
-    width: 3px;
+    width: 2px;
     transform: translateX(-50%);
-    background: linear-gradient(to bottom, transparent, var(--primary), transparent);
-    box-shadow: 0 0 20px rgba(255, 77, 109, 0.35);
+    background: linear-gradient(to bottom, transparent, rgba(255, 77, 109, 0.85), transparent);
+    box-shadow: 0 0 20px rgba(255, 77, 109, 0.25);
+    opacity: 0.85;
 }
 
-.timeline-item {
+.timeline-photo-item {
     position: relative;
     width: 50%;
-    padding: 10px 35px 30px 35px;
+    opacity: 0;
+    transform: translateY(60px) scale(0.96);
+    transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.timeline-item.left {
-    left: 0;
+.timeline-photo-item.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
 }
 
-.timeline-item.right {
-    left: 50%;
+.timeline-photo-item.left {
+    align-self: flex-start;
+    padding-right: 32px;
 }
 
-.timeline-dot {
+.timeline-photo-item.right {
+    align-self: flex-end;
+    padding-left: 32px;
+}
+
+.timeline-photo-item::before {
+    content: "";
     position: absolute;
-    top: 28px;
-    width: 16px;
-    height: 16px;
+    top: 24px;
+    width: 14px;
+    height: 14px;
     background: var(--primary);
-    border: 3px solid rgba(255,255,255,0.9);
     border-radius: 50%;
-    box-shadow: 0 0 18px rgba(255, 77, 109, 0.7);
+    box-shadow: 0 0 16px rgba(255, 77, 109, 0.65);
+    border: 2px solid rgba(255,255,255,0.9);
     z-index: 2;
 }
 
-.timeline-item.left .timeline-dot {
-    right: -8px;
+.timeline-photo-item.left::before {
+    right: -7px;
 }
 
-.timeline-item.right .timeline-dot {
-    left: -8px;
+.timeline-photo-item.right::before {
+    left: -7px;
 }
 
-.timeline-card {
+.timeline-photo-card {
     position: relative;
+    overflow: hidden;
+    border-radius: 24px;
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.14);
     backdrop-filter: blur(14px);
-    border-radius: 24px;
-    overflow: hidden;
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 14px 35px rgba(0,0,0,0.26);
     cursor: pointer;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-    transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease;
+    transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
-.timeline-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    border-color: rgba(255, 77, 109, 0.7);
-    box-shadow: 0 18px 40px rgba(255, 77, 109, 0.25);
+.timeline-photo-card:hover {
+    transform: translateY(-6px) scale(1.015);
+    border-color: rgba(255, 77, 109, 0.65);
+    box-shadow: 0 22px 42px rgba(0,0,0,0.32), 0 0 24px rgba(255, 77, 109, 0.15);
 }
 
-.timeline-image-wrap {
+.timeline-photo-card img {
     width: 100%;
-    aspect-ratio: 4/5;
-    overflow: hidden;
-    background: rgba(255,255,255,0.06);
-}
-
-.timeline-image-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
     display: block;
-    transition: transform .6s ease;
-}
-
-.timeline-card:hover img {
-    transform: scale(1.08);
-}
-
-.timeline-content {
-    padding: 16px 18px 18px;
-}
-
-.timeline-date {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--primary);
-    font-size: .9rem;
-    font-weight: 600;
-    margin-bottom: 10px;
-}
-
-.timeline-text {
-    color: rgba(255,255,255,0.78);
-    font-size: .92rem;
-    line-height: 1.5;
-}
-
-@media (max-width: 768px) {
-    .love-timeline::before {
-        left: 18px;
-        transform: none;
-    }
-
-    .timeline-item,
-    .timeline-item.left,
-    .timeline-item.right {
-        width: 100%;
-        left: 0;
-        padding: 10px 0 24px 45px;
-    }
-
-    .timeline-item.left .timeline-dot,
-    .timeline-item.right .timeline-dot {
-        left: 10px;
-        right: auto;
-    }
-}
-.netflix-gallery {
-    width: 100%;
-    max-width: 1150px;
-    margin: 25px auto 0;
-    padding: 10px 0 90px;
-}
-
-.netflix-gallery-track {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 18px;
-}
-
-.netflix-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 18px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.12);
-    aspect-ratio: 2 / 3;
-    cursor: pointer;
-    transform: scale(0.92) translateY(60px);
-    opacity: 0;
-    transition:
-        transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 0.8s ease,
-        box-shadow 0.35s ease,
-        border-color 0.35s ease,
-        filter 0.35s ease;
-    will-change: transform, opacity;
-}
-
-.netflix-card.show {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-}
-
-.netflix-card img {
-    width: 100%;
-    height: 100%;
+    max-height: 620px;
     object-fit: cover;
-    display: block;
     transition: transform 0.55s ease, filter 0.35s ease;
 }
 
-.netflix-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.35), transparent 45%);
-    opacity: 0.65;
-    pointer-events: none;
-    transition: opacity 0.35s ease;
+.timeline-photo-card:hover img {
+    transform: scale(1.03);
+    filter: brightness(1.03);
 }
 
-.netflix-card:hover {
-    transform: scale(1.06) translateY(-6px);
-    z-index: 5;
-    border-color: rgba(255, 77, 109, 0.7);
-    box-shadow: 0 18px 40px rgba(0,0,0,0.35), 0 0 25px rgba(255, 77, 109, 0.22);
-}
-
-.netflix-card:hover img {
-    transform: scale(1.08);
-    filter: brightness(1.04);
-}
-
-.netflix-card:hover::after {
-    opacity: 0.2;
-}
-
+.timeline-loader,
 .gallery-loading {
-    text-align: center;
-    color: white;
-    padding: 30px 0;
-    font-size: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: rgba(255,255,255,0.78);
+    padding: 20px 0;
+    font-size: 0.95rem;
 }
 
 @media (max-width: 768px) {
-    .netflix-gallery-track {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
+    .timeline-feed::before {
+        left: 14px;
+        transform: none;
     }
 
-    .netflix-card:hover {
-        transform: scale(1.03) translateY(-4px);
-    }
-}
-
-@media (max-width: 480px) {
-    .netflix-gallery-track {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
+    .timeline-photo-item,
+    .timeline-photo-item.left,
+    .timeline-photo-item.right {
+        width: 100%;
+        align-self: stretch;
+        padding-left: 40px;
+        padding-right: 0;
     }
 
-    .netflix-gallery {
-        padding-bottom: 70px;
+    .timeline-photo-item.left::before,
+    .timeline-photo-item.right::before {
+        left: 7px;
+        right: auto;
+    }
+
+    .timeline-photo-card {
+        border-radius: 18px;
+    }
+
+    .timeline-photo-card img {
+        max-height: none;
     }
 }
