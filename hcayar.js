@@ -170,31 +170,44 @@ function formatCounterValue(value, useLocale = false, pad2 = false) {
     return useLocale ? Number(value).toLocaleString('tr-TR') : String(value);
 }
 
+function formatCounterValue(value, useLocale = false, pad2 = false) {
+    if (pad2) return String(value).padStart(2, '0');
+    return useLocale ? Number(value).toLocaleString('tr-TR') : String(value);
+}
+
 function animateCounterChange(el, newValue, options = {}) {
     if (!el) return;
 
     const {
         useLocale = false,
         pad2 = false,
-        duration = 260
+        duration = 320
     } = options;
 
     const formatted = formatCounterValue(newValue, useLocale, pad2);
+    const oldValue = el.dataset.valueFormatted ?? el.textContent.trim();
 
-    if (el.dataset.value === String(newValue) && el.textContent === formatted) return;
+    if (oldValue === formatted) return;
 
     el.dataset.value = String(newValue);
+    el.dataset.valueFormatted = formatted;
 
-    el.classList.remove('counter-bump');
-    void el.offsetWidth;
-
-    el.textContent = formatted;
+    el.classList.add('counter-slide');
     el.style.setProperty('--counter-duration', `${duration}ms`);
-    el.classList.add('counter-bump');
+
+    el.innerHTML = `
+        <span class="counter-viewport">
+            <span class="counter-track">
+                <span class="counter-value counter-old">${oldValue || formatted}</span>
+                <span class="counter-value counter-new">${formatted}</span>
+            </span>
+        </span>
+    `;
 
     clearTimeout(el._counterTimer);
     el._counterTimer = setTimeout(() => {
-        el.classList.remove('counter-bump');
+        el.textContent = formatted;
+        el.classList.remove('counter-slide');
     }, duration);
 }
 function updateCounter() {
