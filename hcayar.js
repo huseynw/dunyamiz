@@ -2012,6 +2012,71 @@ function animateTrackChange() {
         el.classList.add('track-switch-anim');
     });
 }
+function restartAnimation(el, className) {
+    if (!el) return;
+    el.classList.remove(className);
+    void el.offsetWidth;
+    el.classList.add(className);
+}
+
+function runMorphTransition(track) {
+    const dom = getMusicDom();
+
+    const coverTargets = [dom.coverFull, dom.coverMini].filter(Boolean);
+    const textTargets = [
+        dom.titleFull,
+        dom.artistFull,
+        dom.titleMini,
+        dom.artistMini
+    ].filter(Boolean);
+
+    coverTargets.forEach((coverEl) => {
+        const parent = coverEl.parentElement;
+        if (!parent) return;
+
+        parent.classList.add('morph-stage', 'morph-animating');
+
+        const ghost = document.createElement('img');
+        ghost.src = coverEl.src || '';
+        ghost.className = 'morph-ghost';
+        parent.appendChild(ghost);
+
+        restartAnimation(coverEl, 'morph-target-in');
+
+        ghost.addEventListener('animationend', () => {
+            ghost.remove();
+            parent.classList.remove('morph-animating');
+        }, { once: true });
+    });
+
+    textTargets.forEach((el) => {
+        restartAnimation(el, 'morph-text-in');
+    });
+}
+
+async function animateTextSwap(track) {
+    const dom = getMusicDom();
+    const textTargets = [
+        dom.titleFull,
+        dom.artistFull,
+        dom.titleMini,
+        dom.artistMini
+    ].filter(Boolean);
+
+    textTargets.forEach((el) => restartAnimation(el, 'morph-text-out'));
+
+    await new Promise(resolve => setTimeout(resolve, 180));
+
+    if (dom.titleFull) dom.titleFull.textContent = track.title || 'Adsız mahnı';
+    if (dom.artistFull) dom.artistFull.textContent = track.artist || 'Naməlum artist';
+    if (dom.titleMini) dom.titleMini.textContent = track.title || 'Adsız mahnı';
+    if (dom.artistMini) dom.artistMini.textContent = track.artist || 'Naməlum artist';
+
+    textTargets.forEach((el) => {
+        el.classList.remove('morph-text-out');
+        restartAnimation(el, 'morph-text-in');
+    });
+}
 async function openMusicTrack(index) {
     const track = window.musicLibrary[index];
     const dom = getMusicDom();
@@ -2035,10 +2100,7 @@ async function openMusicTrack(index) {
     window.currentMusic = track;
     window.currentMusicIndex = index;
 
-    if (dom.titleFull) dom.titleFull.textContent = track.title || 'Adsız mahnı';
-    if (dom.artistFull) dom.artistFull.textContent = track.artist || 'Naməlum artist';
-    if (dom.titleMini) dom.titleMini.textContent = track.title || 'Adsız mahnı';
-    if (dom.artistMini) dom.artistMini.textContent = track.artist || 'Naməlum artist';
+    await animateTextSwap(track);
 
     dom.audio.src = track.audioUrl;
     dom.audio.currentTime = 0;
@@ -2051,6 +2113,7 @@ async function openMusicTrack(index) {
     renderMusicPlaylist();
     updateMusicCover(track);
     animateTrackChange();
+    runMorphTransition(track);
 
     if (dom.activePlayer) {
         dom.activePlayer.style.display = 'block';
