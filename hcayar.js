@@ -85,7 +85,7 @@ function initSPANavigation() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
     initSPANavigation();
-    setDefaultCinematicBackground();
+    
     const meetEl = document.getElementById('meet-count');
     if(meetEl) meetEl.innerText = config.meetingCount;
     
@@ -2102,42 +2102,4 @@ function seekToLyricsTime(time) {
     if (audio.paused) {
         audio.play().catch(err => console.error('Lyrics seek play error:', err));
     }
-}
-let activeCinemaLayer = 1;
-
-function getCinemaDom() {
-    return {
-        layer1: document.getElementById('cinema-bg-1'),
-        layer2: document.getElementById('cinema-bg-2')
-    };
-}
-
-function setCinematicBackground(imageUrl) {
-    const { layer1, layer2 } = getCinemaDom();
-    if (!layer1 || !layer2) return;
-
-    const nextLayer = activeCinemaLayer === 1 ? layer2 : layer1;
-    const currentLayer = activeCinemaLayer === 1 ? layer1 : layer2;
-    const safeImage = imageUrl || 'assets/background.jpg';
-
-    nextLayer.style.backgroundImage = `
-        linear-gradient(rgba(8, 8, 12, 0.30), rgba(8, 8, 12, 0.55)),
-        url("${safeImage}")
-    `;
-
-    nextLayer.classList.remove('zoom');
-    void nextLayer.offsetWidth;
-
-    nextLayer.classList.add('active');
-
-    if (currentLayer) {
-        currentLayer.classList.remove('active');
-        currentLayer.classList.add('zoom');
-    }
-
-    activeCinemaLayer = activeCinemaLayer === 1 ? 2 : 1;
-}
-
-function setDefaultCinematicBackground() {
-    setCinematicBackground('assets/background.jpg');
 }
