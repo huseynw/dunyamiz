@@ -1962,6 +1962,13 @@ async function openMusicTrack(index) {
     const track = window.musicLibrary[index];
     const dom = getMusicDom();
     if (!track || !dom.audio) return;
+    const mainAudio = document.getElementById("audio");
+    if (mainAudio && !mainAudio.paused) {
+        mainAudio.pause();
+    }
+
+    dom.audio.src = track.audioUrl;
+    dom.audio.currentTime = 0;
 
     const wasExpanded = dom.activePlayer?.classList.contains('expanded') || false;
     const wasLyricsOpen = dom.activePlayer?.classList.contains('lyrics-open') || false;
@@ -1976,6 +1983,10 @@ async function openMusicTrack(index) {
 
     dom.audio.src = track.audioUrl;
     dom.audio.currentTime = 0;
+    const mainAudio = document.getElementById("audio");
+    if (mainAudio && !mainAudio.paused) {
+        mainAudio.pause();
+    }
 
     if (dom.seekbar) dom.seekbar.value = 0;
     if (dom.currentTime) dom.currentTime.textContent = '00:00';
