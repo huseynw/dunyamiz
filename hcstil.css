@@ -2904,3 +2904,23 @@ header { text-align: center; margin-bottom: 30px; }
         gap: 12px;
     }
 }
+.yt-lyrics-line.active {
+    opacity: 1;
+    transform: scale(1.03);
+    color: #fff;
+    text-shadow: 0 0 20px rgba(255,255,255,0.12);
+}
+
+.yt-lyrics-word {
+    transition: color 0.16s ease, opacity 0.16s ease, transform 0.16s ease;
+}
+
+.yt-lyrics-word.active {
+    color: #fff;
+    opacity: 1;
+    transform: translateY(-1px) scale(1.04);
+}
+
+.yt-lyrics-word.passed {
+    color: rgba(255,255,255,0.85);
+}
