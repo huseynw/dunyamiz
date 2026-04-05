@@ -253,6 +253,7 @@ function updateCounter() {
     animateCounterChange(document.getElementById('detail-seconds'), s, {
         duration: 220
     });
+}
 function formatAzDate(dateIso) {
     const months = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
     const d = new Date(dateIso);
