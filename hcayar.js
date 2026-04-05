@@ -10,31 +10,31 @@ const config = {
 };
 
 // Security - Disable right-click and dev tools
-document.addEventListener('contextmenu', event => event.preventDefault());
-document.onkeydown = function(e) {
-    if (e.keyCode == 123 || 
-        (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || 
-        (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
-        return false;
-    }
-};
+//document.addEventListener('contextmenu', event => event.preventDefault());
+//document.onkeydown = function(e) {
+  //  if (e.keyCode == 123 || 
+    //    (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || 
+      //  (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
+        //return false;
+    //}
+//};
 
-setInterval(function() {
-    checkDevTools();
-}, 1000);
+//setInterval(function() {
+  //  checkDevTools();
+//}, 1000);
 
-function checkDevTools() {
-    const start = new Date();
-    debugger; 
-    const end = new Date();
-    if (end - start > 100) {
-        document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:20%; font-family:sans-serif;'>Giriş Qadağandır! 🚱</h1>";
-    }
-}
+//function checkDevTools() {
+  //  const start = new Date();
+    //debugger; 
+    //const end = new Date();
+    //if (end - start > 100) {
+      //  document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:20%; font-family:sans-serif;'>Giriş Qadağandır! 🚱</h1>";
+    //}
+//}
 
-setInterval(() => {
-    console.clear();
-}, 100);
+//setInterval(() => {
+  //  console.clear();
+//}, 100);
 
 // Audio Elements
 const audio = document.getElementById('audio');
