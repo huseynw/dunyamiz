@@ -16,7 +16,7 @@ export async function handler(event) {
 
         const res = await fetch(url, {
             headers: {
-                Authorization: `Bearer ${process.env.Gh_TOKEN}`,
+                Authorization: `Bearer ${process.env.GH_TOKEN}`,
                 Accept: "application/vnd.github+json"
             }
         });
