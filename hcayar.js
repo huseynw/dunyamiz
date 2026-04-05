@@ -200,7 +200,6 @@ function formatAzDate(dateIso) {
     return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 async function fetchImages() {
-    renderTimeline(window.allImages);
     const stack = document.getElementById('gallery-stack');
     if(!stack) return;
     
@@ -1672,63 +1671,7 @@ function renderMusicPlaylist() {
         });
     });
 }
-// ========== TIMELINE SYSTEM ==========
-function renderTimeline(images) {
-    const container = document.getElementById("timeline-container");
-    if (!container) return;
 
-    let html = `<h2 class="page-title">Bizim tariximiz ❤️</h2>`;
-
-    images.forEach((img, i) => {
-        html += `
-        <div class="timeline-item ${i % 2 === 0 ? "left" : "right"}">
-            <div class="timeline-content" onclick="openLightbox(${i})">
-                <img src="${img.download_url}" />
-                <div class="timeline-date" id="timeline-date-${i}">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-            </div>
-        </div>
-        `;
-    });
-
-    container.innerHTML = html;
-
-    // tarixləri çək
-    images.forEach(async (img, i) => {
-        try {
-            const repo = `${config.githubUsername}/${config.repoName}`;
-            const res = await fetch(`https://api.github.com/repos/${repo}/commits?path=gallery/${img.name}&per_page=1`);
-            const data = await res.json();
-
-            const el = document.getElementById(`timeline-date-${i}`);
-            if (data[0]) {
-                el.innerText = formatAzDate(data[0].commit.committer.date);
-            } else {
-                el.innerText = "Tarix yoxdur";
-            }
-        } catch {
-            document.getElementById(`timeline-date-${i}`).innerText = "Xəta";
-        }
-    });
-
-    initTimelineScroll();
-}
-
-// ========== SCROLL ANIMATION ==========
-function initTimelineScroll() {
-    const items = document.querySelectorAll(".timeline-item");
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add("show");
-            }
-        });
-    }, { threshold: 0.2 });
-
-    items.forEach(item => observer.observe(item));
-}
 function renderPlainLyrics(text = '') {
     const { lyricsContainer } = getMusicDom();
     if (!lyricsContainer) return;
