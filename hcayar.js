@@ -2173,3 +2173,9 @@ function seekToLyricsTime(time) {
         audio.play().catch(err => console.error('Lyrics seek play error:', err));
     }
 }
+audio.addEventListener("timeupdate", () => {
+    if (!audio.duration) return;
+
+    const progress = (audio.currentTime / audio.duration) * 100;
+    seekBar.style.setProperty("--progress", progress + "%");
+});
