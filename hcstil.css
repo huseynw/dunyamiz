@@ -1399,16 +1399,16 @@ header { text-align: center; margin-bottom: 30px; }
     width: 200px;
     height: 250px;
     position: relative;
-    margin-bottom: 20px;
+    margin: 0 auto 20px auto;
     animation: yidon 5s infinite;
     display: flex;
     justify-content: center;
 }
 
 .rose-flower {
-    position: relative;
-    width: 100px;
-    height: 100px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .petal {
@@ -1458,7 +1458,7 @@ header { text-align: center; margin-bottom: 30px; }
 .leaf {
     position: absolute;
     top: 60px;
-    left: -80px;
+    left: -70px;
 }
 
 .stem {
