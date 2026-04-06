@@ -2475,6 +2475,17 @@ function resizeYTWaveform() {
 }
 function initMusicPlayerEvents() {
     const dom = getMusicDom();
+    const unlockHandler = async () => {
+        await unlockYTPlayback();
+    };
+
+    dom.playBtnFull?.addEventListener('touchstart', unlockHandler, { passive: true });
+    dom.playBtnMini?.addEventListener('touchstart', unlockHandler, { passive: true });
+    dom.prevBtn?.addEventListener('touchstart', unlockHandler, { passive: true });
+    dom.prevBtnMini?.addEventListener('touchstart', unlockHandler, { passive: true });
+    dom.nextBtn?.addEventListener('touchstart', unlockHandler, { passive: true });
+    dom.nextBtnMini?.addEventListener('touchstart', unlockHandler, { passive: true });
+    dom.openFullBtn?.addEventListener('touchstart', unlockHandler, { passive: true });
     if (!dom.activePlayer || !dom.audio) return;
     if (dom.activePlayer.dataset.bound === '1') return;
     dom.activePlayer.dataset.bound = '1';
