@@ -2972,7 +2972,17 @@ header { text-align: center; margin-bottom: 30px; }
     opacity: 0.85;
     pointer-events: none;
 }
-
+.yt-active-player::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 42px;
+    background: linear-gradient(to top, rgba(255,77,109,0.10), transparent);
+    z-index: 1;
+    pointer-events: none;
+}
 .yt-active-player > *:not(.yt-player-bg):not(.yt-waveform) {
     position: relative;
     z-index: 2;
