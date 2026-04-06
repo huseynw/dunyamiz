@@ -85,7 +85,7 @@ function initSPANavigation() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
     initSPANavigation();
-    
+    setupMediaSession();
     const meetEl = document.getElementById('meet-count');
     if(meetEl) meetEl.innerText = config.meetingCount;
     
@@ -588,18 +588,7 @@ setInterval(updateMeetingTimer, 1000);
 updateMeetingTimer();
 
 // ========== MEDIA SESSION ==========
-if ('mediaSession' in navigator) {
-    navigator.mediaSession.metadata = new MediaMetadata({
-        title: config.musicTitle,
-        artist: 'Hüseyn Məmmədov',
-        album: 'Cəmaləm üçün',
-        artwork: [
-            { src: 'assets/192.png', sizes: '192x192', type: 'image/png' }
-        ]
-    });
-    navigator.mediaSession.setActionHandler('play', () => audio.play());
-    navigator.mediaSession.setActionHandler('pause', () => audio.pause());
-}
+
 
 document.addEventListener("visibilitychange", () => {
     const dom = typeof getMusicDom === 'function' ? getMusicDom() : null;
@@ -2080,6 +2069,93 @@ async function animateTextSwap(track) {
         restartAnimation(el, 'morph-text-in');
     });
 }
+function setupMediaSession() {
+    if (!('mediaSession' in navigator)) return;
+
+    navigator.mediaSession.setActionHandler('play', async () => {
+        const dom = getMusicDom();
+        if (!dom.audio) return;
+
+        try {
+            await dom.audio.play();
+            updateMusicPlayButtonState();
+        } catch (err) {
+            console.error('MediaSession play error:', err);
+        }
+    });
+
+    navigator.mediaSession.setActionHandler('pause', () => {
+        const dom = getMusicDom();
+        if (!dom.audio) return;
+
+        dom.audio.pause();
+        updateMusicPlayButtonState();
+    });
+
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+        playPrevMusic();
+    });
+
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+        playNextMusic();
+    });
+
+    navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+        const dom = getMusicDom();
+        if (!dom.audio) return;
+
+        const seekOffset = details.seekOffset || 10;
+        dom.audio.currentTime = Math.max(0, dom.audio.currentTime - seekOffset);
+    });
+
+    navigator.mediaSession.setActionHandler('seekforward', (details) => {
+        const dom = getMusicDom();
+        if (!dom.audio) return;
+
+        const seekOffset = details.seekOffset || 10;
+        dom.audio.currentTime = Math.min(dom.audio.duration || Infinity, dom.audio.currentTime + seekOffset);
+    });
+}
+
+function updateMediaSessionMetadata(track) {
+    if (!('mediaSession' in navigator) || !track) return;
+
+    const artworkSrc = track.coverUrl || track.cover || DEFAULT_MUSIC_COVER;
+    const resolvedArtwork = resolveMusicAssetUrl(artworkSrc, DEFAULT_MUSIC_COVER);
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: track.title || 'Adsız mahnı',
+        artist: track.artist || 'Naməlum artist',
+        album: 'Hüseyn və Cəmalənin Dünyası',
+        artwork: [
+            { src: resolvedArtwork, sizes: '96x96', type: 'image/png' },
+            { src: resolvedArtwork, sizes: '128x128', type: 'image/png' },
+            { src: resolvedArtwork, sizes: '192x192', type: 'image/png' },
+            { src: resolvedArtwork, sizes: '256x256', type: 'image/png' },
+            { src: resolvedArtwork, sizes: '384x384', type: 'image/png' },
+            { src: resolvedArtwork, sizes: '512x512', type: 'image/png' }
+        ]
+    });
+}
+
+function updateMediaSessionPlaybackState() {
+    if (!('mediaSession' in navigator)) return;
+
+    const dom = getMusicDom();
+    if (!dom.audio) return;
+
+    navigator.mediaSession.playbackState = dom.audio.paused ? 'paused' : 'playing';
+
+    if ('setPositionState' in navigator.mediaSession) {
+        try {
+            navigator.mediaSession.setPositionState({
+                duration: dom.audio.duration || 0,
+                playbackRate: dom.audio.playbackRate || 1,
+                position: dom.audio.currentTime || 0
+            });
+        } catch (_) {}
+    }
+}
 async function openMusicTrack(index) {
     const track = window.musicLibrary[index];
     const dom = getMusicDom();
@@ -2110,6 +2186,7 @@ async function openMusicTrack(index) {
 
     window.currentMusic = track;
     window.currentMusicIndex = index;
+    updateMediaSessionMetadata(track);
 
     await animateTextSwap(track);
 
@@ -2147,6 +2224,7 @@ async function openMusicTrack(index) {
     }
 
     updateMusicPlayButtonState();
+    updateMediaSessionPlaybackState();
 }
 function playPrevMusic() {
     if (!window.musicLibrary.length) return;
@@ -2256,16 +2334,28 @@ function initMusicPlayerEvents() {
         if (dom.seekbar) dom.seekbar.value = dom.audio.currentTime || 0;
         if (dom.currentTime) dom.currentTime.textContent = formatMusicTime(dom.audio.currentTime);
         updateSyncedLyricsByTime(dom.audio.currentTime);
+        updateMediaSessionPlaybackState();
     });
 
     dom.audio.addEventListener('loadedmetadata', () => {
         if (dom.seekbar) dom.seekbar.max = dom.audio.duration || 0;
         if (dom.duration) dom.duration.textContent = formatMusicTime(dom.audio.duration);
+        updateMediaSessionPlaybackState();
     });
 
-    dom.audio.addEventListener('play', updateMusicPlayButtonState);
-    dom.audio.addEventListener('pause', updateMusicPlayButtonState);
-    dom.audio.addEventListener('ended', playNextMusic);
+    dom.audio.addEventListener('play', () => {
+        updateMusicPlayButtonState();
+        updateMediaSessionPlaybackState();
+    });
+    dom.audio.addEventListener('pause', () => {
+        updateMusicPlayButtonState();
+        updateMediaSessionPlaybackState();
+    });
+    dom.audio.addEventListener('ended', () => {
+        updateMusicPlayButtonState();
+        updateMediaSessionPlaybackState();
+        playNextMusic();
+    });
 
     dom.seekbar?.addEventListener('input', () => {
         dom.audio.currentTime = Number(dom.seekbar.value);
@@ -2278,6 +2368,7 @@ function initMusicPlayerEvents() {
 
     updateVolumeUi(dom.volumeSlider?.value || 0.85);
     updateMusicPlayButtonState();
+    updateMediaSessionPlaybackState();
 }
 
 async function initMusicPage() {
