@@ -1574,8 +1574,6 @@ function parseSyncedLyrics(lrcText = '') {
 
 function getMusicDom() {
     return {
-        playerBg: document.getElementById('yt-player-bg'),
-        waveform: document.getElementById('yt-waveform'),
         playlist: document.getElementById('music-playlist'),
         trackCount: document.getElementById('music-track-count'),
         activePlayer: document.getElementById('yt-active-player'),
@@ -1604,7 +1602,9 @@ function getMusicDom() {
         nextBtnMini: document.getElementById('yt-next-btn-mini'),
         volumeSlider: document.getElementById('volume-slider'),
         volumeValue: document.getElementById('volume-value'),
-        rotatingDisc: document.getElementById('yt-rotating-disc')
+        rotatingDisc: document.getElementById('yt-rotating-disc'),
+        playerBg: document.getElementById('yt-player-bg'),
+        waveform: document.getElementById('yt-waveform')
     };
 }
 
@@ -2156,22 +2156,16 @@ async function openMusicTrack(index) {
 
     const mainAudio = document.getElementById("audio");
 
-    // əsas musiqini yumşaq dayandır
     if (mainAudio && !mainAudio.paused) {
-        await fadeOutAndPause(mainAudio, 400);
-
+        mainAudio.pause();
+        mainAudio.currentTime = mainAudio.currentTime || 0;
         isPlaying = false;
-
-        if (playPauseBtn) {
-            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-        }
-
+        if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
         document.getElementById('track-art')?.classList.remove('playing');
     }
 
-    // əvvəlki custom mahnını yumşaq dayandır
     if (!dom.audio.paused && dom.audio.src) {
-        await fadeOutAndPause(dom.audio, 250);
+        dom.audio.pause();
     }
 
     window.currentMusic = track;
@@ -2179,9 +2173,16 @@ async function openMusicTrack(index) {
     updateMediaSessionMetadata(track);
 
     await animateTextSwap(track);
+
+    dom.audio.pause();
     dom.audio.crossOrigin = 'anonymous';
+    dom.audio.playsInline = true;
+    dom.audio.setAttribute('playsinline', 'true');
     dom.audio.src = track.audioUrl;
+    dom.audio.load();
     dom.audio.currentTime = 0;
+    dom.audio.volume = Number(dom.volumeSlider?.value || 0.85);
+    dom.audio.muted = false;
 
     if (dom.seekbar) dom.seekbar.value = 0;
     if (dom.currentTime) dom.currentTime.textContent = '00:00';
@@ -2208,7 +2209,10 @@ async function openMusicTrack(index) {
     }
 
     try {
-        await fadeInAndPlay(dom.audio, 1, 450);
+        if (ytWaveCtx && ytWaveCtx.state === 'suspended') {
+            await ytWaveCtx.resume();
+        }
+        await dom.audio.play();
     } catch (err) {
         console.error('Music play error:', err);
     }
@@ -2361,7 +2365,6 @@ function initMusicPlayerEvents() {
     initPlayerSwipe();
     initYTWaveform();
     window.addEventListener('resize', resizeYTWaveform);
-
     const togglePlay = async () => {
         if (!dom.audio.src && window.musicLibrary.length) {
             await openMusicTrack(0);
