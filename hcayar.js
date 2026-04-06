@@ -1574,6 +1574,8 @@ function parseSyncedLyrics(lrcText = '') {
 
 function getMusicDom() {
     return {
+        playerBg: document.getElementById('yt-player-bg'),
+        waveform: document.getElementById('yt-waveform'),
         playlist: document.getElementById('music-playlist'),
         trackCount: document.getElementById('music-track-count'),
         activePlayer: document.getElementById('yt-active-player'),
@@ -1905,13 +1907,16 @@ function readMusicCoverFromUrl(audioUrl) {
 }
 
 async function updateMusicCover(track) {
-    const { coverFull, coverMini } = getMusicDom();
+    const { coverFull, coverMini, playerBg } = getMusicDom();
 
     const setCover = (src) => {
         if (coverFull) coverFull.src = src;
         if (coverMini) coverMini.src = src;
+        if (playerBg) playerBg.style.backgroundImage = `url("${src}")`;
 
-        const playlistThumb = document.querySelector(`.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`);
+        const playlistThumb = document.querySelector(
+            `.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`
+        );
         if (playlistThumb) playlistThumb.src = src;
     };
 
@@ -2226,7 +2231,126 @@ function playNextMusic() {
         : window.currentMusicIndex + 1;
     openMusicTrack(newIndex);
 }
+function initPlayerSwipe() {
+    const { activePlayer } = getMusicDom();
+    if (!activePlayer) return;
+    if (activePlayer.dataset.swipeBound === '1') return;
 
+    activePlayer.dataset.swipeBound = '1';
+
+    let startX = 0;
+    let startY = 0;
+    let endX = 0;
+    let endY = 0;
+
+    activePlayer.addEventListener('touchstart', (e) => {
+        const touch = e.changedTouches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+    }, { passive: true });
+
+    activePlayer.addEventListener('touchend', (e) => {
+        const touch = e.changedTouches[0];
+        endX = touch.clientX;
+        endY = touch.clientY;
+
+        const diffX = endX - startX;
+        const diffY = endY - startY;
+
+        if (Math.abs(diffX) < 50) return;
+        if (Math.abs(diffY) > Math.abs(diffX)) return;
+
+        if (diffX < 0) {
+            activePlayer.classList.remove('swiping-prev');
+            activePlayer.classList.add('swiping-next');
+            setTimeout(() => activePlayer.classList.remove('swiping-next'), 280);
+            playNextMusic();
+        } else {
+            activePlayer.classList.remove('swiping-next');
+            activePlayer.classList.add('swiping-prev');
+            setTimeout(() => activePlayer.classList.remove('swiping-prev'), 280);
+            playPrevMusic();
+        }
+    }, { passive: true });
+}
+let ytWaveCtx = null;
+let ytWaveAnalyser = null;
+let ytWaveSource = null;
+let ytWaveAnimationId = null;
+
+function initYTWaveform() {
+    const { audio, waveform } = getMusicDom();
+    if (!audio || !waveform) return;
+    if (ytWaveAnalyser) return;
+
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+
+    const ctx = new AudioCtx();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 128;
+    analyser.smoothingTimeConstant = 0.82;
+
+    const source = ctx.createMediaElementSource(audio);
+    source.connect(analyser);
+    analyser.connect(ctx.destination);
+
+    ytWaveCtx = ctx;
+    ytWaveAnalyser = analyser;
+    ytWaveSource = source;
+
+    drawYTWaveform();
+}
+
+function drawYTWaveform() {
+    const { waveform, audio } = getMusicDom();
+    if (!waveform || !ytWaveAnalyser) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = waveform.getBoundingClientRect();
+    waveform.width = Math.max(1, Math.floor(rect.width * dpr));
+    waveform.height = Math.max(1, Math.floor(rect.height * dpr));
+
+    const ctx = waveform.getContext('2d');
+    if (!ctx) return;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const bufferLength = ytWaveAnalyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const render = () => {
+        const width = waveform.clientWidth;
+        const height = waveform.clientHeight;
+
+        ctx.clearRect(0, 0, width, height);
+        ytWaveAnalyser.getByteFrequencyData(dataArray);
+
+        const barWidth = Math.max(2, width / bufferLength * 0.7);
+        const gap = Math.max(1, width / bufferLength * 0.3);
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const value = dataArray[i] / 255;
+            const barHeight = Math.max(4, value * height * 0.95);
+
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.10 + value * 0.75})`;
+            ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+
+            x += barWidth + gap;
+        }
+
+        ytWaveAnimationId = requestAnimationFrame(render);
+    };
+
+    if (ytWaveAnimationId) cancelAnimationFrame(ytWaveAnimationId);
+    render();
+}
+
+function resizeYTWaveform() {
+    if (!ytWaveAnalyser) return;
+    drawYTWaveform();
+}
 function initMusicPlayerEvents() {
     const dom = getMusicDom();
     if (!dom.activePlayer || !dom.audio) return;
