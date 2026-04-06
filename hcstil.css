@@ -8,38 +8,7 @@
     --glass-border: rgba(255, 255, 255, 0.2);
     --text: #ffffff;
 }
-:root {
-    --primary: #ff4d6d;
-    --primary-glow: rgba(255, 77, 109, 0.5);
-    --glass: rgba(255, 255, 255, 0.1);
-    --glass-border: rgba(255, 255, 255, 0.2);
-    --text: #ffffff;
-    --bg-overlay-1: rgba(0,0,0,0.5);
-    --bg-overlay-2: rgba(0,0,0,0.7);
-    --theme-gradient: linear-gradient(135deg, #ff4d6d, #ff8fab);
-}
 
-body.soft-pink {
-    --primary: #ff7aa2;
-    --primary-glow: rgba(255, 122, 162, 0.45);
-    --glass: rgba(255, 240, 246, 0.12);
-    --glass-border: rgba(255, 192, 203, 0.22);
-    --text: #fffafc;
-    --bg-overlay-1: rgba(255, 182, 193, 0.18);
-    --bg-overlay-2: rgba(255, 105, 180, 0.12);
-    --theme-gradient: linear-gradient(135deg, #ff8fb1, #ffc2d1);
-}
-
-body.dark-romantic {
-    --primary: #ff4d6d;
-    --primary-glow: rgba(255, 77, 109, 0.55);
-    --glass: rgba(20, 10, 20, 0.28);
-    --glass-border: rgba(255, 120, 150, 0.14);
-    --text: #fff7fa;
-    --bg-overlay-1: rgba(0, 0, 0, 0.62);
-    --bg-overlay-2: rgba(28, 8, 20, 0.82);
-    --theme-gradient: linear-gradient(135deg, #3a0f1d, #8a1538);
-}
 * {
     margin: 0;
     padding: 0;
@@ -54,35 +23,13 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -2;
-    background-image:
-        linear-gradient(var(--bg-overlay-1), var(--bg-overlay-2)),
-        url('assets/background.jpg');
+    z-index: -1;
+    background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('assets/background.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    transition: background-image 0.8s ease, filter 0.8s ease;
-}
-body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background:
-        radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 35%),
-        var(--theme-gradient);
-    opacity: 0.22;
-    transition: opacity 0.8s ease, background 0.8s ease;
 }
 
-body.dark-romantic::after {
-    opacity: 0.3;
-}
-
-body.soft-pink::after {
-    opacity: 0.2;
-}
 body {
     font-family: 'Poppins', sans-serif;
     color: var(--text);
