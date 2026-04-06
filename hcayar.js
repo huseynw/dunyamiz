@@ -1731,7 +1731,7 @@ function renderMusicPlaylist() {
     playlist.querySelectorAll('.yt-track-item').forEach((item) => {
         item.addEventListener('click', () => {
             const index = Number(item.dataset.musicIndex);
-            playMusicByIndex(index);
+            openMusicTrack(index);
         });
     });
 }
@@ -2492,7 +2492,7 @@ function initMusicPlayerEvents() {
     window.addEventListener('resize', resizeYTWaveform);
     const togglePlay = async () => {
         if (!dom.audio.src && window.musicLibrary.length) {
-            await (0);
+            await openMusicTrack(0);
             return;
         }
 
