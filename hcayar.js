@@ -1,5 +1,5 @@
 const targetDate = new Date("2026-04-04T13:00:00"); 
-
+let currentWaveColor = "rgb(255,255,255)";
 const config = {
     githubUsername: "huseynw",
     repoName: "dunyamiz",              
@@ -1905,7 +1905,43 @@ function readMusicCoverFromUrl(audioUrl) {
         });
     });
 }
+function getDominantColorFromImage(imgSrc) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = imgSrc;
 
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            canvas.width = 50;
+            canvas.height = 50;
+
+            ctx.drawImage(img, 0, 0, 50, 50);
+
+            const data = ctx.getImageData(0, 0, 50, 50).data;
+
+            let r = 0, g = 0, b = 0;
+            let count = 0;
+
+            for (let i = 0; i < data.length; i += 4) {
+                r += data[i];
+                g += data[i + 1];
+                b += data[i + 2];
+                count++;
+            }
+
+            r = Math.floor(r / count);
+            g = Math.floor(g / count);
+            b = Math.floor(b / count);
+
+            resolve(`rgb(${r}, ${g}, ${b})`);
+        };
+
+        img.onerror = () => resolve("rgb(255,255,255)");
+    });
+}
 async function updateMusicCover(track) {
     const { coverFull, coverMini, playerBg } = getMusicDom();
 
@@ -1913,7 +1949,9 @@ async function updateMusicCover(track) {
         if (coverFull) coverFull.src = src;
         if (coverMini) coverMini.src = src;
         if (playerBg) playerBg.style.backgroundImage = `url("${src}")`;
-
+        getDominantColorFromImage(src).then(color => {
+            currentWaveColor = color;
+        });
         const playlistThumb = document.querySelector(
             `.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`
         );
@@ -2331,6 +2369,8 @@ function drawYTWaveform() {
 
         ctx.clearRect(0, 0, width, height);
         ytWaveAnalyser.getByteFrequencyData(dataArray);
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = currentWaveColor;
 
         const barWidth = Math.max(2, width / bufferLength * 0.7);
         const gap = Math.max(1, width / bufferLength * 0.3);
@@ -2340,7 +2380,7 @@ function drawYTWaveform() {
             const value = dataArray[i] / 255;
             const barHeight = Math.max(4, value * height * 0.95);
 
-            ctx.fillStyle = `rgba(255, 255, 255, ${0.10 + value * 0.75})`;
+            ctx.fillStyle = currentWaveColor.replace("rgb", "rgba").replace(")", `, ${0.15 + value * 0.85})`);
             ctx.fillRect(x, height - barHeight, barWidth, barHeight);
 
             x += barWidth + gap;
