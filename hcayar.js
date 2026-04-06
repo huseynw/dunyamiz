@@ -2356,6 +2356,9 @@ function initMusicPlayerEvents() {
     if (!dom.activePlayer || !dom.audio) return;
     if (dom.activePlayer.dataset.bound === '1') return;
     dom.activePlayer.dataset.bound = '1';
+    initPlayerSwipe();
+    initYTWaveform();
+    window.addEventListener('resize', resizeYTWaveform);
 
     const togglePlay = async () => {
         if (!dom.audio.src && window.musicLibrary.length) {
