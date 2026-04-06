@@ -2369,6 +2369,11 @@ function drawYTWaveform() {
 
         ctx.clearRect(0, 0, width, height);
         ytWaveAnalyser.getByteFrequencyData(dataArray);
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, currentWaveColor);
+        gradient.addColorStop(1, "transparent");
+
+        ctx.fillStyle = gradient;
         ctx.shadowBlur = 15;
         ctx.shadowColor = currentWaveColor;
 
