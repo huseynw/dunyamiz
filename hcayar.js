@@ -2179,7 +2179,7 @@ async function openMusicTrack(index) {
     updateMediaSessionMetadata(track);
 
     await animateTextSwap(track);
-
+    dom.audio.crossOrigin = 'anonymous';
     dom.audio.src = track.audioUrl;
     dom.audio.currentTime = 0;
 
