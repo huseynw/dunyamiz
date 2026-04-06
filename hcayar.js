@@ -2100,22 +2100,7 @@ function setupMediaSession() {
         playNextMusic();
     });
 
-    navigator.mediaSession.setActionHandler('seekbackward', (details) => {
-        const dom = getMusicDom();
-        if (!dom.audio) return;
-
-        const seekOffset = details.seekOffset || 10;
-        dom.audio.currentTime = Math.max(0, dom.audio.currentTime - seekOffset);
-    });
-
-    navigator.mediaSession.setActionHandler('seekforward', (details) => {
-        const dom = getMusicDom();
-        if (!dom.audio) return;
-
-        const seekOffset = details.seekOffset || 10;
-        dom.audio.currentTime = Math.min(dom.audio.duration || Infinity, dom.audio.currentTime + seekOffset);
-    });
-}
+   }
 
 function updateMediaSessionMetadata(track) {
     if (!('mediaSession' in navigator) || !track) return;
