@@ -47,22 +47,6 @@ const durationEl = document.getElementById('duration');
 window.allImages = []; 
 let currentImgIdx = 0;
 let isPlaying = false;
-function setDynamicTheme() {
-    const hour = new Date().getHours();
-    const body = document.body;
-
-    body.classList.remove("theme-day", "theme-night");
-
-    if (hour >= 6 && hour < 18) {
-        body.classList.add("theme-day");
-    } else {
-        body.classList.add("theme-night");
-    }
-}
-function initDynamicTheme() {
-    setDynamicTheme();
-    setInterval(setDynamicTheme, 60000);
-}
 
 // ========== SPA NAVIGATION ==========
 function initSPANavigation() {
@@ -100,7 +84,6 @@ function initSPANavigation() {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-    initDynamicTheme();
     initSPANavigation();
     setupMediaSession();
     const meetEl = document.getElementById('meet-count');
