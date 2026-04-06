@@ -1731,7 +1731,7 @@ function renderMusicPlaylist() {
     playlist.querySelectorAll('.yt-track-item').forEach((item) => {
         item.addEventListener('click', () => {
             const index = Number(item.dataset.musicIndex);
-            openMusicTrack(index);
+            (index);
         });
     });
 }
@@ -2247,9 +2247,7 @@ async function openMusicTrack(index) {
     }
 
     try {
-        if (ytWaveCtx && ytWaveCtx.state === 'suspended') {
-            await ytWaveCtx.resume();
-        }
+        await unlockYTPlayback();
         await dom.audio.play();
     } catch (err) {
         console.error('Music play error:', err);
@@ -2263,7 +2261,7 @@ function playPrevMusic() {
     const newIndex = window.currentMusicIndex <= 0
         ? window.musicLibrary.length - 1
         : window.currentMusicIndex - 1;
-    openMusicTrack(newIndex);
+    (newIndex);
 }
 
 function playNextMusic() {
@@ -2271,7 +2269,7 @@ function playNextMusic() {
     const newIndex = window.currentMusicIndex >= window.musicLibrary.length - 1
         ? 0
         : window.currentMusicIndex + 1;
-    openMusicTrack(newIndex);
+    (newIndex);
 }
 function initPlayerSwipe() {
     const { activePlayer } = getMusicDom();
@@ -2319,36 +2317,96 @@ let ytWaveCtx = null;
 let ytWaveAnalyser = null;
 let ytWaveSource = null;
 let ytWaveAnimationId = null;
+let ytWaveDataArray = null;
+let ytWaveEnabled = false;
+let ytWaveInitialized = false;
+let ytWaveFallbackMode = false;
 
-function initYTWaveform() {
-    const { audio, waveform } = getMusicDom();
-    if (!audio || !waveform) return;
-    if (ytWaveAnalyser) return;
+async function ensureYTAudioReady() {
+    const { audio } = getMusicDom();
+    if (!audio) return false;
 
     audio.crossOrigin = 'anonymous';
+    audio.playsInline = true;
+    audio.setAttribute('playsinline', 'true');
+    audio.setAttribute('webkit-playsinline', 'true');
 
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
+    if (!AudioCtx) {
+        ytWaveFallbackMode = true;
+        return false;
+    }
 
-    const ctx = new AudioCtx();
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 128;
-    analyser.smoothingTimeConstant = 0.82;
+    if (!ytWaveCtx) {
+        try {
+            ytWaveCtx = new AudioCtx();
+        } catch (err) {
+            console.error('AudioContext yaradıla bilmədi:', err);
+            ytWaveFallbackMode = true;
+            return false;
+        }
+    }
 
-    const source = ctx.createMediaElementSource(audio);
-    source.connect(analyser);
-    analyser.connect(ctx.destination);
+    if (ytWaveCtx.state === 'suspended') {
+        try {
+            await ytWaveCtx.resume();
+        } catch (err) {
+            console.error('AudioContext resume alınmadı:', err);
+        }
+    }
 
-    ytWaveCtx = ctx;
-    ytWaveAnalyser = analyser;
-    ytWaveSource = source;
-
-    drawYTWaveform();
+    return ytWaveCtx.state === 'running';
 }
 
+async function initYTWaveformSafe() {
+    const { audio, waveform } = getMusicDom();
+    if (!audio || !waveform) return false;
+    if (ytWaveInitialized) return true;
+
+    const ready = await ensureYTAudioReady();
+    if (!ready || !ytWaveCtx) {
+        ytWaveFallbackMode = true;
+        return false;
+    }
+
+    try {
+        const analyser = ytWaveCtx.createAnalyser();
+        analyser.fftSize = 128;
+        analyser.smoothingTimeConstant = 0.82;
+
+        const source = ytWaveCtx.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(ytWaveCtx.destination);
+
+        ytWaveAnalyser = analyser;
+        ytWaveSource = source;
+        ytWaveDataArray = new Uint8Array(analyser.frequencyBinCount);
+        ytWaveInitialized = true;
+        ytWaveEnabled = true;
+        ytWaveFallbackMode = false;
+
+        drawYTWaveform();
+        return true;
+    } catch (err) {
+        console.error('Waveform init xətası:', err);
+        ytWaveFallbackMode = true;
+        ytWaveEnabled = false;
+        return false;
+    }
+}
+
+async function unlockYTPlayback() {
+    const ok = await ensureYTAudioReady();
+    if (!ok) return false;
+    await initYTWaveformSafe();
+    return true;
+}
+async function initYTWaveform() {
+    return await initYTWaveformSafe();
+}
 function drawYTWaveform() {
     const { waveform, audio } = getMusicDom();
-    if (!waveform || !ytWaveAnalyser) return;
+    if (!waveform) return;
 
     const dpr = window.devicePixelRatio || 1;
     const rect = waveform.getBoundingClientRect();
@@ -2360,35 +2418,49 @@ function drawYTWaveform() {
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const bufferLength = ytWaveAnalyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
     const render = () => {
         const width = waveform.clientWidth;
         const height = waveform.clientHeight;
 
         ctx.clearRect(0, 0, width, height);
-        ytWaveAnalyser.getByteFrequencyData(dataArray);
-        const gradient = ctx.createLinearGradient(0, 0, 0, height);
-        gradient.addColorStop(0, currentWaveColor);
-        gradient.addColorStop(1, "transparent");
 
-        ctx.fillStyle = gradient;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = currentWaveColor;
+        if (
+            ytWaveEnabled &&
+            ytWaveAnalyser &&
+            ytWaveDataArray &&
+            audio &&
+            !audio.paused &&
+            !ytWaveFallbackMode
+        ) {
+            ytWaveAnalyser.getByteFrequencyData(ytWaveDataArray);
 
-        const barWidth = Math.max(2, width / bufferLength * 0.7);
-        const gap = Math.max(1, width / bufferLength * 0.3);
-        let x = 0;
+            const bufferLength = ytWaveAnalyser.frequencyBinCount;
+            const barWidth = Math.max(2, width / bufferLength * 0.7);
+            const gap = Math.max(1, width / bufferLength * 0.3);
+            let x = 0;
 
-        for (let i = 0; i < bufferLength; i++) {
-            const value = dataArray[i] / 255;
-            const barHeight = Math.max(4, value * height * 0.95);
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = currentWaveColor;
 
-            ctx.fillStyle = currentWaveColor.replace("rgb", "rgba").replace(")", `, ${0.15 + value * 0.85})`);
-            ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+            for (let i = 0; i < bufferLength; i++) {
+                const value = ytWaveDataArray[i] / 255;
+                const barHeight = Math.max(4, value * height * 0.95);
 
-            x += barWidth + gap;
+                ctx.fillStyle = currentWaveColor.replace(
+                    "rgb",
+                    "rgba"
+                ).replace(")", `, ${0.15 + value * 0.85})`);
+
+                ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+                x += barWidth + gap;
+            }
+        } else {
+            // fallback idle glow
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, currentWaveColor.replace("rgb", "rgba").replace(")", ", 0.18)"));
+            gradient.addColorStop(1, "transparent");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, height - 24, width, 24);
         }
 
         ytWaveAnimationId = requestAnimationFrame(render);
@@ -2397,7 +2469,6 @@ function drawYTWaveform() {
     if (ytWaveAnimationId) cancelAnimationFrame(ytWaveAnimationId);
     render();
 }
-
 function resizeYTWaveform() {
     if (!ytWaveAnalyser) return;
     drawYTWaveform();
@@ -2407,19 +2478,28 @@ function initMusicPlayerEvents() {
     if (!dom.activePlayer || !dom.audio) return;
     if (dom.activePlayer.dataset.bound === '1') return;
     dom.activePlayer.dataset.bound = '1';
-    initYTWaveform();
+    drawYTWaveform();
     window.addEventListener('resize', resizeYTWaveform);
     const togglePlay = async () => {
         if (!dom.audio.src && window.musicLibrary.length) {
-            await openMusicTrack(0);
+            await (0);
             return;
         }
 
         if (dom.audio.paused) {
-            await dom.audio.play();
+            await unlockYTPlayback();
+
+            try {
+                await dom.audio.play();
+            } catch (err) {
+                console.error('Play xətası:', err);
+            }
         } else {
             dom.audio.pause();
         }
+
+        updateMusicPlayButtonState();
+        updateMediaSessionPlaybackState();
     };
     dom.lyricsContainer?.addEventListener('click', (e) => {
         if (window.currentMusicLyricsType !== 'synced') return;
