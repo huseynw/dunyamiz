@@ -598,25 +598,9 @@ document.addEventListener("visibilitychange", () => {
         audio.play().catch(() => console.log("Yenidən başlatma cəhdi..."));
     }
 });
-function applyDynamicTheme() {
-    const now = new Date();
-    const hour = now.getHours();
-    const body = document.body;
-    const themeMeta = document.querySelector('meta[name="theme-color"]');
 
-    body.classList.remove('soft-pink', 'dark-romantic');
-
-    if (hour >= 6 && hour < 18) {
-        body.classList.add('soft-pink');
-        if (themeMeta) themeMeta.setAttribute('content', '#ff8fb1');
-    } else {
-        body.classList.add('dark-romantic');
-        if (themeMeta) themeMeta.setAttribute('content', '#2a0c18');
-    }
-}
 // ========== DYNAMIC CONTENT ==========
 function updateDynamicContent() {
-    applyDynamicTheme();
     const now = new Date();
     const hour = now.getHours();
     let greeting = "";
