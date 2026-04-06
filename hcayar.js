@@ -1731,11 +1731,10 @@ function renderMusicPlaylist() {
     playlist.querySelectorAll('.yt-track-item').forEach((item) => {
         item.addEventListener('click', () => {
             const index = Number(item.dataset.musicIndex);
-            (index);
+            playMusicByIndex(index);
         });
     });
 }
-
 function renderPlainLyrics(text = '') {
     const { lyricsContainer } = getMusicDom();
     if (!lyricsContainer) return;
