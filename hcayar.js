@@ -2283,6 +2283,8 @@ function initYTWaveform() {
     if (!audio || !waveform) return;
     if (ytWaveAnalyser) return;
 
+    audio.crossOrigin = 'anonymous';
+
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
 
