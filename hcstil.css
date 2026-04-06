@@ -1407,7 +1407,7 @@ header { text-align: center; margin-bottom: 30px; }
 
 .rose-flower {
     position: absolute;
-    left: 50%;
+    left: 40%;
     transform: translateX(-50%);
 }
 
