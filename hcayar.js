@@ -2260,7 +2260,9 @@ function playPrevMusic() {
     const newIndex = window.currentMusicIndex <= 0
         ? window.musicLibrary.length - 1
         : window.currentMusicIndex - 1;
-    (newIndex);
+        
+    // Düzəliş edilən hissə:
+    openMusicTrack(newIndex);
 }
 
 function playNextMusic() {
@@ -2268,8 +2270,11 @@ function playNextMusic() {
     const newIndex = window.currentMusicIndex >= window.musicLibrary.length - 1
         ? 0
         : window.currentMusicIndex + 1;
-    (newIndex);
+        
+    // Düzəliş edilən hissə:
+    openMusicTrack(newIndex);
 }
+
 function initPlayerSwipe() {
     const { activePlayer } = getMusicDom();
     if (!activePlayer) return;
