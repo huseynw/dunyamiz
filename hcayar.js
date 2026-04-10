@@ -532,38 +532,37 @@ function initVisualizer(audioElement) {
         canvas.height = canvas.offsetHeight;
         
         function draw() {
-            requestAnimationFrame(draw);
-            analyser.getByteFrequencyData(dataArray);
+    requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(dataArray);
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const centerY = canvas.height / 2;
-            const barWidth = 6;
-            const gap = 4;
-            let x = (canvas.width - ((barWidth + gap) * bufferLength - gap)) / 2;
+    const centerY = canvas.height / 2;
+    const barWidth = 5;
+    const gap = 3;
 
-            for (let i = 0; i < bufferLength; i++) {
-                let value = dataArray[i] / 255;
-                let height = Math.max(6, value * canvas.height * 0.8);
+    const totalWidth = (barWidth + gap) * bufferLength - gap;
+    let x = (canvas.width - totalWidth) / 2;
 
-                const radius = barWidth / 2;
+    for (let i = 0; i < bufferLength; i++) {
+        let value = dataArray[i] / 255;
+        let height = Math.max(4, value * canvas.height * 0.7);
 
-                ctx.beginPath();
-                ctx.roundRect(
-                    x,
-                    centerY - height / 2,
-                    barWidth,
-                    height,
-                    radius
-                );
+        ctx.beginPath();
+        ctx.roundRect(
+            x,
+            centerY - height / 2, 
+            barWidth,
+            height,
+            barWidth / 2
+        );
 
-                ctx.fillStyle = "white";
-                ctx.fill();
+        ctx.fillStyle = "white";
+        ctx.fill();
 
-                x += barWidth + gap;
-            }
-        }
-
+        x += barWidth + gap;
+    }
+}
         draw();
     } catch (e) {
         console.error("Vizualizator xətası:", e);
