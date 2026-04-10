@@ -56,28 +56,40 @@ function initSPANavigation() {
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             const targetPage = item.getAttribute('data-page');
+            const targetElement = document.getElementById(`page-${targetPage}`);
             
-            // Update nav items
+            if (targetElement.classList.contains('active')) return;
+
+            // Aktiv pəncərəni tap
+            const currentPage = document.querySelector('.spa-page.active');
+            
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
-            
-            // Animate page transition
-            pages.forEach(page => {
-                if (page.classList.contains('active')) {
-                    page.classList.add('exit-up');
-                    setTimeout(() => {
-                        page.classList.remove('active', 'exit-up');
-                    }, 300);
-                }
-            });
-            
-            // Show target page with animation
-            setTimeout(() => {
-                const targetElement = document.getElementById(`page-${targetPage}`);
-                if (targetElement) {
-                    targetElement.classList.add('active');
-                }
-            }, 150);
+
+            // Çıxış animasiyası (GSAP)
+            if (currentPage) {
+                gsap.to(currentPage, {
+                    y: -30, opacity: 0, duration: 0.4, ease: "power2.in",
+                    onComplete: () => {
+                        currentPage.classList.remove('active');
+                        currentPage.style.display = 'none';
+                        
+                        // Giriş animasiyası (GSAP)
+                        targetElement.style.display = 'block';
+                        targetElement.classList.add('active');
+                        gsap.fromTo(targetElement, 
+                            { y: 40, opacity: 0 }, 
+                            { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }
+                        );
+                        
+                        // Elementlərin fərqli sürətlə axması (Stagger)
+                        gsap.fromTo(targetElement.querySelectorAll('.page-title, .animate-item, .time-together-card, .detailed-time-card'),
+                            { y: 30, opacity: 0 },
+                            { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "back.out(1.2)", delay: 0.1 }
+                        );
+                    }
+                });
+            }
         });
     });
 }
@@ -106,58 +118,65 @@ enterBtn.addEventListener('click', () => {
     passInput.focus();
 });
 
-verifyBtn.addEventListener('click', () => {
-    const sfire = "030825";
-    if (passInput.value === sfire) {
-        //setInterval(() => {
-          //  const randomSimvollar = getDynamicPath();
-            //window.location.hash = `cemaleme-ozel-${randomSimvollar}`;
-        //}, 40);
-        document.getElementById('welcome-screen').style.opacity = '0';
-        
-        setTimeout(() => {
-            document.getElementById('welcome-screen').style.display = 'none';
-            const mainContent = document.getElementById('main-content');
-            mainContent.classList.remove('hidden');
-            
-            // --- ANIMASİYA BAŞLANĞICI ---
-            const startVal = new Date(config.startDate).getTime();
-            const diffVal = new Date().getTime() - startVal;
-            const dVal = Math.floor(diffVal / (1000 * 60 * 60 * 24));
-            const hVal = Math.floor(diffVal / (1000 * 60 * 60));
-            const mVal = Math.floor(diffVal / (1000 * 60));
+verifyBtn.addEventListener('click', async () => {
+    const passVal = passInput.value;
+    const originalBtnText = verifyBtn.innerHTML;
+    verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    verifyBtn.disabled = true;
 
-            window.isAnimating = true;
-            animateValue('meet-count', 0, config.meetingCount, 2500);
-            animateValue('total-days', 0, dVal, 2500);
-            animateValue('detail-days', 0, dVal, 2500);
-            animateValue('total-hours-love', 0, hVal, 2500);
-            animateValue('total-minutes-love', 0, mVal, 2500);
-            
-            setTimeout(() => { window.isAnimating = false; }, 2600);
-            // ----------------------------
+    try {
+        const res = await fetch('/.netlify/functions/admin-proxy', {
+            method: 'POST',
+            body: JSON.stringify({ type: 'verify_site', password: passVal })
+        });
+        const data = await res.json();
 
+        if (data.success) {
+            document.getElementById('welcome-screen').style.opacity = '0';
             setTimeout(() => {
-                mainContent.classList.add('animate-start');
-            }, 100);
-        }, 800);
+                document.getElementById('welcome-screen').style.display = 'none';
+                const mainContent = document.getElementById('main-content');
+                mainContent.classList.remove('hidden');
+                
+                // Animasiyalar
+                const startVal = new Date(config.startDate).getTime();
+                const diffVal = new Date().getTime() - startVal;
+                const dVal = Math.floor(diffVal / (1000 * 60 * 60 * 24));
+                const hVal = Math.floor(diffVal / (1000 * 60 * 60));
+                const mVal = Math.floor(diffVal / (1000 * 60));
 
-        fetchImages();
-        if (audio) {
-            initVisualizer(audio);
-            audio.play().then(() => {
-                isPlaying = true;
-                if (document.getElementById('track-art')) document.getElementById('track-art').classList.add('playing');
-                if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                updateLegacyMediaSession();
-            }).catch(() => console.log('Musiqi gözləmədə...'));
+                window.isAnimating = true;
+                animateValue('meet-count', 0, config.meetingCount, 2500);
+                animateValue('total-days', 0, dVal, 2500);
+                animateValue('detail-days', 0, dVal, 2500);
+                animateValue('total-hours-love', 0, hVal, 2500);
+                animateValue('total-minutes-love', 0, mVal, 2500);
+                setTimeout(() => { window.isAnimating = false; }, 2600);
+
+                setTimeout(() => mainContent.classList.add('animate-start'), 100);
+            }, 800);
+
+            fetchImages();
+            if (audio) {
+                initVisualizer(audio);
+                audio.play().then(() => {
+                    isPlaying = true;
+                    if (document.getElementById('track-art')) document.getElementById('track-art').classList.add('playing');
+                    if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                    updateLegacyMediaSession();
+                }).catch(() => console.log('Musiqi gözləmədə...'));
+            }
+        } else {
+            throw new Error();
         }
-    } else {
+    } catch (err) {
         errorMsg.style.display = 'block';
         passInput.value = "";
         passInput.animate([
             { transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(0)' }
         ], { duration: 200 });
+        verifyBtn.innerHTML = originalBtnText;
+        verifyBtn.disabled = false;
     }
 });
 
@@ -1301,11 +1320,76 @@ async function updateWeatherTheme() {
         weatherWrap.style.border = '1px solid rgba(255,255,255,0.12)';
         document.documentElement.style.setProperty('--weather-accent', accent);
         statusText.innerHTML = `<span style="font-size:18px;margin-right:8px;">${icon}</span>${message}`;
+        if ([51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99].includes(code)) {
+            initWeatherParticles('rain');
+        } else if ([71, 73, 75, 77, 85, 86].includes(code)) {
+            initWeatherParticles('snow');
+        } else {
+            initWeatherParticles('none');
+        }
     } catch (err) {
         console.error('Hava məlumatı alınmadı.');
     }
 }
+// Hava Partiklları
+let weatherAnimId;
+function initWeatherParticles(type) {
+    const canvas = document.getElementById('weather-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    cancelAnimationFrame(weatherAnimId);
+    
+    if (type === 'none') { ctx.clearRect(0,0, canvas.width, canvas.height); return; }
 
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let particles = [];
+    const maxParticles = type === 'rain' ? 100 : 50;
+
+    for (let i = 0; i < maxParticles; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            length: type === 'rain' ? Math.random() * 20 + 10 : Math.random() * 3 + 2,
+            speed: type === 'rain' ? Math.random() * 10 + 10 : Math.random() * 1 + 0.5,
+            opacity: Math.random() * 0.5 + 0.2,
+            wind: type === 'rain' ? Math.random() * 2 - 1 : Math.random() * 3 - 1.5
+        });
+    }
+
+    function draww() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.lineWidth = 1.5;
+
+        particles.forEach(p => {
+            if (type === 'rain') {
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x + p.wind, p.y + p.length);
+                ctx.stroke();
+            } else {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.length, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            p.y += p.speed;
+            p.x += p.wind;
+
+            if (p.y > canvas.height) {
+                p.y = 0;
+                p.x = Math.random() * canvas.width;
+            }
+        });
+        weatherAnimId = requestAnimationFrame(draw);
+    }
+    draww();
+}
+window.addEventListener('resize', () => {
+    const canvas = document.getElementById('weather-canvas');
+    if(canvas) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+});
 // ========== SCRATCH CARD ==========
 function initScratchCard() {
     const sCanvas = document.getElementById('scratch-canvas');
@@ -1954,7 +2038,7 @@ function renderCurrentTrackLyrics(track) {
 function updateSyncedLyricsByTime(currentTime) {
     if (window.currentMusicLyricsType !== 'synced') return;
     if (!window.currentMusicLyricsParsed.length) return;
-
+    const { lyricsPanel } = getMusicDom();
     const { lyricsContainer } = getMusicDom();
     if (!lyricsContainer) return;
 
@@ -1984,6 +2068,17 @@ function updateSyncedLyricsByTime(currentTime) {
         activeWordIndex === window.currentLyricsActiveWordIndex
     ) {
         return;
+    }
+    if (activeIndex !== window.currentLyricsActiveIndex && activeIndex >= 0) {
+        if (lyricsPanel && currentWaveColor) {
+            const glowColor = currentWaveColor.replace('rgb', 'rgba').replace(')', ', 0.15)');
+            const intenseGlow = currentWaveColor.replace('rgb', 'rgba').replace(')', ', 0.3)');
+            lyricsPanel.style.background = `radial-gradient(circle at ${Math.random() * 100}% ${Math.random() * 100}%, ${intenseGlow} 0%, rgba(255,255,255,0.04) 70%)`;
+            lyricsPanel.style.boxShadow = `inset 0 0 50px ${glowColor}, 0 10px 30px rgba(0,0,0,0.3)`;
+            setTimeout(() => {
+                lyricsPanel.style.boxShadow = `inset 0 0 20px rgba(255,255,255,0.02), 0 10px 30px rgba(0,0,0,0.3)`;
+            }, 400);
+        }
     }
 
     window.currentLyricsActiveIndex = activeIndex;
@@ -2882,13 +2977,45 @@ document.addEventListener('DOMContentLoaded', initMusicPage);
 function seekToLyricsTime(time) {
     const { audio } = getMusicDom();
     if (!audio || Number.isNaN(Number(time))) return;
-
     const safeTime = Math.max(0, Number(time));
     audio.currentTime = safeTime;
-
     updateSyncedLyricsByTime(safeTime);
-
     if (audio.paused) {
         audio.play().catch(err => console.error('Lyrics seek play error:', err));
     }
+}
+if (window.matchMedia("(pointer: fine)").matches) {
+    const cursor = document.createElement('div');
+    cursor.className = 'custom-cursor';
+    document.body.appendChild(cursor);
+    let trails = [];
+    for (let i = 0; i < 8; i++) {
+        let trail = document.createElement('div');
+        trail.className = 'cursor-trail';
+        document.body.appendChild(trail);
+        trails.push({ el: trail, x: 0, y: 0 });
+    }
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        cursor.style.left = mouseX + 'px';
+        cursor.style.top = mouseY + 'px';
+    });
+    gsap.ticker.add(() => {
+        let x = mouseX, y = mouseY;
+        trails.forEach((trail, index) => {
+            let nextTrail = trails[index + 1] || trails[0];
+            x += (nextTrail.x - x) * 0.4;
+            y += (nextTrail.y - y) * 0.4;
+            trail.x = x; trail.y = y;
+            trail.el.style.left = x + 'px';
+            trail.el.style.top = y + 'px';
+            trail.el.style.opacity = 1 - (index / trails.length);
+        });
+    });
+    document.querySelectorAll('a, button, .photo-frame, .note-card, .yt-track-item').forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
+        el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
+    });
 }
