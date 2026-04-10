@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 function buildErrorResponse(statusCode, error, extra = {}) {
     const message = error instanceof Error ? error.message : String(error || 'Naməlum xəta');
     const stack = error instanceof Error && error.stack ? error.stack.split('\n').slice(0, 6).join('\n') : undefined;
@@ -85,7 +85,7 @@ exports.handler = async (event) => {
             };
         }
 
-        if (password !== "030825") {
+        if (password !== ADMIN_PASSWORD) {
             return {
                 statusCode: 401,
                 headers: { "Content-Type": "application/json; charset=utf-8" },
@@ -96,6 +96,13 @@ exports.handler = async (event) => {
         // =========================
         // CONFIG UPDATE
         // =========================
+        if (type === "verify_site") {
+            return {
+                statusCode: 200,
+                headers: { "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({ success: true, message: "Giriş uğurludur" })
+            };
+        }
         if (type === "update_config") {
             const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${payload.path}`;
 
