@@ -144,15 +144,13 @@ verifyBtn.addEventListener('click', () => {
 
         fetchImages();
         if (audio) {
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-            if (!isMobile) {
-                initVisualizer(audio);
-            }
+            initVisualizer(audio);
             audio.play().then(() => {
                 isPlaying = true;
-                if(document.getElementById('track-art')) document.getElementById('track-art').classList.add('playing');
-                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-            }).catch(e => console.log("Musiqi gözləmədə..."));
+                if (document.getElementById('track-art')) document.getElementById('track-art').classList.add('playing');
+                if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                updateLegacyMediaSession();
+            }).catch(() => console.log('Musiqi gözləmədə...'));
         }
     } else {
         errorMsg.style.display = 'block';
@@ -421,13 +419,6 @@ async function downloadImageFile(url, filename) {
     }
 }
 
-// DOMContentLoaded içində isə belə çağır:
-document.getElementById('download-btn')?.addEventListener('click', () => {
-    const imgData = window.allImages[currentImgIdx];
-    if (imgData) {
-        downloadImageFile(imgData.download_url, imgData.name);
-    }
-});
 function getDynamicPath() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const minLen = 8;
@@ -511,64 +502,119 @@ function fastChangeLoveText() {
 setInterval(fastChangeLoveText, 200);
 
 // ========== AUDIO VISUALIZER ==========
-let audioContext, analyser, source, canvas, ctx;
+let audioContext, analyser, source, canvas, ctx, visualizerFrame;
 
-function initVisualizer(audioElement) {
-    if (audioContext) return; 
-    try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser();
-        source = audioContext.createMediaElementSource(audioElement);
-        source.connect(analyser);
-        analyser.connect(audioContext.destination);
-        analyser.fftSize = 64; 
-        
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        
-        canvas = document.getElementById('visualizer');
-        if (!canvas) return;
-        
-        ctx = canvas.getContext('2d');
+function resizeVisualizerCanvas() {
+    if (!canvas) return;
+    const ratio = window.devicePixelRatio || 1;
+    const displayWidth = Math.max(1, Math.floor(canvas.clientWidth || canvas.offsetWidth || 0));
+    const displayHeight = Math.max(1, Math.floor(canvas.clientHeight || canvas.offsetHeight || 0));
 
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-        
-        function draw() {
-    requestAnimationFrame(draw);
-    analyser.getByteFrequencyData(dataArray);
+    if (!displayWidth || !displayHeight) return;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.width = Math.floor(displayWidth * ratio);
+    canvas.height = Math.floor(displayHeight * ratio);
 
-    const centerY = canvas.height / 2;
-    const barWidth = 5;
-    const gap = 3;
-
-    const totalWidth = (barWidth + gap) * bufferLength - gap;
-    let x = (canvas.width - totalWidth) / 2;
-
-    for (let i = 0; i < bufferLength; i++) {
-        let value = dataArray[i] / 255;
-        let height = Math.max(4, value * canvas.height * 0.7);
-
-        ctx.beginPath();
-        ctx.roundRect(
-            x,
-            centerY - height / 2, 
-            barWidth,
-            height,
-            barWidth / 2
-        );
-
-        ctx.fillStyle = "white";
-        ctx.fill();
-
-        x += barWidth + gap;
+    if (ctx) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(ratio, ratio);
     }
 }
-        draw();
+
+function stopVisualizer() {
+    if (visualizerFrame) {
+        cancelAnimationFrame(visualizerFrame);
+        visualizerFrame = null;
+    }
+}
+
+function initVisualizer(audioElement) {
+    if (!audioElement) return;
+
+    try {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        if (!analyser) {
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 128;
+            analyser.smoothingTimeConstant = 0.82;
+        }
+
+        if (!source) {
+            source = audioContext.createMediaElementSource(audioElement);
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+        }
+
+        canvas = document.getElementById('visualizer');
+        if (!canvas) return;
+
+        ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        resizeVisualizerCanvas();
+        window.addEventListener('resize', resizeVisualizerCanvas, { passive: true });
+
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        const draw = () => {
+            visualizerFrame = requestAnimationFrame(draw);
+            if (document.hidden || !canvas || !ctx) return;
+
+            const width = canvas.clientWidth || canvas.offsetWidth || 0;
+            const height = canvas.clientHeight || canvas.offsetHeight || 0;
+            if (!width || !height) return;
+
+            analyser.getByteFrequencyData(dataArray);
+            ctx.clearRect(0, 0, width, height);
+
+            const centerY = height / 2;
+            const activeBars = Math.min(22, bufferLength);
+            const barWidth = Math.max(4, Math.floor(width / (activeBars * 1.9)));
+            const gap = Math.max(2, Math.floor(barWidth * 0.55));
+            const totalWidth = activeBars * barWidth + (activeBars - 1) * gap;
+            let x = Math.max(0, (width - totalWidth) / 2);
+
+            for (let i = 0; i < activeBars; i++) {
+                const mirroredIndex = Math.floor((i / activeBars) * bufferLength);
+                const value = dataArray[mirroredIndex] / 255;
+                const barHeight = Math.max(6, value * height * 0.82);
+                const y = centerY - barHeight / 2;
+                const radius = Math.min(barWidth / 2, 8);
+
+                ctx.beginPath();
+                if (typeof ctx.roundRect === 'function') {
+                    ctx.roundRect(x, y, barWidth, barHeight, radius);
+                } else {
+                    ctx.rect(x, y, barWidth, barHeight);
+                }
+
+                const gradient = ctx.createLinearGradient(0, y, 0, y + barHeight);
+                gradient.addColorStop(0, currentWaveColor || 'rgba(255,255,255,0.95)');
+                gradient.addColorStop(1, 'rgba(255,255,255,0.18)');
+                ctx.fillStyle = gradient;
+                ctx.shadowBlur = 18;
+                ctx.shadowColor = currentWaveColor || 'rgba(255,255,255,0.8)';
+                ctx.fill();
+
+                x += barWidth + gap;
+            }
+
+            ctx.shadowBlur = 0;
+        };
+
+        if (audioContext.state === 'suspended') {
+            audioContext.resume().catch(() => {});
+        }
+
+        if (!visualizerFrame) {
+            draw();
+        }
     } catch (e) {
-        console.error("Vizualizator xətası:", e);
+        console.error('Vizualizator xətası:', e);
     }
 }
 
@@ -610,13 +656,28 @@ updateMeetingTimer();
 // ========== MEDIA SESSION ==========
 
 
-document.addEventListener("visibilitychange", () => {
-    const dom = typeof getMusicDom === 'function' ? getMusicDom() : null;
-    const customAudioPlaying = dom?.audio && !dom.audio.paused;
+let shouldResumeMainAudio = false;
+let shouldResumeYTPlayer = false;
 
-    if (!document.hidden && isPlaying && !customAudioPlaying) {
-        audio.play().catch(() => console.log("Yenidən başlatma cəhdi..."));
+document.addEventListener('visibilitychange', async () => {
+    const dom = typeof getMusicDom === 'function' ? getMusicDom() : null;
+    const legacyAudio = audio;
+    const ytAudio = dom?.audio || null;
+
+    if (document.hidden) {
+        shouldResumeMainAudio = !!(legacyAudio && !legacyAudio.paused);
+        shouldResumeYTPlayer = !!(ytAudio && !ytAudio.paused);
+        return;
     }
+
+    if (shouldResumeYTPlayer && ytAudio?.paused) {
+        ytAudio.play().catch(() => {});
+    } else if (shouldResumeMainAudio && legacyAudio?.paused) {
+        legacyAudio.play().catch(() => {});
+    }
+
+    shouldResumeMainAudio = false;
+    shouldResumeYTPlayer = false;
 });
 
 // ========== DYNAMIC CONTENT ==========
@@ -667,34 +728,66 @@ function formatTime(seconds) {
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-if(audio) {
+if (audio) {
+    audio.setAttribute('playsinline', 'true');
+    audio.setAttribute('webkit-playsinline', 'true');
+    audio.preload = 'metadata';
+
     audio.addEventListener('loadedmetadata', () => {
-        seekBar.max = Math.floor(audio.duration);
-        durationEl.textContent = formatTime(audio.duration);
+        if (seekBar) seekBar.max = Math.floor(audio.duration || 0);
+        if (durationEl) durationEl.textContent = formatTime(audio.duration || 0);
+        if (typeof updateLegacyMediaSession === 'function') updateLegacyMediaSession();
     });
 
     audio.addEventListener('timeupdate', () => {
-        seekBar.value = Math.floor(audio.currentTime);
-        currentTimeEl.textContent = formatTime(audio.currentTime);
+        if (seekBar) seekBar.value = Math.floor(audio.currentTime || 0);
+        if (currentTimeEl) currentTimeEl.textContent = formatTime(audio.currentTime || 0);
+        if (seekBar && audio.duration) {
+            const progress = (audio.currentTime / audio.duration) * 100;
+            seekBar.style.setProperty('--progress', progress + '%');
+        }
+        if (typeof updateLegacyMediaSession === 'function') updateLegacyMediaSession();
     });
 
-    seekBar.addEventListener('input', () => {
-        audio.currentTime = seekBar.value;
+    audio.addEventListener('play', async () => {
+        const dom = typeof getMusicDom === 'function' ? getMusicDom() : null;
+        if (dom?.audio && !dom.audio.paused) {
+            dom.audio.pause();
+        }
+        isPlaying = true;
+        if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        document.getElementById('track-art')?.classList.add('playing');
+        if (audioContext?.state === 'suspended') {
+            try { await audioContext.resume(); } catch (_) {}
+        }
+        initVisualizer(audio);
+        if (typeof updateLegacyMediaSession === 'function') updateLegacyMediaSession();
     });
 
-    playPauseBtn.addEventListener('click', () => {
+    audio.addEventListener('pause', () => {
+        isPlaying = false;
+        if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        document.getElementById('track-art')?.classList.remove('playing');
+        if (typeof updateLegacyMediaSession === 'function') updateLegacyMediaSession();
+    });
+
+    seekBar?.addEventListener('input', () => {
+        audio.currentTime = Number(seekBar.value || 0);
+    });
+
+    playPauseBtn?.addEventListener('click', async () => {
         if (audio.paused) {
-            audio.play();
-            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-            isPlaying = true;
+            try {
+                await audio.play();
+            } catch (err) {
+                console.error('Legacy audio play error:', err);
+            }
         } else {
             audio.pause();
-            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-            isPlaying = false;
         }
     });
 
-    muteBtn.addEventListener('click', () => {
+    muteBtn?.addEventListener('click', () => {
         audio.muted = !audio.muted;
         muteBtn.innerHTML = audio.muted
             ? '<i class="fas fa-volume-mute"></i>'
@@ -1155,38 +1248,61 @@ async function updateWeatherTheme() {
         const code = data.current_weather.weathercode;
         const temp = Math.round(data.current_weather.temperature);
         const statusText = document.getElementById('weather-status');
-        if (!statusText) return;
-        
-        let message = "";
-        let bgColor = "#000000"; 
-        
+        const weatherWrap = document.getElementById('weather-container');
+        if (!statusText || !weatherWrap) return;
+
+        let message = '';
+        let accent = '#ff4d6d';
+        let glow = 'rgba(255, 77, 109, 0.35)';
+        let icon = '☁️';
+
         if ([0, 1].includes(code)) {
-            message = `Bakıda hava tərtəmizdir (${temp}°C) - Sənin kimi... ☀️`;
-            bgColor = "#0a0a0a";
+            icon = '☀️';
+            accent = '#ffb347';
+            glow = 'rgba(255, 179, 71, 0.35)';
+            message = `Bakıda hava tərtəmizdir (${temp}°C) — sənin kimi parlaq.`;
         } else if ([2, 3].includes(code)) {
-            message = `Bakı bu gün bir az buludludur (${temp}°C) ☁️`;
-            bgColor = "#111111";
+            icon = '⛅';
+            accent = '#8ec5ff';
+            glow = 'rgba(142, 197, 255, 0.35)';
+            message = `Bakı bu gün sakit və bir az buludludur (${temp}°C).`;
         } else if ([45, 48].includes(code)) {
-            message = `Hər tərəf dumanlıdır (${temp}°C), amma məni görürəm 🌫️`;
-            bgColor = "#2c3e50";
+            icon = '🌫️';
+            accent = '#b0bec5';
+            glow = 'rgba(176, 190, 197, 0.28)';
+            message = `Hər tərəf dumanlıdır (${temp}°C), amma sevgi tərəfi aydındır.`;
         } else if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) {
-            message = `Bakıda yağış yağır (${temp}°C). Əynini qalın geyin çöldə tufan var... 🌧️`;
-            bgColor = "#1e272e";
+            icon = '🌧️';
+            accent = '#6ea8fe';
+            glow = 'rgba(110, 168, 254, 0.30)';
+            message = `Bakıda yağış yağır (${temp}°C). Özünü isti saxla.`;
         } else if ([71, 73, 75, 77, 85, 86].includes(code)) {
-            message = `Hava qarlıdır (${temp}°C) ❄️ Tenin kimi`;
-            bgColor = "#2f3640";
+            icon = '❄️';
+            accent = '#d8f3ff';
+            glow = 'rgba(216, 243, 255, 0.28)';
+            message = `Hava qarlıdır (${temp}°C). Bu səhnə də çox zərif görünür.`;
         } else if ([95, 96, 99].includes(code)) {
-            message = `İldırım çaxır (${temp}°C)! Qorxma, mən həmişə yanındayam ⚡`;
-            bgColor = "#0f141a";
+            icon = '⚡';
+            accent = '#c084fc';
+            glow = 'rgba(192, 132, 252, 0.30)';
+            message = `Bakıda ildırım var (${temp}°C), amma burada aura yenə romantikdir.`;
         } else {
-            message = `Bakıda hava bir qəribədir (${temp}°C), amma sənə olan sevgim dəyişməz 🤍`;
+            icon = '💫';
+            message = `Bakıda hava dəyişkəndir (${temp}°C), amma burada hiss sabitdir.`;
         }
-        
-        statusText.innerText = message;
-        document.body.style.transition = "background 2s ease";
-        document.body.style.backgroundColor = bgColor;
+
+        weatherWrap.style.borderColor = glow;
+        weatherWrap.style.boxShadow = `0 10px 30px ${glow}`;
+        weatherWrap.style.background = 'rgba(255,255,255,0.08)';
+        weatherWrap.style.backdropFilter = 'blur(14px)';
+        weatherWrap.style.borderRadius = '18px';
+        weatherWrap.style.maxWidth = '520px';
+        weatherWrap.style.margin = '12px auto 0';
+        weatherWrap.style.border = '1px solid rgba(255,255,255,0.12)';
+        document.documentElement.style.setProperty('--weather-accent', accent);
+        statusText.innerHTML = `<span style="font-size:18px;margin-right:8px;">${icon}</span>${message}`;
     } catch (err) {
-        console.error("Hava məlumatı alınmadı.");
+        console.error('Hava məlumatı alınmadı.');
     }
 }
 
@@ -2136,11 +2252,15 @@ function setupMediaSession() {
 
     navigator.mediaSession.setActionHandler('play', async () => {
         const dom = getMusicDom();
-        if (!dom.audio) return;
+        const targetAudio = dom.audio?.src ? dom.audio : audio;
+        if (!targetAudio) return;
 
         try {
-            await dom.audio.play();
+            await targetAudio.play();
             updateMusicPlayButtonState();
+            if (audio && targetAudio === audio && playPauseBtn) {
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            }
         } catch (err) {
             console.error('MediaSession play error:', err);
         }
@@ -2148,21 +2268,72 @@ function setupMediaSession() {
 
     navigator.mediaSession.setActionHandler('pause', () => {
         const dom = getMusicDom();
-        if (!dom.audio) return;
+        const targetAudio = dom.audio?.src && !dom.audio.paused ? dom.audio : audio;
+        if (!targetAudio) return;
 
-        dom.audio.pause();
+        targetAudio.pause();
         updateMusicPlayButtonState();
+        if (audio && targetAudio === audio && playPauseBtn) {
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        }
     });
 
     navigator.mediaSession.setActionHandler('previoustrack', () => {
-        playPrevMusic();
+        if (window.musicLibrary?.length) {
+            playPrevMusic();
+        }
     });
 
     navigator.mediaSession.setActionHandler('nexttrack', () => {
-        playNextMusic();
+        if (window.musicLibrary?.length) {
+            playNextMusic();
+        }
     });
 
-   }
+    try {
+        navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+            const dom = getMusicDom();
+            const targetAudio = dom.audio?.src && !dom.audio.paused ? dom.audio : audio;
+            if (!targetAudio) return;
+            targetAudio.currentTime = Math.max(0, targetAudio.currentTime - (details.seekOffset || 10));
+        });
+
+        navigator.mediaSession.setActionHandler('seekforward', (details) => {
+            const dom = getMusicDom();
+            const targetAudio = dom.audio?.src && !dom.audio.paused ? dom.audio : audio;
+            if (!targetAudio || !Number.isFinite(targetAudio.duration)) return;
+            targetAudio.currentTime = Math.min(targetAudio.duration, targetAudio.currentTime + (details.seekOffset || 10));
+        });
+    } catch (_) {}
+}
+
+function updateLegacyMediaSession() {
+    if (!('mediaSession' in navigator) || !audio) return;
+
+    const legacyCover = document.getElementById('track-art')?.getAttribute('src') || 'assets/music-cover.jpg';
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: document.getElementById('song-title')?.textContent?.trim() || config.musicTitle || 'Mahnı',
+        artist: 'Hüseyn və Cəmalənin Dünyası',
+        album: 'Legacy Player',
+        artwork: [
+            { src: legacyCover, sizes: '192x192', type: 'image/png' },
+            { src: legacyCover, sizes: '512x512', type: 'image/png' }
+        ]
+    });
+
+    navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
+
+    if ('setPositionState' in navigator.mediaSession && Number.isFinite(audio.duration)) {
+        try {
+            navigator.mediaSession.setPositionState({
+                duration: audio.duration || 0,
+                playbackRate: audio.playbackRate || 1,
+                position: audio.currentTime || 0
+            });
+        } catch (_) {}
+    }
+}
 
 function updateMediaSessionMetadata(track) {
     if (!('mediaSession' in navigator) || !track) return;
@@ -2620,6 +2791,9 @@ function initMusicPlayerEvents() {
     });
 
     dom.audio.addEventListener('play', () => {
+        if (audio && !audio.paused) {
+            audio.pause();
+        }
         updateMusicPlayButtonState();
         updateMediaSessionPlaybackState();
     });
@@ -2681,9 +2855,3 @@ function seekToLyricsTime(time) {
         audio.play().catch(err => console.error('Lyrics seek play error:', err));
     }
 }
-audio.addEventListener("timeupdate", () => {
-    if (!audio.duration) return;
-
-    const progress = (audio.currentTime / audio.duration) * 100;
-    seekBar.style.setProperty("--progress", progress + "%");
-});
