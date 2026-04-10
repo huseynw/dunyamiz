@@ -2616,8 +2616,25 @@ function drawYTWaveform() {
     const render = () => {
         const width = waveform.clientWidth;
         const height = waveform.clientHeight;
+        const centerY = height / 2;
 
         ctx.clearRect(0, 0, width, height);
+
+        const totalBars = 42;
+        const gap = 4;
+        const barWidth = Math.max(3, (width - (totalBars - 1) * gap) / totalBars);
+        const totalWidth = totalBars * barWidth + (totalBars - 1) * gap;
+        let x = (width - totalWidth) / 2;
+
+        const drawBar = (x, y, w, h, radius) => {
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(x, y, w, h, radius);
+            } else {
+                ctx.rect(x, y, w, h);
+            }
+            ctx.fill();
+        };
 
         if (
             ytWaveEnabled &&
@@ -2629,33 +2646,53 @@ function drawYTWaveform() {
         ) {
             ytWaveAnalyser.getByteFrequencyData(ytWaveDataArray);
 
-            const bufferLength = ytWaveAnalyser.frequencyBinCount;
-            const barWidth = Math.max(2, width / bufferLength * 0.7);
-            const gap = Math.max(1, width / bufferLength * 0.3);
-            let x = 0;
-
-            ctx.shadowBlur = 15;
+            ctx.shadowBlur = 18;
             ctx.shadowColor = currentWaveColor;
 
-            for (let i = 0; i < bufferLength; i++) {
-                const value = ytWaveDataArray[i] / 255;
-                const barHeight = Math.max(4, value * height * 0.95);
+            for (let i = 0; i < totalBars; i++) {
+                const sourceIndex = Math.floor((i / totalBars) * ytWaveDataArray.length);
+                const value = ytWaveDataArray[sourceIndex] / 255;
 
-                ctx.fillStyle = currentWaveColor.replace(
-                    "rgb",
-                    "rgba"
-                ).replace(")", `, ${0.15 + value * 0.85})`);
+                const falloff = 1 - Math.abs((i - totalBars / 2) / (totalBars / 2)) * 0.35;
+                const visual = Math.max(0.18, value * falloff);
 
-                ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+                const barHeight = Math.max(8, visual * height * 0.82);
+
+                const alpha = 0.22 + visual * 0.9;
+                ctx.fillStyle = currentWaveColor
+                    .replace("rgb", "rgba")
+                    .replace(")", `, ${alpha})`);
+
+                drawBar(
+                    x,
+                    centerY - barHeight / 2,
+                    barWidth,
+                    barHeight,
+                    barWidth / 2
+                );
+
                 x += barWidth + gap;
             }
         } else {
-            // fallback idle glow
-            const gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, currentWaveColor.replace("rgb", "rgba").replace(")", ", 0.18)"));
-            gradient.addColorStop(1, "transparent");
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, height - 24, width, 24);
+            for (let i = 0; i < totalBars; i++) {
+                const phase = (Date.now() / 180) + i * 0.35;
+                const idle = 0.22 + (Math.sin(phase) + 1) / 2 * 0.22;
+                const barHeight = Math.max(6, idle * height * 0.45);
+
+                ctx.fillStyle = currentWaveColor
+                    .replace("rgb", "rgba")
+                    .replace(")", ", 0.16)");
+
+                drawBar(
+                    x,
+                    centerY - barHeight / 2,
+                    barWidth,
+                    barHeight,
+                    barWidth / 2
+                );
+
+                x += barWidth + gap;
+            }
         }
 
         ytWaveAnimationId = requestAnimationFrame(render);
