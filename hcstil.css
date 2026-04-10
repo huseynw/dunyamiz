@@ -124,98 +124,27 @@ header { text-align: center; margin-bottom: 30px; }
 .spa-container {
     position: relative;
     min-height: 60vh;
-    overflow: hidden;
 }
 
 .spa-page {
     display: none;
     opacity: 0;
-    transform: translate3d(0, 24px, 0) scale(0.985);
-    filter: blur(10px);
-    transition:
-        opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-        transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-        filter 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: transform, opacity, filter;
+    transform: translateY(30px);
+    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), 
+                transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .spa-page.active {
     display: block;
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-    filter: blur(0);
-}
-.spa-page.slide-in-right {
-    display: block;
-    animation: spaSlideInRight 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-.spa-page.slide-in-left {
-    display: block;
-    animation: spaSlideInLeft 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-.spa-page.slide-out-left {
-    display: block;
-    animation: spaSlideOutLeft 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-.spa-page.slide-out-right {
-    display: block;
-    animation: spaSlideOutRight 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    transform: translateY(0);
+    animation: pageSlideIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .spa-page.exit-up {
     animation: pageSlideOut 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
-@keyframes spaSlideInRight {
-    0% {
-        opacity: 0;
-        transform: translate3d(56px, 0, 0) scale(0.97);
-        filter: blur(12px);
-    }
-    100% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
-        filter: blur(0);
-    }
-}
 
-@keyframes spaSlideInLeft {
-    0% {
-        opacity: 0;
-        transform: translate3d(-56px, 0, 0) scale(0.97);
-        filter: blur(12px);
-    }
-    100% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
-        filter: blur(0);
-    }
-}
-
-@keyframes spaSlideOutLeft {
-    0% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
-        filter: blur(0);
-    }
-    100% {
-        opacity: 0;
-        transform: translate3d(-44px, 0, 0) scale(0.985);
-        filter: blur(10px);
-    }
-}
-
-@keyframes spaSlideOutRight {
-    0% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
-        filter: blur(0);
-    }
-    100% {
-        opacity: 0;
-        transform: translate3d(44px, 0, 0) scale(0.985);
-        filter: blur(10px);
-    }
-}
 @keyframes pageSlideIn {
     0% {
         opacity: 0;
