@@ -144,7 +144,10 @@ verifyBtn.addEventListener('click', () => {
 
         fetchImages();
         if (audio) {
-            initVisualizer(audio);
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (!isMobile) {
+                initVisualizer(audio);
+            }
             audio.play().then(() => {
                 isPlaying = true;
                 if(document.getElementById('track-art')) document.getElementById('track-art').classList.add('playing');
