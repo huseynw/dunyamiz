@@ -49,7 +49,92 @@ let currentImgIdx = 0;
 let isPlaying = false;
 
 // ========== SPA NAVIGATION ==========
-function initSPANavigation() {
+function function initSPANavigation() {
+    const navItems = [...document.querySelectorAll('.nav-item')];
+    const pages = [...document.querySelectorAll('.spa-page')];
+    const spaContainer = document.querySelector('.spa-container');
+
+    if (!navItems.length || !pages.length || !spaContainer) return;
+
+    const pageOrder = navItems.map(item => item.getAttribute('data-page'));
+    let currentIndex = Math.max(
+        0,
+        pageOrder.findIndex(id => document.getElementById(`page-${id}`)?.classList.contains('active'))
+    );
+
+    function switchToPage(targetPage, direction = 'next') {
+        const currentPage = pages.find(p => p.classList.contains('active'));
+        const nextPage = document.getElementById(`page-${targetPage}`);
+        if (!nextPage || currentPage === nextPage) return;
+
+        navItems.forEach(nav => {
+            nav.classList.toggle('active', nav.getAttribute('data-page') === targetPage);
+        });
+
+        currentPage.classList.remove(
+            'slide-in-left', 'slide-in-right',
+            'slide-out-left', 'slide-out-right',
+            'active'
+        );
+
+        nextPage.classList.remove(
+            'slide-in-left', 'slide-in-right',
+            'slide-out-left', 'slide-out-right'
+        );
+
+        if (direction === 'next') {
+            currentPage.classList.add('slide-out-left');
+            nextPage.classList.add('active', 'slide-in-right');
+        } else {
+            currentPage.classList.add('slide-out-right');
+            nextPage.classList.add('active', 'slide-in-left');
+        }
+
+        setTimeout(() => {
+            currentPage.classList.remove('active', 'slide-out-left', 'slide-out-right');
+            nextPage.classList.remove('slide-in-left', 'slide-in-right');
+        }, 480);
+
+        currentIndex = pageOrder.indexOf(targetPage);
+    }
+
+    navItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+            const targetPage = item.getAttribute('data-page');
+            const direction = index > currentIndex ? 'next' : 'prev';
+            switchToPage(targetPage, direction);
+        });
+    });
+
+    let startX = 0;
+    let startY = 0;
+    let endX = 0;
+    let endY = 0;
+
+    spaContainer.addEventListener('touchstart', (e) => {
+        const t = e.changedTouches[0];
+        startX = t.clientX;
+        startY = t.clientY;
+    }, { passive: true });
+
+    spaContainer.addEventListener('touchend', (e) => {
+        const t = e.changedTouches[0];
+        endX = t.clientX;
+        endY = t.clientY;
+
+        const diffX = endX - startX;
+        const diffY = endY - startY;
+
+        if (Math.abs(diffX) < 55) return;
+        if (Math.abs(diffY) > Math.abs(diffX)) return;
+
+        if (diffX < 0 && currentIndex < pageOrder.length - 1) {
+            switchToPage(pageOrder[currentIndex + 1], 'next');
+        } else if (diffX > 0 && currentIndex > 0) {
+            switchToPage(pageOrder[currentIndex - 1], 'prev');
+        }
+    }, { passive: true });
+}Navigation() {
     const navItems = document.querySelectorAll('.nav-item');
     const pages = document.querySelectorAll('.spa-page');
     
