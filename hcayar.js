@@ -521,13 +521,7 @@ function initVisualizer(audioElement) {
         analyser = audioContext.createAnalyser();
 
         source = audioContext.createMediaElementSource(audioElement);
-
-        // Visualizer üçün analyser-ə qoşulur
         source.connect(analyser);
-
-        // Ən vacib hissə:
-        // səsi birbaşa audioContext destination-a vermə
-        // analyser.connect(audioContext.destination);  <-- BUNU SİL
 
         analyser.fftSize = 64;
 
