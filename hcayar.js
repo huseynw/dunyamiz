@@ -514,63 +514,58 @@ setInterval(fastChangeLoveText, 200);
 let audioContext, analyser, source, canvas, ctx;
 
 function initVisualizer(audioElement) {
-    if (audioContext) return;
-
+    if (audioContext) return; 
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         analyser = audioContext.createAnalyser();
-
         source = audioContext.createMediaElementSource(audioElement);
         source.connect(analyser);
-
-        analyser.fftSize = 64;
-
+        analyser.connect(audioContext.destination);
+        analyser.fftSize = 64; 
+        
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
-
+        
         canvas = document.getElementById('visualizer');
         if (!canvas) return;
-
+        
         ctx = canvas.getContext('2d');
+
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
-
+        
         function draw() {
-            requestAnimationFrame(draw);
+    requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(dataArray);
 
-            if (!audioElement.paused) {
-                analyser.getByteFrequencyData(dataArray);
-            } else {
-                dataArray.fill(0);
-            }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const centerY = canvas.height / 2;
+    const barWidth = 5;
+    const gap = 3;
 
-            const centerY = canvas.height / 2;
-            const barWidth = 5;
-            const gap = 3;
-            const totalWidth = (barWidth + gap) * bufferLength - gap;
-            let x = (canvas.width - totalWidth) / 2;
+    const totalWidth = (barWidth + gap) * bufferLength - gap;
+    let x = (canvas.width - totalWidth) / 2;
 
-            for (let i = 0; i < bufferLength; i++) {
-                const value = dataArray[i] / 255;
-                const height = Math.max(4, value * canvas.height * 0.7);
+    for (let i = 0; i < bufferLength; i++) {
+        let value = dataArray[i] / 255;
+        let height = Math.max(4, value * canvas.height * 0.7);
 
-                ctx.beginPath();
-                ctx.roundRect(
-                    x,
-                    centerY - height / 2,
-                    barWidth,
-                    height,
-                    barWidth / 2
-                );
-                ctx.fillStyle = "white";
-                ctx.fill();
+        ctx.beginPath();
+        ctx.roundRect(
+            x,
+            centerY - height / 2, 
+            barWidth,
+            height,
+            barWidth / 2
+        );
 
-                x += barWidth + gap;
-            }
-        }
+        ctx.fillStyle = "white";
+        ctx.fill();
 
+        x += barWidth + gap;
+    }
+}
         draw();
     } catch (e) {
         console.error("Vizualizator xətası:", e);
