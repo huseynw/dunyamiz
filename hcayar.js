@@ -49,7 +49,7 @@ let currentImgIdx = 0;
 let isPlaying = false;
 
 // ========== SPA NAVIGATION ==========
-function function initSPANavigation() {
+function initSPANavigation() {
     const navItems = [...document.querySelectorAll('.nav-item')];
     const pages = [...document.querySelectorAll('.spa-page')];
     const spaContainer = document.querySelector('.spa-container');
@@ -134,37 +134,6 @@ function function initSPANavigation() {
             switchToPage(pageOrder[currentIndex - 1], 'prev');
         }
     }, { passive: true });
-}Navigation() {
-    const navItems = document.querySelectorAll('.nav-item');
-    const pages = document.querySelectorAll('.spa-page');
-    
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const targetPage = item.getAttribute('data-page');
-            
-            // Update nav items
-            navItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
-            
-            // Animate page transition
-            pages.forEach(page => {
-                if (page.classList.contains('active')) {
-                    page.classList.add('exit-up');
-                    setTimeout(() => {
-                        page.classList.remove('active', 'exit-up');
-                    }, 300);
-                }
-            });
-            
-            // Show target page with animation
-            setTimeout(() => {
-                const targetElement = document.getElementById(`page-${targetPage}`);
-                if (targetElement) {
-                    targetElement.classList.add('active');
-                }
-            }, 150);
-        });
-    });
 }
 
 // Initialize on DOM ready
