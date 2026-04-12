@@ -3083,7 +3083,7 @@ function syncAdminOverview() {
 
     const totalImages = Array.isArray(window.allImages) ? window.allImages.length : 0;
     const totalMusic = Array.isArray(window.musicLibrary) ? window.musicLibrary.length : 0;
-    const latestImage = totalImages ? window.allImages[0] : null;
+    const latestImage = totalImages ? window.allImages[window.allImages.length - 1] : null;
     const latestTrack = totalMusic ? window.musicLibrary[0] : null;
 
     if (meetingStat) meetingStat.textContent = String(config.meetingCount ?? 0);
