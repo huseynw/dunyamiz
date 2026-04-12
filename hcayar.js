@@ -279,7 +279,7 @@ async function fetchImages() {
 
         window.allImages = data
             .filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name))
-            .sort((a, b) => new Date(a.git_date) - new Date(b.git_date));
+            .sort((a, b) => new Date(b.git_date || 0) - new Date(a.git_date || 0));
 
 
         if (window.allImages.length === 0) {
@@ -330,6 +330,8 @@ async function fetchImages() {
         document.querySelectorAll('.timeline-item').forEach(item => {
             observer.observe(item);
         });
+
+        syncAdminOverview();
 
     } catch (e) {
         console.error("Fetch xətası:", e);
@@ -2971,6 +2973,7 @@ async function initMusicPage() {
         initMusicPlayerEvents();
         window.musicLibrary = await fetchMusicJsonList();
         renderMusicPlaylist();
+        syncAdminOverview();
     } catch (err) {
         console.error(err);
         const { playlist, trackCount } = getMusicDom();
@@ -3063,20 +3066,86 @@ function syncAdminOverview() {
     const dateInput = document.getElementById('admin-date');
     const countInput = document.getElementById('admin-count');
     const musicTitleInput = document.getElementById('admin-music-title');
+    const musicArtistInput = document.getElementById('admin-music-artist');
     const imageFile = document.getElementById('admin-file')?.files?.[0];
     const audioFile = document.getElementById('admin-music-file')?.files?.[0];
+    const coverFile = document.getElementById('admin-music-cover')?.files?.[0];
+
+    const imagePreview = document.getElementById('admin-dashboard-image-preview');
+    const imageName = document.getElementById('admin-dashboard-image-name');
+    const imageDate = document.getElementById('admin-dashboard-image-date');
+    const imageTotalEl = document.getElementById('admin-dashboard-total-images');
+
+    const musicCover = document.getElementById('admin-dashboard-music-cover');
+    const musicName = document.getElementById('admin-dashboard-music-name');
+    const musicArtist = document.getElementById('admin-dashboard-music-artist');
+    const musicTotalEl = document.getElementById('admin-dashboard-total-music');
+
+    const totalImages = Array.isArray(window.allImages) ? window.allImages.length : 0;
+    const totalMusic = Array.isArray(window.musicLibrary) ? window.musicLibrary.length : 0;
+    const latestImage = totalImages ? window.allImages[0] : null;
+    const latestTrack = totalMusic ? window.musicLibrary[0] : null;
 
     if (meetingStat) meetingStat.textContent = String(config.meetingCount ?? 0);
     if (targetStat) targetStat.textContent = formatAzDate(targetDate);
-    if (imageStat) imageStat.textContent = imageFile ? imageFile.name : '0 fayl';
+    if (imageStat) imageStat.textContent = totalImages ? `${totalImages} fayl` : (imageFile ? imageFile.name : '0 fayl');
+
     if (audioStat) {
-        if (audioFile) {
+        if (totalMusic) {
+            audioStat.textContent = `${totalMusic} fayl`;
+        } else if (audioFile) {
             audioStat.textContent = audioFile.name;
         } else if (musicTitleInput?.value.trim()) {
             audioStat.textContent = musicTitleInput.value.trim();
         } else {
             audioStat.textContent = '0 fayl';
         }
+    }
+
+    if (imageTotalEl) imageTotalEl.textContent = `${totalImages} şəkil`;
+    if (musicTotalEl) musicTotalEl.textContent = `${totalMusic} musiqi`;
+
+    if (imagePreview) {
+        if (imageFile) {
+            const localImageUrl = URL.createObjectURL(imageFile);
+            imagePreview.src = localImageUrl;
+            imagePreview.onload = () => URL.revokeObjectURL(localImageUrl);
+        } else if (latestImage?.download_url) {
+            imagePreview.src = latestImage.download_url;
+        } else {
+            imagePreview.src = 'assets/512.png';
+        }
+    }
+
+    if (imageName) {
+        imageName.textContent = imageFile?.name || latestImage?.name || 'Şəkil yoxdur';
+    }
+
+    if (imageDate) {
+        const rawDate = latestImage?.git_date || parseImageDate(latestImage || {});
+        imageDate.textContent = imageFile
+            ? 'Yeni şəkil seçilib'
+            : (rawDate ? formatAzDate(rawDate) : 'Tarix bilinmir');
+    }
+
+    if (musicCover) {
+        if (coverFile) {
+            const localCoverUrl = URL.createObjectURL(coverFile);
+            musicCover.src = localCoverUrl;
+            musicCover.onload = () => URL.revokeObjectURL(localCoverUrl);
+        } else if (latestTrack?.coverUrl) {
+            musicCover.src = latestTrack.coverUrl;
+        } else {
+            musicCover.src = DEFAULT_MUSIC_COVER;
+        }
+    }
+
+    if (musicName) {
+        musicName.textContent = musicTitleInput?.value.trim() || latestTrack?.title || 'Musiqi yoxdur';
+    }
+
+    if (musicArtist) {
+        musicArtist.textContent = musicArtistInput?.value.trim() || latestTrack?.artist || 'Artist bilinmir';
     }
 
     if (dateInput && !dateInput.value) {
