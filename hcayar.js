@@ -48,107 +48,6 @@ window.allImages = [];
 let currentImgIdx = 0;
 let isPlaying = false;
 
-const isMobileDevice = window.matchMedia('(max-width: 768px)').matches;
-
-function setAppHeight() {
-    document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
-}
-
-window.addEventListener('resize', setAppHeight, { passive: true });
-window.addEventListener('orientationchange', setAppHeight, { passive: true });
-window.addEventListener('pageshow', setAppHeight, { passive: true });
-
-function setupMobileAudioResilience() {
-    const dom = typeof getMusicDom === 'function' ? getMusicDom() : null;
-    const audioEl = dom?.audio || document.getElementById('yt-audio') || document.getElementById('audio');
-
-    if (!audioEl) return;
-
-    audioEl.setAttribute('playsinline', 'true');
-    audioEl.setAttribute('webkit-playsinline', 'true');
-    audioEl.setAttribute('preload', 'metadata');
-
-    const resumeAudioStack = async () => {
-        try {
-            if (audioContext && audioContext.state === 'suspended') {
-                await audioContext.resume();
-            }
-        } catch {}
-
-        try {
-            if (window.ytWaveAudioContext && window.ytWaveAudioContext.state === 'suspended') {
-                await window.ytWaveAudioContext.resume();
-            }
-        } catch {}
-
-        try {
-            if (!audioEl.paused && typeof audioEl.play === 'function') {
-                await audioEl.play();
-            }
-        } catch {}
-    };
-
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) resumeAudioStack();
-    });
-
-    window.addEventListener('focus', resumeAudioStack, { passive: true });
-    window.addEventListener('pageshow', resumeAudioStack, { passive: true });
-
-    ['touchstart', 'click'].forEach((evt) => {
-        document.addEventListener(evt, resumeAudioStack, { passive: true });
-    });
-}
-
-function setupAudioNetworkFixes() {
-    const audioEl = document.getElementById('yt-audio') || document.getElementById('audio');
-    if (!audioEl) return;
-
-    audioEl.addEventListener('stalled', async () => {
-        try {
-            if (!audioEl.paused) await audioEl.play();
-        } catch {}
-    });
-
-    audioEl.addEventListener('waiting', () => {
-        document.body.classList.add('audio-buffering');
-    });
-
-    const clearBuffering = () => {
-        document.body.classList.remove('audio-buffering');
-    };
-
-    audioEl.addEventListener('playing', clearBuffering);
-    audioEl.addEventListener('canplay', clearBuffering);
-    audioEl.addEventListener('seeked', clearBuffering);
-}
-
-function initLightboxSwipe() {
-    const lb = document.getElementById('lightbox');
-    if (!lb || lb.dataset.swipeBound === '1') return;
-
-    lb.dataset.swipeBound = '1';
-    let startX = 0;
-    let endX = 0;
-
-    lb.addEventListener('touchstart', (e) => {
-        startX = e.changedTouches[0].clientX;
-    }, { passive: true });
-
-    lb.addEventListener('touchend', (e) => {
-        endX = e.changedTouches[0].clientX;
-        const diff = endX - startX;
-
-        if (Math.abs(diff) < 45) return;
-
-        if (diff < 0) {
-            document.getElementById('next-btn')?.click();
-        } else {
-            document.getElementById('prev-btn')?.click();
-        }
-    }, { passive: true });
-}
-
 // ========== SPA NAVIGATION ==========
 function initSPANavigation() {
     const navItems = document.querySelectorAll('.nav-item');
@@ -199,10 +98,6 @@ function initSPANavigation() {
 document.addEventListener('DOMContentLoaded', () => {
     initSPANavigation();
     setupMediaSession();
-    setAppHeight();
-    setupMobileAudioResilience();
-    setupAudioNetworkFixes();
-    initLightboxSwipe();
     const meetEl = document.getElementById('meet-count');
     if(meetEl) meetEl.innerText = config.meetingCount;
     
@@ -560,8 +455,6 @@ function getDynamicPath() {
 
 // ========== HEART PARTICLES ==========
 function createHeart() {
-    if (document.querySelectorAll('.heart-particle').length > (isMobileDevice ? 10 : 18)) return;
-
     const heart = document.createElement('div');
     heart.classList.add('heart-particle');
     heart.innerHTML = '❤︎⁠'; 
@@ -577,7 +470,7 @@ function createHeart() {
     }, 4000);
 }
 
-setInterval(createHeart, isMobileDevice ? 1400 : 500);
+setInterval(createHeart, 500);
 
 // ========== LETTERS ==========
 const letters = {
@@ -674,7 +567,6 @@ function initVisualizer(audioElement) {
             source = audioContext.createMediaElementSource(audioElement);
             source.connect(analyser);
             analyser.connect(audioContext.destination);
-            source.connect(audioContext.destination);
         }
 
         canvas = document.getElementById('visualizer');
@@ -688,7 +580,6 @@ function initVisualizer(audioElement) {
 
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
-        const maxBars = isMobileDevice ? Math.min(14, bufferLength) : Math.min(22, bufferLength);
 
         const draw = () => {
             visualizerFrame = requestAnimationFrame(draw);
@@ -2937,8 +2828,6 @@ function initMusicPlayerEvents() {
     dom.nextBtn?.addEventListener('touchstart', unlockHandler, { passive: true });
     dom.nextBtnMini?.addEventListener('touchstart', unlockHandler, { passive: true });
     dom.openFullBtn?.addEventListener('touchstart', unlockHandler, { passive: true });
-    dom.progressWrap?.addEventListener('touchstart', unlockHandler, { passive: true });
-    dom.seekbar?.addEventListener('touchstart', unlockHandler, { passive: true });
     if (!dom.activePlayer || !dom.audio) return;
     if (dom.activePlayer.dataset.bound === '1') return;
     dom.activePlayer.dataset.bound = '1';
@@ -3325,11 +3214,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     syncAdminOverview();
-});
-
-document.addEventListener('visibilitychange', async () => {
-    const audio = document.getElementById('audio');
-    if (!document.hidden && audio) {
-        try { await audio.play(); } catch {}
-    }
 });
