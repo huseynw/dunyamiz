@@ -331,7 +331,6 @@ async function fetchImages() {
             observer.observe(item);
         });
 
-        syncAdminOverview();
     } catch (e) {
         console.error("Fetch xətası:", e);
         stack.innerHTML = '<p class="timeline-empty">Sistem xətası!</p>';
@@ -1089,11 +1088,24 @@ async function uploadToCloudinary(file, { cloudName, preset, resourceType = 'aut
 
     return data;
 }
+function getAdminPasswordFieldId(type) {
+    return {
+        update_config: 'admin-password-settings',
+        upload_image: 'admin-password-gallery',
+        upload_music: 'admin-password-music',
+        upload_note: 'admin-password-extras'
+    }[type] || 'admin-password-settings';
+}
+function getAdminPassword(type) {
+    const fieldId = getAdminPasswordFieldId(type);
+    const input = document.getElementById(fieldId);
+    return input ? input.value.trim() : '';
+}
 async function handleAdminUpdate(type) {
-    const password = document.getElementById('admin-password').value.trim();
+    const password = getAdminPassword(type);
     if (!password) {
-        setAdminStatus('Şifrəni daxil et!', 'error');
-        return alert('Şifrəni daxil et!');
+        setAdminStatus('Bu bölmə üçün şifrəni daxil et!', 'error');
+        return alert('Bu bölmə üçün şifrəni daxil et!');
     }
 
     const triggerButton = {
@@ -1646,7 +1658,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const author = document.getElementById('note-author').value;
         let title = document.getElementById('note-title').value.trim();
         const content = document.getElementById('note-content').value.trim();
-        const pass = prompt("Admin şifrəsi:");
+        const pass = getAdminPassword('upload_note') || prompt("Admin şifrəsi:");
 
         if(!content || !pass) return alert("Məzmun və şifrə mütləqdir!");
 
@@ -2959,7 +2971,6 @@ async function initMusicPage() {
         initMusicPlayerEvents();
         window.musicLibrary = await fetchMusicJsonList();
         renderMusicPlaylist();
-        syncAdminOverview();
     } catch (err) {
         console.error(err);
         const { playlist, trackCount } = getMusicDom();
@@ -3044,80 +3055,28 @@ function closeAdminPanel() {
     adminPanel.style.display = 'none';
 }
 
-async function getAdminRepositoryCounts() {
-    if (!window.__adminRepoCountsPromise) {
-        window.__adminRepoCountsPromise = Promise.all([
-            fetch("/.netlify/functions/github-content?path=gallery")
-                .then((res) => res.json())
-                .then((items) => Array.isArray(items)
-                    ? items.filter((item) => /\.(jpg|jpeg|png|webp|gif)$/i.test(item.name || '')).length
-                    : 0)
-                .catch(() => 0),
-            fetch("/.netlify/functions/github-content?path=musiqiler")
-                .then((res) => res.json())
-                .then((items) => Array.isArray(items)
-                    ? items.filter((item) => (item.name || '').toLowerCase().endsWith('.json')).length
-                    : 0)
-                .catch(() => 0)
-        ]).then(([images, music]) => ({ images, music }));
-    }
-
-    return window.__adminRepoCountsPromise;
-}
-
-async function getAdminAssetCounts() {
-    const repoCounts = await getAdminRepositoryCounts();
-    const musicCount = Array.isArray(window.musicLibrary) && window.musicLibrary.length
-        ? window.musicLibrary.length
-        : repoCounts.music;
-    const imageCount = Array.isArray(window.allImages) && window.allImages.length
-        ? window.allImages.length
-        : repoCounts.images;
-
-    return {
-        images: imageCount,
-        music: musicCount
-    };
-}
-
-async function syncAdminOverview() {
+function syncAdminOverview() {
     const meetingStat = document.getElementById('admin-stat-meetings');
     const targetStat = document.getElementById('admin-stat-target');
     const imageStat = document.getElementById('admin-stat-image');
     const audioStat = document.getElementById('admin-stat-audio');
     const dateInput = document.getElementById('admin-date');
     const countInput = document.getElementById('admin-count');
+    const musicTitleInput = document.getElementById('admin-music-title');
     const imageFile = document.getElementById('admin-file')?.files?.[0];
     const audioFile = document.getElementById('admin-music-file')?.files?.[0];
 
     if (meetingStat) meetingStat.textContent = String(config.meetingCount ?? 0);
     if (targetStat) targetStat.textContent = formatAzDate(targetDate);
-
-    if (imageStat) {
-        imageStat.textContent = imageFile ? `+1 gözləyir • ${imageFile.name}` : 'Yüklənir...';
-    }
-
+    if (imageStat) imageStat.textContent = imageFile ? imageFile.name : '0 fayl';
     if (audioStat) {
-        audioStat.textContent = audioFile ? `+1 gözləyir • ${audioFile.name}` : 'Yüklənir...';
-    }
-
-    try {
-        const counts = await getAdminAssetCounts();
-
-        if (imageStat) {
-            imageStat.textContent = imageFile
-                ? `${counts.images} şəkil • seçilib: ${imageFile.name}`
-                : `${counts.images} şəkil`;
+        if (audioFile) {
+            audioStat.textContent = audioFile.name;
+        } else if (musicTitleInput?.value.trim()) {
+            audioStat.textContent = musicTitleInput.value.trim();
+        } else {
+            audioStat.textContent = '0 fayl';
         }
-
-        if (audioStat) {
-            audioStat.textContent = audioFile
-                ? `${counts.music} mahnı • seçilib: ${audioFile.name}`
-                : `${counts.music} mahnı`;
-        }
-    } catch {
-        if (imageStat && !imageFile) imageStat.textContent = 'Məlumat alınmadı';
-        if (audioStat && !audioFile) audioStat.textContent = 'Məlumat alınmadı';
     }
 
     if (dateInput && !dateInput.value) {
