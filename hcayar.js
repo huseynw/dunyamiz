@@ -919,7 +919,7 @@ window.addEventListener('click', (e) => {
     clicks++;
     clearTimeout(clickTimer);
     if (clicks === 4) {
-        document.getElementById('admin-panel').style.display = 'flex';
+        openAdminPanel();
         clicks = 0;
     }
     clickTimer = setTimeout(() => { clicks = 0; }, 500); 
@@ -3019,3 +3019,117 @@ if (window.matchMedia("(pointer: fine)").matches) {
         el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
     });
 }
+
+
+
+function formatAdminDateTimeLocal(dateLike) {
+    const d = new Date(dateLike);
+    if (isNaN(d)) return '';
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function openAdminPanel() {
+    const adminPanel = document.getElementById('admin-panel');
+    if (!adminPanel) return;
+    adminPanel.style.display = 'flex';
+    syncAdminOverview();
+}
+
+function closeAdminPanel() {
+    const adminPanel = document.getElementById('admin-panel');
+    if (!adminPanel) return;
+    adminPanel.style.display = 'none';
+}
+
+function syncAdminOverview() {
+    const meetingStat = document.getElementById('admin-stat-meetings');
+    const targetStat = document.getElementById('admin-stat-target');
+    const imageStat = document.getElementById('admin-stat-image');
+    const audioStat = document.getElementById('admin-stat-audio');
+    const dateInput = document.getElementById('admin-date');
+    const countInput = document.getElementById('admin-count');
+    const musicTitleInput = document.getElementById('admin-music-title');
+    const imageFile = document.getElementById('admin-file')?.files?.[0];
+    const audioFile = document.getElementById('admin-music-file')?.files?.[0];
+
+    if (meetingStat) meetingStat.textContent = String(config.meetingCount ?? 0);
+    if (targetStat) targetStat.textContent = formatAzDate(targetDate);
+    if (imageStat) imageStat.textContent = imageFile ? imageFile.name : '0 fayl';
+    if (audioStat) {
+        if (audioFile) {
+            audioStat.textContent = audioFile.name;
+        } else if (musicTitleInput?.value.trim()) {
+            audioStat.textContent = musicTitleInput.value.trim();
+        } else {
+            audioStat.textContent = '0 fayl';
+        }
+    }
+
+    if (dateInput && !dateInput.value) {
+        dateInput.value = formatAdminDateTimeLocal(targetDate);
+    }
+    if (countInput && !countInput.value) {
+        countInput.value = String(config.meetingCount ?? '');
+    }
+}
+
+function switchAdminSection(sectionName) {
+    document.querySelectorAll('.admin-nav-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.adminSection === sectionName);
+    });
+
+    document.querySelectorAll('.admin-section').forEach((section) => {
+        section.classList.toggle('active', section.dataset.adminSection === sectionName);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const closeAdminBtn = document.querySelector('.close-admin');
+    const adminPanel = document.getElementById('admin-panel');
+
+    if (closeAdminBtn && adminPanel) {
+        closeAdminBtn.addEventListener('click', closeAdminPanel);
+    }
+
+    window.addEventListener('click', (event) => {
+        if (event.target === adminPanel) {
+            closeAdminPanel();
+        }
+    });
+
+    document.querySelectorAll('.admin-nav-btn').forEach((btn) => {
+        btn.addEventListener('click', () => switchAdminSection(btn.dataset.adminSection));
+    });
+
+    document.querySelectorAll('[data-admin-jump]').forEach((btn) => {
+        btn.addEventListener('click', () => switchAdminSection(btn.dataset.adminJump));
+    });
+
+    document.getElementById('admin-open-note-modal')?.addEventListener('click', () => {
+        document.getElementById('open-add-note-btn')?.click();
+    });
+
+    document.getElementById('admin-open-note-modal-secondary')?.addEventListener('click', () => {
+        document.getElementById('open-add-note-btn')?.click();
+    });
+
+    [
+        'admin-file',
+        'admin-music-file',
+        'admin-music-title',
+        'admin-date',
+        'admin-count'
+    ].forEach((id) => {
+        document.getElementById(id)?.addEventListener('change', syncAdminOverview);
+        document.getElementById(id)?.addEventListener('input', syncAdminOverview);
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && adminPanel?.style.display === 'flex') {
+            closeAdminPanel();
+        }
+    });
+
+    syncAdminOverview();
+});
