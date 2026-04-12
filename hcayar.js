@@ -48,6 +48,28 @@ window.allImages = [];
 let currentImgIdx = 0;
 let isPlaying = false;
 
+// ========== MOBILE BACKGROUND AUDIO FIX ==========
+function resumeAudioContextSafely() {
+    if (!audioContext) return;
+    if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(() => {});
+    }
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        resumeAudioContextSafely();
+    }
+});
+
+window.addEventListener('pageshow', () => {
+    resumeAudioContextSafely();
+});
+
+document.addEventListener('touchstart', () => {
+    resumeAudioContextSafely();
+}, { passive: true });
+
 // ========== SPA NAVIGATION ==========
 function initSPANavigation() {
     const navItems = document.querySelectorAll('.nav-item');
@@ -569,6 +591,9 @@ function initVisualizer(audioElement) {
             analyser.connect(audioContext.destination);
         }
 
+        audioElement.addEventListener('play', resumeAudioContextSafely);
+        audioElement.addEventListener('playing', resumeAudioContextSafely);
+
         canvas = document.getElementById('visualizer');
         if (!canvas) return;
 
@@ -627,9 +652,7 @@ function initVisualizer(audioElement) {
             ctx.shadowBlur = 0;
         };
 
-        if (audioContext.state === 'suspended') {
-            audioContext.resume().catch(() => {});
-        }
+        resumeAudioContextSafely();
 
         if (!visualizerFrame) {
             draw();
