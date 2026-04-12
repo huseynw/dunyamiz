@@ -3367,6 +3367,86 @@ header { text-align: center; margin-bottom: 30px; }
     line-height: 1.6;
 }
 
+.admin-dashboard-media-card {
+    overflow: hidden;
+}
+
+.admin-dashboard-media-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.admin-dashboard-media-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.admin-dashboard-media-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.admin-dashboard-media-head span {
+    color: rgba(255,255,255,0.76);
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-dashboard-media-head strong {
+    color: #ff9db0;
+    font-size: 0.92rem;
+}
+
+.admin-dashboard-media-preview {
+    position: relative;
+    min-height: 230px;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+}
+
+.admin-dashboard-media-preview img {
+    width: 100%;
+    height: 100%;
+    min-height: 230px;
+    object-fit: cover;
+    display: block;
+}
+
+.admin-dashboard-media-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 18px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: linear-gradient(to top, rgba(0,0,0,0.88), rgba(0,0,0,0.12));
+}
+
+.admin-dashboard-media-overlay strong {
+    color: #fff;
+    font-size: 1rem;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.admin-dashboard-media-overlay small {
+    color: rgba(255,255,255,0.72);
+    font-size: 0.83rem;
+    line-height: 1.45;
+}
+
 @media (max-width: 980px) {
     .admin-layout {
         grid-template-columns: 1fr;
@@ -3397,8 +3477,14 @@ header { text-align: center; margin-bottom: 30px; }
     .admin-overview-grid,
     .admin-quick-grid,
     .admin-form-grid--two,
-    .admin-form-grid--music {
+    .admin-form-grid--music,
+    .admin-dashboard-media-grid {
         grid-template-columns: 1fr !important;
+    }
+
+    .admin-dashboard-media-preview,
+    .admin-dashboard-media-preview img {
+        min-height: 210px;
     }
 
     .admin-section-head {
