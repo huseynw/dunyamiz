@@ -829,7 +829,7 @@ header { text-align: center; margin-bottom: 30px; }
     50% { transform: translateY(-8px); }
 }
 
-/* ========== MODERN LIGHTBOX PƏNCƏRƏSİ ========== */
+/* ========== MODERN LIGHTBOX PÆNCÆRÆSÄ° ========== */
 .lightbox {
     display: none;
     position: fixed;
@@ -1051,7 +1051,7 @@ header { text-align: center; margin-bottom: 30px; }
         0 0 12px rgba(255, 77, 109, 0.4);
 }
 
-/* THUMB (dairə) */
+/* THUMB (dairÉ) */
 #seekBar::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -2063,7 +2063,7 @@ header { text-align: center; margin-bottom: 30px; }
 .note-card-title { font-size: 1.1rem; margin: 8px 0; color: white; }
 .note-card-date { font-size: 0.75rem; opacity: 0.6; display: block; text-align: right; }
 
-/* Mobil üçün tam uyğunluq */
+/* Mobil Ã¼Ã§Ã¼n tam uyÄunluq */
 @media (max-width: 768px) {
     .notes-grid { grid-template-columns: 1fr; }
     .letter-content { width: 92% !important; padding: 25px 15px !important; }
