@@ -279,7 +279,7 @@ async function fetchImages() {
 
         window.allImages = data
             .filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name))
-            .sort((a, b) => new Date(b.git_date || 0) - new Date(a.git_date || 0));
+            .sort((a, b) => new Date(a.git_date || 0) - new Date(b.git_date || 0));
 
 
         if (window.allImages.length === 0) {
