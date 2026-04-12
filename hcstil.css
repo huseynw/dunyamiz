@@ -3414,3 +3414,13 @@ header { text-align: center; margin-bottom: 30px; }
         width: fit-content;
     }
 }
+
+
+.admin-password-card {
+    margin-top: 14px;
+}
+
+.admin-password-card .admin-field input {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+}
