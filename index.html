@@ -551,16 +551,16 @@
             </div>
         </div>
     </div>
-    
     <!-- Admin Panel -->
     <div id="admin-panel" style="display: none;">
-        <div class="admin-content admin-shell">
+        <div class="admin-content admin-shell admin-shell--premium">
             <button class="close-admin" type="button" aria-label="Admin paneli bağla">&times;</button>
 
             <div class="admin-header">
                 <div>
                     <p class="admin-kicker">DÜNYAMIZ ADMIN</p>
                     <h2>Admin Panel ⚙️</h2>
+                    <p class="admin-subtitle">Panel indi daha rahat idarə olunur: solda menyu, sağda bölmələr, yuxarıda sürətli baxış və aşağıda hər əməliyyat üçün ayrıca sahə.</p>
                 </div>
                 <div class="admin-badge">
                     <i class="fas fa-shield-heart"></i>
@@ -570,140 +570,350 @@
 
             <div id="admin-status" class="admin-status" aria-live="polite"></div>
 
-            <div class="admin-grid">
-                <section class="admin-card">
-                    <div class="admin-card-title">
-                        <i class="fas fa-calendar-days"></i>
-                        <div>
-                            <h3>Sayt məlumatları</h3>
-                            <p>Görüş tarixini və sayını buradan yenilə.</p>
-                        </div>
+            <div class="admin-layout">
+                <aside class="admin-sidebar">
+                    <div class="admin-sidebar-top">
+                        <button type="button" class="admin-nav-btn active" data-admin-section="overview">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Dashboard</span>
+                        </button>
+                        <button type="button" class="admin-nav-btn" data-admin-section="settings">
+                            <i class="fas fa-sliders"></i>
+                            <span>Sayt ayarları</span>
+                        </button>
+                        <button type="button" class="admin-nav-btn" data-admin-section="gallery">
+                            <i class="fas fa-images"></i>
+                            <span>Qalereya</span>
+                        </button>
+                        <button type="button" class="admin-nav-btn" data-admin-section="music">
+                            <i class="fas fa-music"></i>
+                            <span>Musiqi</span>
+                        </button>
+                        <button type="button" class="admin-nav-btn" data-admin-section="extras">
+                            <i class="fas fa-sparkles"></i>
+                            <span>Əlavələr</span>
+                        </button>
                     </div>
-                    <div class="input-group admin-form-grid admin-form-grid--two">
-                        <div class="admin-field">
-                            <label for="admin-date">Görüş Tarixi</label>
-                            <input type="datetime-local" id="admin-date">
-                        </div>
-                        <div class="admin-field">
-                            <label for="admin-count">Görüş Sayı</label>
-                            <input type="number" id="admin-count" min="0" inputmode="numeric" placeholder="Məs: 96">
-                        </div>
-                    </div>
-                    <button id="update-config-btn" class="admin-btn admin-btn--primary" type="button">
-                        <i class="fas fa-rotate"></i>
-                        <span>Məlumatları yenilə</span>
-                    </button>
-                </section>
 
-                <section class="admin-card">
-                    <div class="admin-card-title">
-                        <i class="fas fa-images"></i>
-                        <div>
-                            <h3>Qalereya</h3>
-                            <p>Yeni şəkli birbaşa GitHub qalereyasına göndər.</p>
+                    <div class="admin-sidebar-footer">
+                        <div class="admin-mini-lock">
+                            <i class="fas fa-lock"></i>
+                            <div>
+                                <strong>Təsdiq aktivdir</strong>
+                                <span>Hər əməliyyat şifrə ilə gedir</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="input-group">
-                        <div class="admin-field admin-file-field">
-                            <label for="admin-file">Qalereya şəkli</label>
-                            <input type="file" id="admin-file" accept="image/*">
-                            <small id="admin-file-meta" class="admin-file-meta">PNG, JPG, WEBP və digər şəkillər dəstəklənir.</small>
+                </aside>
+
+                <div class="admin-main">
+                    <section class="admin-section active" data-admin-section="overview">
+                        <div class="admin-section-head">
+                            <div>
+                                <p class="admin-section-kicker">ÜMUMİ BAXIŞ</p>
+                                <h3>Panel xülasəsi</h3>
+                            </div>
+                            <div class="admin-chip">
+                                <i class="fas fa-wand-magic-sparkles"></i>
+                                <span>Yeni premium quruluş</span>
+                            </div>
                         </div>
-                    </div>
-                    <button id="upload-image-btn" class="admin-btn admin-btn--secondary" type="button">
-                        <i class="fas fa-cloud-arrow-up"></i>
-                        <span>Şəkli yüklə</span>
-                    </button>
-                </section>
+
+                        <div class="admin-stats-grid">
+                            <article class="admin-stat-card">
+                                <div class="admin-stat-icon"><i class="fas fa-calendar-heart"></i></div>
+                                <div>
+                                    <span class="admin-stat-label">Görüş sayı</span>
+                                    <strong id="admin-stat-meetings">0</strong>
+                                </div>
+                            </article>
+                            <article class="admin-stat-card">
+                                <div class="admin-stat-icon"><i class="fas fa-clock"></i></div>
+                                <div>
+                                    <span class="admin-stat-label">Növbəti görüş</span>
+                                    <strong id="admin-stat-target">-</strong>
+                                </div>
+                            </article>
+                            <article class="admin-stat-card">
+                                <div class="admin-stat-icon"><i class="fas fa-image"></i></div>
+                                <div>
+                                    <span class="admin-stat-label">Seçilən şəkil</span>
+                                    <strong id="admin-stat-image">0 fayl</strong>
+                                </div>
+                            </article>
+                            <article class="admin-stat-card">
+                                <div class="admin-stat-icon"><i class="fas fa-file-audio"></i></div>
+                                <div>
+                                    <span class="admin-stat-label">Seçilən musiqi</span>
+                                    <strong id="admin-stat-audio">0 fayl</strong>
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="admin-overview-grid">
+                            <section class="admin-card">
+                                <div class="admin-card-title">
+                                    <i class="fas fa-bolt"></i>
+                                    <div>
+                                        <h3>Sürətli keçidlər</h3>
+                                        <p>Bir kliklə lazım olan bölməyə keç.</p>
+                                    </div>
+                                </div>
+                                <div class="admin-quick-grid">
+                                    <button type="button" class="admin-quick-btn" data-admin-jump="settings">
+                                        <i class="fas fa-gear"></i>
+                                        <span>Tarix və say</span>
+                                    </button>
+                                    <button type="button" class="admin-quick-btn" data-admin-jump="gallery">
+                                        <i class="fas fa-camera"></i>
+                                        <span>Şəkil yüklə</span>
+                                    </button>
+                                    <button type="button" class="admin-quick-btn" data-admin-jump="music">
+                                        <i class="fas fa-compact-disc"></i>
+                                        <span>Musiqi əlavə et</span>
+                                    </button>
+                                    <button type="button" class="admin-quick-btn" id="admin-open-note-modal">
+                                        <i class="fas fa-note-sticky"></i>
+                                        <span>Qısa not aç</span>
+                                    </button>
+                                </div>
+                            </section>
+
+                            <section class="admin-card">
+                                <div class="admin-card-title">
+                                    <i class="fas fa-stars"></i>
+                                    <div>
+                                        <h3>Panel haqqında</h3>
+                                        <p>Bu versiyada admin daha səliqəli bölmələrə ayrılıb.</p>
+                                    </div>
+                                </div>
+                                <ul class="admin-feature-list">
+                                    <li>Soldan idarə olunan menyu</li>
+                                    <li>Dashboard xülasə kartları</li>
+                                    <li>Ayarlar / Qalereya / Musiqi ayrı bölmələr</li>
+                                    <li>Daha rahat mobil görünüş</li>
+                                </ul>
+                            </section>
+                        </div>
+                    </section>
+
+                    <section class="admin-section" data-admin-section="settings">
+                        <div class="admin-section-head">
+                            <div>
+                                <p class="admin-section-kicker">SAYT AYARLARI</p>
+                                <h3>Tarix və əsas məlumatlar</h3>
+                            </div>
+                        </div>
+
+                        <div class="admin-stack">
+                            <section class="admin-card">
+                                <div class="admin-card-title">
+                                    <i class="fas fa-calendar-days"></i>
+                                    <div>
+                                        <h3>Sayt məlumatları</h3>
+                                        <p>Görüş tarixini və sayını buradan yenilə.</p>
+                                    </div>
+                                </div>
+                                <div class="input-group admin-form-grid admin-form-grid--two">
+                                    <div class="admin-field">
+                                        <label for="admin-date">Görüş Tarixi</label>
+                                        <input type="datetime-local" id="admin-date">
+                                    </div>
+                                    <div class="admin-field">
+                                        <label for="admin-count">Görüş Sayı</label>
+                                        <input type="number" id="admin-count" min="0" inputmode="numeric" placeholder="Məs: 96">
+                                    </div>
+                                </div>
+                                <button id="update-config-btn" class="admin-btn admin-btn--primary" type="button">
+                                    <i class="fas fa-rotate"></i>
+                                    <span>Məlumatları yenilə</span>
+                                </button>
+                            </section>
+
+                            <section class="admin-card admin-card--footer">
+                                <div class="admin-card-title admin-card-title--compact">
+                                    <i class="fas fa-key"></i>
+                                    <div>
+                                        <h3>Təsdiq</h3>
+                                        <p>Əməliyyatı göndərmək üçün şifrə tələb olunur.</p>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <div class="admin-field">
+                                        <label for="admin-password">Təsdiq Şifrəsi</label>
+                                        <input type="password" id="admin-password" placeholder="Şifrə...">
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+
+                    <section class="admin-section" data-admin-section="gallery">
+                        <div class="admin-section-head">
+                            <div>
+                                <p class="admin-section-kicker">QALEREYA</p>
+                                <h3>Şəkil idarəetməsi</h3>
+                            </div>
+                        </div>
+
+                        <div class="admin-stack">
+                            <section class="admin-card">
+                                <div class="admin-card-title">
+                                    <i class="fas fa-images"></i>
+                                    <div>
+                                        <h3>Qalereya</h3>
+                                        <p>Yeni şəkli birbaşa GitHub qalereyasına göndər.</p>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <div class="admin-field admin-file-field">
+                                        <label for="admin-file">Qalereya şəkli</label>
+                                        <input type="file" id="admin-file" accept="image/*">
+                                        <small id="admin-file-meta" class="admin-file-meta">PNG, JPG, WEBP və digər şəkillər dəstəklənir.</small>
+                                    </div>
+                                </div>
+                                <button id="upload-image-btn" class="admin-btn admin-btn--secondary" type="button">
+                                    <i class="fas fa-cloud-arrow-up"></i>
+                                    <span>Şəkli yüklə</span>
+                                </button>
+                            </section>
+
+                            <section class="admin-card">
+                                <div class="admin-card-title">
+                                    <i class="fas fa-circle-info"></i>
+                                    <div>
+                                        <h3>Qalereya qeydi</h3>
+                                        <p>Şəkil seçilən kimi fayl adı və ölçüsü dashboard hissəsində də görünəcək.</p>
+                                    </div>
+                                </div>
+                                <div class="admin-hint-box">
+                                    Daha səliqəli görünüş üçün şəkilləri eyni ölçü nisbətində yükləməyin yaxşıdır.
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+
+                    <section class="admin-section" data-admin-section="music">
+                        <div class="admin-section-head">
+                            <div>
+                                <p class="admin-section-kicker">MUSIQI</p>
+                                <h3>Mahnı, cover və sözlər</h3>
+                            </div>
+                        </div>
+
+                        <section class="admin-card admin-card--full">
+                            <div class="admin-card-title">
+                                <i class="fas fa-music"></i>
+                                <div>
+                                    <h3>Musiqi əlavə et</h3>
+                                    <p>Mahnı faylı, cover şəkli və sözlər birlikdə yüklənəcək.</p>
+                                </div>
+                            </div>
+
+                            <div class="input-group admin-form-grid admin-form-grid--music">
+                                <div class="admin-field admin-field--span-2 admin-file-field">
+                                    <label for="admin-music-file">Musiqi faylı (MP3)</label>
+                                    <input type="file" id="admin-music-file" accept=".mp3,audio/mpeg">
+                                    <small id="admin-music-file-meta" class="admin-file-meta">Yalnız .mp3 formatı qəbul edilir.</small>
+                                </div>
+
+                                <div class="admin-field admin-file-field">
+                                    <label for="admin-music-cover">Cover şəkli</label>
+                                    <input type="file" id="admin-music-cover" accept="image/*">
+                                    <small id="admin-music-cover-meta" class="admin-file-meta">İstəyə bağlıdır. Yükləsən, JSON-a da əlavə olunacaq.</small>
+                                </div>
+
+                                <div class="admin-field admin-cover-preview-wrap">
+                                    <label>Cover önbaxış</label>
+                                    <div class="admin-cover-preview-box">
+                                        <img id="admin-cover-preview" src="assets/music-cover.jpg" alt="Cover önbaxış">
+                                    </div>
+                                </div>
+
+                                <div class="admin-field">
+                                    <label for="admin-music-title">Mahnı adı</label>
+                                    <input type="text" id="admin-music-title" placeholder="Mahnı adı">
+                                </div>
+
+                                <div class="admin-field">
+                                    <label for="admin-music-artist">Artist / Oxuyan</label>
+                                    <input type="text" id="admin-music-artist" placeholder="Artist adı">
+                                </div>
+                                <div class="admin-field">
+                                    <label for="admin-music-source">Yükləmə yeri</label>
+                                    <select id="admin-music-source">
+                                     <option value="github">GitHub</option>
+                                     <option value="cloudinary">Cloudinary</option>
+                                    </select>
+                                </div>
+
+                                <div class="admin-field">
+                                    <label for="admin-lyrics-type">Sözlərin növü</label>
+                                    <select id="admin-lyrics-type">
+                                        <option value="none">Yoxdur</option>
+                                        <option value="plain">Plain Text</option>
+                                        <option value="synced">Synced LRC</option>
+                                    </select>
+                                </div>
+
+                                <div class="admin-field admin-field--span-2">
+                                    <label for="admin-lyrics-text">Sözlər</label>
+                                    <textarea
+                                        id="admin-lyrics-text"
+                                        rows="8"
+                                        placeholder="[00:12.00] İlk sətir&#10;[00:18.20] İkinci sətir"
+                                    ></textarea>
+                                </div>
+                            </div>
+
+                            <button id="upload-music-btn" class="admin-btn admin-btn--primary" type="button">
+                                <i class="fas fa-music"></i>
+                                <span>Musiqini yüklə</span>
+                            </button>
+                        </section>
+                    </section>
+
+                    <section class="admin-section" data-admin-section="extras">
+                        <div class="admin-section-head">
+                            <div>
+                                <p class="admin-section-kicker">ƏLAVƏLƏR</p>
+                                <h3>Köməkçi bloklar</h3>
+                            </div>
+                        </div>
+
+                        <div class="admin-overview-grid">
+                            <section class="admin-card">
+                                <div class="admin-card-title">
+                                    <i class="fas fa-note-sticky"></i>
+                                    <div>
+                                        <h3>Not əlavə et</h3>
+                                        <p>Mövcud not sisteminin pəncərəsini birbaşa aç.</p>
+                                    </div>
+                                </div>
+                                <button type="button" class="admin-btn admin-btn--secondary" id="admin-open-note-modal-secondary">
+                                    <i class="fas fa-pen"></i>
+                                    <span>Not pəncərəsini aç</span>
+                                </button>
+                            </section>
+
+                            <section class="admin-card">
+                                <div class="admin-card-title">
+                                    <i class="fas fa-user-secret"></i>
+                                    <div>
+                                        <h3>Gizli giriş</h3>
+                                        <p>Panel yenə də 4 dəfə klik ilə açılır.</p>
+                                    </div>
+                                </div>
+                                <div class="admin-hint-box">
+                                    İndi iç struktur daha rahatdır: hər hissə ayrı paneldə yerləşir və mobil görünüş də daha səliqəlidir.
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+                </div>
             </div>
-
-            <section class="admin-card admin-card--full">
-                <div class="admin-card-title">
-                    <i class="fas fa-music"></i>
-                    <div>
-                        <h3>Musiqi əlavə et</h3>
-                        <p>Mahnı faylı, cover şəkli və sözlər birlikdə yüklənəcək.</p>
-                    </div>
-                </div>
-
-                <div class="input-group admin-form-grid admin-form-grid--music">
-                    <div class="admin-field admin-field--span-2 admin-file-field">
-                        <label for="admin-music-file">Musiqi faylı (MP3)</label>
-                        <input type="file" id="admin-music-file" accept=".mp3,audio/mpeg">
-                        <small id="admin-music-file-meta" class="admin-file-meta">Yalnız .mp3 formatı qəbul edilir.</small>
-                    </div>
-
-                    <div class="admin-field admin-file-field">
-                        <label for="admin-music-cover">Cover şəkli</label>
-                        <input type="file" id="admin-music-cover" accept="image/*">
-                        <small id="admin-music-cover-meta" class="admin-file-meta">İstəyə bağlıdır. Yükləsən, JSON-a da əlavə olunacaq.</small>
-                    </div>
-
-                    <div class="admin-field admin-cover-preview-wrap">
-                        <label>Cover önbaxış</label>
-                        <div class="admin-cover-preview-box">
-                            <img id="admin-cover-preview" src="assets/music-cover.jpg" alt="Cover önbaxış">
-                        </div>
-                    </div>
-
-                    <div class="admin-field">
-                        <label for="admin-music-title">Mahnı adı</label>
-                        <input type="text" id="admin-music-title" placeholder="Mahnı adı">
-                    </div>
-
-                    <div class="admin-field">
-                        <label for="admin-music-artist">Artist / Oxuyan</label>
-                        <input type="text" id="admin-music-artist" placeholder="Artist adı">
-                    </div>
-                    <div class="admin-field">
-                        <label for="admin-music-source">Yükləmə yeri</label>
-                        <select id="admin-music-source">
-                         <option value="github">GitHub</option>
-                         <option value="cloudinary">Cloudinary</option>
-                        </select>
-                    </div>
-
-                    <div class="admin-field">
-                        <label for="admin-lyrics-type">Sözlərin növü</label>
-                        <select id="admin-lyrics-type">
-                            <option value="none">Yoxdur</option>
-                            <option value="plain">Plain Text</option>
-                            <option value="synced">Synced LRC</option>
-                        </select>
-                    </div>
-
-                    <div class="admin-field admin-field--span-2">
-                        <label for="admin-lyrics-text">Sözlər</label>
-                        <textarea
-                            id="admin-lyrics-text"
-                            rows="8"
-                            placeholder="[00:12.00] İlk sətir&#10;[00:18.20] İkinci sətir"
-                        ></textarea>
-                    </div>
-                </div>
-
-                <button id="upload-music-btn" class="admin-btn admin-btn--primary" type="button">
-                    <i class="fas fa-music"></i>
-                    <span>Musiqini yüklə</span>
-                </button>
-            </section>
-
-            <section class="admin-card admin-card--footer">
-                <div class="admin-card-title admin-card-title--compact">
-                    <i class="fas fa-key"></i>
-                    <div>
-                        <h3>Təsdiq</h3>
-                        <p>Əməliyyatı göndərmək üçün şifrə tələb olunur.</p>
-                    </div>
-                </div>
-                <div class="input-group">
-                    <div class="admin-field">
-                        <label for="admin-password">Təsdiq Şifrəsi</label>
-                        <input type="password" id="admin-password" placeholder="Şifrə...">
-                    </div>
-                </div>
-            </section>
         </div>
     </div>
+
 </body>
 </html>
