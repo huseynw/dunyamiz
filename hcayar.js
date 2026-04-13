@@ -1,4 +1,4 @@
-const targetDate = new Date("2026-04-04T13:00:00"); 
+const targetDate = new Date("2026-04-18T13:00:00"); 
 let currentWaveColor = "rgb(255,255,255)";
 const config = {
     githubUsername: "huseynw",
