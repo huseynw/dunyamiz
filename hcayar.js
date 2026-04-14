@@ -11,11 +11,13 @@ const config = {
 
 const SUPABASE_URL = "https://fctwtcakequqvvmjgbhr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjdHd0Y2FrZXF1cXZ2bWpnYmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjE2NzYsImV4cCI6MjA5MTczNzY3Nn0.EE7T4HgrPI5c7ChYu8VDtoQ3oXflkhKDE-wkFckrCeY";
+let siteSettingsLoaded = false;
 
-async function loadSiteSettings() {
+async function loadSiteSettings(force = false) {
+    if (siteSettingsLoaded && !force) return;
+
     try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?id=eq.1&select=id,next_meeting_date,meeting_count`, {
-            method: 'GET',
             headers: {
                 "apikey": SUPABASE_ANON_KEY,
                 "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
@@ -29,7 +31,7 @@ async function loadSiteSettings() {
             throw new Error(data?.message || data?.error || 'Site settings yüklənmədi.');
         }
 
-        const settings = Array.isArray(data) ? data[0] : null;
+        const settings = Array.isArray(data) ? data[0] : data;
         if (!settings) return;
 
         if (settings.next_meeting_date) {
@@ -39,6 +41,8 @@ async function loadSiteSettings() {
         if (typeof settings.meeting_count === 'number') {
             config.meetingCount = settings.meeting_count;
         }
+
+        siteSettingsLoaded = true;
 
         const meetEl = document.getElementById('meet-count');
         if (meetEl) {
@@ -165,13 +169,15 @@ function initSPANavigation() {
 }
 
 // Initialize on DOM ready
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initSPANavigation();
     setupMediaSession();
+    await loadSiteSettings();
     const meetEl = document.getElementById('meet-count');
-    if(meetEl) meetEl.innerText = config.meetingCount;
-    
+    if (meetEl) meetEl.innerText = config.meetingCount;
+
     updateCounter();
+    updateMeetingTimer();
     setInterval(updateCounter, 1000);
 });
 
@@ -202,6 +208,7 @@ verifyBtn.addEventListener('click', async () => {
         const data = await res.json();
 
         if (data.success) {
+            await loadSiteSettings(true);
             document.getElementById('welcome-screen').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('welcome-screen').style.display = 'none';
@@ -712,34 +719,47 @@ function initVisualizer(audioElement) {
 
 // ========== MEETING TIMER ==========
 function updateMeetingTimer() {
+    if (!(targetDate instanceof Date) || Number.isNaN(targetDate.getTime())) return;
+
     const now = new Date();
-    const diff = targetDate - now;
-    
+    const diff = targetDate.getTime() - now.getTime();
+
     const aylar = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
     const gun = targetDate.getDate();
-    const ayAdı = aylar[targetDate.getMonth()];
+    const ayAdi = aylar[targetDate.getMonth()];
     const saat = String(targetDate.getHours()).padStart(2, '0');
     const deqiqe = String(targetDate.getMinutes()).padStart(2, '0');
-    const formatliTarix = `${gun} ${ayAdı} saat ${saat}:${deqiqe}`;
-    
+    const formatliTarix = `${gun} ${ayAdi} saat ${saat}:${deqiqe}`;
+
+    const titleEl = document.querySelector('.meeting-timer h3');
+    if (titleEl) titleEl.innerText = 'Növbəti Görüşümüzə Qalan Vaxt:';
+
     const dateEl = document.getElementById('next-meeting-date');
-    if (dateEl) dateEl.innerText = "Görüş vaxtı: " + formatliTarix;
+    if (dateEl) dateEl.innerText = 'Görüş vaxtı: ' + formatliTarix;
+
+    const setValue = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = String(value).padStart(2, '0');
+    };
 
     if (diff <= 0) {
-        const h3El = document.querySelector('.meeting-timer h3');
-        if (h3El) h3El.innerText = "Görüş vaxtı gəldi!";
+        if (titleEl) titleEl.innerText = 'Görüş vaxtı gəldi!';
+        setValue('meet-days', 0);
+        setValue('meet-hours', 0);
+        setValue('meet-minutes', 0);
+        setValue('meet-seconds', 0);
         return;
     }
-    
+
     const d = Math.floor(diff / (1000 * 60 * 60 * 24));
     const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-    if(document.getElementById('meet-days')) document.getElementById('meet-days').innerText = d < 10 ? "0" + d : d;
-    if(document.getElementById('meet-hours')) document.getElementById('meet-hours').innerText = h < 10 ? "0" + h : h;
-    if(document.getElementById('meet-minutes')) document.getElementById('meet-minutes').innerText = m < 10 ? "0" + m : m;
-    if(document.getElementById('meet-seconds')) document.getElementById('meet-seconds').innerText = s < 10 ? "0" + s : s;
+    setValue('meet-days', d);
+    setValue('meet-hours', h);
+    setValue('meet-minutes', m);
+    setValue('meet-seconds', s);
 }
 
 setInterval(updateMeetingTimer, 1000);
