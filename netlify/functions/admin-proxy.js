@@ -73,8 +73,14 @@ function normalizeMeetingDateTime(value) {
     let normalized = String(value).trim();
     if (!normalized) return null;
 
+    normalized = normalized.replace(' ', 'T');
+
     if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized)) {
-        normalized += ':00';
+        return `${normalized}:00+04:00`;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(normalized)) {
+        return `${normalized}+04:00`;
     }
 
     return normalized;
