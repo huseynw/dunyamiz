@@ -66,6 +66,20 @@ async function putGitHubFile({ repoOwner, repoName, token, path, content, messag
     return data;
 }
 
+
+function normalizeMeetingDateTime(value) {
+    if (!value) return null;
+
+    let normalized = String(value).trim();
+    if (!normalized) return null;
+
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized)) {
+        normalized += ':00';
+    }
+
+    return normalized;
+}
+
 exports.handler = async (event) => {
     if (event.httpMethod !== "POST") {
         return { statusCode: 405, body: "Method Not Allowed" };
@@ -76,8 +90,9 @@ exports.handler = async (event) => {
         const GH_TOKEN = process.env.GH_TOKEN;
         const repoOwner = "huseynw";
         const repoName = "dunyamiz";
+        const githubNeededTypes = new Set(["upload_image", "upload_note", "upload_music_json", "upload_music"]);
 
-        if (!GH_TOKEN) {
+        if (githubNeededTypes.has(type) && !GH_TOKEN) {
             return {
                 statusCode: 500,
                 headers: { "Content-Type": "application/json; charset=utf-8" },
@@ -104,55 +119,55 @@ exports.handler = async (event) => {
             };
         }
         if (type === "update_config") {
-            const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${payload.path}`;
+            const SUPABASE_URL = process.env.SUPABASE_URL;
+            const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
 
-            const res = await fetch(url, {
-                headers: { "Authorization": `token ${GH_TOKEN}` }
-            });
-
-            const fileData = await res.json();
-
-            if (!res.ok) {
-                throw new Error(fileData?.message || "hcayar.js oxunmadı");
+            if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+                throw new Error("SUPABASE_URL və ya SUPABASE_SERVICE_ROLE_KEY tapılmadı.");
             }
 
-            const sha = fileData.sha;
-            let oldContent = Buffer.from(fileData.content, 'base64').toString('utf-8');
+            const updates = {};
 
-            if (payload.newDate) {
-                oldContent = oldContent.replace(
-                    /const targetDate = new Date\("[^"]+"\);/,
-                    `const targetDate = new Date("${payload.newDate}:00");`
-                );
+            const normalizedDate = normalizeMeetingDateTime(payload?.newDate);
+            if (normalizedDate) {
+                updates.next_meeting_date = normalizedDate;
+                updates.updated_at = new Date().toISOString();
             }
 
-            if (payload.newCount) {
-                oldContent = oldContent.replace(
-                    /meetingCount: \d+,/,
-                    `meetingCount: ${payload.newCount},`
-                );
+            if (payload?.newCount !== undefined && payload?.newCount !== null && String(payload.newCount).trim() !== '') {
+                const parsedCount = Number(payload.newCount);
+                if (Number.isNaN(parsedCount)) {
+                    throw new Error("Görüş sayı düzgün deyil.");
+                }
+                updates.meeting_count = parsedCount;
+                updates.updated_at = new Date().toISOString();
             }
 
-            const finalContent = Buffer.from(oldContent).toString('base64');
+            if (!Object.keys(updates).length) {
+                throw new Error("Dəyişiklik yoxdur.");
+            }
 
-            const ghResponse = await fetch(url, {
-                method: 'PUT',
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?id=eq.1`, {
+                method: 'PATCH',
                 headers: {
-                    "Authorization": `token ${GH_TOKEN}`,
-                    "Content-Type": "application/json"
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                    "Content-Type": "application/json",
+                    "Prefer": "return=representation"
                 },
-                body: JSON.stringify({
-                    message: "Admin: Məlumatlar yeniləndi",
-                    content: finalContent,
-                    sha
-                })
+                body: JSON.stringify(updates)
             });
 
-            const resData = await ghResponse.json();
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result?.message || result?.error || "Supabase update xətası baş verdi.");
+            }
 
             return {
                 statusCode: 200,
-                body: JSON.stringify({ success: ghResponse.ok, details: resData })
+                headers: { "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({ success: true, details: result })
             };
         }
 
