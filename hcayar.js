@@ -1,13 +1,56 @@
-const targetDate = new Date("2026-04-15T13:00:00"); 
+let targetDate = new Date();
 let currentWaveColor = "rgb(255,255,255)";
 const config = {
     githubUsername: "huseynw",
-    repoName: "dunyamiz",              
+    repoName: "dunyamiz",
     firstMeetingDate: "2025-10-22T00:00:00",
-    startDate: "2025-08-03T00:00:00", 
-    meetingCount: 99,    
+    startDate: "2025-08-03T00:00:00",
+    meetingCount: 0,
     musicTitle: "Gözlərin dəydi gözümə"
 };
+
+const SUPABASE_URL = "https://fctwtcakequqvvmjgbhr.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_5hPXYm0KTzHrj6j89niTBQ_iniwgQZ7";
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+);
+
+async function loadSiteSettings() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('site_settings')
+            .select('id, next_meeting_date, meeting_count')
+            .eq('id', 1)
+            .single();
+
+        if (error) throw error;
+
+        if (data?.next_meeting_date) {
+            targetDate = new Date(data.next_meeting_date);
+        }
+
+        if (typeof data?.meeting_count === 'number') {
+            config.meetingCount = data.meeting_count;
+        }
+
+        const meetEl = document.getElementById('meet-count');
+        if (meetEl) {
+            meetEl.innerText = config.meetingCount;
+        }
+
+        if (typeof updateMeetingTimer === 'function') {
+            updateMeetingTimer();
+        }
+
+        if (typeof syncAdminOverview === 'function') {
+            syncAdminOverview();
+        }
+    } catch (err) {
+        console.error('Site settings yüklənmədi:', err);
+    }
+}
 
 // Security - Disable right-click and dev tools
 //document.addEventListener('contextmenu', event => event.preventDefault());
