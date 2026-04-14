@@ -10,29 +10,34 @@ const config = {
 };
 
 const SUPABASE_URL = "https://fctwtcakequqvvmjgbhr.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_5hPXYm0KTzHrj6j89niTBQ_iniwgQZ7";
-
-const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
-);
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjdHd0Y2FrZXF1cXZ2bWpnYmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjE2NzYsImV4cCI6MjA5MTczNzY3Nn0.EE7T4HgrPI5c7ChYu8VDtoQ3oXflkhKDE-wkFckrCeY";
 
 async function loadSiteSettings() {
     try {
-        const { data, error } = await supabaseClient
-            .from('site_settings')
-            .select('id, next_meeting_date, meeting_count')
-            .eq('id', 1)
-            .single();
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?id=eq.1&select=id,next_meeting_date,meeting_count`, {
+            method: 'GET',
+            headers: {
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                "Accept": "application/json"
+            }
+        });
 
-        if (error) throw error;
+        const data = await response.json();
 
-        if (data?.next_meeting_date) {
-            targetDate = new Date(data.next_meeting_date);
+        if (!response.ok) {
+            throw new Error(data?.message || data?.error || 'Site settings yüklənmədi.');
         }
 
-        if (typeof data?.meeting_count === 'number') {
-            config.meetingCount = data.meeting_count;
+        const settings = Array.isArray(data) ? data[0] : null;
+        if (!settings) return;
+
+        if (settings.next_meeting_date) {
+            targetDate = new Date(settings.next_meeting_date);
+        }
+
+        if (typeof settings.meeting_count === 'number') {
+            config.meetingCount = settings.meeting_count;
         }
 
         const meetEl = document.getElementById('meet-count');
