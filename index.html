@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="google-site-verification" content="gfRFjiaDTYd0covypvcJDW_EvOEZDEDH5nMOEZt0WR4" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hüseyn və Cəmalənin Dünyası</title>
     <meta name="description" content="Hüseyn və Cəmalənin özəl dünyası. Birlikdə keçən zamanımız, xatirələrimiz və sevgimiz...">
     <meta name="keywords" content="Hüseyn və Cəmalə, Hüseyn Cəmalə, Bizim Dünyamız, sevgi saytı">
@@ -16,6 +16,7 @@
     <meta name="twitter:title" content="Hüseyn və Cəmalənin Dünyası">
     <meta name="twitter:description" content="Bizim dünyamıza xoş gəldin.">
     <meta name="twitter:image" content="https://www.dunyamiz.me/assets/192.png">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-video-preview:-1,max-snippet:-1">
     <link rel="stylesheet" href="hcstil.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="manifest" href="/manifest.json">
@@ -35,7 +36,7 @@
 <body>
     <canvas id="weather-canvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; opacity:0.6;"></canvas>
     <!-- Welcome Screen -->
-    <div id="welcome-screen">
+    <div id="welcome-screen" data-nosnippet>
         <div class="welcome-content">
             <div class="rose-wrapper">
                 <div class="rose-flower">
@@ -56,8 +57,8 @@
             <h1>Xoş Gəldin, Cəmaləm</h1>
             <button id="enter-btn">Toxun <i class="fas fa-heart"></i></button>
             <div id="password-panel" class="hidden" style="margin-top: 20px; display: none; flex-direction: column; align-items: center; gap: 15px;">
-            <input type="password" id="pass-input" placeholder="Şifrəni yaz" inputmode="text" autocapitalize="off" autocorrect="off" autocomplete="current-password"
-                   style="padding: 15px; border-radius: 50px; border: 1px solid var(--primary); background: rgba(255,255,255,0.1); color: white; text-align: center; outline: none; width: 200px; font-size: 16px;">
+            <input type="password" id="pass-input" placeholder="Şifrəni yaz" 
+                   style="padding: 15px; border-radius: 50px; border: 1px solid var(--primary); background: rgba(255,255,255,0.1); color: white; text-align: center; outline: none; width: 200px;">
             <p id="error-msg" style="color: #ff4d6d; font-size: 0.8rem; display: none;">Kül başına düz yaz!</p>
             <button id="verify-btn" style="padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 50px; cursor: pointer;">Təsdiqlə</button>
             </div>
@@ -65,7 +66,7 @@
     </div>
 
     <!-- Main Content -->
-    <main id="main-content" class="hidden">
+    <main id="main-content" class="hidden" data-nosnippet>
         <!-- Header - Always Visible -->
         <header class="animate-item delay-1">
             <div class="logo-container">
