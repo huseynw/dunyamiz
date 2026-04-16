@@ -3239,11 +3239,11 @@ function syncAdminOverview() {
         musicArtist.textContent = musicArtistInput?.value.trim() || latestTrack?.artist || 'Artist bilinmir';
     }
 
-    if (dateInput && !dateInput.value) {
-        dateInput.value = formatAdminDateTimeLocal(targetDate);
+    if (dateInput && document.activeElement !== dateInput) {
+        dateInput.placeholder = formatAdminDateTimeLocal(targetDate);
     }
-    if (countInput && !countInput.value) {
-        countInput.value = String(config.meetingCount ?? '');
+    if (countInput && document.activeElement !== countInput) {
+        countInput.placeholder = String(config.meetingCount ?? '');
     }
 }
 
