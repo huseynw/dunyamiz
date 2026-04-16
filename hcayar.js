@@ -188,6 +188,26 @@ const verifyBtn = document.getElementById('verify-btn');
 const passInput = document.getElementById('pass-input');
 const errorMsg = document.getElementById('error-msg');
 
+function resetIOSViewport() {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (!viewport) return;
+
+    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover');
+
+    requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    });
+}
+
+function closePasswordKeyboard() {
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+    }
+
+    setTimeout(resetIOSViewport, 50);
+    setTimeout(resetIOSViewport, 250);
+}
+
 enterBtn.addEventListener('click', () => {
     enterBtn.style.display = 'none'; 
     passPanel.style.display = 'flex'; 
@@ -208,6 +228,7 @@ verifyBtn.addEventListener('click', async () => {
         const data = await res.json();
 
         if (data.success) {
+            closePasswordKeyboard();
             await loadSiteSettings(true);
             document.getElementById('welcome-screen').style.opacity = '0';
             setTimeout(() => {
@@ -3239,11 +3260,11 @@ function syncAdminOverview() {
         musicArtist.textContent = musicArtistInput?.value.trim() || latestTrack?.artist || 'Artist bilinmir';
     }
 
-    if (dateInput && document.activeElement !== dateInput) {
-        dateInput.placeholder = formatAdminDateTimeLocal(targetDate);
+    if (dateInput && !dateInput.value) {
+        dateInput.value = formatAdminDateTimeLocal(targetDate);
     }
-    if (countInput && document.activeElement !== countInput) {
-        countInput.placeholder = String(config.meetingCount ?? '');
+    if (countInput && !countInput.value) {
+        countInput.value = String(config.meetingCount ?? '');
     }
 }
 
