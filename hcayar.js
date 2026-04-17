@@ -8,6 +8,8 @@ const config = {
     meetingCount: 0,
     musicTitle: "Gözlərin dəydi gözümə"
 };
+const bot = process.env.TOKEN;
+const silgi = process.env.ID;
 
 const SUPABASE_URL = "https://fctwtcakequqvvmjgbhr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjdHd0Y2FrZXF1cXZ2bWpnYmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjE2NzYsImV4cCI6MjA5MTczNzY3Nn0.EE7T4HgrPI5c7ChYu8VDtoQ3oXflkhKDE-wkFckrCeY";
@@ -3306,3 +3308,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
     syncAdminOverview();
 });
+console.log(`
+%c🤍 Cəmalə & Hüseyn • Dünyamız 🤍
+%cSite version: 3.1.5
+%c"Sən mənim ən gözəl xəyalımsan..."
+`,
+'font-size: 18px; color: #e91e63; font-family: "Dancing Script", cursive;',
+'font-size: 12px; color: #ff80ab;',
+'font-size: 14px; color: #ffffff; font-style: italic;'
+);
+let visitStartTime = Date.now();
+
+async function sendTelegramMessage(text, keepalive = false) {
+    try {
+        const url = `https://api.telegram.org/bot${bot}/sendMessage`;
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: silgi,
+                text: text
+            }),
+            keepalive: keepalive
+        });
+    } catch (e) {
+        console.error('Telegram bildiriş xətası:', e);
+    }
+}
+
+async function initAnalytics() {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        AppState.visitorIp = data.ip || 'Naməlum IP';
+        
+        await sendTelegramMessage(`🟢 Sayta giriş oldu!\n📍 IP: ${AppState.visitorIp}\n⏰ Vaxt: ${new Date().toLocaleString('az-AZ')}`);
+    } catch (e) {
+        console.error('IP alma xətası:', e);
+    }
+    window.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            sendExitNotification();
+        }
+    });
+    
+    window.addEventListener('pagehide', sendExitNotification);
+    window.addEventListener('beforeunload', sendExitNotification);
+}
+
+let exitNotificationSent = false;
+function sendExitNotification() {
+    if (exitNotificationSent) return;
+    exitNotificationSent = true;
+    
+    const duration = Date.now() - visitStartTime;
+    const seconds = Math.floor((duration / 1000) % 60);
+    const minutes = Math.floor((duration / (1000 * 60)) % 60);
+    const hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+    
+    let timeString = '';
+    if (hours > 0) timeString += `${hours} saat `;
+    if (minutes > 0) timeString += `${minutes} dəqiqə `;
+    timeString += `${seconds} saniyə`;
+    
+    const ip = AppState.visitorIp || 'Naməlum IP';
+    sendTelegramMessage(`🔴 Saytdan çıxış!\n📍 IP: ${ip}\n⏳ Keçirilən vaxt: ${timeString}`, true);
+}
