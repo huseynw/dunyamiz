@@ -1,3 +1,4 @@
+// FIXED AWS date formatting for R2 presigned URLs
 const fetch = require('node-fetch');
 const crypto = require('crypto');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
@@ -86,10 +87,12 @@ function hmac(key, value, encoding) {
 }
 
 function getAmzDates(now = new Date()) {
-    const iso = now.toISOString().replace(/[:-]|\.\d{3}/g, '');
+    const iso = now.toISOString();
+    const shortDate = iso.slice(0, 10).replace(/-/g, '');
+    const timePart = iso.slice(11, 19).replace(/:/g, '');
     return {
-        amzDate: `${iso.slice(0, 8)}T${iso.slice(8, 14)}Z`,
-        shortDate: iso.slice(0, 8)
+        amzDate: `${shortDate}T${timePart}Z`,
+        shortDate
     };
 }
 
