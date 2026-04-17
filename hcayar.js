@@ -8,8 +8,11 @@ const config = {
     meetingCount: 0,
     musicTitle: "Gözlərin dəydi gözümə"
 };
-const bot = process.env.TOKEN;
-const silgi = process.env.ID;
+fetch("/.netlify/functions/config")
+  .then(res => res.json())
+  .then(data => {
+    console.log(data);
+  });
 
 const SUPABASE_URL = "https://fctwtcakequqvvmjgbhr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjdHd0Y2FrZXF1cXZ2bWpnYmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjE2NzYsImV4cCI6MjA5MTczNzY3Nn0.EE7T4HgrPI5c7ChYu8VDtoQ3oXflkhKDE-wkFckrCeY";
