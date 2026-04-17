@@ -1187,60 +1187,6 @@ async function uploadToCloudinary(file, { cloudName, preset, resourceType = 'aut
 
     return data;
 }
-
-function inferFileExtensionFromName(name = '', fallback = '') {
-    const match = String(name).trim().match(/\.([a-z0-9]{2,5})$/i);
-    return match ? match[1].toLowerCase() : fallback;
-}
-
-function inferFileExtensionFromUrl(url = '', fallback = '') {
-    const cleaned = String(url).split('?')[0].split('#')[0];
-    const match = cleaned.match(/\.([a-z0-9]{2,5})$/i);
-    return match ? match[1].toLowerCase() : fallback;
-}
-
-function getMusicRemoteImportValues() {
-    return {
-        audioUrl: document.getElementById('admin-cloudinary-audio-url')?.value.trim() || '',
-        coverUrl: document.getElementById('admin-cloudinary-cover-url')?.value.trim() || ''
-    };
-}
-
-function toggleMusicSourceUi() {
-    const source = document.getElementById('admin-music-source')?.value || 'github';
-    const remoteWrap = document.getElementById('admin-cloudinary-import-fields');
-    const sourceHint = document.getElementById('admin-music-source-help');
-    const musicMeta = document.getElementById('admin-music-file-meta');
-    const coverMeta = document.getElementById('admin-music-cover-meta');
-    const musicSourceSelect = document.getElementById('admin-music-source');
-
-    if (remoteWrap) {
-        remoteWrap.style.display = source === 'r2' ? 'grid' : 'none';
-    }
-
-    if (sourceHint) {
-        if (source === 'r2') {
-            sourceHint.textContent = 'R2 seçəndə iki yol var: ya lokal MP3/cover yüklə, ya Cloudinary linklərini yapışdırıb bir kliklə R2-yə köçür.';
-        } else if (source === 'cloudinary') {
-            sourceHint.textContent = 'Fayllar Cloudinary-yə yüklənəcək, GitHub-da isə yalnız JSON saxlanacaq.';
-        } else {
-            sourceHint.textContent = 'GitHub seçəndə MP3, cover və JSON hamısı repoya yazılır.';
-        }
-    }
-
-    if (musicMeta && !document.getElementById('admin-music-file')?.files?.[0]) {
-        musicMeta.textContent = source === 'r2'
-            ? 'R2 üçün lokal MP3 seç və ya aşağıdakı Cloudinary MP3 URL sahəsini doldur.'
-            : 'Yalnız .mp3 formatı qəbul edilir.';
-    }
-
-    if (coverMeta && !document.getElementById('admin-music-cover')?.files?.[0]) {
-        coverMeta.textContent = source === 'r2'
-            ? 'İstəyə bağlıdır. Lokal cover və ya Cloudinary cover URL verə bilərsən.'
-            : 'İstəyə bağlıdır.';
-    }
-}
-
 function getAdminPasswordFieldId(type) {
     return {
         update_config: 'admin-password-settings',
@@ -1264,8 +1210,7 @@ async function handleAdminUpdate(type) {
     const triggerButton = {
         update_config: document.getElementById('update-config-btn'),
         upload_image: document.getElementById('upload-image-btn'),
-        upload_music: document.getElementById('upload-music-btn'),
-        migrate_music_to_r2: document.getElementById('migrate-r2-btn')
+        upload_music: document.getElementById('upload-music-btn')
     }[type];
 
     let requestPayload = { path: '' };
@@ -1303,153 +1248,101 @@ async function handleAdminUpdate(type) {
             };
         }
 
-        
-else if (type === 'upload_music') {
-    const audioFile = document.getElementById('admin-music-file')?.files?.[0];
-    const coverFile = document.getElementById('admin-music-cover')?.files?.[0] || null;
-    const title = document.getElementById('admin-music-title')?.value.trim();
-    const artist = document.getElementById('admin-music-artist')?.value.trim();
-    const lyricsType = document.getElementById('admin-lyrics-type')?.value || 'none';
-    const lyricsText = document.getElementById('admin-lyrics-text')?.value || '';
-    const musicSource = document.getElementById('admin-music-source')?.value || 'github';
-    const remoteImport = getMusicRemoteImportValues();
+        else if (type === 'upload_music') {
+            const audioFile = document.getElementById('admin-music-file')?.files?.[0];
+            const coverFile = document.getElementById('admin-music-cover')?.files?.[0] || null;
+            const title = document.getElementById('admin-music-title')?.value.trim();
+            const artist = document.getElementById('admin-music-artist')?.value.trim();
+            const lyricsType = document.getElementById('admin-lyrics-type')?.value || 'none';
+            const lyricsText = document.getElementById('admin-lyrics-text')?.value || '';
+            const musicSource = document.getElementById('admin-music-source')?.value || 'github';
 
-    if (!title) throw new Error('Mahnı adı yaz!');
-    if (!artist) throw new Error('Artist adı yaz!');
+            if (!audioFile) throw new Error('Musiqi faylı seç!');
+            if (!title) throw new Error('Mahnı adı yaz!');
+            if (!artist) throw new Error('Artist adı yaz!');
+            const ext = audioFile.name.split('.').pop()?.toLowerCase();
+            if (ext !== 'mp3') throw new Error('Yalnız MP3 yüklə!');
+            const slugBase = `${title}-${artist}`
+                .toLowerCase()
+                .replace(/[^a-z0-9əöüğşıç-]+/gi, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '') || `track-${Date.now()}`;
 
-    const hasLocalAudio = Boolean(audioFile);
-    const hasRemoteAudio = Boolean(remoteImport.audioUrl);
+            const slug = `${slugBase}-${Date.now()}`;
 
-    if (musicSource === 'r2') {
-        if (!hasLocalAudio && !hasRemoteAudio) {
-            throw new Error('R2 üçün ya MP3 seç, ya da Cloudinary MP3 linki yaz!');
+            let audioField = '';
+            let coverField = '';
+
+            const musicMeta = {
+                id: slug,
+                title,
+                artist,
+                lyrics: {
+                    type: lyricsType,
+                    text: lyricsText.trim()
+                },
+                uploadedAt: new Date().toISOString()
+            };
+
+            if (musicSource === 'cloudinary') {
+                setAdminStatus('Cloudinary-yə yüklənir...', 'info');
+
+                const cloudName = 'dkhuq9o1h';
+
+                const audioUpload = await uploadToCloudinary(audioFile, {
+                    cloudName,
+                    preset: 'dunyamiz_audio_unsigned',
+                    resourceType: 'video',
+                    folder: 'dunyamiz/music'
+                });
+
+                audioField = audioUpload.secure_url;
+
+                if (coverFile) {
+                    const coverUpload = await uploadToCloudinary(coverFile, {
+                        cloudName,
+                        preset: 'dunyamiz_cover_unsigned',
+                        resourceType: 'image',
+                        folder: 'dunyamiz/covers'
+                    });
+
+                    coverField = coverUpload.secure_url;
+                }
+
+                musicMeta.audio = audioField;
+                if (coverField) musicMeta.cover = coverField;
+
+                requestPayload = {
+                    path: `musiqiler/${slug}.json`,
+                    content: encodeBase64Utf8(JSON.stringify(musicMeta, null, 2))
+                };
+
+                type = 'upload_music_json';
+            } else {
+                setAdminStatus('GitHub üçün fayllar hazırlanır...', 'info');
+
+                const audioBase64 = await convertAudioFileToBase64(audioFile);
+                const coverBase64 = coverFile ? await encodeFileAsBase64(coverFile) : '';
+                const coverExt = coverFile ? (coverFile.name.split('.').pop()?.toLowerCase() || 'jpg') : '';
+                const coverFileName = coverFile ? `${slug}.${coverExt}` : '';
+
+                audioField = `musiqiler/${slug}.mp3`;
+                coverField = coverFileName ? `musiqiler/${coverFileName}` : '';
+
+                musicMeta.audio = audioField;
+                if (coverField) musicMeta.cover = coverField;
+
+                requestPayload = {
+                    slug,
+                    audioPath: audioField,
+                    jsonPath: `musiqiler/${slug}.json`,
+                    audioContent: audioBase64,
+                    coverPath: coverField,
+                    coverContent: coverBase64,
+                    jsonContent: encodeBase64Utf8(JSON.stringify(musicMeta, null, 2))
+                };
+            }
         }
-    } else if (!hasLocalAudio) {
-        throw new Error('Musiqi faylı seç!');
-    }
-
-    if (hasLocalAudio) {
-        const ext = audioFile.name.split('.').pop()?.toLowerCase();
-        if (ext !== 'mp3') throw new Error('Yalnız MP3 yüklə!');
-    }
-
-    const slugBase = `${title}-${artist}`
-        .toLowerCase()
-        .replace(/[^a-z0-9əöüğşıç-]+/gi, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '') || `track-${Date.now()}`;
-
-    const slug = `${slugBase}-${Date.now()}`;
-    let audioField = '';
-    let coverField = '';
-
-    const musicMeta = {
-        id: slug,
-        title,
-        artist,
-        provider: musicSource,
-        lyrics: {
-            type: lyricsType,
-            text: lyricsText.trim()
-        },
-        uploadedAt: new Date().toISOString()
-    };
-
-    if (musicSource === 'cloudinary') {
-        setAdminStatus('Cloudinary-yə yüklənir...', 'info');
-
-        const cloudName = 'dkhuq9o1h';
-
-        const audioUpload = await uploadToCloudinary(audioFile, {
-            cloudName,
-            preset: 'dunyamiz_audio_unsigned',
-            resourceType: 'video',
-            folder: 'dunyamiz/music'
-        });
-
-        audioField = audioUpload.secure_url;
-
-        if (coverFile) {
-            const coverUpload = await uploadToCloudinary(coverFile, {
-                cloudName,
-                preset: 'dunyamiz_cover_unsigned',
-                resourceType: 'image',
-                folder: 'dunyamiz/covers'
-            });
-
-            coverField = coverUpload.secure_url;
-        }
-
-        musicMeta.audio = audioField;
-        if (coverField) musicMeta.cover = coverField;
-        musicMeta.storage = {
-            provider: 'cloudinary',
-            mode: 'direct-upload'
-        };
-
-        requestPayload = {
-            path: `musiqiler/${slug}.json`,
-            content: encodeBase64Utf8(JSON.stringify(musicMeta, null, 2))
-        };
-
-        type = 'upload_music_json';
-    } else if (musicSource === 'r2') {
-        setAdminStatus(hasRemoteAudio ? 'Cloudinary-dən R2-yə köçürülür...' : 'R2 üçün fayllar hazırlanır...', 'info');
-
-        const audioExt = hasLocalAudio
-            ? inferFileExtensionFromName(audioFile.name, 'mp3')
-            : inferFileExtensionFromUrl(remoteImport.audioUrl, 'mp3');
-        const coverExt = coverFile
-            ? inferFileExtensionFromName(coverFile.name, 'jpg')
-            : inferFileExtensionFromUrl(remoteImport.coverUrl, 'jpg');
-
-        const audioKey = `music/${slug}.${audioExt || 'mp3'}`;
-        const coverKey = (coverFile || remoteImport.coverUrl)
-            ? `covers/${slug}.${coverExt || 'jpg'}`
-            : '';
-
-        requestPayload = {
-            slug,
-            jsonPath: `musiqiler/${slug}.json`,
-            trackMeta: musicMeta,
-            r2AudioKey: audioKey,
-            r2CoverKey: coverKey,
-            ...(hasLocalAudio ? { audioContent: await convertAudioFileToBase64(audioFile) } : { remoteAudioUrl: remoteImport.audioUrl }),
-            ...(coverFile ? { coverContent: await encodeFileAsBase64(coverFile) } : {}),
-            ...(!coverFile && remoteImport.coverUrl ? { remoteCoverUrl: remoteImport.coverUrl } : {})
-        };
-
-        type = 'upload_music_r2';
-    } else {
-        setAdminStatus('GitHub üçün fayllar hazırlanır...', 'info');
-
-        const audioBase64 = await convertAudioFileToBase64(audioFile);
-        const coverBase64 = coverFile ? await encodeFileAsBase64(coverFile) : '';
-        const coverExt = coverFile ? (coverFile.name.split('.').pop()?.toLowerCase() || 'jpg') : '';
-        const coverFileName = coverFile ? `${slug}.${coverExt}` : '';
-
-        audioField = `musiqiler/${slug}.mp3`;
-        coverField = coverFileName ? `musiqiler/${coverFileName}` : '';
-
-        musicMeta.audio = audioField;
-        if (coverField) musicMeta.cover = coverField;
-        musicMeta.storage = {
-            provider: 'github',
-            mode: 'repo-upload'
-        };
-
-        requestPayload = {
-            slug,
-            audioPath: audioField,
-            jsonPath: `musiqiler/${slug}.json`,
-            audioContent: audioBase64,
-            coverPath: coverField,
-            coverContent: coverBase64,
-            jsonContent: encodeBase64Utf8(JSON.stringify(musicMeta, null, 2))
-        };
-    }
-}
-
         setAdminStatus('Serverə göndərilir...', 'info');
         const response = await fetch('/.netlify/functions/admin-proxy', {
             method: 'POST',
@@ -1646,1875 +1539,137 @@ window.addEventListener('DOMContentLoaded', initScratchCard);
 updateWeatherTheme();
 
 // ========== ADMIN BUTTONS ==========
-document.addEventListener('DOMContentLoaded', () => {
-    const updateBtn = document.getElementById('update-config-btn');
-    const uploadImageBtn = document.getElementById('upload-image-btn');
-    const uploadMusicBtn = document.getElementById('upload-music-btn');
-    const migrateR2Btn = document.getElementById('migrate-r2-btn');
-    const galleryFileInput = document.getElementById('admin-file');
-    const musicFileInput = document.getElementById('admin-music-file');
-    const coverFileInput = document.getElementById('admin-music-cover');
-    const coverPreview = document.getElementById('admin-cover-preview');
-    const galleryMeta = document.getElementById('admin-file-meta');
-    const musicMeta = document.getElementById('admin-music-file-meta');
-    const coverMeta = document.getElementById('admin-music-cover-meta');
-    const musicSourceSelect = document.getElementById('admin-music-source');
 
-    if (updateBtn) {
-        updateBtn.onclick = () => handleAdminUpdate('update_config');
-    }
-
-    if (uploadImageBtn) {
-        uploadImageBtn.onclick = () => handleAdminUpdate('upload_image');
-    }
-
-    if (uploadMusicBtn) {
-        uploadMusicBtn.onclick = () => handleAdminUpdate('upload_music');
-    }
-
-    if (migrateR2Btn) {
-        migrateR2Btn.onclick = () => handleAdminUpdate('migrate_music_to_r2');
-    }
-
-    galleryFileInput?.addEventListener('change', () => {
-        const file = galleryFileInput.files?.[0];
-        if (galleryMeta) {
-            galleryMeta.textContent = file
-                ? `${file.name} • ${formatFileSize(file.size)}`
-                : 'PNG, JPG, WEBP və digər şəkillər dəstəklənir.';
-        }
-    });
-
-    musicFileInput?.addEventListener('change', () => {
-        const file = musicFileInput.files?.[0];
-        if (musicMeta) {
-            musicMeta.textContent = file
-                ? `${file.name} • ${formatFileSize(file.size)}`
-                : 'Yalnız .mp3 formatı qəbul edilir.';
-        }
-    });
-
-    musicSourceSelect?.addEventListener('change', toggleMusicSourceUi);
-    toggleMusicSourceUi();
-
-    coverFileInput?.addEventListener('change', () => {
-        const file = coverFileInput.files?.[0];
-        if (coverMeta) {
-            coverMeta.textContent = file
-                ? `${file.name} • ${formatFileSize(file.size)}`
-                : 'İstəyə bağlıdır. Yükləsən, JSON-a da əlavə olunacaq.';
-        }
-
-        if (!coverPreview) return;
-        if (!file) {
-            coverPreview.src = DEFAULT_MUSIC_COVER;
-            return;
-        }
-
-        const previewUrl = URL.createObjectURL(file);
-        coverPreview.src = previewUrl;
-        coverPreview.onload = () => URL.revokeObjectURL(previewUrl);
-    });
-});
-// Bu kodu hcayar.js faylının ən sonuna yapışdır
-document.addEventListener('DOMContentLoaded', () => {
-    const letterTypes = {
-        'env-miss': 'miss',
-        'env-sad': 'sad',
-        'env-happy': 'happy',
-        'env-us': 'us'
-    };
-
-    // Məktubları açmaq üçün
-    for (const [id, type] of Object.entries(letterTypes)) {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('click', () => {
-                const modal = document.getElementById('letter-modal');
-                // Sizin letters obyektinizdən məlumatları çəkir
-                document.getElementById('letter-title').innerText = letters[type].title;
-                document.getElementById('letter-text').innerText = letters[type].text;
-                modal.style.display = 'flex';
-            });
-        }
-    }
-
-    // Modalın bağlanması üçün
-    const closeBtn = document.getElementById('close-modal-btn');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            document.getElementById('letter-modal').style.display = 'none';
-        });
-    }
-});
-function animateValue(id, start, end, duration) {
-    const obj = document.getElementById(id);
-    if (!obj) return;
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const easeOut = 1 - Math.pow(1 - progress, 4);
-        const current = Math.floor(easeOut * (end - start) + start);
-        
-        if (id === 'total-minutes-love' || id === 'total-hours-love') {
-            obj.innerText = current.toLocaleString('tr-TR');
-        } else {
-            obj.innerText = current;
-        }
-        
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        } else {
-            obj.innerText = (id === 'total-minutes-love' || id === 'total-hours-love') 
-                ? end.toLocaleString('tr-TR') : end;
-        }
-    };
-    window.requestAnimationFrame(step);
+function createFileListFromSingleFile(file) {
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    return transfer.files;
 }
-document.addEventListener('DOMContentLoaded', () => {
-    const closeAdminBtn = document.querySelector('.close-admin');
-    const adminPanel = document.getElementById('admin-panel');
 
-    // X düyməsinə basanda bağlamaq üçün
-    if (closeAdminBtn && adminPanel) {
-        closeAdminBtn.addEventListener('click', () => {
-            adminPanel.style.display = 'none';
-        });
+function assignFileToInput(input, file) {
+    if (!input || !file) return;
+    input.files = createFileListFromSingleFile(file);
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function setDropzoneState(dropzone, state = '', file = null) {
+    if (!dropzone) return;
+    dropzone.classList.toggle('is-dragover', state === 'dragover');
+    dropzone.classList.toggle('is-filled', state === 'filled');
+
+    const titleEl = dropzone.querySelector('strong');
+    const subEl = dropzone.querySelector('span');
+
+    if (state === 'filled' && file) {
+        if (titleEl) titleEl.textContent = file.name;
+        if (subEl) subEl.textContent = formatFileSize(file.size);
+        return;
     }
 
-    // Əlavə olaraq: Panelin kənarına (boz arxafona) basanda da bağlanması üçün
-    window.addEventListener('click', (event) => {
-        if (event.target === adminPanel) {
-            adminPanel.style.display = 'none';
+    const defaults = {
+        'admin-music-dropzone': {
+            title: 'MP3 faylı bura sürüklə və burax',
+            sub: 'Toxunub fayl seçə də bilərsən'
+        },
+        'admin-cover-dropzone': {
+            title: 'Cover şəklini bura sürüklə və burax',
+            sub: 'PNG, JPG, WEBP və digər şəkillər'
+        }
+    }[dropzone.id] || {};
+
+    if (titleEl) titleEl.textContent = defaults.title || titleEl.dataset.defaultTitle || titleEl.textContent;
+    if (subEl) subEl.textContent = defaults.sub || subEl.dataset.defaultSub || subEl.textContent;
+}
+
+function bindAdminDropzone(dropzoneId, inputId, options = {}) {
+    const dropzone = document.getElementById(dropzoneId);
+    const input = document.getElementById(inputId);
+    if (!dropzone || !input) return;
+
+    const accept = Array.isArray(options.accept) ? options.accept : [];
+    const validate = typeof options.validate === 'function' ? options.validate : (() => true);
+
+    const onPick = () => input.click();
+    dropzone.addEventListener('click', onPick);
+    dropzone.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            input.click();
         }
     });
-});
-// Notlar funksiyası
-// Notlar funksiyası
-window.showNote = function(i) {
-    try {
-        if (!window.currentNotes || !window.currentNotes[i]) return;
-        const n = window.currentNotes[i];
-        
-        document.getElementById('view-note-title').innerText = n.title;
-        document.getElementById('view-note-author').innerText = n.author + " tərəfindən";
-        document.getElementById('view-note-text').innerText = n.content;
-        
-        // Saat ikonunu qorumaq üçün innerText əvəzinə innerHTML istifadə edirik:
-        document.getElementById('view-note-date').innerHTML = `<i class="far fa-clock"></i> ${n.dateStr}`;
-        
-        document.getElementById('view-note-modal').style.display = 'flex';
-    } catch (err) {
-        console.error("Not açılarkən xəta baş verdi:", err);
-        alert("Notu açmaq mümkün olmadı.");
-    }
-};
 
-async function loadNotes() {
-    const container = document.getElementById('notes-container');
-    if(!container) return;
-    
-    try {
-        const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/notlar`;
-        const res = await fetch('/.netlify/functions/github-content?path=notlar');
-        if(!res.ok) { 
-            container.innerHTML = "<p style='opacity:0.6;'>Hələ ki, not yoxdur.</p>"; 
-            return; 
-        }
-        
-        const files = await res.json();
-        let notesData = [];
-        const jsonFiles = files.filter(x => x.name.endsWith('.json'));
-        
-        for(let f of jsonFiles) {
-            const dataRes = await fetch(f.download_url);
-            notesData.push(await dataRes.json());
-        }
-
-        notesData.sort((a,b) => new Date(b.dateIso) - new Date(a.dateIso));
-        window.currentNotes = notesData;
-
-        // "onclick" atributunu çıxarır və məlumatı "data-index" kimi saxlayırıq
-        container.innerHTML = notesData.map((n, i) => `
-            <div class="note-card" data-index="${i}">
-                <span class="note-card-author">${n.author}</span>
-                <h3 class="note-card-title">${n.title}</h3>
-                <span class="note-card-date">${n.dateStr}</span>
-            </div>
-        `).join('');
-
-        // Bütün kartlara klik (click) funksiyasını təhlükəsiz yolla bağlayırıq
-        document.querySelectorAll('.note-card').forEach(card => {
-            card.addEventListener('click', function() {
-                const index = this.getAttribute('data-index');
-                window.showNote(parseInt(index));
-            });
+    ['dragenter', 'dragover'].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            dropzone.classList.add('is-dragover');
         });
+    });
 
-    } catch(e) { 
-        console.error("Xəta:", e);
-        container.innerHTML = "<p style='opacity:0.6; color:#ff4d6d;'>Notlar yüklənərkən xəta baş verdi.</p>"; 
-    }
-}
-document.addEventListener('DOMContentLoaded', () => {
-    loadNotes();
-    
-    // Modal idarəetmələri
-    const addModal = document.getElementById('add-note-modal');
-    const viewModal = document.getElementById('view-note-modal');
-    
-    document.getElementById('open-add-note-btn').onclick = () => addModal.style.display = 'flex';
-    document.getElementById('close-add-note-btn').onclick = () => addModal.style.display = 'none';
-    document.getElementById('close-view-note-btn').onclick = () => viewModal.style.display = 'none';
-
-    // Not əlavə etmə məntiqi
-    document.getElementById('submit-note-btn').onclick = async () => {
-        const author = document.getElementById('note-author').value;
-        let title = document.getElementById('note-title').value.trim();
-        const content = document.getElementById('note-content').value.trim();
-        const pass = getAdminPassword('upload_note') || prompt("Admin şifrəsi:");
-
-        if(!content || !pass) return alert("Məzmun və şifrə mütləqdir!");
-
-        const now = new Date();
-        const dateStr = now.toLocaleString('az-AZ').replace(',', '');
-        if(!title) title = dateStr;
-
-        const noteObj = { author, title, content, dateStr, dateIso: now.toISOString() };
-        // UTF-8 dəstəyi ilə Base64-ə çevirmə
-        const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(noteObj))));
-
-        const btn = document.getElementById('submit-note-btn');
-        btn.innerText = "Yüklənir...";
-        btn.disabled = true;
-        
-        try {
-            const res = await fetch('/.netlify/functions/admin-proxy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    type: 'upload_note',
-                    password: pass,
-                    payload: { path: `notlar/not_${Date.now()}.json`, content: b64 }
-                })
-            });
-
-            if(res.ok) {
-                alert("Not uğurla əlavə edildi! 🤍");
-                location.reload();
-            } else {
-                alert("Xəta: Şifrə yanlış ola bilər.");
-                btn.innerText = "Təsdiqlə";
-                btn.disabled = false;
+    ['dragleave', 'dragend', 'drop'].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            if (eventName !== 'drop') {
+                dropzone.classList.remove('is-dragover');
             }
-        } catch(e) {
-            alert("Sistem xətası baş verdi.");
-            btn.innerText = "Təsdiqlə";
-            btn.disabled = false;
-        }
-    };
-});
-window.musicLibrary = [];
-window.currentMusic = null;
-window.currentMusicIndex = -1;
-window.currentMusicLyricsParsed = [];
-window.currentMusicLyricsType = 'none';
-window.currentLyricsActiveIndex = -1;
-window.currentLyricsActiveWordIndex = -1;
+        });
+    });
 
-const DEFAULT_MUSIC_COVER = 'assets/music-cover.jpg';
-const GITHUB_RAW_BASE = `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/`;
+    dropzone.addEventListener('drop', (event) => {
+        dropzone.classList.remove('is-dragover');
+        const file = event.dataTransfer?.files?.[0];
+        if (!file) return;
 
-function resolveMusicAssetUrl(value, fallback = '') {
-    if (!value) return fallback;
+        const mimeOk = !accept.length || accept.some((item) => file.type.startsWith(item) || file.name.toLowerCase().endsWith(item));
+        if (!mimeOk || !validate(file)) return;
 
-    const cleaned = String(value).trim();
-    if (!cleaned) return fallback;
+        assignFileToInput(input, file);
+        setDropzoneState(dropzone, 'filled', file);
+    });
 
-    if (/^https?:\/\//i.test(cleaned)) {
-        return cleaned;
-    }
+    input.addEventListener('change', () => {
+        const file = input.files?.[0];
+        setDropzoneState(dropzone, file ? 'filled' : '', file || null);
+    });
 
-    const normalized = cleaned.replace(/^\/+/, '');
-    if (!normalized.includes('/')) {
-        return `${GITHUB_RAW_BASE}musiqiler/${encodeURIComponent(normalized)}`;
-    }
-
-    return `${GITHUB_RAW_BASE}${normalized.split('/').map(part => encodeURIComponent(part)).join('/')}`;
+    const titleEl = dropzone.querySelector('strong');
+    const subEl = dropzone.querySelector('span');
+    if (titleEl) titleEl.dataset.defaultTitle = titleEl.textContent;
+    if (subEl) subEl.dataset.defaultSub = subEl.textContent;
 }
-function normalizeTrackMeta(meta = {}) {
-    const audioValue = meta.audioUrl || meta.audio || (meta.file ? `musiqiler/${meta.file}` : '');
-    const coverValue = meta.coverUrl || meta.cover || '';
-    const provider = meta.provider || meta.storage?.provider || (String(audioValue).includes('cloudinary.com') ? 'cloudinary' : (/^https?:\/\//i.test(String(audioValue)) ? 'r2' : 'github'));
+
+function sanitizeMusicPart(value = '') {
+    return String(value)
+        .replace(/\[[^\]]*?\]/g, ' ')
+        .replace(/\([^)]*?(official|audio|lyrics|video|prod|remix|version|clip)[^)]*?\)/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function parseTitleArtistFromFileName(fileName = '') {
+    const raw = String(fileName).replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim();
+    const cleaned = sanitizeMusicPart(raw);
+
+    const parts = cleaned.split(/\s+-\s+|\s+–\s+|\s+—\s+/).map(sanitizeMusicPart).filter(Boolean);
+    if (parts.length >= 2) {
+        return {
+            artist: parts[0],
+            title: parts.slice(1).join(' - ')
+        };
+    }
 
     return {
-        ...meta,
-        provider,
-        audio: audioValue,
-        cover: coverValue,
-        audioUrl: resolveMusicAssetUrl(audioValue),
-        coverUrl: resolveMusicAssetUrl(coverValue, DEFAULT_MUSIC_COVER)
+        artist: '',
+        title: cleaned
     };
 }
 
-function formatMusicTime(seconds = 0) {
-    if (!isFinite(seconds)) return '00:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-}
-
-function escapeHtmlMusic(text = '') {
-    return String(text)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-function parseLrcTimeToSeconds(timeStr) {
-    const cleaned = String(timeStr).replace(',', '.').trim();
-    const match = cleaned.match(/^(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?$/);
-    if (!match) return null;
-
-    const minutes = Number(match[1]);
-    const seconds = Number(match[2]);
-    const fraction = Number((match[3] || '0').padEnd(3, '0').slice(0, 3)) / 1000;
-    return minutes * 60 + seconds + fraction;
-}
-
-function parseSyncedLyrics(lrcText = '') {
-    const rawLines = String(lrcText).split(/\r?\n/);
-    const parsed = [];
-
-    rawLines.forEach((rawLine) => {
-        const lineTags = [...rawLine.matchAll(/\[(\d{1,2}:\d{2}(?:[\.,]\d{1,3})?)\]/g)];
-        if (!lineTags.length) return;
-
-        const content = rawLine.replace(/\[(\d{1,2}:\d{2}(?:[\.,]\d{1,3})?)\]/g, '').trim();
-        const wordMatches = [...content.matchAll(/<(\d{1,2}:\d{2}(?:[\.,]\d{1,3})?)>([^<]+)/g)];
-
-        const words = wordMatches.map((match, wordIndex) => ({
-            index: wordIndex,
-            time: parseLrcTimeToSeconds(match[1]),
-            text: match[2] || ''
-        })).filter((word) => word.time !== null && word.text.trim());
-
-        lineTags.forEach((tag, lineIndex) => {
-            const lineTime = parseLrcTimeToSeconds(tag[1]);
-            if (lineTime === null) return;
-
-            const lineText = words.length
-                ? words.map((word) => word.text).join('').trim()
-                : content.replace(/<(\d{1,2}:\d{2}(?:[\.,]\d{1,3})?)>/g, '').trim();
-
-            parsed.push({
-                id: `${lineTime}-${lineIndex}`,
-                time: lineTime,
-                text: lineText || '…',
-                words
-            });
-        });
-    });
-
-    parsed.sort((a, b) => a.time - b.time);
-    return parsed;
-}
-
-function getMusicDom() {
-    return {
-        playlist: document.getElementById('music-playlist'),
-        trackCount: document.getElementById('music-track-count'),
-        activePlayer: document.getElementById('yt-active-player'),
-        audio: document.getElementById('yt-audio'),
-        openFullBtn: document.getElementById('yt-open-full-btn'),
-        expandHitbox: document.getElementById('yt-expand-hitbox'),
-        minimizeBtn: document.getElementById('yt-minimize-btn'),
-        lyricsToggle: document.getElementById('yt-lyrics-toggle'),
-        closeLyricsBtn: document.querySelector('.btn-close-lyrics'),
-        lyricsPanel: document.getElementById('yt-lyrics-panel'),
-        lyricsContainer: document.getElementById('yt-lyrics-container'),
-        titleFull: document.getElementById('yt-player-title'),
-        artistFull: document.getElementById('yt-player-artist'),
-        titleMini: document.getElementById('yt-player-title-mini'),
-        artistMini: document.getElementById('yt-player-artist-mini'),
-        coverFull: document.getElementById('yt-cover-image'),
-        coverMini: document.getElementById('yt-cover-image-mini'),
-        seekbar: document.getElementById('yt-seekbar'),
-        currentTime: document.getElementById('yt-current-time'),
-        duration: document.getElementById('yt-duration'),
-        playBtnFull: document.getElementById('yt-play-btn'),
-        playBtnMini: document.getElementById('yt-play-btn-mini'),
-        prevBtn: document.getElementById('yt-prev-btn'),
-        prevBtnMini: document.getElementById('yt-prev-btn-mini'),
-        nextBtn: document.getElementById('yt-next-btn'),
-        nextBtnMini: document.getElementById('yt-next-btn-mini'),
-        volumeSlider: document.getElementById('volume-slider'),
-        volumeValue: document.getElementById('volume-value'),
-        rotatingDisc: document.getElementById('yt-rotating-disc'),
-        playerBg: document.getElementById('yt-player-bg'),
-        waveform: document.getElementById('yt-waveform')
-    };
-}
-
-function setPlayerExpanded(expanded) {
-    const { activePlayer, lyricsPanel } = getMusicDom();
-    if (!activePlayer) return;
-
-    activePlayer.classList.toggle('expanded', expanded);
-    activePlayer.classList.toggle('player-mini', !expanded);
-
-    if (!expanded && lyricsPanel) {
-        lyricsPanel.classList.add('lyrics-hidden');
-        activePlayer.classList.remove('lyrics-open');
-        lyricsPanel.setAttribute('aria-hidden', 'true');
-    }
-
-    updateLyricsToggleState();
-}
-
-window.togglePlayerMode = function(forceExpanded) {
-    const { activePlayer } = getMusicDom();
-    if (!activePlayer) return;
-
-    const expanded = typeof forceExpanded === 'boolean'
-        ? forceExpanded
-        : !activePlayer.classList.contains('expanded');
-
-    setPlayerExpanded(expanded);
-};
-
-function updateLyricsToggleState() {
-    const { activePlayer, lyricsToggle, lyricsPanel } = getMusicDom();
-    if (!activePlayer || !lyricsToggle || !lyricsPanel) return;
-
-    const isExpanded = activePlayer.classList.contains('expanded');
-    const isOpen = !lyricsPanel.classList.contains('lyrics-hidden');
-    lyricsToggle.classList.toggle('is-open', isOpen && isExpanded);
-    lyricsToggle.setAttribute('aria-label', isOpen ? 'Sözləri bağla' : 'Sözləri aç');
-}
-
-window.toggleLyricsPanel = function(forceOpen) {
-    const { activePlayer, lyricsPanel } = getMusicDom();
-    if (!activePlayer || !lyricsPanel) return;
-
-    if (!activePlayer.classList.contains('expanded')) {
-        setPlayerExpanded(true);
-    }
-
-    const shouldOpen = typeof forceOpen === 'boolean'
-        ? forceOpen
-        : lyricsPanel.classList.contains('lyrics-hidden');
-
-    lyricsPanel.classList.toggle('lyrics-hidden', !shouldOpen);
-    activePlayer.classList.toggle('lyrics-open', shouldOpen);
-    lyricsPanel.setAttribute('aria-hidden', String(!shouldOpen));
-    updateLyricsToggleState();
-};
-
-async function fetchMusicJsonList() {
-    const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/musiqiler`;
-    const response = await fetch("/.netlify/functions/github-content?path=musiqiler");
-    const files = await response.json();
-
-    if (!Array.isArray(files)) {
-        throw new Error(files?.message || 'musiqiler qovluğu oxunmadı');
-    }
-
-    const jsonFiles = files.filter((file) => file.name.toLowerCase().endsWith('.json'));
-
-    const jsonData = await Promise.all(
-        jsonFiles.map(async (file) => {
-            const res = await fetch(file.download_url);
-            if (!res.ok) return null;
-            const data = await res.json();
-
-            const normalized = normalizeTrackMeta({
-                ...data,
-                id: data.id || file.name,
-                jsonName: file.name,
-                title: data.title || 'Adsız mahnı',
-                artist: data.artist || 'Naməlum artist'
-            });
-
-            return normalized;
-        })
-    );
-    return jsonData
-        .filter(Boolean)
-        .sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0));
-}
-
-function renderMusicPlaylist() {
-    const { playlist, trackCount } = getMusicDom();
-    if (!playlist) return;
-
-    if (!window.musicLibrary.length) {
-        playlist.innerHTML = `<div class="music-empty-state"><i class="fas fa-music"></i><span>Hələ musiqi əlavə edilməyib.</span></div>`;
-        if (trackCount) trackCount.textContent = '0 mahnı';
-        return;
-    }
-
-    playlist.innerHTML = window.musicLibrary.map((track, index) => {
-        const isActive = window.currentMusicIndex === index;
-        const thumbSrc = track.coverUrl || DEFAULT_MUSIC_COVER;
-
-        return `
-            <div class="yt-track-item ${isActive ? 'active' : ''}" data-music-index="${index}">
-                <img class="yt-track-thumb" src="${thumbSrc}" alt="${escapeHtmlMusic(track.title)}">
-                <div class="yt-track-text">
-                    <div class="yt-track-title">${escapeHtmlMusic(track.title)}</div>
-                    <div class="yt-track-artist">${escapeHtmlMusic(track.artist)}</div>
-                </div>
-                <div class="yt-track-meta">
-                    <i class="fas ${isActive ? 'fa-volume-high' : 'fa-play'}"></i>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    if (trackCount) {
-        trackCount.textContent = `${window.musicLibrary.length} mahnı`;
-    }
-
-    playlist.querySelectorAll('.yt-track-item').forEach((item) => {
-        item.addEventListener('click', () => {
-            const index = Number(item.dataset.musicIndex);
-            openMusicTrack(index);
-        });
-    });
-}
-function renderPlainLyrics(text = '') {
-    const { lyricsContainer } = getMusicDom();
-    if (!lyricsContainer) return;
-
-    if (!text.trim()) {
-        lyricsContainer.innerHTML = `<div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>`;
-        return;
-    }
-
-    const html = text
-        .split(/\r?\n/)
-        .map((line) => `<div class="yt-lyrics-line passed">${escapeHtmlMusic(line) || '&nbsp;'}</div>`)
-        .join('');
-
-    lyricsContainer.innerHTML = html || `<div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>`;
-}
-
-function renderSyncedLyrics(parsedLyrics = []) {
-    const { lyricsContainer } = getMusicDom();
-    if (!lyricsContainer) return;
-
-    if (!parsedLyrics.length) {
-        lyricsContainer.innerHTML = `<div class="yt-lyrics-empty">Synced lyrics tapılmadı.</div>`;
-        return;
-    }
-
-    lyricsContainer.innerHTML = parsedLyrics.map((line, index) => {
-        if (line.words && line.words.length) {
-            const wordsHtml = line.words.map((word, wordIndex) => `
-                <span 
-                    class="yt-lyrics-word" 
-                    data-lyrics-index="${index}" 
-                    data-word-index="${wordIndex}" 
-                    data-word-time="${word.time}"
-                >${escapeHtmlMusic(word.text)}</span>
-            `).join('');
-
-            return `
-                <div 
-                    class="yt-lyrics-line yt-lyrics-line--word yt-lyrics-line--clickable" 
-                    data-lyrics-index="${index}"
-                    data-line-time="${line.time}"
-                >
-                    ${wordsHtml}
-                </div>
-            `;
-        }
-
-        return `
-            <div 
-                class="yt-lyrics-line yt-lyrics-line--clickable" 
-                data-lyrics-index="${index}"
-                data-line-time="${line.time}"
-            >
-                ${escapeHtmlMusic(line.text.trim())}
-            </div>
-        `;
-    }).join('');
-}
-function renderCurrentTrackLyrics(track) {
-    const lyrics = track?.lyrics || {};
-    const type = lyrics.type || 'none';
-    const text = lyrics.text || '';
-
-    window.currentMusicLyricsType = type;
-    window.currentLyricsActiveIndex = -1;
-    window.currentLyricsActiveWordIndex = -1;
-    window.currentMusicLyricsParsed = [];
-
-    if (type === 'plain') {
-        renderPlainLyrics(text);
-    } else if (type === 'synced') {
-        const parsed = parseSyncedLyrics(text);
-        window.currentMusicLyricsParsed = parsed;
-        renderSyncedLyrics(parsed);
-    } else {
-        renderPlainLyrics('');
-    }
-}
-
-function updateSyncedLyricsByTime(currentTime) {
-    if (window.currentMusicLyricsType !== 'synced') return;
-    if (!window.currentMusicLyricsParsed.length) return;
-    const { lyricsPanel } = getMusicDom();
-    const { lyricsContainer } = getMusicDom();
-    if (!lyricsContainer) return;
-
-    let activeIndex = -1;
-    for (let i = 0; i < window.currentMusicLyricsParsed.length; i++) {
-        if (currentTime >= window.currentMusicLyricsParsed[i].time) {
-            activeIndex = i;
-        } else {
-            break;
-        }
-    }
-
-    const activeLine = activeIndex >= 0 ? window.currentMusicLyricsParsed[activeIndex] : null;
-    let activeWordIndex = -1;
-    if (activeLine?.words?.length) {
-        for (let i = 0; i < activeLine.words.length; i++) {
-            if (currentTime >= activeLine.words[i].time) {
-                activeWordIndex = i;
-            } else {
-                break;
-            }
-        }
-    }
-
-    if (
-        activeIndex === window.currentLyricsActiveIndex &&
-        activeWordIndex === window.currentLyricsActiveWordIndex
-    ) {
-        return;
-    }
-    if (activeIndex !== window.currentLyricsActiveIndex && activeIndex >= 0) {
-        if (lyricsPanel && currentWaveColor) {
-            const glowColor = currentWaveColor.replace('rgb', 'rgba').replace(')', ', 0.15)');
-            const intenseGlow = currentWaveColor.replace('rgb', 'rgba').replace(')', ', 0.3)');
-            lyricsPanel.style.background = `radial-gradient(circle at ${Math.random() * 100}% ${Math.random() * 100}%, ${intenseGlow} 0%, rgba(255,255,255,0.04) 70%)`;
-            lyricsPanel.style.boxShadow = `inset 0 0 50px ${glowColor}, 0 10px 30px rgba(0,0,0,0.3)`;
-            setTimeout(() => {
-                lyricsPanel.style.boxShadow = `inset 0 0 20px rgba(255,255,255,0.02), 0 10px 30px rgba(0,0,0,0.3)`;
-            }, 400);
-        }
-    }
-
-    window.currentLyricsActiveIndex = activeIndex;
-    window.currentLyricsActiveWordIndex = activeWordIndex;
-
-    const lines = lyricsContainer.querySelectorAll('.yt-lyrics-line');
-    lines.forEach((lineEl, index) => {
-        lineEl.classList.toggle('active', index === activeIndex);
-        lineEl.classList.toggle('passed', index < activeIndex);
-
-        const wordEls = lineEl.querySelectorAll('.yt-lyrics-word');
-        wordEls.forEach((wordEl, wordIndex) => {
-            wordEl.classList.toggle('passed', index < activeIndex || (index === activeIndex && wordIndex < activeWordIndex));
-            wordEl.classList.toggle('active', index === activeIndex && wordIndex === activeWordIndex);
-        });
-    });
-
-    const activeEl = lyricsContainer.querySelector(`.yt-lyrics-line[data-lyrics-index="${activeIndex}"]`);
-    if (activeEl) {
-        const containerRect = lyricsContainer.getBoundingClientRect();
-        const itemRect = activeEl.getBoundingClientRect();
-        const delta = itemRect.top - containerRect.top - (containerRect.height / 2) + (itemRect.height / 2);
-        lyricsContainer.scrollTo({
-            top: lyricsContainer.scrollTop + delta,
-            behavior: 'smooth'
-        });
-    }
-}
-
-function readMusicCoverFromUrl(audioUrl) {
-    return new Promise((resolve) => {
-        if (!window.jsmediatags) {
-            resolve(DEFAULT_MUSIC_COVER);
-            return;
-        }
-
-        window.jsmediatags.read(audioUrl, {
-            onSuccess: (tag) => {
-                const picture = tag?.tags?.picture;
-                if (!picture || !picture.data || !picture.format) {
-                    resolve(DEFAULT_MUSIC_COVER);
-                    return;
-                }
-
-                let binary = '';
-                const bytes = picture.data;
-                for (let i = 0; i < bytes.length; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-
-                resolve(`data:${picture.format};base64,${window.btoa(binary)}`);
-            },
-            onError: () => resolve(DEFAULT_MUSIC_COVER)
-        });
-    });
-}
-function getDominantColorFromImage(imgSrc) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = imgSrc;
-
-        img.onload = () => {
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-
-            canvas.width = 50;
-            canvas.height = 50;
-
-            ctx.drawImage(img, 0, 0, 50, 50);
-
-            const data = ctx.getImageData(0, 0, 50, 50).data;
-
-            let r = 0, g = 0, b = 0;
-            let count = 0;
-
-            for (let i = 0; i < data.length; i += 4) {
-                r += data[i];
-                g += data[i + 1];
-                b += data[i + 2];
-                count++;
-            }
-
-            r = Math.floor(r / count);
-            g = Math.floor(g / count);
-            b = Math.floor(b / count);
-
-            resolve(`rgb(${r}, ${g}, ${b})`);
-        };
-
-        img.onerror = () => resolve("rgb(255,255,255)");
-    });
-}
-async function updateMusicCover(track) {
-    const { coverFull, coverMini, playerBg } = getMusicDom();
-
-    const setCover = (src) => {
-        if (coverFull) coverFull.src = src;
-        if (coverMini) coverMini.src = src;
-        if (playerBg) playerBg.style.backgroundImage = `url("${src}")`;
-        getDominantColorFromImage(src).then(color => {
-            currentWaveColor = color;
-        });
-        const playlistThumb = document.querySelector(
-            `.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`
-        );
-        if (playlistThumb) playlistThumb.src = src;
-    };
-
-    if (track.coverUrl) {
-        setCover(track.coverUrl);
-        return;
-    }
-
-    setCover(DEFAULT_MUSIC_COVER);
+function decodeId3TextFrame(frameBytes) {
+    if (!frameBytes || !frameBytes.length) return '';
+    const encoding = frameBytes[0];
+    const body = frameBytes.slice(1);
 
     try {
-        const coverSrc = await readMusicCoverFromUrl(track.audioUrl);
-        const currentTrackStillSame = window.currentMusic && window.currentMusic.id === track.id;
-        if (!currentTrackStillSame) return;
-        setCover(coverSrc || DEFAULT_MUSIC_COVER);
-    } catch {
-        setCover(DEFAULT_MUSIC_COVER);
-    }
-}
-
-function updateMusicPlayButtonState() {
-    const { audio, playBtnFull, playBtnMini, rotatingDisc } = getMusicDom();
-    if (!audio) return;
-
-    const icon = audio.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
-    if (playBtnFull) playBtnFull.innerHTML = icon;
-    if (playBtnMini) playBtnMini.innerHTML = icon;
-    if (rotatingDisc) rotatingDisc.classList.toggle('playing', !audio.paused);
-}
-
-function updateVolumeUi(value) {
-    const { volumeSlider, volumeValue, audio } = getMusicDom();
-    const numericValue = Math.min(1, Math.max(0, Number(value)));
-    if (volumeSlider) volumeSlider.value = numericValue;
-    if (audio) audio.volume = numericValue;
-    if (volumeValue) volumeValue.textContent = `${Math.round(numericValue * 100)}%`;
-}
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function fadeAudio(audioEl, from, to, duration = 350) {
-    if (!audioEl) return;
-
-    const steps = 12;
-    const stepTime = duration / steps;
-    const diff = to - from;
-
-    audioEl.volume = from;
-
-    for (let i = 1; i <= steps; i++) {
-        audioEl.volume = Math.max(0, Math.min(1, from + (diff * i / steps)));
-        await sleep(stepTime);
-    }
-}
-
-async function fadeOutAndPause(audioEl, duration = 350) {
-    if (!audioEl) return;
-    const startVolume = Number(audioEl.volume ?? 1);
-
-    await fadeAudio(audioEl, startVolume, 0, duration);
-    audioEl.pause();
-    audioEl.volume = startVolume;
-}
-
-async function fadeInAndPlay(audioEl, targetVolume = 1, duration = 350) {
-    if (!audioEl) return;
-
-    audioEl.volume = 0;
-    await audioEl.play();
-    await fadeAudio(audioEl, 0, targetVolume, duration);
-}
-
-function animateTrackChange() {
-    const dom = getMusicDom();
-
-    const animTargets = [
-        dom.coverFull,
-        dom.coverMini,
-        dom.titleFull,
-        dom.artistFull,
-        dom.titleMini,
-        dom.artistMini,
-        dom.rotatingDisc
-    ].filter(Boolean);
-
-    animTargets.forEach(el => {
-        el.classList.remove('track-switch-anim');
-        void el.offsetWidth;
-        el.classList.add('track-switch-anim');
-    });
-}
-function restartAnimation(el, className) {
-    if (!el) return;
-    el.classList.remove(className);
-    void el.offsetWidth;
-    el.classList.add(className);
-}
-
-function runMorphTransition(track) {
-    const dom = getMusicDom();
-
-    const coverTargets = [dom.coverFull, dom.coverMini].filter(Boolean);
-    const textTargets = [
-        dom.titleFull,
-        dom.artistFull,
-        dom.titleMini,
-        dom.artistMini
-    ].filter(Boolean);
-
-    coverTargets.forEach((coverEl) => {
-        const parent = coverEl.parentElement;
-        if (!parent) return;
-
-        parent.classList.add('morph-stage', 'morph-animating');
-
-        const ghost = document.createElement('img');
-        ghost.src = coverEl.src || '';
-        ghost.className = 'morph-ghost';
-        parent.appendChild(ghost);
-
-        restartAnimation(coverEl, 'morph-target-in');
-
-        ghost.addEventListener('animationend', () => {
-            ghost.remove();
-            parent.classList.remove('morph-animating');
-        }, { once: true });
-    });
-
-    textTargets.forEach((el) => {
-        restartAnimation(el, 'morph-text-in');
-    });
-}
-
-async function animateTextSwap(track) {
-    const dom = getMusicDom();
-    const textTargets = [
-        dom.titleFull,
-        dom.artistFull,
-        dom.titleMini,
-        dom.artistMini
-    ].filter(Boolean);
-
-    textTargets.forEach((el) => restartAnimation(el, 'morph-text-out'));
-
-    await new Promise(resolve => setTimeout(resolve, 180));
-
-    if (dom.titleFull) dom.titleFull.textContent = track.title || 'Adsız mahnı';
-    if (dom.artistFull) dom.artistFull.textContent = track.artist || 'Naməlum artist';
-    if (dom.titleMini) dom.titleMini.textContent = track.title || 'Adsız mahnı';
-    if (dom.artistMini) dom.artistMini.textContent = track.artist || 'Naməlum artist';
-
-    textTargets.forEach((el) => {
-        el.classList.remove('morph-text-out');
-        restartAnimation(el, 'morph-text-in');
-    });
-}
-function setupMediaSession() {
-    if (!('mediaSession' in navigator)) return;
-
-    navigator.mediaSession.setActionHandler('play', async () => {
-        const dom = getMusicDom();
-        const targetAudio = dom.audio?.src ? dom.audio : audio;
-        if (!targetAudio) return;
-
-        try {
-            await targetAudio.play();
-            updateMusicPlayButtonState();
-            if (audio && targetAudio === audio && playPauseBtn) {
-                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-            }
-        } catch (err) {
-            console.error('MediaSession play error:', err);
-        }
-    });
-
-    navigator.mediaSession.setActionHandler('pause', () => {
-        const dom = getMusicDom();
-        const targetAudio = dom.audio?.src && !dom.audio.paused ? dom.audio : audio;
-        if (!targetAudio) return;
-
-        targetAudio.pause();
-        updateMusicPlayButtonState();
-        if (audio && targetAudio === audio && playPauseBtn) {
-            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-        }
-    });
-
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-        if (window.musicLibrary?.length) {
-            playPrevMusic();
-        }
-    });
-
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
-        if (window.musicLibrary?.length) {
-            playNextMusic();
-        }
-    });
-
-    try {
-        navigator.mediaSession.setActionHandler('seekbackward', (details) => {
-            const dom = getMusicDom();
-            const targetAudio = dom.audio?.src && !dom.audio.paused ? dom.audio : audio;
-            if (!targetAudio) return;
-            targetAudio.currentTime = Math.max(0, targetAudio.currentTime - (details.seekOffset || 10));
-        });
-
-        navigator.mediaSession.setActionHandler('seekforward', (details) => {
-            const dom = getMusicDom();
-            const targetAudio = dom.audio?.src && !dom.audio.paused ? dom.audio : audio;
-            if (!targetAudio || !Number.isFinite(targetAudio.duration)) return;
-            targetAudio.currentTime = Math.min(targetAudio.duration, targetAudio.currentTime + (details.seekOffset || 10));
-        });
-    } catch (_) {}
-}
-
-function updateLegacyMediaSession() {
-    if (!('mediaSession' in navigator) || !audio) return;
-
-    const legacyCover = document.getElementById('track-art')?.getAttribute('src') || 'assets/music-cover.jpg';
-
-    navigator.mediaSession.metadata = new MediaMetadata({
-        title: document.getElementById('song-title')?.textContent?.trim() || config.musicTitle || 'Mahnı',
-        artist: 'Hüseyn və Cəmalənin Dünyası',
-        album: 'Legacy Player',
-        artwork: [
-            { src: legacyCover, sizes: '192x192', type: 'image/png' },
-            { src: legacyCover, sizes: '512x512', type: 'image/png' }
-        ]
-    });
-
-    navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
-
-    if ('setPositionState' in navigator.mediaSession && Number.isFinite(audio.duration)) {
-        try {
-            navigator.mediaSession.setPositionState({
-                duration: audio.duration || 0,
-                playbackRate: audio.playbackRate || 1,
-                position: audio.currentTime || 0
-            });
-        } catch (_) {}
-    }
-}
-
-function updateMediaSessionMetadata(track) {
-    if (!('mediaSession' in navigator) || !track) return;
-
-    const artworkSrc = track.coverUrl || track.cover || DEFAULT_MUSIC_COVER;
-    const resolvedArtwork = resolveMusicAssetUrl(artworkSrc, DEFAULT_MUSIC_COVER);
-
-    navigator.mediaSession.metadata = new MediaMetadata({
-        title: track.title || 'Adsız mahnı',
-        artist: track.artist || 'Naməlum artist',
-        album: 'Hüseyn və Cəmalənin Dünyası',
-        artwork: [
-            { src: resolvedArtwork, sizes: '96x96', type: 'image/png' },
-            { src: resolvedArtwork, sizes: '128x128', type: 'image/png' },
-            { src: resolvedArtwork, sizes: '192x192', type: 'image/png' },
-            { src: resolvedArtwork, sizes: '256x256', type: 'image/png' },
-            { src: resolvedArtwork, sizes: '384x384', type: 'image/png' },
-            { src: resolvedArtwork, sizes: '512x512', type: 'image/png' }
-        ]
-    });
-}
-
-function updateMediaSessionPlaybackState() {
-    if (!('mediaSession' in navigator)) return;
-
-    const dom = getMusicDom();
-    if (!dom.audio) return;
-
-    navigator.mediaSession.playbackState = dom.audio.paused ? 'paused' : 'playing';
-
-    if ('setPositionState' in navigator.mediaSession) {
-        try {
-            navigator.mediaSession.setPositionState({
-                duration: dom.audio.duration || 0,
-                playbackRate: dom.audio.playbackRate || 1,
-                position: dom.audio.currentTime || 0
-            });
-        } catch (_) {}
-    }
-}
-async function openMusicTrack(index) {
-    const track = window.musicLibrary[index];
-    const dom = getMusicDom();
-    if (!track || !dom.audio) return;
-
-    const wasExpanded = dom.activePlayer?.classList.contains('expanded') || false;
-    const wasLyricsOpen = dom.activePlayer?.classList.contains('lyrics-open') || false;
-
-    const mainAudio = document.getElementById("audio");
-
-    if (mainAudio && !mainAudio.paused) {
-        mainAudio.pause();
-        mainAudio.currentTime = mainAudio.currentTime || 0;
-        isPlaying = false;
-        if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-        document.getElementById('track-art')?.classList.remove('playing');
-    }
-
-    if (!dom.audio.paused && dom.audio.src) {
-        dom.audio.pause();
-    }
-
-    window.currentMusic = track;
-    window.currentMusicIndex = index;
-    updateMediaSessionMetadata(track);
-
-    await animateTextSwap(track);
-
-    dom.audio.pause();
-    dom.audio.crossOrigin = 'anonymous';
-    dom.audio.playsInline = true;
-    dom.audio.setAttribute('playsinline', 'true');
-    dom.audio.src = track.audioUrl;
-    dom.audio.load();
-    dom.audio.currentTime = 0;
-    dom.audio.volume = Number(dom.volumeSlider?.value || 0.85);
-    dom.audio.muted = false;
-
-    if (dom.seekbar) dom.seekbar.value = 0;
-    if (dom.currentTime) dom.currentTime.textContent = '00:00';
-    if (dom.duration) dom.duration.textContent = '00:00';
-
-    renderCurrentTrackLyrics(track);
-    renderMusicPlaylist();
-    updateMusicCover(track);
-    animateTrackChange();
-    runMorphTransition(track);
-
-    if (dom.activePlayer) {
-        dom.activePlayer.style.display = 'block';
-        setPlayerExpanded(wasExpanded);
-
-        if (wasExpanded && wasLyricsOpen) {
-            window.toggleLyricsPanel(true);
-        } else if (dom.lyricsPanel) {
-            dom.lyricsPanel.classList.add('lyrics-hidden');
-            dom.activePlayer.classList.remove('lyrics-open');
-            dom.lyricsPanel.setAttribute('aria-hidden', 'true');
-            updateLyricsToggleState();
-        }
-    }
-
-    try {
-        await unlockYTPlayback();
-        await dom.audio.play();
-    } catch (err) {
-        console.error('Music play error:', err);
-    }
-
-    updateMusicPlayButtonState();
-    updateMediaSessionPlaybackState();
-}
-function playPrevMusic() {
-    if (!window.musicLibrary.length) return;
-    const newIndex = window.currentMusicIndex <= 0
-        ? window.musicLibrary.length - 1
-        : window.currentMusicIndex - 1;
-        
-    // Düzəliş edilən hissə:
-    openMusicTrack(newIndex);
-}
-
-function playNextMusic() {
-    if (!window.musicLibrary.length) return;
-    const newIndex = window.currentMusicIndex >= window.musicLibrary.length - 1
-        ? 0
-        : window.currentMusicIndex + 1;
-        
-    // Düzəliş edilən hissə:
-    openMusicTrack(newIndex);
-}
-
-function initPlayerSwipe() {
-    const { activePlayer } = getMusicDom();
-    if (!activePlayer) return;
-    if (activePlayer.dataset.swipeBound === '1') return;
-
-    activePlayer.dataset.swipeBound = '1';
-
-    let startX = 0;
-    let startY = 0;
-    let endX = 0;
-    let endY = 0;
-
-    activePlayer.addEventListener('touchstart', (e) => {
-        const touch = e.changedTouches[0];
-        startX = touch.clientX;
-        startY = touch.clientY;
-    }, { passive: true });
-
-    activePlayer.addEventListener('touchend', (e) => {
-        const touch = e.changedTouches[0];
-        endX = touch.clientX;
-        endY = touch.clientY;
-
-        const diffX = endX - startX;
-        const diffY = endY - startY;
-
-        if (Math.abs(diffX) < 50) return;
-        if (Math.abs(diffY) > Math.abs(diffX)) return;
-
-        if (diffX < 0) {
-            activePlayer.classList.remove('swiping-prev');
-            activePlayer.classList.add('swiping-next');
-            setTimeout(() => activePlayer.classList.remove('swiping-next'), 280);
-            playNextMusic();
-        } else {
-            activePlayer.classList.remove('swiping-next');
-            activePlayer.classList.add('swiping-prev');
-            setTimeout(() => activePlayer.classList.remove('swiping-prev'), 280);
-            playPrevMusic();
-        }
-    }, { passive: true });
-}
-let ytWaveCtx = null;
-let ytWaveAnalyser = null;
-let ytWaveSource = null;
-let ytWaveAnimationId = null;
-let ytWaveDataArray = null;
-let ytWaveEnabled = false;
-let ytWaveInitialized = false;
-let ytWaveFallbackMode = false;
-
-async function ensureYTAudioReady() {
-    const { audio } = getMusicDom();
-    if (!audio) return false;
-
-    audio.crossOrigin = 'anonymous';
-    audio.playsInline = true;
-    audio.setAttribute('playsinline', 'true');
-    audio.setAttribute('webkit-playsinline', 'true');
-
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) {
-        ytWaveFallbackMode = true;
-        return false;
-    }
-
-    if (!ytWaveCtx) {
-        try {
-            ytWaveCtx = new AudioCtx();
-        } catch (err) {
-            console.error('AudioContext yaradıla bilmədi:', err);
-            ytWaveFallbackMode = true;
-            return false;
-        }
-    }
-
-    if (ytWaveCtx.state === 'suspended') {
-        try {
-            await ytWaveCtx.resume();
-        } catch (err) {
-            console.error('AudioContext resume alınmadı:', err);
-        }
-    }
-
-    return ytWaveCtx.state === 'running';
-}
-
-async function initYTWaveformSafe() {
-    const { audio, waveform } = getMusicDom();
-    if (!audio || !waveform) return false;
-    if (ytWaveInitialized) return true;
-
-    const ready = await ensureYTAudioReady();
-    if (!ready || !ytWaveCtx) {
-        ytWaveFallbackMode = true;
-        return false;
-    }
-
-    try {
-        const analyser = ytWaveCtx.createAnalyser();
-        analyser.fftSize = 128;
-        analyser.smoothingTimeConstant = 0.82;
-
-        const source = ytWaveCtx.createMediaElementSource(audio);
-        source.connect(analyser);
-        analyser.connect(ytWaveCtx.destination);
-
-        ytWaveAnalyser = analyser;
-        ytWaveSource = source;
-        ytWaveDataArray = new Uint8Array(analyser.frequencyBinCount);
-        ytWaveInitialized = true;
-        ytWaveEnabled = true;
-        ytWaveFallbackMode = false;
-
-        drawYTWaveform();
-        return true;
-    } catch (err) {
-        console.error('Waveform init xətası:', err);
-        ytWaveFallbackMode = true;
-        ytWaveEnabled = false;
-        return false;
-    }
-}
-
-async function unlockYTPlayback() {
-    const ok = await ensureYTAudioReady();
-    if (!ok) return false;
-    await initYTWaveformSafe();
-    return true;
-}
-async function initYTWaveform() {
-    return await initYTWaveformSafe();
-}
-function drawYTWaveform() {
-    const { waveform, audio } = getMusicDom();
-    if (!waveform) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    const rect = waveform.getBoundingClientRect();
-    waveform.width = Math.max(1, Math.floor(rect.width * dpr));
-    waveform.height = Math.max(1, Math.floor(rect.height * dpr));
-
-    const ctx = waveform.getContext('2d');
-    if (!ctx) return;
-
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    const render = () => {
-        const width = waveform.clientWidth;
-        const height = waveform.clientHeight;
-        const centerY = height / 2;
-
-        ctx.clearRect(0, 0, width, height);
-
-        const totalBars = 42;
-        const gap = 4;
-        const barWidth = Math.max(3, (width - (totalBars - 1) * gap) / totalBars);
-        const totalWidth = totalBars * barWidth + (totalBars - 1) * gap;
-        let x = (width - totalWidth) / 2;
-
-        const drawBar = (x, y, w, h, radius) => {
-            ctx.beginPath();
-            if (ctx.roundRect) {
-                ctx.roundRect(x, y, w, h, radius);
-            } else {
-                ctx.rect(x, y, w, h);
-            }
-            ctx.fill();
-        };
-
-        if (
-            ytWaveEnabled &&
-            ytWaveAnalyser &&
-            ytWaveDataArray &&
-            audio &&
-            !audio.paused &&
-            !ytWaveFallbackMode
-        ) {
-            ytWaveAnalyser.getByteFrequencyData(ytWaveDataArray);
-
-            ctx.shadowBlur = 18;
-            ctx.shadowColor = currentWaveColor;
-
-            for (let i = 0; i < totalBars; i++) {
-                const sourceIndex = Math.floor((i / totalBars) * ytWaveDataArray.length);
-                const value = ytWaveDataArray[sourceIndex] / 255;
-
-                const falloff = 1 - Math.abs((i - totalBars / 2) / (totalBars / 2)) * 0.35;
-                const visual = Math.max(0.18, value * falloff);
-
-                const barHeight = Math.max(8, visual * height * 0.82);
-
-                const alpha = 0.22 + visual * 0.9;
-                ctx.fillStyle = currentWaveColor
-                    .replace("rgb", "rgba")
-                    .replace(")", `, ${alpha})`);
-
-                drawBar(
-                    x,
-                    centerY - barHeight / 2,
-                    barWidth,
-                    barHeight,
-                    barWidth / 2
-                );
-
-                x += barWidth + gap;
-            }
-        } else {
-            for (let i = 0; i < totalBars; i++) {
-                const phase = (Date.now() / 180) + i * 0.35;
-                const idle = 0.22 + (Math.sin(phase) + 1) / 2 * 0.22;
-                const barHeight = Math.max(6, idle * height * 0.45);
-
-                ctx.fillStyle = currentWaveColor
-                    .replace("rgb", "rgba")
-                    .replace(")", ", 0.16)");
-
-                drawBar(
-                    x,
-                    centerY - barHeight / 2,
-                    barWidth,
-                    barHeight,
-                    barWidth / 2
-                );
-
-                x += barWidth + gap;
-            }
-        }
-
-        ytWaveAnimationId = requestAnimationFrame(render);
-    };
-
-    if (ytWaveAnimationId) cancelAnimationFrame(ytWaveAnimationId);
-    render();
-}
-function resizeYTWaveform() {
-    if (!ytWaveAnalyser) return;
-    drawYTWaveform();
-}
-function initMusicPlayerEvents() {
-    const dom = getMusicDom();
-    const unlockHandler = async () => {
-        await unlockYTPlayback();
-    };
-
-    dom.playBtnFull?.addEventListener('touchstart', unlockHandler, { passive: true });
-    dom.playBtnMini?.addEventListener('touchstart', unlockHandler, { passive: true });
-    dom.prevBtn?.addEventListener('touchstart', unlockHandler, { passive: true });
-    dom.prevBtnMini?.addEventListener('touchstart', unlockHandler, { passive: true });
-    dom.nextBtn?.addEventListener('touchstart', unlockHandler, { passive: true });
-    dom.nextBtnMini?.addEventListener('touchstart', unlockHandler, { passive: true });
-    dom.openFullBtn?.addEventListener('touchstart', unlockHandler, { passive: true });
-    if (!dom.activePlayer || !dom.audio) return;
-    if (dom.activePlayer.dataset.bound === '1') return;
-    dom.activePlayer.dataset.bound = '1';
-    drawYTWaveform();
-    window.addEventListener('resize', resizeYTWaveform);
-    const togglePlay = async () => {
-        if (!dom.audio.src && window.musicLibrary.length) {
-            await openMusicTrack(0);
-            return;
-        }
-
-        if (dom.audio.paused) {
-            await unlockYTPlayback();
-
-            try {
-                await dom.audio.play();
-            } catch (err) {
-                console.error('Play xətası:', err);
-            }
-        } else {
-            dom.audio.pause();
-        }
-
-        updateMusicPlayButtonState();
-        updateMediaSessionPlaybackState();
-    };
-    dom.lyricsContainer?.addEventListener('click', (e) => {
-        if (window.currentMusicLyricsType !== 'synced') return;
-
-        const wordEl = e.target.closest('.yt-lyrics-word');
-        if (wordEl) {
-            const wordTime = Number(wordEl.dataset.wordTime);
-            seekToLyricsTime(wordTime);
-            return;
-        }
-
-        const lineEl = e.target.closest('.yt-lyrics-line');
-        if (lineEl) {
-            const lineTime = Number(lineEl.dataset.lineTime);
-            seekToLyricsTime(lineTime);
-        }
-    });
-    dom.openFullBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.togglePlayerMode(true);
-    });
-
-    dom.expandHitbox?.addEventListener('click', () => {
-        window.togglePlayerMode(true);
-    });
-
-    dom.minimizeBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.togglePlayerMode(false);
-    });
-
-    dom.lyricsToggle?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.toggleLyricsPanel();
-    });
-
-    dom.closeLyricsBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.toggleLyricsPanel(false);
-    });
-
-    dom.playBtnFull?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        togglePlay();
-    });
-
-    dom.playBtnMini?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        togglePlay();
-    });
-
-    dom.prevBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        playPrevMusic();
-    });
-
-    dom.prevBtnMini?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        playPrevMusic();
-    });
-
-    dom.nextBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        playNextMusic();
-    });
-
-    dom.nextBtnMini?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        playNextMusic();
-    });
-
-    dom.audio.addEventListener('timeupdate', () => {
-        if (dom.seekbar) dom.seekbar.value = dom.audio.currentTime || 0;
-        if (dom.currentTime) dom.currentTime.textContent = formatMusicTime(dom.audio.currentTime);
-        updateSyncedLyricsByTime(dom.audio.currentTime);
-        updateMediaSessionPlaybackState();
-    });
-
-    dom.audio.addEventListener('loadedmetadata', () => {
-        if (dom.seekbar) dom.seekbar.max = dom.audio.duration || 0;
-        if (dom.duration) dom.duration.textContent = formatMusicTime(dom.audio.duration);
-        updateMediaSessionPlaybackState();
-    });
-
-    dom.audio.addEventListener('play', () => {
-        if (audio && !audio.paused) {
-            audio.pause();
-        }
-        updateMusicPlayButtonState();
-        updateMediaSessionPlaybackState();
-    });
-    dom.audio.addEventListener('pause', () => {
-        updateMusicPlayButtonState();
-        updateMediaSessionPlaybackState();
-    });
-    dom.audio.addEventListener('ended', () => {
-        updateMusicPlayButtonState();
-        updateMediaSessionPlaybackState();
-        playNextMusic();
-    });
-
-    dom.seekbar?.addEventListener('input', () => {
-        dom.audio.currentTime = Number(dom.seekbar.value);
-        updateSyncedLyricsByTime(dom.audio.currentTime);
-    });
-
-    dom.volumeSlider?.addEventListener('input', (e) => {
-        updateVolumeUi(e.target.value);
-    });
-
-    updateVolumeUi(dom.volumeSlider?.value || 0.85);
-    updateMusicPlayButtonState();
-    updateMediaSessionPlaybackState();
-}
-
-async function initMusicPage() {
-    try {
-        initMusicPlayerEvents();
-        window.musicLibrary = await fetchMusicJsonList();
-        renderMusicPlaylist();
-        syncAdminOverview();
-    } catch (err) {
-        console.error(err);
-        const { playlist, trackCount } = getMusicDom();
-        if (playlist) {
-            playlist.innerHTML = `
-                <div class="music-empty-state">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>Musiqilər yüklənmədi.</span>
-                </div>
-            `;
-        }
-        if (trackCount) trackCount.textContent = '0 mahnı';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', initMusicPage);
-function seekToLyricsTime(time) {
-    const { audio } = getMusicDom();
-    if (!audio || Number.isNaN(Number(time))) return;
-    const safeTime = Math.max(0, Number(time));
-    audio.currentTime = safeTime;
-    updateSyncedLyricsByTime(safeTime);
-    if (audio.paused) {
-        audio.play().catch(err => console.error('Lyrics seek play error:', err));
-    }
-}
-if (window.matchMedia("(pointer: fine)").matches) {
-    const cursor = document.createElement('div');
-    cursor.className = 'custom-cursor';
-    document.body.appendChild(cursor);
-    let trails = [];
-    for (let i = 0; i < 8; i++) {
-        let trail = document.createElement('div');
-        trail.className = 'cursor-trail';
-        document.body.appendChild(trail);
-        trails.push({ el: trail, x: 0, y: 0 });
-    }
-    let mouseX = 0, mouseY = 0;
-    document.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        cursor.style.left = mouseX + 'px';
-        cursor.style.top = mouseY + 'px';
-    });
-    gsap.ticker.add(() => {
-        let x = mouseX, y = mouseY;
-        trails.forEach((trail, index) => {
-            let nextTrail = trails[index + 1] || trails[0];
-            x += (nextTrail.x - x) * 0.4;
-            y += (nextTrail.y - y) * 0.4;
-            trail.x = x; trail.y = y;
-            trail.el.style.left = x + 'px';
-            trail.el.style.top = y + 'px';
-            trail.el.style.opacity = 1 - (index / trails.length);
-        });
-    });
-    document.querySelectorAll('a, button, .photo-frame, .note-card, .yt-track-item').forEach(el => {
-        el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
-        el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
-    });
-}
-
-
-
-function formatAdminDateTimeLocal(dateLike) {
-    const d = new Date(dateLike);
-    if (isNaN(d)) return '';
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function openAdminPanel() {
-    const adminPanel = document.getElementById('admin-panel');
-    if (!adminPanel) return;
-    adminPanel.style.display = 'flex';
-    syncAdminOverview();
-}
-
-function closeAdminPanel() {
-    const adminPanel = document.getElementById('admin-panel');
-    if (!adminPanel) return;
-    adminPanel.style.display = 'none';
-}
-
-function syncAdminOverview() {
-    const meetingStat = document.getElementById('admin-stat-meetings');
-    const targetStat = document.getElementById('admin-stat-target');
-    const imageStat = document.getElementById('admin-stat-image');
-    const audioStat = document.getElementById('admin-stat-audio');
-    const dateInput = document.getElementById('admin-date');
-    const countInput = document.getElementById('admin-count');
-    const musicTitleInput = document.getElementById('admin-music-title');
-    const musicArtistInput = document.getElementById('admin-music-artist');
-    const imageFile = document.getElementById('admin-file')?.files?.[0];
-    const audioFile = document.getElementById('admin-music-file')?.files?.[0];
-    const coverFile = document.getElementById('admin-music-cover')?.files?.[0];
-
-    const imagePreview = document.getElementById('admin-dashboard-image-preview');
-    const imageName = document.getElementById('admin-dashboard-image-name');
-    const imageDate = document.getElementById('admin-dashboard-image-date');
-    const imageTotalEl = document.getElementById('admin-dashboard-total-images');
-
-    const musicCover = document.getElementById('admin-dashboard-music-cover');
-    const musicName = document.getElementById('admin-dashboard-music-name');
-    const musicArtist = document.getElementById('admin-dashboard-music-artist');
-    const musicTotalEl = document.getElementById('admin-dashboard-total-music');
-
-    const totalImages = Array.isArray(window.allImages) ? window.allImages.length : 0;
-    const totalMusic = Array.isArray(window.musicLibrary) ? window.musicLibrary.length : 0;
-    const latestImage = totalImages ? window.allImages[window.allImages.length - 1] : null;
-    const latestTrack = totalMusic ? window.musicLibrary[0] : null;
-
-    if (meetingStat) meetingStat.textContent = String(config.meetingCount ?? 0);
-    if (targetStat) targetStat.textContent = formatAzDate(targetDate);
-    if (imageStat) imageStat.textContent = totalImages ? `${totalImages} fayl` : (imageFile ? imageFile.name : '0 fayl');
-
-    if (audioStat) {
-        if (totalMusic) {
-            audioStat.textContent = `${totalMusic} fayl`;
-        } else if (audioFile) {
-            audioStat.textContent = audioFile.name;
-        } else if (musicTitleInput?.value.trim()) {
-            audioStat.textContent = musicTitleInput.value.trim();
-        } else {
-            audioStat.textContent = '0 fayl';
-        }
-    }
-
-    if (imageTotalEl) imageTotalEl.textContent = `${totalImages} şəkil`;
-    if (musicTotalEl) musicTotalEl.textContent = `${totalMusic} musiqi`;
-
-    if (imagePreview) {
-        if (imageFile) {
-            const localImageUrl = URL.createObjectURL(imageFile);
-            imagePreview.src = localImageUrl;
-            imagePreview.onload = () => URL.revokeObjectURL(localImageUrl);
-        } else if (latestImage?.download_url) {
-            imagePreview.src = latestImage.download_url;
-        } else {
-            imagePreview.src = 'assets/512.png';
-        }
-    }
-
-    if (imageName) {
-        imageName.textContent = imageFile?.name || latestImage?.name || 'Şəkil yoxdur';
-    }
-
-    if (imageDate) {
-        const rawDate = latestImage?.git_date || parseImageDate(latestImage || {});
-        imageDate.textContent = imageFile
-            ? 'Yeni şəkil seçilib'
-            : (rawDate ? formatAzDate(rawDate) : 'Tarix bilinmir');
-    }
-
-    if (musicCover) {
-        if (coverFile) {
-            const localCoverUrl = URL.createObjectURL(coverFile);
-            musicCover.src = localCoverUrl;
-            musicCover.onload = () => URL.revokeObjectURL(localCoverUrl);
-        } else if (latestTrack?.coverUrl) {
-            musicCover.src = latestTrack.coverUrl;
-        } else {
-            musicCover.src = DEFAULT_MUSIC_COVER;
-        }
-    }
-
-    if (musicName) {
-        musicName.textContent = musicTitleInput?.value.trim() || latestTrack?.title || 'Musiqi yoxdur';
-    }
-
-    if (musicArtist) {
-        musicArtist.textContent = musicArtistInput?.value.trim() || latestTrack?.artist || 'Artist bilinmir';
-    }
-
-    if (dateInput && document.activeElement !== dateInput) {
-        dateInput.placeholder = formatAdminDateTimeLocal(targetDate);
-    }
-    if (countInput && document.activeElement !== countInput) {
-        countInput.placeholder = String(config.meetingCount ?? '');
-    }
-}
-
-function switchAdminSection(sectionName) {
-    document.querySelectorAll('.admin-nav-btn').forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.adminSection === sectionName);
-    });
-
-    document.querySelectorAll('.admin-section').forEach((section) => {
-        section.classList.toggle('active', section.dataset.adminSection === sectionName);
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const closeAdminBtn = document.querySelector('.close-admin');
-    const adminPanel = document.getElementById('admin-panel');
-
-    if (closeAdminBtn && adminPanel) {
-        closeAdminBtn.addEventListener('click', closeAdminPanel);
-    }
-
-    window.addEventListener('click', (event) => {
-        if (event.target === adminPanel) {
-            closeAdminPanel();
-        }
-    });
-
-    document.querySelectorAll('.admin-nav-btn').forEach((btn) => {
-        btn.addEventListener('click', () => switchAdminSection(btn.dataset.adminSection));
-    });
-
-    document.querySelectorAll('[data-admin-jump]').forEach((btn) => {
-        btn.addEventListener('click', () => switchAdminSection(btn.dataset.adminJump));
-    });
-
-    document.getElementById('admin-open-note-modal')?.addEventListener('click', () => {
-        document.getElementById('open-add-note-btn')?.click();
-    });
-
-    document.getElementById('admin-open-note-modal-secondary')?.addEventListener('click', () => {
-        document.getElementById('open-add-note-btn')?.click();
-    });
-
-    [
-        'admin-file',
-        'admin-music-file',
-        'admin-music-title',
-        'admin-date',
-        'admin-count'
-    ].forEach((id) => {
-        document.getElementById(id)?.addEventListener('change', syncAdminOverview);
-        document.getElementById(id)?.addEventListener('input', syncAdminOverview);
-    });
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && adminPanel?.style.display === 'flex') {
-            closeAdminPanel();
-        }
-    });
-
-    syncAdminOverview();
-});
-console.log(`
-%c🤍 Cəmalə & Hüseyn • Dünyamız 🤍
-%cSite version: 3.1.5
-%c"Sən mənim ən gözəl xəyalımsan..."
-`,
-'font-size: 18px; color: #e91e63; font-family: "Dancing Script", cursive;',
-'font-size: 12px; color: #ff80ab;',
-'font-size: 14px; color: #ffffff; font-style: italic;'
-);
-let visitStartTime = Date.now();
-let exitNotificationSent = false;
-
-const AppState = {
-    visitorIp: 'Naməlum IP'
-};
-
-async function sendTelegramMessage(text, keepalive = false) {
-    const temizMetn = String(text || '').trim();
-
-    if (!temizMetn) {
-        console.error('Mesaj boşdur:', text);
-        return;
-    }
-
-    try {
-        const res = await fetch('/.netlify/functions/config', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: temizMetn }),
-            keepalive
-        });
-
-        const data = await res.json();
-
-        if (!data.success) {
-            console.error('Telegram göndərilmədi:', data.error || data);
-        }
-    } catch (e) {
-        console.error('Telegram bildiriş xətası:', e);
-    }
-}
-
-async function initAnalytics() {
-    try {
-        const response = await fetch('https://api.ipify.org?format=json');
-        const data = await response.json();
-        AppState.visitorIp = data.ip || 'Naməlum IP';
-
-        await sendTelegramMessage(
-            `🟢 Sayta giriş oldu!\n📍 IP: ${AppState.visitorIp}\n⏰ Vaxt: ${new Date().toLocaleString('az-AZ')}`
-        );
-    } catch (e) {
-        console.error('IP alma xətası:', e);
-        AppState.visitorIp = 'Naməlum IP';
-    }
-
-    window.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') {
-            sendExitNotification();
-        }
-    });
-
-    window.addEventListener('pagehide', sendExitNotification);
-    window.addEventListener('beforeunload', sendExitNotification);
-}
-
-function sendExitNotification() {
-    if (exitNotificationSent) return;
-    exitNotificationSent = true;
-
-    const duration = Date.now() - visitStartTime;
-    const seconds = Math.floor((duration / 1000) % 60);
-    const minutes = Math.floor((duration / (1000 * 60)) % 60);
-    const hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
-
-    let timeString = '';
-    if (hours > 0) timeString += `${hours} saat `;
-    if (minutes > 0) timeString += `${minutes} dəqiqə `;
-    timeString += `${seconds} saniyə`;
-
-    const ip = AppState.visitorIp || 'Naməlum IP';
-
-    sendTelegramMessage(
-        `🔴 Saytdan çıxış!\n📍 IP: ${ip}\n⏳ Keçirilən vaxt: ${timeString}`,
-        true
-    );
-}
+        if (encoding === 0x00 || encoding === 0x03) {
+            return new TextDecoder(encoding === 0x03 ? 'utf-8' : 'iso-8859-1')
+                .decode(body)
+                .replace(/
