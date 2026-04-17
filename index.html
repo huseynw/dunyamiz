@@ -842,12 +842,22 @@
                                 <div class="admin-field admin-field--span-2 admin-file-field">
                                     <label for="admin-music-file">Musiqi faylı (MP3)</label>
                                     <input type="file" id="admin-music-file" accept=".mp3,audio/mpeg">
+                                    <div id="admin-music-dropzone" class="admin-dropzone" tabindex="0" role="button" aria-label="Musiqi faylını bura at və ya seç">
+                                        <div class="admin-dropzone-icon"><i class="fas fa-cloud-arrow-up"></i></div>
+                                        <strong>MP3 faylı bura sürüklə və burax</strong>
+                                        <span>Toxunub fayl seçə də bilərsən</span>
+                                    </div>
                                     <small id="admin-music-file-meta" class="admin-file-meta">Yalnız .mp3 formatı qəbul edilir.</small>
                                 </div>
 
                                 <div class="admin-field admin-file-field">
                                     <label for="admin-music-cover">Cover şəkli</label>
                                     <input type="file" id="admin-music-cover" accept="image/*">
+                                    <div id="admin-cover-dropzone" class="admin-dropzone admin-dropzone--cover" tabindex="0" role="button" aria-label="Cover şəklini bura at və ya seç">
+                                        <div class="admin-dropzone-icon"><i class="fas fa-image"></i></div>
+                                        <strong>Cover şəklini bura sürüklə və burax</strong>
+                                        <span>PNG, JPG, WEBP və digər şəkillər</span>
+                                    </div>
                                     <small id="admin-music-cover-meta" class="admin-file-meta">İstəyə bağlıdır.</small>
                                 </div>
 
@@ -867,31 +877,24 @@
                                     <label for="admin-music-artist">Artist / Oxuyan</label>
                                     <input type="text" id="admin-music-artist" placeholder="Artist adı">
                                 </div>
+
+                                <div class="admin-field admin-field--span-2">
+                                    <label>Smart metadata</label>
+                                    <div class="admin-smart-meta-box">
+                                        <button id="admin-auto-metadata-btn" class="admin-btn admin-btn--ghost" type="button">
+                                            <i class="fas fa-wand-magic-sparkles"></i>
+                                            <span>Fayldan title / artist çıxart</span>
+                                        </button>
+                                        <small id="admin-auto-metadata-status" class="admin-file-meta">Əvvəl MP3 seç. Sistem əvvəl ID3 tag-a, tapa bilməsə fayl adına baxacaq.</small>
+                                    </div>
+                                </div>
+
                                 <div class="admin-field">
                                     <label for="admin-music-source">Yükləmə yeri</label>
                                     <select id="admin-music-source">
                                      <option value="github">GitHub</option>
                                      <option value="cloudinary">Cloudinary</option>
-                                        <option value="r2">Cloudflare R2</option>
                                     </select>
-                                    <small id="admin-music-source-help" class="admin-inline-help">GitHub seçəndə MP3, cover və JSON hamısı repoya yazılır.</small>
-                                </div>
-
-                                <div class="admin-field admin-field--span-2 admin-remote-import" id="admin-cloudinary-import-fields" style="display:none;">
-                                    <div class="admin-remote-import-head">
-                                        <strong>Cloudinary → R2 import</strong>
-                                        <span>Mahnını lokal yükləmədən birbaşa R2-yə köçürmək üçün bu linkləri doldur.</span>
-                                    </div>
-                                    <div class="admin-remote-import-grid">
-                                        <div class="admin-field">
-                                            <label for="admin-cloudinary-audio-url">Cloudinary MP3 URL</label>
-                                            <input type="url" id="admin-cloudinary-audio-url" placeholder="https://res.cloudinary.com/.../track.mp3">
-                                        </div>
-                                        <div class="admin-field">
-                                            <label for="admin-cloudinary-cover-url">Cloudinary cover URL</label>
-                                            <input type="url" id="admin-cloudinary-cover-url" placeholder="https://res.cloudinary.com/.../cover.jpg">
-                                        </div>
-                                    </div>
                                 </div>
 
                                 <div class="admin-field">
@@ -916,11 +919,6 @@
                             <button id="upload-music-btn" class="admin-btn admin-btn--primary" type="button">
                                 <i class="fas fa-music"></i>
                                 <span>Musiqini yüklə</span>
-                            </button>
-
-                            <button id="migrate-r2-btn" class="admin-btn admin-btn--secondary" type="button">
-                                <i class="fas fa-cloud-arrow-up"></i>
-                                <span>Cloudinary JSON-ları R2-yə köçür</span>
                             </button>
                         </section>
 
