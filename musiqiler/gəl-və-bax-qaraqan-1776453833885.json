@@ -8,8 +8,8 @@
   },
   "uploadedAt": "2026-04-17T19:23:53.885Z",
   "provider": "r2",
-  "audio": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/music/g%C9%99l-v%C9%99-bax-qaraqan-1776453833885.mp3",
-  "cover": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/covers/g%C9%99l-v%C9%99-bax-qaraqan-1776453833885.jpg",
+  "audio": "https://cdn.dunyamiz.me/music/g%C9%99l-v%C9%99-bax-qaraqan-1776453833885.mp3",
+  "cover": "https://cdn.dunyamiz.me/covers/g%C9%99l-v%C9%99-bax-qaraqan-1776453833885.jpg",
   "storage": {
     "provider": "r2",
     "bucket": "dunyamiz",
