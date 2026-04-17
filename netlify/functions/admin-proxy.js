@@ -244,6 +244,67 @@ function toBase64Json(data) {
     return Buffer.from(JSON.stringify(data, null, 2), 'utf8').toString('base64');
 }
 
+
+function buildCanonicalQuery(params) {
+    return Object.keys(params)
+        .sort()
+        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+        .join('&');
+}
+
+function getSigningKey(secretAccessKey, shortDate, region, service) {
+    const kDate = hmac(`AWS4${secretAccessKey}`, shortDate);
+    const kRegion = hmac(kDate, region);
+    const kService = hmac(kRegion, service);
+    return hmac(kService, 'aws4_request');
+}
+
+function createPresignedR2PutUrl({ key, expiresIn = 900 }) {
+    const cfg = getR2Config();
+    const { amzDate, shortDate } = getAmzDates();
+    const canonicalUri = `/${cfg.bucket}/${encodeKeyPath(key)}`;
+    const credentialScope = `${shortDate}/${cfg.region}/${cfg.service}/aws4_request`;
+
+    const queryParams = {
+        'X-Amz-Algorithm': 'AWS4-HMAC-SHA256',
+        'X-Amz-Credential': `${cfg.accessKeyId}/${credentialScope}`,
+        'X-Amz-Date': amzDate,
+        'X-Amz-Expires': String(expiresIn),
+        'X-Amz-SignedHeaders': 'host'
+    };
+
+    const canonicalQuery = buildCanonicalQuery(queryParams);
+    const canonicalHeaders = `host:${cfg.host}\n`;
+    const canonicalRequest = [
+        'PUT',
+        canonicalUri,
+        canonicalQuery,
+        canonicalHeaders,
+        'host',
+        'UNSIGNED-PAYLOAD'
+    ].join('\n');
+
+    const stringToSign = [
+        'AWS4-HMAC-SHA256',
+        amzDate,
+        credentialScope,
+        sha256Hex(canonicalRequest)
+    ].join('\n');
+
+    const signingKey = getSigningKey(cfg.secretAccessKey, shortDate, cfg.region, cfg.service);
+    const signature = hmac(signingKey, stringToSign, 'hex');
+    const finalQuery = `${canonicalQuery}&X-Amz-Signature=${signature}`;
+
+    return {
+        uploadUrl: `https://${cfg.host}${canonicalUri}?${finalQuery}`,
+        publicUrl: `${cfg.publicBaseUrl}/${encodeKeyPath(key)}`,
+        key,
+        bucket: cfg.bucket,
+        publicBaseUrl: cfg.publicBaseUrl,
+        expiresIn
+    };
+}
+
 function normalizeMeetingDateTime(value) {
     if (!value) return null;
 
@@ -273,7 +334,7 @@ exports.handler = async (event) => {
         const GH_TOKEN = process.env.GH_TOKEN;
         const repoOwner = "huseynw";
         const repoName = "dunyamiz";
-        const githubNeededTypes = new Set(["upload_image", "upload_note", "upload_music_json", "upload_music", "upload_music_r2", "migrate_music_to_r2"]);
+        const githubNeededTypes = new Set(["upload_image", "upload_note", "upload_music_json", "upload_music", "upload_music_r2", "prepare_r2_music_upload", "finalize_r2_music_upload", "migrate_music_to_r2"]);
 
         if (githubNeededTypes.has(type) && !GH_TOKEN) {
             return {
@@ -489,50 +550,117 @@ exports.handler = async (event) => {
         }
 
 
-if (type === "upload_music_r2") {
-    const {
-        slug: rawSlug,
-        jsonPath: rawJsonPath,
-        trackMeta: rawTrackMeta,
-        r2AudioKey: rawR2AudioKey,
-        audioContent,
-        remoteAudioUrl,
-        r2CoverKey: rawR2CoverKey,
-        coverContent,
-        remoteCoverUrl,
-        audioContentType: incomingAudioContentType,
-        coverContentType: incomingCoverContentType
-    } = payload || {};
+if (type === "prepare_r2_music_upload") {
+    const { slug, hasCover, coverExt } = payload || {};
 
-    const slug = String(rawSlug || '').trim();
-    const jsonPath = String(rawJsonPath || (slug ? `musiqiler/${slug}.json` : '')).trim();
-    const r2AudioKey = String(rawR2AudioKey || (slug ? `music/${slug}.mp3` : '')).trim();
-    const r2CoverKey = String(rawR2CoverKey || '').trim();
-
-    const trackMeta = rawTrackMeta && typeof rawTrackMeta === 'string'
-        ? JSON.parse(rawTrackMeta)
-        : (rawTrackMeta || null);
-
-    const missingFields = [];
-    if (!slug) missingFields.push('slug');
-    if (!jsonPath) missingFields.push('jsonPath');
-    if (!trackMeta || typeof trackMeta !== 'object') missingFields.push('trackMeta');
-    if (!r2AudioKey) missingFields.push('r2AudioKey');
-    if (!audioContent && !remoteAudioUrl) missingFields.push('audioContent və ya remoteAudioUrl');
-
-    if (missingFields.length) {
+    if (!slug) {
         return {
             statusCode: 400,
             headers: { "Content-Type": "application/json; charset=utf-8" },
-            body: JSON.stringify({
-                success: false,
-                error: `R2 musiqi payload məlumatları natamamdır: ${missingFields.join(', ')}`
-            })
+            body: JSON.stringify({ success: false, error: "Slug tapılmadı." })
+        };
+    }
+
+    const audioKey = `music/${slug}.mp3`;
+    const normalizedCoverExt = String(coverExt || 'jpg').replace(/[^a-z0-9]/gi, '').toLowerCase() || 'jpg';
+    const coverKey = hasCover ? `covers/${slug}.${normalizedCoverExt}` : '';
+
+    const audioUpload = createPresignedR2PutUrl({ key: audioKey });
+    const coverUpload = hasCover ? createPresignedR2PutUrl({ key: coverKey }) : null;
+
+    return {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+            success: true,
+            details: {
+                slug,
+                jsonPath: `musiqiler/${slug}.json`,
+                audioKey,
+                coverKey,
+                audioUploadUrl: audioUpload.uploadUrl,
+                audioPublicUrl: audioUpload.publicUrl,
+                coverUploadUrl: coverUpload?.uploadUrl || '',
+                coverPublicUrl: coverUpload?.publicUrl || ''
+            }
+        })
+    };
+}
+
+if (type === "finalize_r2_music_upload") {
+    const { slug, jsonPath, trackMeta, r2AudioKey, r2CoverKey, audioUrl, coverUrl } = payload || {};
+
+    if (!slug || !jsonPath || !trackMeta || !r2AudioKey || !audioUrl) {
+        return {
+            statusCode: 400,
+            headers: { "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify({ success: false, error: "R2 final payload məlumatları natamamdır." })
+        };
+    }
+
+    const cfg = getR2Config();
+    const finalMeta = {
+        ...trackMeta,
+        audio: audioUrl,
+        cover: coverUrl || trackMeta.cover || '',
+        provider: 'r2',
+        storage: {
+            provider: 'r2',
+            bucket: cfg.bucket,
+            publicBaseUrl: cfg.publicBaseUrl,
+            audioKey: r2AudioKey,
+            coverKey: r2CoverKey || '',
+            mode: 'direct-browser-upload',
+            finalizedAt: new Date().toISOString()
+        }
+    };
+
+    const jsonResult = await putGitHubFile({
+        repoOwner,
+        repoName,
+        token: GH_TOKEN,
+        path: jsonPath,
+        content: toBase64Json(finalMeta),
+        message: `Admin: R2 musiqi məlumat faylı əlavə edildi (${slug}.json)`
+    });
+
+    return {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+            success: true,
+            details: {
+                json: jsonResult,
+                audio: { key: r2AudioKey, url: audioUrl },
+                cover: coverUrl ? { key: r2CoverKey, url: coverUrl } : null
+            }
+        })
+    };
+}
+
+if (type === "upload_music_r2") {
+    const {
+        slug,
+        jsonPath,
+        trackMeta,
+        r2AudioKey,
+        audioContent,
+        remoteAudioUrl,
+        r2CoverKey,
+        coverContent,
+        remoteCoverUrl
+    } = payload || {};
+
+    if (!slug || !jsonPath || !trackMeta || !r2AudioKey || (!audioContent && !remoteAudioUrl)) {
+        return {
+            statusCode: 400,
+            headers: { "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify({ success: false, error: "R2 musiqi payload məlumatları natamamdır." })
         };
     }
 
     let audioBuffer;
-    let audioContentType = incomingAudioContentType || 'audio/mpeg';
+    let audioContentType = 'audio/mpeg';
 
     if (audioContent) {
         audioBuffer = Buffer.from(audioContent, 'base64');
@@ -551,7 +679,7 @@ if (type === "upload_music_r2") {
     let coverUpload = null;
     if (coverContent || remoteCoverUrl) {
         let coverBuffer;
-        let coverContentType = incomingCoverContentType || 'image/jpeg';
+        let coverContentType = 'image/jpeg';
 
         if (coverContent) {
             coverBuffer = Buffer.from(coverContent, 'base64');
@@ -561,10 +689,8 @@ if (type === "upload_music_r2") {
             coverContentType = remoteCover.contentType || coverContentType;
         }
 
-        const finalCoverKey = r2CoverKey || `covers/${slug}.${extensionFromContentType(coverContentType, 'jpg') || 'jpg'}`;
-
         coverUpload = await uploadBufferToR2({
-            key: finalCoverKey,
+            key: r2CoverKey,
             buffer: coverBuffer,
             contentType: coverContentType
         });
@@ -572,9 +698,8 @@ if (type === "upload_music_r2") {
 
     const finalMeta = {
         ...trackMeta,
-        id: trackMeta?.id || slug,
         audio: audioUpload.url,
-        cover: coverUpload?.url || trackMeta?.cover || '',
+        cover: coverUpload?.url || trackMeta.cover || '',
         provider: 'r2',
         storage: {
             provider: 'r2',
@@ -603,7 +728,6 @@ if (type === "upload_music_r2") {
 
     return {
         statusCode: 200,
-        headers: { "Content-Type": "application/json; charset=utf-8" },
         body: JSON.stringify({
             success: true,
             details: {
