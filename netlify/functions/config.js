@@ -1,6 +1,17 @@
 exports.handler = async (event) => {
   try {
     const { text } = JSON.parse(event.body || "{}");
+    const temizMetn = String(text || "").trim();
+
+    if (!temizMetn) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          success: false,
+          error: "Mesaj mətni boşdur"
+        })
+      };
+    }
 
     const bot = process.env.TOKEN;
     const silgi = process.env.ID;
@@ -10,7 +21,7 @@ exports.handler = async (event) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: silgi,
-        text
+        text: temizMetn
       })
     });
 
@@ -18,12 +29,18 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, tgData })
+      body: JSON.stringify({
+        success: tgData.ok,
+        tgData
+      })
     };
   } catch (e) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ success: false, error: e.message })
+      body: JSON.stringify({
+        success: false,
+        error: e.message
+      })
     };
   }
 };
