@@ -1187,6 +1187,60 @@ async function uploadToCloudinary(file, { cloudName, preset, resourceType = 'aut
 
     return data;
 }
+
+function inferFileExtensionFromName(name = '', fallback = '') {
+    const match = String(name).trim().match(/\.([a-z0-9]{2,5})$/i);
+    return match ? match[1].toLowerCase() : fallback;
+}
+
+function inferFileExtensionFromUrl(url = '', fallback = '') {
+    const cleaned = String(url).split('?')[0].split('#')[0];
+    const match = cleaned.match(/\.([a-z0-9]{2,5})$/i);
+    return match ? match[1].toLowerCase() : fallback;
+}
+
+function getMusicRemoteImportValues() {
+    return {
+        audioUrl: document.getElementById('admin-cloudinary-audio-url')?.value.trim() || '',
+        coverUrl: document.getElementById('admin-cloudinary-cover-url')?.value.trim() || ''
+    };
+}
+
+function toggleMusicSourceUi() {
+    const source = document.getElementById('admin-music-source')?.value || 'github';
+    const remoteWrap = document.getElementById('admin-cloudinary-import-fields');
+    const sourceHint = document.getElementById('admin-music-source-help');
+    const musicMeta = document.getElementById('admin-music-file-meta');
+    const coverMeta = document.getElementById('admin-music-cover-meta');
+    const musicSourceSelect = document.getElementById('admin-music-source');
+
+    if (remoteWrap) {
+        remoteWrap.style.display = source === 'r2' ? 'grid' : 'none';
+    }
+
+    if (sourceHint) {
+        if (source === 'r2') {
+            sourceHint.textContent = 'R2 seçəndə iki yol var: ya lokal MP3/cover yüklə, ya Cloudinary linklərini yapışdırıb bir kliklə R2-yə köçür.';
+        } else if (source === 'cloudinary') {
+            sourceHint.textContent = 'Fayllar Cloudinary-yə yüklənəcək, GitHub-da isə yalnız JSON saxlanacaq.';
+        } else {
+            sourceHint.textContent = 'GitHub seçəndə MP3, cover və JSON hamısı repoya yazılır.';
+        }
+    }
+
+    if (musicMeta && !document.getElementById('admin-music-file')?.files?.[0]) {
+        musicMeta.textContent = source === 'r2'
+            ? 'R2 üçün lokal MP3 seç və ya aşağıdakı Cloudinary MP3 URL sahəsini doldur.'
+            : 'Yalnız .mp3 formatı qəbul edilir.';
+    }
+
+    if (coverMeta && !document.getElementById('admin-music-cover')?.files?.[0]) {
+        coverMeta.textContent = source === 'r2'
+            ? 'İstəyə bağlıdır. Lokal cover və ya Cloudinary cover URL verə bilərsən.'
+            : 'İstəyə bağlıdır.';
+    }
+}
+
 function getAdminPasswordFieldId(type) {
     return {
         update_config: 'admin-password-settings',
@@ -1210,7 +1264,8 @@ async function handleAdminUpdate(type) {
     const triggerButton = {
         update_config: document.getElementById('update-config-btn'),
         upload_image: document.getElementById('upload-image-btn'),
-        upload_music: document.getElementById('upload-music-btn')
+        upload_music: document.getElementById('upload-music-btn'),
+        migrate_music_to_r2: document.getElementById('migrate-r2-btn')
     }[type];
 
     let requestPayload = { path: '' };
@@ -1248,101 +1303,153 @@ async function handleAdminUpdate(type) {
             };
         }
 
-        else if (type === 'upload_music') {
-            const audioFile = document.getElementById('admin-music-file')?.files?.[0];
-            const coverFile = document.getElementById('admin-music-cover')?.files?.[0] || null;
-            const title = document.getElementById('admin-music-title')?.value.trim();
-            const artist = document.getElementById('admin-music-artist')?.value.trim();
-            const lyricsType = document.getElementById('admin-lyrics-type')?.value || 'none';
-            const lyricsText = document.getElementById('admin-lyrics-text')?.value || '';
-            const musicSource = document.getElementById('admin-music-source')?.value || 'github';
+        
+else if (type === 'upload_music') {
+    const audioFile = document.getElementById('admin-music-file')?.files?.[0];
+    const coverFile = document.getElementById('admin-music-cover')?.files?.[0] || null;
+    const title = document.getElementById('admin-music-title')?.value.trim();
+    const artist = document.getElementById('admin-music-artist')?.value.trim();
+    const lyricsType = document.getElementById('admin-lyrics-type')?.value || 'none';
+    const lyricsText = document.getElementById('admin-lyrics-text')?.value || '';
+    const musicSource = document.getElementById('admin-music-source')?.value || 'github';
+    const remoteImport = getMusicRemoteImportValues();
 
-            if (!audioFile) throw new Error('Musiqi faylı seç!');
-            if (!title) throw new Error('Mahnı adı yaz!');
-            if (!artist) throw new Error('Artist adı yaz!');
-            const ext = audioFile.name.split('.').pop()?.toLowerCase();
-            if (ext !== 'mp3') throw new Error('Yalnız MP3 yüklə!');
-            const slugBase = `${title}-${artist}`
-                .toLowerCase()
-                .replace(/[^a-z0-9əöüğşıç-]+/gi, '-')
-                .replace(/-+/g, '-')
-                .replace(/^-|-$/g, '') || `track-${Date.now()}`;
+    if (!title) throw new Error('Mahnı adı yaz!');
+    if (!artist) throw new Error('Artist adı yaz!');
 
-            const slug = `${slugBase}-${Date.now()}`;
+    const hasLocalAudio = Boolean(audioFile);
+    const hasRemoteAudio = Boolean(remoteImport.audioUrl);
 
-            let audioField = '';
-            let coverField = '';
-
-            const musicMeta = {
-                id: slug,
-                title,
-                artist,
-                lyrics: {
-                    type: lyricsType,
-                    text: lyricsText.trim()
-                },
-                uploadedAt: new Date().toISOString()
-            };
-
-            if (musicSource === 'cloudinary') {
-                setAdminStatus('Cloudinary-yə yüklənir...', 'info');
-
-                const cloudName = 'dkhuq9o1h';
-
-                const audioUpload = await uploadToCloudinary(audioFile, {
-                    cloudName,
-                    preset: 'dunyamiz_audio_unsigned',
-                    resourceType: 'video',
-                    folder: 'dunyamiz/music'
-                });
-
-                audioField = audioUpload.secure_url;
-
-                if (coverFile) {
-                    const coverUpload = await uploadToCloudinary(coverFile, {
-                        cloudName,
-                        preset: 'dunyamiz_cover_unsigned',
-                        resourceType: 'image',
-                        folder: 'dunyamiz/covers'
-                    });
-
-                    coverField = coverUpload.secure_url;
-                }
-
-                musicMeta.audio = audioField;
-                if (coverField) musicMeta.cover = coverField;
-
-                requestPayload = {
-                    path: `musiqiler/${slug}.json`,
-                    content: encodeBase64Utf8(JSON.stringify(musicMeta, null, 2))
-                };
-
-                type = 'upload_music_json';
-            } else {
-                setAdminStatus('GitHub üçün fayllar hazırlanır...', 'info');
-
-                const audioBase64 = await convertAudioFileToBase64(audioFile);
-                const coverBase64 = coverFile ? await encodeFileAsBase64(coverFile) : '';
-                const coverExt = coverFile ? (coverFile.name.split('.').pop()?.toLowerCase() || 'jpg') : '';
-                const coverFileName = coverFile ? `${slug}.${coverExt}` : '';
-
-                audioField = `musiqiler/${slug}.mp3`;
-                coverField = coverFileName ? `musiqiler/${coverFileName}` : '';
-
-                musicMeta.audio = audioField;
-                if (coverField) musicMeta.cover = coverField;
-
-                requestPayload = {
-                    slug,
-                    audioPath: audioField,
-                    jsonPath: `musiqiler/${slug}.json`,
-                    audioContent: audioBase64,
-                    coverPath: coverField,
-                    coverContent: coverBase64,
-                    jsonContent: encodeBase64Utf8(JSON.stringify(musicMeta, null, 2))
-                };
-            }
+    if (musicSource === 'r2') {
+        if (!hasLocalAudio && !hasRemoteAudio) {
+            throw new Error('R2 üçün ya MP3 seç, ya da Cloudinary MP3 linki yaz!');
         }
+    } else if (!hasLocalAudio) {
+        throw new Error('Musiqi faylı seç!');
+    }
+
+    if (hasLocalAudio) {
+        const ext = audioFile.name.split('.').pop()?.toLowerCase();
+        if (ext !== 'mp3') throw new Error('Yalnız MP3 yüklə!');
+    }
+
+    const slugBase = `${title}-${artist}`
+        .toLowerCase()
+        .replace(/[^a-z0-9əöüğşıç-]+/gi, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '') || `track-${Date.now()}`;
+
+    const slug = `${slugBase}-${Date.now()}`;
+    let audioField = '';
+    let coverField = '';
+
+    const musicMeta = {
+        id: slug,
+        title,
+        artist,
+        provider: musicSource,
+        lyrics: {
+            type: lyricsType,
+            text: lyricsText.trim()
+        },
+        uploadedAt: new Date().toISOString()
+    };
+
+    if (musicSource === 'cloudinary') {
+        setAdminStatus('Cloudinary-yə yüklənir...', 'info');
+
+        const cloudName = 'dkhuq9o1h';
+
+        const audioUpload = await uploadToCloudinary(audioFile, {
+            cloudName,
+            preset: 'dunyamiz_audio_unsigned',
+            resourceType: 'video',
+            folder: 'dunyamiz/music'
+        });
+
+        audioField = audioUpload.secure_url;
+
+        if (coverFile) {
+            const coverUpload = await uploadToCloudinary(coverFile, {
+                cloudName,
+                preset: 'dunyamiz_cover_unsigned',
+                resourceType: 'image',
+                folder: 'dunyamiz/covers'
+            });
+
+            coverField = coverUpload.secure_url;
+        }
+
+        musicMeta.audio = audioField;
+        if (coverField) musicMeta.cover = coverField;
+        musicMeta.storage = {
+            provider: 'cloudinary',
+            mode: 'direct-upload'
+        };
+
+        requestPayload = {
+            path: `musiqiler/${slug}.json`,
+            content: encodeBase64Utf8(JSON.stringify(musicMeta, null, 2))
+        };
+
+        type = 'upload_music_json';
+    } else if (musicSource === 'r2') {
+        setAdminStatus(hasRemoteAudio ? 'Cloudinary-dən R2-yə köçürülür...' : 'R2 üçün fayllar hazırlanır...', 'info');
+
+        const audioExt = hasLocalAudio
+            ? inferFileExtensionFromName(audioFile.name, 'mp3')
+            : inferFileExtensionFromUrl(remoteImport.audioUrl, 'mp3');
+        const coverExt = coverFile
+            ? inferFileExtensionFromName(coverFile.name, 'jpg')
+            : inferFileExtensionFromUrl(remoteImport.coverUrl, 'jpg');
+
+        const audioKey = `music/${slug}.${audioExt || 'mp3'}`;
+        const coverKey = (coverFile || remoteImport.coverUrl)
+            ? `covers/${slug}.${coverExt || 'jpg'}`
+            : '';
+
+        requestPayload = {
+            slug,
+            jsonPath: `musiqiler/${slug}.json`,
+            trackMeta: musicMeta,
+            r2AudioKey: audioKey,
+            r2CoverKey: coverKey,
+            ...(hasLocalAudio ? { audioContent: await convertAudioFileToBase64(audioFile) } : { remoteAudioUrl: remoteImport.audioUrl }),
+            ...(coverFile ? { coverContent: await encodeFileAsBase64(coverFile) } : {}),
+            ...(!coverFile && remoteImport.coverUrl ? { remoteCoverUrl: remoteImport.coverUrl } : {})
+        };
+
+        type = 'upload_music_r2';
+    } else {
+        setAdminStatus('GitHub üçün fayllar hazırlanır...', 'info');
+
+        const audioBase64 = await convertAudioFileToBase64(audioFile);
+        const coverBase64 = coverFile ? await encodeFileAsBase64(coverFile) : '';
+        const coverExt = coverFile ? (coverFile.name.split('.').pop()?.toLowerCase() || 'jpg') : '';
+        const coverFileName = coverFile ? `${slug}.${coverExt}` : '';
+
+        audioField = `musiqiler/${slug}.mp3`;
+        coverField = coverFileName ? `musiqiler/${coverFileName}` : '';
+
+        musicMeta.audio = audioField;
+        if (coverField) musicMeta.cover = coverField;
+        musicMeta.storage = {
+            provider: 'github',
+            mode: 'repo-upload'
+        };
+
+        requestPayload = {
+            slug,
+            audioPath: audioField,
+            jsonPath: `musiqiler/${slug}.json`,
+            audioContent: audioBase64,
+            coverPath: coverField,
+            coverContent: coverBase64,
+            jsonContent: encodeBase64Utf8(JSON.stringify(musicMeta, null, 2))
+        };
+    }
+}
+
         setAdminStatus('Serverə göndərilir...', 'info');
         const response = await fetch('/.netlify/functions/admin-proxy', {
             method: 'POST',
@@ -1543,6 +1650,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateBtn = document.getElementById('update-config-btn');
     const uploadImageBtn = document.getElementById('upload-image-btn');
     const uploadMusicBtn = document.getElementById('upload-music-btn');
+    const migrateR2Btn = document.getElementById('migrate-r2-btn');
     const galleryFileInput = document.getElementById('admin-file');
     const musicFileInput = document.getElementById('admin-music-file');
     const coverFileInput = document.getElementById('admin-music-cover');
@@ -1550,6 +1658,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const galleryMeta = document.getElementById('admin-file-meta');
     const musicMeta = document.getElementById('admin-music-file-meta');
     const coverMeta = document.getElementById('admin-music-cover-meta');
+    const musicSourceSelect = document.getElementById('admin-music-source');
 
     if (updateBtn) {
         updateBtn.onclick = () => handleAdminUpdate('update_config');
@@ -1561,6 +1670,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (uploadMusicBtn) {
         uploadMusicBtn.onclick = () => handleAdminUpdate('upload_music');
+    }
+
+    if (migrateR2Btn) {
+        migrateR2Btn.onclick = () => handleAdminUpdate('migrate_music_to_r2');
     }
 
     galleryFileInput?.addEventListener('change', () => {
@@ -1580,6 +1693,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 : 'Yalnız .mp3 formatı qəbul edilir.';
         }
     });
+
+    musicSourceSelect?.addEventListener('change', toggleMusicSourceUi);
+    toggleMusicSourceUi();
 
     coverFileInput?.addEventListener('change', () => {
         const file = coverFileInput.files?.[0];
@@ -1828,17 +1944,20 @@ function resolveMusicAssetUrl(value, fallback = '') {
     return `${GITHUB_RAW_BASE}${normalized.split('/').map(part => encodeURIComponent(part)).join('/')}`;
 }
 function normalizeTrackMeta(meta = {}) {
-    const audioValue = meta.audio || (meta.file ? `musiqiler/${meta.file}` : '');
-    const coverValue = meta.cover || meta.coverUrl || '';
+    const audioValue = meta.audioUrl || meta.audio || (meta.file ? `musiqiler/${meta.file}` : '');
+    const coverValue = meta.coverUrl || meta.cover || '';
+    const provider = meta.provider || meta.storage?.provider || (String(audioValue).includes('cloudinary.com') ? 'cloudinary' : (/^https?:\/\//i.test(String(audioValue)) ? 'r2' : 'github'));
 
     return {
         ...meta,
+        provider,
         audio: audioValue,
         cover: coverValue,
         audioUrl: resolveMusicAssetUrl(audioValue),
         coverUrl: resolveMusicAssetUrl(coverValue, DEFAULT_MUSIC_COVER)
     };
 }
+
 function formatMusicTime(seconds = 0) {
     if (!isFinite(seconds)) return '00:00';
     const mins = Math.floor(seconds / 60);
