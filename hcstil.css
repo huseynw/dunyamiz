@@ -3550,3 +3550,43 @@ header { text-align: center; margin-bottom: 30px; }
     line-height: 1.6 !important;
   }
 }
+
+
+.admin-inline-help {
+    display: block;
+    margin-top: 8px;
+    color: rgba(255,255,255,0.72);
+    line-height: 1.5;
+}
+
+.admin-remote-import {
+    width: 100%;
+    padding: 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.04);
+    gap: 14px;
+}
+
+.admin-remote-import-head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: rgba(255,255,255,0.8);
+}
+
+.admin-remote-import-head strong {
+    color: #fff;
+}
+
+.admin-remote-import-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+@media (max-width: 768px) {
+    .admin-remote-import-grid {
+        grid-template-columns: 1fr;
+    }
+}
