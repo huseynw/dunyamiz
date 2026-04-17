@@ -176,6 +176,7 @@ function initSPANavigation() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', async () => {
     initSPANavigation();
+    initAnalytics();
     setupMediaSession();
     await loadSiteSettings();
     const meetEl = document.getElementById('meet-count');
@@ -3323,15 +3324,24 @@ console.log(`
 let visitStartTime = Date.now();
 
 async function sendTelegramMessage(text, keepalive = false) {
+    const temizMetn = String(text || '').trim();
+
+    if (!temizMetn) {
+        console.error('Boş mesaj göndərilməyə çalışıldı:', text);
+        return;
+    }
+
     try {
         const res = await fetch('/.netlify/functions/config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text }),
+            body: JSON.stringify({ text: temizMetn }),
             keepalive
         });
 
         const data = await res.json();
+        console.log('Telegram cavabı:', data);
+
         if (!data.success) {
             console.error('Telegram göndərilmədi:', data.error || data);
         }
