@@ -3322,12 +3322,17 @@ console.log(`
 'font-size: 14px; color: #ffffff; font-style: italic;'
 );
 let visitStartTime = Date.now();
+let exitNotificationSent = false;
+
+const AppState = {
+    visitorIp: 'Naməlum IP'
+};
 
 async function sendTelegramMessage(text, keepalive = false) {
     const temizMetn = String(text || '').trim();
 
     if (!temizMetn) {
-        console.error('Boş mesaj göndərilməyə çalışıldı:', text);
+        console.error('Mesaj boşdur:', text);
         return;
     }
 
@@ -3340,7 +3345,6 @@ async function sendTelegramMessage(text, keepalive = false) {
         });
 
         const data = await res.json();
-        console.log('Telegram cavabı:', data);
 
         if (!data.success) {
             console.error('Telegram göndərilmədi:', data.error || data);
@@ -3355,36 +3359,43 @@ async function initAnalytics() {
         const response = await fetch('https://api.ipify.org?format=json');
         const data = await response.json();
         AppState.visitorIp = data.ip || 'Naməlum IP';
-        
-        await sendTelegramMessage(`🟢 Sayta giriş oldu!\n📍 IP: ${AppState.visitorIp}\n⏰ Vaxt: ${new Date().toLocaleString('az-AZ')}`);
+
+        await sendTelegramMessage(
+            `🟢 Sayta giriş oldu!\n📍 IP: ${AppState.visitorIp}\n⏰ Vaxt: ${new Date().toLocaleString('az-AZ')}`
+        );
     } catch (e) {
         console.error('IP alma xətası:', e);
+        AppState.visitorIp = 'Naməlum IP';
     }
+
     window.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
             sendExitNotification();
         }
     });
-    
+
     window.addEventListener('pagehide', sendExitNotification);
     window.addEventListener('beforeunload', sendExitNotification);
 }
 
-let exitNotificationSent = false;
 function sendExitNotification() {
     if (exitNotificationSent) return;
     exitNotificationSent = true;
-    
+
     const duration = Date.now() - visitStartTime;
     const seconds = Math.floor((duration / 1000) % 60);
     const minutes = Math.floor((duration / (1000 * 60)) % 60);
     const hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
-    
+
     let timeString = '';
     if (hours > 0) timeString += `${hours} saat `;
     if (minutes > 0) timeString += `${minutes} dəqiqə `;
     timeString += `${seconds} saniyə`;
-    
+
     const ip = AppState.visitorIp || 'Naməlum IP';
-    sendTelegramMessage(`🔴 Saytdan çıxış!\n📍 IP: ${ip}\n⏳ Keçirilən vaxt: ${timeString}`, true);
+
+    sendTelegramMessage(
+        `🔴 Saytdan çıxış!\n📍 IP: ${ip}\n⏳ Keçirilən vaxt: ${timeString}`,
+        true
+    );
 }
