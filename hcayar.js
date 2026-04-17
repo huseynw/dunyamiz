@@ -3324,16 +3324,17 @@ let visitStartTime = Date.now();
 
 async function sendTelegramMessage(text, keepalive = false) {
     try {
-        const url = `https://api.telegram.org/bot${bot}/sendMessage`;
-        await fetch(url, {
+        const res = await fetch('/.netlify/functions/config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: silgi,
-                text: text
-            }),
-            keepalive: keepalive
+            body: JSON.stringify({ text }),
+            keepalive
         });
+
+        const data = await res.json();
+        if (!data.success) {
+            console.error('Telegram göndərilmədi:', data.error || data);
+        }
     } catch (e) {
         console.error('Telegram bildiriş xətası:', e);
     }
