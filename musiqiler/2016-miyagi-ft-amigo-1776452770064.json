@@ -8,8 +8,8 @@
   },
   "uploadedAt": "2026-04-17T19:06:10.064Z",
   "provider": "r2",
-  "audio": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/music/2016-miyagi-ft-amigo-1776452770064.mp3",
-  "cover": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/covers/2016-miyagi-ft-amigo-1776452770064.jpg",
+  "audio": "https://cdn.dunyamiz.me/music/2016-miyagi-ft-amigo-1776452770064.mp3",
+  "cover": "https://cdn.dunyamiz.me/covers/2016-miyagi-ft-amigo-1776452770064.jpg",
   "storage": {
     "provider": "r2",
     "bucket": "dunyamiz",
