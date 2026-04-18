@@ -4039,3 +4039,42 @@ function sendExitNotification() {
 }
 
 // R2 CORS helper patch applied
+
+
+/* ================= ULTRA PREMIUM REDESIGN ================= */
+function initUltraPremiumRedesign() {
+    const cards = document.querySelectorAll('.time-together-card, .detailed-time-card, .counter-section, .daily-message-card, .random-memory-card, .music-player, .quote-card, .envelope, .note-card, .admin-card, .love-note-card, .scratch-container, .love-container');
+    cards.forEach((card) => {
+        if (card.dataset.premiumBound === 'true') return;
+        card.dataset.premiumBound = 'true';
+        card.addEventListener('pointermove', (e) => {
+            if (window.innerWidth < 992) return;
+            const r = card.getBoundingClientRect();
+            const px = (e.clientX - r.left) / r.width;
+            const py = (e.clientY - r.top) / r.height;
+            const rx = (0.5 - py) * 8;
+            const ry = (px - 0.5) * 10;
+            card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
+        });
+        card.addEventListener('pointerleave', () => {
+            card.style.transform = '';
+        });
+    });
+
+    const hero = document.querySelector('.premium-hero');
+    if (hero && !hero.dataset.glowBound) {
+        hero.dataset.glowBound = 'true';
+        hero.addEventListener('pointermove', (e) => {
+            const r = hero.getBoundingClientRect();
+            hero.style.setProperty('--mx', `${e.clientX - r.left}px`);
+            hero.style.setProperty('--my', `${e.clientY - r.top}px`);
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initUltraPremiumRedesign();
+});
+window.addEventListener('load', () => {
+    initUltraPremiumRedesign();
+});
