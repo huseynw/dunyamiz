@@ -19,9 +19,6 @@
     <meta name="robots" content="index,follow,max-image-preview:large,max-video-preview:-1,max-snippet:-1">
     <link rel="stylesheet" href="hcstil.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/512.png">
@@ -37,6 +34,17 @@
 
 </head>
 <body>
+    <div class="premium-bg" aria-hidden="true">
+        <div class="premium-grid"></div>
+        <div class="premium-orb premium-orb--1"></div>
+        <div class="premium-orb premium-orb--2"></div>
+        <div class="premium-orb premium-orb--3"></div>
+        <div class="premium-noise"></div>
+    </div>
+    <div class="premium-topbar" data-nosnippet>
+        <div class="premium-topbar__pill"><i class="fas fa-gem"></i><span>ULTRA PREMIUM</span></div>
+        <div class="premium-topbar__pill premium-topbar__pill--soft"><i class="fas fa-mobile-screen-button"></i><span>Mobile + PC</span></div>
+    </div>
     <canvas id="weather-canvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; opacity:0.6;"></canvas>
     <!-- Welcome Screen -->
     <div id="welcome-screen" data-nosnippet>
@@ -69,9 +77,9 @@
     </div>
 
     <!-- Main Content -->
-    <main id="main-content" class="hidden" data-nosnippet>
+    <main id="main-content" class="hidden premium-main" data-nosnippet>
         <!-- Header - Always Visible -->
-        <header class="animate-item delay-1">
+        <header class="animate-item delay-1 premium-hero">
             <div class="logo-container">
                 <span class="letter">H</span>
                 <div class="infinity-wrapper">
@@ -81,7 +89,8 @@
                 </div>
                 <span class="letter">C</span>
             </div>
-            <div class="greeting-box">
+            <div class="greeting-box premium-intro-panel">
+                <div class="hero-badge"><i class="fas fa-sparkles"></i> Sizin xüsusi məkanınız</div>
                 <h2 id="dynamic-greeting"></h2>
                 <p id="live-clock"></p>
             </div>
