@@ -56,6 +56,7 @@ async function loadSiteSettings(force = false) {
 
         if (typeof syncAdminOverview === 'function') {
             syncAdminOverview();
+        initDailyMessageAndRandomMemory();
         }
     } catch (err) {
         console.error('Site settings yüklənmədi:', err);
@@ -100,6 +101,254 @@ const durationEl = document.getElementById('duration');
 window.allImages = []; 
 let currentImgIdx = 0;
 let isPlaying = false;
+
+let randomMemoryLastImageIndex = null;
+
+const dailyMessageBank = {
+    openings: [
+        "Bu gün ürəyimdən sənə bir cümlə keçdi:",
+        "Bu günün ən yumşaq sözü sənin üçündür:",
+        "Bu gün içimdən gələn ilk hiss budur:",
+        "Bu gün səni xatırlayanda ağlıma bu gəldi:",
+        "Bu gün üçün sənə balaca bir not:",
+        "Bu gün ruhuma ən yaxın cümlə budur:",
+        "Bu gün səni düşünəndə içim belə danışdı:",
+        "Bu günün romantik pıçıltısı budur:",
+        "Bu gün üçün ürəkdən seçilən mesaj:",
+        "Bu günə yaraşan ən zərif söz budur:"
+    ],
+    moods: [
+        "sakit",
+        "işıqlı",
+        "şirin",
+        "romantik",
+        "yumşaq",
+        "dərin",
+        "isti",
+        "parlaq",
+        "incə",
+        "sehirli"
+    ],
+    subjects: [
+        "gülüşün",
+        "səsinə yaxın hiss",
+        "mənə verdiyin rahatlıq",
+        "mənə baxışın",
+        "varlığının istiliyi",
+        "səninlə olan xatirələr",
+        "mənə verdiyin güvən",
+        "adını eşidəndə gələn hiss",
+        "yanımda olduğunu bilmək",
+        "səninlə qurduğum gələcək"
+    ],
+    verbs: [
+        "günümü gözəlləşdirir",
+        "məni sakitləşdirir",
+        "ürəyimə yaxşı gəlir",
+        "hər şeyi daha mənalı edir",
+        "içimdə işıq yandırır",
+        "dünyanı daha yumşaq göstərir",
+        "mənə güc verir",
+        "üzümdə təbəssüm yaradır",
+        "hisslərimi daha dərin edir",
+        "məni sənə bir az da yaxınlaşdırır"
+    ],
+    closings: [
+        "Bu gün də səni çox sevirəm.",
+        "Sən mənim üçün hələ də ən gözəl təsadüfsən.",
+        "Sən olan yerdə içim rahat olur.",
+        "Bu hissin adı yenə sənsən.",
+        "Yaxşı ki, qəlbim səni tanıyıb.",
+        "Sənlə bağlı hər şey içimdə gözəl qalır.",
+        "Bu günün ən gözəl tərəfi yenə sənsən.",
+        "Səninlə bağlı düşüncələrim həmişə isti qalır.",
+        "Bəzən bir cümlə kifayət edir: yaxşı ki, varsan.",
+        "Bu mesajın sonu da yenə sənə çıxır."
+    ]
+};
+
+const randomMemoryTexts = [
+    { title: "İlk baxış kimi", text: "Bəzi anlar var ki, üstündən nə qədər vaxt keçsə də ilk dəfə hiss edilirmiş kimi qalır. Sənli xatirələr də elədir." },
+    { title: "Balaca sürpriz", text: "Bəzən ən böyük xoşbəxtlik çox kiçik bir anda gizlənir: bir söz, bir baxış, bir mesaj, bir gülüş." },
+    { title: "Sakit xatirə", text: "Elə anlar olur ki, səs-küylü deyil, amma insanın ürəyində ən çox yer tutan da məhz onlar olur." },
+    { title: "Gözəl təsadüf", text: "Səni düşünmək bəzən köhnə, amma çox sevilən bir mahnını yenidən tapmaq kimidir." },
+    { title: "Ən yumşaq an", text: "Bir günün içində ən dəyərli saniyə bəzən sadəcə içdən gələn bir hiss olur." },
+    { title: "Dərin nəfəs", text: "Səninlə bağlı ən gözəl şeylərdən biri də budur: səni xatırlayanda insanın içi sakitləşir." },
+    { title: "Bir az sən", text: "Bu xatirədə bir az sevinc, bir az həyəcan, bir az da səni düşünəndə yaranan istilik var." },
+    { title: "İşıqlı kadr", text: "Bəzi anlar şəkil olmasa da yaddaşda o qədər aydın qalır ki, sanki hər detalı görünür." },
+    { title: "Təbəssüm səbəbi", text: "Təsadüfi xatirə gəldi və nəticə dəyişmədi: yenə də üzdə təbəssüm." },
+    { title: "Ürəkdə qalan", text: "Gün keçir, vaxt dəyişir, amma bəzi hisslər ürəkdə olduğu kimi qalır." },
+    { title: "Yavaş an", text: "Kaş bəzi xatirələrdə vaxtı bir az yavaşlatmaq olaydı; ən gözəl anlar daha uzun qalaydı." },
+    { title: "Bir cümləlik xoşbəxtlik", text: "Bəzən xoşbəxtlik çox uzun izah istəmir; sadəcə o anın içində hiss olunur." }
+];
+
+function hashString(value) {
+    let hash = 0;
+    const text = String(value || '');
+    for (let i = 0; i < text.length; i++) {
+        hash = ((hash << 5) - hash) + text.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash);
+}
+
+function createSeededRandom(seed) {
+    let state = seed % 2147483647;
+    if (state <= 0) state += 2147483646;
+    return () => {
+        state = state * 16807 % 2147483647;
+        return (state - 1) / 2147483646;
+    };
+}
+
+function getBakuDateKey(date = new Date()) {
+    return date.toLocaleDateString('en-CA', { timeZone: 'Asia/Baku' });
+}
+
+function formatBakuPrettyDate(date = new Date()) {
+    return date.toLocaleDateString('az-AZ', {
+        timeZone: 'Asia/Baku',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+}
+
+function buildDailyMessage(seedKey) {
+    const seed = hashString(`daily-${seedKey}`);
+    const rand = createSeededRandom(seed);
+    const pick = (list) => list[Math.floor(rand() * list.length)];
+    return `${pick(dailyMessageBank.openings)} Bu gün ${pick(dailyMessageBank.moods)} bir hisslə deyirəm ki, ${pick(dailyMessageBank.subjects)} ${pick(dailyMessageBank.verbs)}. ${pick(dailyMessageBank.closings)}`;
+}
+
+function animateMemoryBlock(...elements) {
+    elements.filter(Boolean).forEach((el) => {
+        el.classList.remove('memory-animate');
+        void el.offsetWidth;
+        el.classList.add('memory-animate');
+    });
+}
+
+function renderDailyMessage() {
+    const titleEl = document.getElementById('daily-message-title');
+    const textEl = document.getElementById('daily-message-text');
+    const dateEl = document.getElementById('daily-message-date');
+    if (!titleEl || !textEl || !dateEl) return;
+
+    const dateKey = getBakuDateKey();
+    const message = buildDailyMessage(dateKey);
+
+    titleEl.textContent = 'Bu gün sənə bir sözüm var 🤍';
+    textEl.textContent = message;
+    dateEl.innerHTML = `<i class="fas fa-calendar-day"></i> ${formatBakuPrettyDate(new Date())}`;
+    animateMemoryBlock(titleEl, textEl, dateEl);
+}
+
+function getRandomGalleryMemory() {
+    if (!Array.isArray(window.allImages) || !window.allImages.length) return null;
+    const index = Math.floor(Math.random() * window.allImages.length);
+    const image = window.allImages[index];
+    const imageDate = parseImageDate(image) || image.git_date || new Date();
+    return {
+        type: 'image',
+        index,
+        title: 'Qalereyadan bir xatirə',
+        text: `${formatAzDate(imageDate)} tarixli bir an yenidən qarşına çıxdı. Bəlkə bu xatirəni bir də açıb baxasan?`
+    };
+}
+
+function getRandomTextMemory() {
+    const picked = randomMemoryTexts[Math.floor(Math.random() * randomMemoryTexts.length)];
+    return {
+        type: 'text',
+        title: picked.title,
+        text: picked.text
+    };
+}
+
+function showRandomMemory() {
+    const titleEl = document.getElementById('random-memory-title');
+    const textEl = document.getElementById('random-memory-text');
+    const openBtn = document.getElementById('random-memory-open-btn');
+    if (!titleEl || !textEl || !openBtn) return;
+
+    const shouldUseImage = Array.isArray(window.allImages) && window.allImages.length > 0 && Math.random() > 0.45;
+    const memory = shouldUseImage ? getRandomGalleryMemory() : getRandomTextMemory();
+    if (!memory) return;
+
+    titleEl.textContent = memory.title;
+    textEl.textContent = memory.text;
+    animateMemoryBlock(titleEl, textEl);
+
+    if (memory.type === 'image' && Number.isInteger(memory.index)) {
+        randomMemoryLastImageIndex = memory.index;
+        openBtn.hidden = false;
+    } else {
+        randomMemoryLastImageIndex = null;
+        openBtn.hidden = true;
+    }
+
+    try {
+        localStorage.setItem('lastRandomMemory', JSON.stringify({
+            ...memory,
+            savedAt: new Date().toISOString()
+        }));
+    } catch (_) {}
+}
+
+function restoreLastRandomMemory() {
+    const titleEl = document.getElementById('random-memory-title');
+    const textEl = document.getElementById('random-memory-text');
+    const openBtn = document.getElementById('random-memory-open-btn');
+    if (!titleEl || !textEl || !openBtn) return false;
+
+    try {
+        const raw = localStorage.getItem('lastRandomMemory');
+        if (!raw) return false;
+        const memory = JSON.parse(raw);
+        if (!memory?.title || !memory?.text) return false;
+
+        titleEl.textContent = memory.title;
+        textEl.textContent = memory.text;
+
+        if (memory.type === 'image' && Number.isInteger(memory.index)) {
+            randomMemoryLastImageIndex = memory.index;
+            openBtn.hidden = false;
+        } else {
+            randomMemoryLastImageIndex = null;
+            openBtn.hidden = true;
+        }
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+function initDailyMessageAndRandomMemory() {
+    renderDailyMessage();
+
+    const randomBtn = document.getElementById('random-memory-btn');
+    const openBtn = document.getElementById('random-memory-open-btn');
+
+    if (randomBtn && !randomBtn.dataset.bound) {
+        randomBtn.dataset.bound = 'true';
+        randomBtn.addEventListener('click', showRandomMemory);
+    }
+
+    if (openBtn && !openBtn.dataset.bound) {
+        openBtn.dataset.bound = 'true';
+        openBtn.addEventListener('click', () => {
+            if (Number.isInteger(randomMemoryLastImageIndex) && typeof window.openLightbox === 'function') {
+                window.openLightbox(randomMemoryLastImageIndex);
+            }
+        });
+    }
+
+    if (!restoreLastRandomMemory()) {
+        showRandomMemory();
+    }
+}
+
 
 // ========== MOBILE BACKGROUND AUDIO FIX ==========
 function resumeAudioContextSafely() {
@@ -180,6 +429,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateCounter();
     updateMeetingTimer();
+    initDailyMessageAndRandomMemory();
     setInterval(updateCounter, 1000);
 });
 
@@ -1738,7 +1988,7 @@ function decodeId3TextFrame(frameBytes) {
         if (encoding === 0x00 || encoding === 0x03) {
             return new TextDecoder(encoding === 0x03 ? 'utf-8' : 'iso-8859-1')
                 .decode(body)
-                .replace(/ /g, '')
+                .replace(/ /g, '')
                 .trim();
         }
 
@@ -1758,7 +2008,7 @@ function decodeId3TextFrame(frameBytes) {
                 decoder = 'utf-16be';
             }
 
-            return new TextDecoder(decoder).decode(bytes).replace(/ /g, '').trim();
+            return new TextDecoder(decoder).decode(bytes).replace(/ /g, '').trim();
         }
     } catch (_) {
         return '';
@@ -1812,8 +2062,8 @@ async function extractMusicMetadataFromFile(file) {
             const tail = bytes.slice(bytes.length - 128);
             if (String.fromCharCode(...tail.slice(0, 3)) === 'TAG') {
                 const decoder = new TextDecoder('iso-8859-1');
-                const title = decoder.decode(tail.slice(3, 33)).replace(/ /g, '').trim();
-                const artist = decoder.decode(tail.slice(33, 63)).replace(/ /g, '').trim();
+                const title = decoder.decode(tail.slice(3, 33)).replace(/ /g, '').trim();
+                const artist = decoder.decode(tail.slice(33, 63)).replace(/ /g, '').trim();
                 fallback.title = fallback.title || title;
                 fallback.artist = fallback.artist || artist;
             }
