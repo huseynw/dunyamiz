@@ -3843,3 +3843,69 @@ header { text-align: center; margin-bottom: 30px; }
         width: 100%;
     }
 }
+
+/* ========== LYRICS SCROLLBAR FIX ========== */
+.yt-lyrics-panel,
+#yt-lyrics-panel {
+    overflow: hidden;
+    overscroll-behavior: contain;
+}
+
+.yt-lyrics-container,
+#yt-lyrics-container {
+    flex: 1;
+    max-height: 470px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 6px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 77, 109, 0.78) rgba(255, 255, 255, 0.06);
+}
+
+.yt-lyrics-container::-webkit-scrollbar,
+#yt-lyrics-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.yt-lyrics-container::-webkit-scrollbar-track,
+#yt-lyrics-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 999px;
+}
+
+.yt-lyrics-container::-webkit-scrollbar-thumb,
+#yt-lyrics-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 77, 109, 0.78);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+.yt-lyrics-container::-webkit-scrollbar-thumb:hover,
+#yt-lyrics-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 77, 109, 0.95);
+    background-clip: content-box;
+}
+
+.yt-lyrics-container::-webkit-scrollbar-button,
+#yt-lyrics-container::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.yt-lyrics-container::-webkit-scrollbar-corner,
+#yt-lyrics-container::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+.yt-lyrics-line,
+.yt-lyrics-line--word,
+.yt-lyrics-word {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
