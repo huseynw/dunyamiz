@@ -34,6 +34,9 @@
 
 </head>
 <body>
+    <div class="ambient-blur ambient-blur--one"></div>
+    <div class="ambient-blur ambient-blur--two"></div>
+    <div class="ambient-grid"></div>
     <canvas id="weather-canvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; opacity:0.6;"></canvas>
     <!-- Welcome Screen -->
     <div id="welcome-screen" data-nosnippet>
@@ -92,9 +95,43 @@
             
             <!-- Page 1: Əsas (Home) -->
             <section class="spa-page active" id="page-home">
-                <div class="page-content animate-item delay-2">
-                    <!-- Time Together Counter - Modern Card -->
-                    <div class="time-together-card">
+                <div class="page-content page-content--home animate-item delay-2">
+                    <section class="hero-shell">
+                        <div class="hero-copy">
+                            <div class="hero-badges">
+                                <span class="hero-badge"><i class="fas fa-lock"></i> Şəxsi dünya</span>
+                                <span class="hero-badge"><i class="fas fa-heart"></i> Canlı xatirələr</span>
+                            </div>
+                            <p class="hero-kicker">DÜNYAMIZ</p>
+                            <h1 class="hero-title">Sevgini sadəcə göstərən yox, yaşadan bir dizayn.</h1>
+                            <p class="hero-description">Ana səhifəni daha təmiz, bölmələri daha aydın, musiqi və xatirələri isə daha premium hiss etdirən yeni görünüş.</p>
+                            <div class="hero-actions">
+                                <button class="hero-btn hero-btn--primary" type="button" data-go-page="gallery"><i class="fas fa-images"></i><span>Xatirələrə bax</span></button>
+                                <button class="hero-btn hero-btn--secondary" type="button" data-go-page="music"><i class="fas fa-music"></i><span>Musiqini aç</span></button>
+                            </div>
+                        </div>
+                        <aside class="hero-panel">
+                            <div class="hero-panel-card">
+                                <p class="hero-panel-kicker">Bu dünyada</p>
+                                <strong>hər blok bir hiss daşıyır</strong>
+                                <span>Sayt indi daha səliqəli axınla hero → xatirələr → musiqi → notlar quruluşunda hiss olunur.</span>
+                            </div>
+                            <div class="hero-mini-grid">
+                                <button class="hero-mini-card" type="button" data-go-page="time">
+                                    <i class="fas fa-clock"></i>
+                                    <div><strong>Zamanımız</strong><span>sayğaclar və xüsusi anlar</span></div>
+                                </button>
+                                <button class="hero-mini-card" type="button" data-go-page="notes">
+                                    <i class="fas fa-note-sticky"></i>
+                                    <div><strong>Notlarımız</strong><span>sürətli keçid</span></div>
+                                </button>
+                            </div>
+                        </aside>
+                    </section>
+
+                    <section class="home-spotlight-grid">
+                        <!-- Time Together Counter - Modern Card -->
+                        <div class="time-together-card card-lift">
                         <div class="time-together-header">
                             <i class="fas fa-heart"></i>
                             <h2>Birlikdə Keçən Zaman</h2>
@@ -156,6 +193,32 @@
                         </div>
                     </div>
 
+                    <aside class="home-side-stack">
+                        <article class="glass-feature-card feature-card--meeting">
+                            <div class="feature-card-icon"><i class="fas fa-sparkles"></i></div>
+                            <div>
+                                <p class="feature-card-kicker">Yeni axın</p>
+                                <h3>İlk baxışda daha təmiz görünüş</h3>
+                                <p>Əsas məlumatlar yuxarıda toplanır, digər hissələr isə daha yumşaq keçidlə aşağıya açılır.</p>
+                            </div>
+                        </article>
+
+                        <div class="quick-link-stack">
+                            <button class="quick-link-card" type="button" data-go-page="gallery">
+                                <span class="quick-link-icon"><i class="fas fa-camera-retro"></i></span>
+                                <div><strong>Qalereya</strong><small>Bütün xatirələr</small></div>
+                            </button>
+                            <button class="quick-link-card" type="button" data-go-page="letters">
+                                <span class="quick-link-icon"><i class="fas fa-envelope-open-text"></i></span>
+                                <div><strong>Məktublar</strong><small>Sevgi dolu qeydlər</small></div>
+                            </button>
+                            <button class="quick-link-card" type="button" data-go-page="music">
+                                <span class="quick-link-icon"><i class="fas fa-compact-disc"></i></span>
+                                <div><strong>Musiqi</strong><small>Playlist və lyrics</small></div>
+                            </button>
+                        </div>
+                    </aside>
+                    </section>
 
                     <!-- Daily Message + Random Memory -->
                     <section class="daily-memory-grid animate-item delay-3">
@@ -199,8 +262,9 @@
                         </article>
                     </section>
 
+                    <section class="interactive-grid animate-item delay-3">
                     <!-- Love Power Section -->
-                    <section class="love-power-section animate-item delay-3">
+                    <section class="love-power-section">
                         <div class="love-container">
                             <p>Ürəyə basılı tut...</p>
                             <div id="hold-heart" class="heart-trigger">
@@ -221,13 +285,14 @@
                             <canvas id="scratch-canvas" width="300" height="150"></canvas>
                         </div>
                     </div>
+                    </section>
                 </div>
             </section>
 
             <!-- Page 2: Zamanımız (Time) -->
             <section class="spa-page" id="page-time">
                 <div class="page-content">
-                    <h2 class="page-title">Zamanımız</h2>
+                    <div class="section-hero"><p class="section-kicker">ANLARIMIZ</p><h2 class="page-title">Zamanımız</h2><p class="section-subtitle">Birlikdə keçən bütün anların daha rahat və premium görünən xülasəsi.</p></div>
                     
                     <!-- Detailed Time Together -->
                     <div class="detailed-time-card">
@@ -296,7 +361,7 @@
             <!-- Page 3: Qalereya (Gallery) -->
             <section class="spa-page" id="page-gallery">
                 <div class="page-content">
-                    <h2 class="page-title">Xatirələrimiz 📸</h2>
+                    <div class="section-hero"><p class="section-kicker">QALEREYA</p><h2 class="page-title">Xatirələrimiz 📸</h2><p class="section-subtitle">Timeline və media blokları daha nəfəs alan bir quruluşla göstərilir.</p></div>
                     <div class="gallery-section">
                         <div id="gallery-stack" class="gallery-timeline">
                             </div>
@@ -326,7 +391,7 @@
             <!-- Page 4: Musiqi -->
             <section class="spa-page" id="page-music">
                 <div class="page-content">
-                    <h2 class="page-title">Musiqilərimiz 🎵</h2>
+                    <div class="section-hero"><p class="section-kicker">PLAYLIST</p><h2 class="page-title">Musiqilərimiz 🎵</h2><p class="section-subtitle">Player hissəsi artıq ayrıca premium zona kimi hiss olunur.</p></div>
                     <div class="yt-music-shell">
                         <div class="yt-music-header">
                             <div>
@@ -450,7 +515,7 @@
             <!-- Page 4: Məktublar (Letters) -->
             <section class="spa-page" id="page-letters">
                 <div class="page-content">
-                    <h2 class="page-title">Məni hiss etdiyində...</h2>
+                    <div class="section-hero"><p class="section-kicker">MƏKTUBLAR</p><h2 class="page-title">Məni hiss etdiyində...</h2><p class="section-subtitle">Məktublar hissəsi artıq ayrıca emosional zona kimi daha zərif görünür.</p></div>
                     <div class="envelopes-grid">
                         <div class="envelope" id="env-miss">
                             <i class="fas fa-envelope-open-text"></i>
@@ -479,9 +544,9 @@
             </section>
             <section class="spa-page" id="page-notes">
                 <div class="page-content">
-                    <h2 class="page-title">Notlarımız</h2>
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <button id="open-add-note-btn" class="custom-btn" style="background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; box-shadow: 0 5px 15px var(--primary-glow); transition: 0.3s;"><i class="fas fa-plus"></i> Yeni Not Əlavə Et</button>
+                    <div class="section-hero"><p class="section-kicker">QEYDLƏR</p><h2 class="page-title">Notlarımız</h2><p class="section-subtitle">Qeydlər daha təmiz və idarəsi rahat bir sahədə toplanır.</p></div>
+                    <div class="notes-toolbar">
+                        <button id="open-add-note-btn" class="custom-btn notes-add-btn" type="button"><i class="fas fa-plus"></i> Yeni Not Əlavə Et</button>
                     </div>
                     <div class="notes-grid" id="notes-container">
                         <p style="text-align:center; opacity:0.7;">Notlar yüklənir...</p>
