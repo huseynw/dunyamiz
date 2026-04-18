@@ -4039,19 +4039,3 @@ function sendExitNotification() {
 }
 
 // R2 CORS helper patch applied
-
-
-// ========== PREMIUM QUICK NAVIGATION HELPERS ==========
-function openSpaPage(pageName) {
-    const navButton = document.querySelector(`.nav-item[data-page="${pageName}"]`);
-    if (navButton) navButton.click();
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-go-page]').forEach((button) => {
-        button.addEventListener('click', () => {
-            const pageName = button.getAttribute('data-go-page');
-            if (pageName) openSpaPage(pageName);
-        });
-    });
-});
