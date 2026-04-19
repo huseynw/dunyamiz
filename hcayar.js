@@ -4039,26 +4039,31 @@ function sendExitNotification() {
 }
 document.addEventListener('DOMContentLoaded', () => {
     const themeBtn = document.getElementById('theme-toggle');
-    const icon = themeBtn ? themeBtn.querySelector('i') : null;
-    
-    // Yaddaşda seçim yoxdursa, defolt olaraq 'dark' götürürük
-    const savedTheme = localStorage.getItem('ui-theme') || 'dark';
+    if (!themeBtn) return;
 
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark-ui');
-        if(icon) icon.className = 'fas fa-sun';
-    } else {
-        document.body.classList.remove('dark-ui');
-        if(icon) icon.className = 'fas fa-moon';
-    }
+    const storageKey = 'ui-theme';
 
-    if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-            document.body.classList.toggle('dark-ui');
-            const isDark = document.body.classList.contains('dark-ui');
-            
-            localStorage.setItem('ui-theme', isDark ? 'dark' : 'light');
-            icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-        });
-    }
+    const applyTheme = (theme) => {
+        const isDark = theme === 'dark';
+
+        document.body.classList.toggle('dark-ui', isDark);
+        document.documentElement.setAttribute('data-theme', theme);
+        themeBtn.setAttribute('aria-pressed', String(isDark));
+
+        try {
+            localStorage.setItem(storageKey, theme);
+        } catch (_) {}
+    };
+
+    let savedTheme = 'dark';
+    try {
+        savedTheme = localStorage.getItem(storageKey) || 'dark';
+    } catch (_) {}
+
+    applyTheme(savedTheme);
+
+    themeBtn.addEventListener('click', () => {
+        const isDarkNow = themeBtn.getAttribute('aria-pressed') === 'true';
+        applyTheme(isDarkNow ? 'light' : 'dark');
+    });
 });
