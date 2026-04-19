@@ -4906,32 +4906,3 @@ body.dark-ui .theme-switch-btn.toggle {
         margin-bottom: 16px;
     }
 }
-/* DARK MODE */
-.dark-mode {
-    --glass: rgba(0, 0, 0, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --text: #eaeaea;
-    background: #0d0d0d;
-}
-
-/* BUTTON DARK STYLE */
-.theme-switch-btn.active .face {
-    background: #111;
-    box-shadow: 
-        inset 0 0 10px rgba(0,0,0,0.8),
-        0 0 20px rgba(44, 198, 254, 0.6);
-}
-
-/* Ay mavi glow */
-.theme-switch-btn.active .glow-path {
-    fill: #2CC6FE;
-}
-
-/* ümumi qaranlıq effekt */
-.dark-mode .time-together-card,
-.dark-mode .counter-section,
-.dark-mode .meeting-timer,
-.dark-mode .detailed-time-card {
-    background: rgba(0,0,0,0.5);
-    border-color: rgba(255,255,255,0.1);
-}
