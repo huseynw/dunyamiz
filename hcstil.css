@@ -4542,3 +4542,54 @@ body.dark-ui .theme-switch-btn {
     border-color: rgba(255,255,255,0.08) !important;
     color: #fff !important;
 }
+/* SWITCH BUTTON - WEATHER ALTINDA */
+.bottom-switch {
+    display: block;
+    margin: 10px auto 20px auto;
+}
+
+/* MODERN SWITCH STYLE */
+.theme-switch-btn {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: all 0.3s ease;
+}
+
+/* ICON */
+.theme-switch-btn i {
+    font-size: 20px;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+/* HOVER */
+.theme-switch-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 15px 35px rgba(255,77,109,0.3);
+}
+
+/* DARK MODEDA */
+body.dark-ui .theme-switch-btn {
+    background: rgba(20,20,20,0.85);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ACTIVE ANIMATION */
+.theme-switch-btn:active {
+    transform: scale(0.95);
+}
