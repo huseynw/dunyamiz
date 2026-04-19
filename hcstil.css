@@ -4374,12 +4374,12 @@ transition: box-shadow 0.25s ease;
     overflow-wrap: anywhere;
     word-break: break-word;
 }
-/* ========== TEMA DÜYMƏSİNİN DİZAYNI ========== */
+/* ========== TEMA DÜYMƏSİ ========== */
 .theme-switch-btn {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
+    top: 25px;
+    right: 25px;
+    z-index: 10001;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -4388,60 +4388,49 @@ transition: box-shadow 0.25s ease;
     height: 45px;
     color: white;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
     transition: all 0.3s ease;
 }
 
-.theme-switch-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-/* ========== QARANLIQ TEMA (YALNIZ ELEMENTLƏR ÜÇÜN) ========== */
-/* Bu sinif body-də olanda navbar və ağ pəncərələr qaralacaq */
-
-/* Navbar qaranlıq olur */
+/* ========== QARANLIQ UI (DEFOLT) ========== */
+/* Sayt açılan kimi body-də bu klass olacaq */
 body.dark-ui .spa-navbar {
-    background: rgba(20, 20, 20, 0.95);
+    background: rgba(15, 15, 15, 0.85) !important;
+    backdrop-filter: blur(15px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
-}
-body.dark-ui .nav-item {
-    color: #888;
-}
-body.dark-ui .nav-item.active {
-    color: var(--primary); 
-    background: rgba(255, 77, 109, 0.15);
-}
-body.dark-ui .nav-item:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.05);
 }
 
-/* Not ekranı, modallar və ağ qutular qaranlıq olur */
-body.dark-ui .admin-card,
-body.dark-ui .letter-content,
+body.dark-ui .nav-item { color: rgba(255,255,255,0.6); }
+body.dark-ui .nav-item.active { color: var(--primary); }
+
+/* Admin Kartları, Not ekranı və mətn sahələri */
+body.dark-ui .admin-card, 
+body.dark-ui .letter-content, 
 body.dark-ui .lightbox-container,
 body.dark-ui .modal-content,
 body.dark-ui #view-note-text {
-    background: #1a1a1a;
-    color: #f1f1f1;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    background: rgba(20, 20, 20, 0.8) !important;
+    backdrop-filter: blur(20px);
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5) !important;
 }
 
-/* Input (yazı yerləri) qaranlıq olur */
-body.dark-ui input,
-body.dark-ui textarea {
-    background: #2a2a2a;
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+/* Yazı yazılan yerlər (Input/Textarea) */
+body.dark-ui input, 
+body.dark-ui textarea,
+body.dark-ui select {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
 }
 
-/* Xırda mətn rəngləri (bozdan ağa) */
-body.dark-ui p, 
-body.dark-ui label {
-    color: #cccccc;
+body.dark-ui .admin-card-title h3,
+body.dark-ui .admin-field label,
+body.dark-ui .letter-content h2 {
+    color: white !important;
+}
+
+body.dark-ui .admin-btn--secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
 }
