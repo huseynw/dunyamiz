@@ -5017,3 +5017,10 @@ body.dark-ui .info-item,
 body.dark-ui .exp-item label {
     color: rgba(255, 255, 255, 0.82) !important;
 }
+main {
+    padding-bottom: 88px !important;
+}
+
+.spa-container {
+    min-height: auto !important;
+}
