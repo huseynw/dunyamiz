@@ -373,45 +373,44 @@ document.addEventListener('touchstart', () => {
 }, { passive: true });
 
 // ========== SPA NAVIGATION ==========
-function animatePremiumPage(targetElement) {
-    if (!targetElement || typeof gsap === 'undefined') return;
-    const animatedNodes = targetElement.querySelectorAll('.page-title, .page-subtitle, .section-kicker, .dashboard-card, .widget-card, .time-together-card, .detailed-time-card, .gallery-section, .music-player, .yt-music-shell, .envelope, .note-card, .quote-card, .love-note-card');
-    gsap.fromTo(animatedNodes,
-        { y: 24, opacity: 0, filter: 'blur(8px)' },
-        { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.58, stagger: 0.06, ease: 'power3.out', clearProps: 'filter' }
-    );
-}
-
 function initSPANavigation() {
     const navItems = document.querySelectorAll('.nav-item');
-
+    const pages = document.querySelectorAll('.spa-page');
+    
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             const targetPage = item.getAttribute('data-page');
             const targetElement = document.getElementById(`page-${targetPage}`);
-            if (!targetElement || targetElement.classList.contains('active')) return;
+            
+            if (targetElement.classList.contains('active')) return;
 
+            // Aktiv pəncərəni tap
             const currentPage = document.querySelector('.spa-page.active');
+            
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
 
+            // Çıxış animasiyası (GSAP)
             if (currentPage) {
                 gsap.to(currentPage, {
-                    y: -16,
-                    opacity: 0,
-                    duration: 0.28,
-                    ease: 'power2.in',
+                    y: -30, opacity: 0, duration: 0.4, ease: "power2.in",
                     onComplete: () => {
                         currentPage.classList.remove('active');
                         currentPage.style.display = 'none';
-
+                        
+                        // Giriş animasiyası (GSAP)
                         targetElement.style.display = 'block';
                         targetElement.classList.add('active');
-                        gsap.fromTo(targetElement,
-                            { y: 18, opacity: 0 },
-                            { y: 0, opacity: 1, duration: 0.42, ease: 'power3.out' }
+                        gsap.fromTo(targetElement, 
+                            { y: 40, opacity: 0 }, 
+                            { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }
                         );
-                        animatePremiumPage(targetElement);
+                        
+                        // Elementlərin fərqli sürətlə axması (Stagger)
+                        gsap.fromTo(targetElement.querySelectorAll('.page-title, .animate-item, .time-together-card, .detailed-time-card'),
+                            { y: 30, opacity: 0 },
+                            { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "back.out(1.2)", delay: 0.1 }
+                        );
                     }
                 });
             }
@@ -419,60 +418,8 @@ function initSPANavigation() {
     });
 }
 
-
-
-const THEME_STORAGE_KEY = 'site-theme';
-
-function getSavedTheme() {
-    try {
-        return localStorage.getItem(THEME_STORAGE_KEY) === 'light' ? 'light' : 'dark';
-    } catch (_) {
-        return 'dark';
-    }
-}
-
-function updateThemeToggleUi(theme) {
-    const toggleBtn = document.getElementById('theme-toggle');
-    const toggleText = document.getElementById('theme-toggle-text');
-    const metaTheme = document.getElementById('theme-color-meta');
-    if (!toggleBtn || !toggleText) return;
-
-    const isLight = theme === 'light';
-    toggleText.textContent = isLight ? 'Açıq' : 'Qaranlıq';
-    toggleBtn.setAttribute('aria-label', isLight ? 'Qaranlıq rejimə keç' : 'Açıq rejimə keç');
-    toggleBtn.innerHTML = `<i class="fas ${isLight ? 'fa-sun' : 'fa-moon'}"></i><span id="theme-toggle-text">${isLight ? 'Açıq' : 'Qaranlıq'}</span>`;
-
-    if (metaTheme) {
-        metaTheme.setAttribute('content', isLight ? '#f7f8fc' : '#0f0f12');
-    }
-}
-
-function applyTheme(theme, persist = true) {
-    const normalizedTheme = theme === 'light' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', normalizedTheme);
-    if (persist) {
-        try {
-            localStorage.setItem(THEME_STORAGE_KEY, normalizedTheme);
-        } catch (_) {}
-    }
-    updateThemeToggleUi(normalizedTheme);
-}
-
-function initThemeToggle() {
-    applyTheme(getSavedTheme(), false);
-    const toggleBtn = document.getElementById('theme-toggle');
-    if (!toggleBtn || toggleBtn.dataset.bound === 'true') return;
-
-    toggleBtn.dataset.bound = 'true';
-    toggleBtn.addEventListener('click', () => {
-        const nextTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        applyTheme(nextTheme, true);
-    });
-}
-
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', async () => {
-    initThemeToggle();
     initSPANavigation();
     initAnalytics();
     setupMediaSession();
@@ -483,8 +430,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateCounter();
     updateMeetingTimer();
     initDailyMessageAndRandomMemory();
-    const firstPage = document.querySelector('.spa-page.active');
-    if (firstPage) animatePremiumPage(firstPage);
     setInterval(updateCounter, 1000);
 });
 
