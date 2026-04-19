@@ -4037,26 +4037,34 @@ function sendExitNotification() {
         true
     );
 }
+// ========== ELEMENT THEME SWITCHER ==========
 document.addEventListener('DOMContentLoaded', () => {
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    if (!themeToggleBtn) return;
+    const themeBtn = document.getElementById('theme-toggle');
+    if (!themeBtn) return;
 
-    const icon = themeToggleBtn.querySelector('i');
-    const savedTheme = localStorage.getItem('site-theme');
-    if (savedTheme === 'light') {
-        document.body.classList.add('light-theme');
-        icon.classList.replace('fa-sun', 'fa-moon'); 
+    const icon = themeBtn.querySelector('i');
+    
+    // Defolt olaraq 'dark' (qaranlıq) olsun. Yalnız istifadəçi əvvəl 'light' seçibsə onu yadda saxla.
+    const currentTheme = localStorage.getItem('element-theme') || 'dark';
+
+    // Səhifə yüklənəndə yoxlayırıq
+    if (currentTheme === 'dark') {
+        document.body.classList.add('dark-ui');
+        icon.className = 'fas fa-sun'; // Qaranlıq temada Günəş ikonu göstər ki, aydına keçə bilsin
+    } else {
+        icon.className = 'fas fa-moon'; // Aydın temada Ay ikonu göstər
     }
 
-    themeToggleBtn.addEventListener('click', () => {
-        document.body.classList.toggle('light-theme');
+    // Düyməyə basıldıqda
+    themeBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-ui');
         
-        if (document.body.classList.contains('light-theme')) {
-            localStorage.setItem('site-theme', 'light');
-            icon.classList.replace('fa-sun', 'fa-moon');
+        if (document.body.classList.contains('dark-ui')) {
+            localStorage.setItem('element-theme', 'dark');
+            icon.className = 'fas fa-sun';
         } else {
-            localStorage.setItem('site-theme', 'dark');
-            icon.classList.replace('fa-moon', 'fa-sun');
+            localStorage.setItem('element-theme', 'light');
+            icon.className = 'fas fa-moon';
         }
     });
 });
