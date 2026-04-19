@@ -4906,3 +4906,114 @@ body.dark-ui .theme-switch-btn.toggle {
         margin-bottom: 16px;
     }
 }
+/* =========================
+   DARK MODE TWEAKS
+   çəhrayı accent itməsin
+   transparency artsın
+   blur azalsın
+   ========================= */
+
+body.dark-ui .time-together-card,
+body.dark-ui .counter-section,
+body.dark-ui .meeting-timer,
+body.dark-ui .detailed-time-card,
+body.dark-ui .daily-message-card,
+body.dark-ui .random-memory-card,
+body.dark-ui .quote-card,
+body.dark-ui .music-player,
+body.dark-ui .envelope,
+body.dark-ui .love-note-card,
+body.dark-ui .note-card,
+body.dark-ui .photo-frame,
+body.dark-ui .timeline-date,
+body.dark-ui .yt-music-shell,
+body.dark-ui .yt-track-item,
+body.dark-ui .yt-active-player,
+body.dark-ui .yt-player-main,
+body.dark-ui .yt-lyrics-panel,
+body.dark-ui .scratch-container,
+body.dark-ui #weather-container {
+    background: rgba(10, 10, 10, 0.58) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32) !important;
+}
+
+/* Counter box-ları daha şəffaf */
+body.dark-ui .time-box,
+body.dark-ui .stat-item,
+body.dark-ui .small-time,
+body.dark-ui .big-time,
+body.dark-ui .info-item,
+body.dark-ui .exp-item,
+body.dark-ui .memory-btn,
+body.dark-ui .yt-chip-btn,
+body.dark-ui .yt-mini-btn,
+body.dark-ui .yt-control-btn,
+body.dark-ui .yt-play-btn {
+    background: rgba(255, 255, 255, 0.035) !important;
+    border-color: rgba(255, 255, 255, 0.09) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+}
+
+/* Counter altındakı çəhrayı xətt itməsin */
+body.dark-ui .time-box {
+    border-bottom: 3px solid rgba(255, 77, 109, 0.95) !important;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22) !important;
+}
+
+/* Meeting timer daxilindəki 4 qutu üçün də çəhrayı accent güclənsin */
+body.dark-ui .meeting-timer .time-box span,
+body.dark-ui .counter-section .time-box span {
+    color: #ff4d6d !important;
+    text-shadow: 0 0 10px rgba(255, 77, 109, 0.18) !important;
+}
+
+/* Not kartlarında soldakı çəhrayı accent qalsın */
+body.dark-ui .note-card {
+    background: rgba(10, 10, 10, 0.56) !important;
+    backdrop-filter: blur(7px) !important;
+    -webkit-backdrop-filter: blur(7px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.09) !important;
+    border-left: 4px solid #ff4d6d !important;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.30) !important;
+}
+
+/* Not kartı hover-da da accent itməsin */
+body.dark-ui .note-card:hover {
+    border-left: 4px solid #ff4d6d !important;
+    box-shadow: 0 14px 30px rgba(255, 77, 109, 0.14) !important;
+}
+
+/* Timeline və digər kartlar da bir az daha şəffaf görünsün */
+body.dark-ui .photo-frame,
+body.dark-ui .timeline-date,
+body.dark-ui .envelope,
+body.dark-ui .love-note-card,
+body.dark-ui .daily-message-card,
+body.dark-ui .random-memory-card,
+body.dark-ui .quote-card {
+    background: rgba(12, 12, 12, 0.52) !important;
+    backdrop-filter: blur(7px) !important;
+    -webkit-backdrop-filter: blur(7px) !important;
+}
+
+/* Başlıqlardakı çəhrayı ton daha canlı qalsın */
+body.dark-ui .meeting-timer h3,
+body.dark-ui .page-title,
+body.dark-ui .note-card-author,
+body.dark-ui .daily-card-head i,
+body.dark-ui .random-card-head i {
+    color: #ff4d6d !important;
+}
+
+/* Çox tünd olmasın deyə mətnlər soft qalsın */
+body.dark-ui .meeting-date-text,
+body.dark-ui .note-card-date,
+body.dark-ui .timeline-date,
+body.dark-ui .info-item,
+body.dark-ui .exp-item label {
+    color: rgba(255, 255, 255, 0.82) !important;
+}
