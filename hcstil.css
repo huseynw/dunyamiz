@@ -4434,3 +4434,111 @@ body.dark-ui .admin-btn--secondary {
     background: rgba(255, 255, 255, 0.1);
     color: white;
 }
+/* ========== DARK UI - PAGE CARDS / SECTIONS ========== */
+body.dark-ui .time-together-card,
+body.dark-ui .counter-section,
+body.dark-ui .meeting-timer,
+body.dark-ui .detailed-time-card,
+body.dark-ui .daily-message-card,
+body.dark-ui .random-memory-card,
+body.dark-ui .quote-card,
+body.dark-ui .music-player,
+body.dark-ui .envelope,
+body.dark-ui .love-note-card,
+body.dark-ui .note-card,
+body.dark-ui .photo-frame,
+body.dark-ui .timeline-date,
+body.dark-ui .yt-music-shell,
+body.dark-ui .yt-track-item,
+body.dark-ui .yt-active-player,
+body.dark-ui .yt-player-main,
+body.dark-ui .yt-lyrics-panel,
+body.dark-ui .scratch-container,
+body.dark-ui #weather-container {
+    background: rgba(12, 12, 12, 0.78) !important;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45) !important;
+    color: #fff !important;
+}
+
+/* Bir az daha premium görünüş */
+body.dark-ui .time-together-card {
+    background: linear-gradient(135deg, rgba(255, 77, 109, 0.12), rgba(10, 10, 10, 0.82)) !important;
+    border: 1px solid rgba(255, 77, 109, 0.22) !important;
+}
+
+body.dark-ui .counter-section,
+body.dark-ui .meeting-timer,
+body.dark-ui .detailed-time-card,
+body.dark-ui .daily-message-card,
+body.dark-ui .random-memory-card,
+body.dark-ui .love-note-card,
+body.dark-ui .note-card,
+body.dark-ui .quote-card,
+body.dark-ui .music-player,
+body.dark-ui .yt-music-shell {
+    background: rgba(15, 15, 15, 0.82) !important;
+}
+
+body.dark-ui .time-box,
+body.dark-ui .stat-item,
+body.dark-ui .small-time,
+body.dark-ui .big-time,
+body.dark-ui .info-item,
+body.dark-ui .exp-item,
+body.dark-ui .memory-btn,
+body.dark-ui .yt-chip-btn,
+body.dark-ui .yt-mini-btn,
+body.dark-ui .yt-control-btn,
+body.dark-ui .yt-play-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #fff !important;
+}
+
+body.dark-ui .quote-card:hover,
+body.dark-ui .envelope:hover,
+body.dark-ui .note-card:hover,
+body.dark-ui .photo-frame:hover,
+body.dark-ui .yt-track-item:hover {
+    background: rgba(255, 77, 109, 0.10) !important;
+    border-color: rgba(255, 77, 109, 0.35) !important;
+    box-shadow: 0 18px 40px rgba(255, 77, 109, 0.18) !important;
+}
+
+body.dark-ui .page-title,
+body.dark-ui .song-info h2,
+body.dark-ui .note-card-title,
+body.dark-ui .daily-card-head h3,
+body.dark-ui #song-title,
+body.dark-ui #random-memory-title,
+body.dark-ui #daily-message-title {
+    color: #fff !important;
+}
+
+body.dark-ui .meeting-date-text,
+body.dark-ui .stat-label,
+body.dark-ui .note-text,
+body.dark-ui .timeline-date,
+body.dark-ui .daily-message-text,
+body.dark-ui .random-memory-text,
+body.dark-ui .note-card-date,
+body.dark-ui .quote-card cite,
+body.dark-ui .quote-card blockquote,
+body.dark-ui .song-info,
+body.dark-ui .info-item,
+body.dark-ui .exp-item label {
+    color: rgba(255, 255, 255, 0.78) !important;
+}
+
+body.dark-ui .photo-frame::after {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, transparent 60%) !important;
+}
+
+body.dark-ui .theme-switch-btn {
+    background: rgba(15, 15, 15, 0.85) !important;
+    border-color: rgba(255,255,255,0.08) !important;
+    color: #fff !important;
+}
