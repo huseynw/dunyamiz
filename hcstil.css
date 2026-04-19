@@ -4584,3 +4584,120 @@ html[data-theme="light"] .gallery-timeline::before {
         padding: 11px 16px;
     }
 }
+
+
+/* ========== ELEMENT-ONLY THEME PATCH ========== */
+:root[data-theme="light"] {
+    --text: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.78);
+    --bg-overlay-start: rgba(0, 0, 0, 0.50);
+    --bg-overlay-end: rgba(0, 0, 0, 0.72);
+}
+
+html[data-theme="light"] body {
+    color: #ffffff;
+}
+
+html[data-theme="light"] #welcome-screen,
+html[data-theme="light"] body::before {
+    filter: none;
+}
+
+html[data-theme="light"] .time-together-card,
+html[data-theme="light"] .detailed-time-card,
+html[data-theme="light"] .counter-section,
+html[data-theme="light"] .meeting-timer,
+html[data-theme="light"] .daily-message-card,
+html[data-theme="light"] .random-memory-card,
+html[data-theme="light"] .love-container,
+html[data-theme="light"] .scratch-container,
+html[data-theme="light"] .quote-card,
+html[data-theme="light"] .music-player,
+html[data-theme="light"] .note-card,
+html[data-theme="light"] .letter-content,
+html[data-theme="light"] .lightbox-container,
+html[data-theme="light"] .spa-navbar,
+html[data-theme="light"] .envelope,
+html[data-theme="light"] .photo-frame,
+html[data-theme="light"] .yt-music-shell,
+html[data-theme="light"] .yt-active-player,
+html[data-theme="light"] .yt-player-main,
+html[data-theme="light"] .yt-lyrics-panel,
+html[data-theme="light"] .admin-shell,
+html[data-theme="light"] .admin-card {
+    background: rgba(255, 255, 255, 0.18) !important;
+    border-color: rgba(255, 255, 255, 0.28) !important;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18) !important;
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+html[data-theme="light"] .time-box,
+html[data-theme="light"] .big-time,
+html[data-theme="light"] .small-time,
+html[data-theme="light"] .stat-item,
+html[data-theme="light"] .yt-track-item,
+html[data-theme="light"] .yt-cover-button,
+html[data-theme="light"] .yt-chip-btn,
+html[data-theme="light"] .yt-mini-btn,
+html[data-theme="light"] .yt-control-btn,
+html[data-theme="light"] #live-clock,
+html[data-theme="light"] .timeline-date,
+html[data-theme="light"] input,
+html[data-theme="light"] textarea,
+html[data-theme="light"] select,
+html[data-theme="light"] #visualizer {
+    background: rgba(255, 255, 255, 0.16) !important;
+    border-color: rgba(255, 255, 255, 0.24) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder,
+html[data-theme="light"] select,
+html[data-theme="light"] .info-item,
+html[data-theme="light"] .stat-label,
+html[data-theme="light"] .exp-item label,
+html[data-theme="light"] .meeting-date-text,
+html[data-theme="light"] .daily-card-kicker,
+html[data-theme="light"] .random-memory-text,
+html[data-theme="light"] .daily-message-text,
+html[data-theme="light"] .quote-card cite,
+html[data-theme="light"] .note-card-date,
+html[data-theme="light"] .note-card-author,
+html[data-theme="light"] #weather-status,
+html[data-theme="light"] #yt-now-label,
+html[data-theme="light"] #yt-player-artist-mini,
+html[data-theme="light"] #yt-player-artist,
+html[data-theme="light"] .yt-track-artist,
+html[data-theme="light"] .lightbox-footer,
+html[data-theme="light"] .close-letter,
+html[data-theme="light"] .close-lightbox {
+    color: rgba(255, 255, 255, 0.82) !important;
+}
+
+html[data-theme="light"] .note-card-title,
+html[data-theme="light"] .quote-card,
+html[data-theme="light"] .song-info,
+html[data-theme="light"] #song-title,
+html[data-theme="light"] .song-info h2,
+html[data-theme="light"] #yt-player-title-mini,
+html[data-theme="light"] #yt-player-title,
+html[data-theme="light"] .yt-track-title {
+    color: #ffffff !important;
+}
+
+html[data-theme="light"] .nav-item {
+    color: rgba(255, 255, 255, 0.78) !important;
+}
+
+html[data-theme="light"] .nav-item.active {
+    background: rgba(255, 77, 109, 0.22) !important;
+    color: #ff5a78 !important;
+}
+
+html[data-theme="light"] .theme-toggle {
+    background: rgba(255,255,255,0.16) !important;
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.24) !important;
+}
