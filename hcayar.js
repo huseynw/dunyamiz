@@ -4044,25 +4044,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const storageKey = 'ui-theme';
 
     const applyTheme = (theme) => {
-    const isDark = theme === 'dark';
+        const isDark = theme === 'dark';
 
-    document.body.classList.toggle('dark-ui', isDark);
-    document.documentElement.setAttribute('data-theme', theme);
+        document.body.classList.toggle('dark-ui', isDark);
+        document.documentElement.setAttribute('data-theme', theme);
 
-    /* Vizual toggle state tərsinə çevrilir:
-       mavi ay = dark mode
-       qara ay = light mode
-    */
-    themeBtn.setAttribute('aria-pressed', String(!isDark));
+        /* mavi ay = dark mode */
+        themeBtn.setAttribute('aria-pressed', String(!isDark));
 
+        try {
+            localStorage.setItem(storageKey, theme);
+        } catch (_) {}
+    };
+
+    // əvvəlki tema
+    let savedTheme = 'dark';
     try {
-        localStorage.setItem(storageKey, theme);
+        savedTheme = localStorage.getItem(storageKey) || 'dark';
     } catch (_) {}
 
     applyTheme(savedTheme);
 
+    // toggle klik
     themeBtn.addEventListener('click', () => {
-        const isDarkNow = themeBtn.getAttribute('aria-pressed') === 'true';
+        const isDarkNow = document.body.classList.contains('dark-ui');
         applyTheme(isDarkNow ? 'light' : 'dark');
     });
 });
