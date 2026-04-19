@@ -4048,16 +4048,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.body.classList.toggle('dark-ui', isDark);
         document.documentElement.setAttribute('data-theme', theme);
-
-        /* mavi ay = dark mode */
-        themeBtn.setAttribute('aria-pressed', String(!isDark));
+        themeBtn.setAttribute('aria-pressed', String(isDark));
 
         try {
             localStorage.setItem(storageKey, theme);
         } catch (_) {}
     };
 
-    // əvvəlki tema
     let savedTheme = 'dark';
     try {
         savedTheme = localStorage.getItem(storageKey) || 'dark';
@@ -4065,9 +4062,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     applyTheme(savedTheme);
 
-    // toggle klik
     themeBtn.addEventListener('click', () => {
-        const isDarkNow = document.body.classList.contains('dark-ui');
+        const isDarkNow = themeBtn.getAttribute('aria-pressed') === 'true';
         applyTheme(isDarkNow ? 'light' : 'dark');
     });
 });
+const themeToggle = document.getElementById("theme-toggle");
+
+function setTheme(isDark) {
+    if (isDark) {
+        document.body.classList.add("dark-mode");
+        themeToggle.classList.add("active"); // mavi glow
+    } else {
+        document.body.classList.remove("dark-mode");
+        themeToggle.classList.remove("active");
+    }
+}
+
+// Toggle klik
+themeToggle.addEventListener("click", () => {
+    const isDark = !document.body.classList.contains("dark-mode");
+    setTheme(isDark);
+});
+
+// DEFAULT: Ay mavidirsə DARK olsun
+setTheme(true);
