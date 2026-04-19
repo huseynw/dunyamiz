@@ -4067,3 +4067,23 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(isDarkNow ? 'light' : 'dark');
     });
 });
+const themeToggle = document.getElementById("theme-toggle");
+
+function setTheme(isDark) {
+    if (isDark) {
+        document.body.classList.add("dark-mode");
+        themeToggle.classList.add("active"); // mavi glow
+    } else {
+        document.body.classList.remove("dark-mode");
+        themeToggle.classList.remove("active");
+    }
+}
+
+// Toggle klik
+themeToggle.addEventListener("click", () => {
+    const isDark = !document.body.classList.contains("dark-mode");
+    setTheme(isDark);
+});
+
+// DEFAULT: Ay mavidirsə DARK olsun
+setTheme(true);
