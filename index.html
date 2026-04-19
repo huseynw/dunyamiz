@@ -33,7 +33,14 @@
     <meta name="theme-color" content="#ff4d6d">
 
 </head>
-<body>
+<body class="premium-redesign">
+    <div class="site-aurora" aria-hidden="true">
+        <span class="aurora aurora-1"></span>
+        <span class="aurora aurora-2"></span>
+        <span class="aurora aurora-3"></span>
+        <span class="grid-glow"></span>
+    </div>
+
     <canvas id="weather-canvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; opacity:0.6;"></canvas>
     <!-- Welcome Screen -->
     <div id="welcome-screen" data-nosnippet>
@@ -79,11 +86,12 @@
                 <span class="letter">C</span>
             </div>
             <div class="greeting-box">
+                <p class="hero-kicker">Özəl • Estetik • Unudulmaz</p>
                 <h2 id="dynamic-greeting"></h2>
                 <p id="live-clock"></p>
             </div>
             <div id="weather-container" style="text-align: center; padding: 15px; font-family: sans-serif; transition: all 1s ease;">
-                <span id="weather-status" style="color: #aaa; font-size: 14px; letter-spacing: 1px;">Bakıda hava yoxlanılır...</span>
+                <span id="weather-status" style="color: #aaa; font-size: 14px; letter-spacing: 1px;">Bakıda hava və hisslər yüklənir...</span>
             </div>
         </header>
 
@@ -94,7 +102,8 @@
             <section class="spa-page active" id="page-home">
                 <div class="page-content animate-item delay-2">
                     <!-- Time Together Counter - Modern Card -->
-                    <div class="time-together-card">
+                    <div class="time-together-card animate-item delay-2">
+                        <div class="section-badge"><i class="fas fa-sparkles"></i><span>Ən gözəl hisslər burada yaşayır</span></div>
                         <div class="time-together-header">
                             <i class="fas fa-heart"></i>
                             <h2>Birlikdə Keçən Zaman</h2>
@@ -133,7 +142,8 @@
                     </div>
 
                     <!-- Next Meeting Timer -->
-                    <div class="counter-section meeting-timer">
+                    <div class="counter-section meeting-timer animate-item delay-3">
+                        <div class="section-badge section-badge--soft"><i class="fas fa-calendar-heart"></i><span>Növbəti görüşə doğru</span></div>
                         <h3>Növbəti Görüşümüzə Qalan Vaxt:</h3>
                         <p id="next-meeting-date" class="meeting-date-text"></p> 
                         <div class="timer-grid">
@@ -201,6 +211,7 @@
 
                     <!-- Love Power Section -->
                     <section class="love-power-section animate-item delay-3">
+                        <div class="section-badge section-badge--soft"><i class="fas fa-bolt"></i><span>Kiçik, amma təsirli sürpriz</span></div>
                         <div class="love-container">
                             <p>Ürəyə basılı tut...</p>
                             <div id="hold-heart" class="heart-trigger">
@@ -298,6 +309,7 @@
                 <div class="page-content">
                     <h2 class="page-title">Xatirələrimiz 📸</h2>
                     <div class="gallery-section">
+                        <div class="section-badge section-badge--soft"><i class="fas fa-camera-retro"></i><span>Xatirələr zaman xəttində</span></div>
                         <div id="gallery-stack" class="gallery-timeline">
                             </div>
                     </div>
@@ -328,6 +340,7 @@
                 <div class="page-content">
                     <h2 class="page-title">Musiqilərimiz 🎵</h2>
                     <div class="yt-music-shell">
+                        <div class="section-badge section-badge--soft"><i class="fas fa-compact-disc"></i><span>Sizə aid soundtrack</span></div>
                         <div class="yt-music-header">
                             <div>
                                 <p class="yt-music-kicker">DUNYAMIZ MUSİC</p>
@@ -451,6 +464,7 @@
             <section class="spa-page" id="page-letters">
                 <div class="page-content">
                     <h2 class="page-title">Məni hiss etdiyində...</h2>
+                    <div class="section-badge section-badge--soft"><i class="fas fa-envelope-open-text"></i><span>Hər hal üçün bir məktub</span></div>
                     <div class="envelopes-grid">
                         <div class="envelope" id="env-miss">
                             <i class="fas fa-envelope-open-text"></i>
@@ -480,7 +494,7 @@
             <section class="spa-page" id="page-notes">
                 <div class="page-content">
                     <h2 class="page-title">Notlarımız</h2>
-                    <div style="text-align: center; margin-bottom: 20px;">
+                    <div class="notes-topbar">
                         <button id="open-add-note-btn" class="custom-btn" style="background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; box-shadow: 0 5px 15px var(--primary-glow); transition: 0.3s;"><i class="fas fa-plus"></i> Yeni Not Əlavə Et</button>
                     </div>
                     <div class="notes-grid" id="notes-container">
