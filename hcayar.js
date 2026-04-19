@@ -420,8 +420,59 @@ function initSPANavigation() {
 }
 
 
+
+const THEME_STORAGE_KEY = 'site-theme';
+
+function getSavedTheme() {
+    try {
+        return localStorage.getItem(THEME_STORAGE_KEY) === 'light' ? 'light' : 'dark';
+    } catch (_) {
+        return 'dark';
+    }
+}
+
+function updateThemeToggleUi(theme) {
+    const toggleBtn = document.getElementById('theme-toggle');
+    const toggleText = document.getElementById('theme-toggle-text');
+    const metaTheme = document.getElementById('theme-color-meta');
+    if (!toggleBtn || !toggleText) return;
+
+    const isLight = theme === 'light';
+    toggleText.textContent = isLight ? 'Açıq' : 'Qaranlıq';
+    toggleBtn.setAttribute('aria-label', isLight ? 'Qaranlıq rejimə keç' : 'Açıq rejimə keç');
+    toggleBtn.innerHTML = `<i class="fas ${isLight ? 'fa-sun' : 'fa-moon'}"></i><span id="theme-toggle-text">${isLight ? 'Açıq' : 'Qaranlıq'}</span>`;
+
+    if (metaTheme) {
+        metaTheme.setAttribute('content', isLight ? '#f7f8fc' : '#0f0f12');
+    }
+}
+
+function applyTheme(theme, persist = true) {
+    const normalizedTheme = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', normalizedTheme);
+    if (persist) {
+        try {
+            localStorage.setItem(THEME_STORAGE_KEY, normalizedTheme);
+        } catch (_) {}
+    }
+    updateThemeToggleUi(normalizedTheme);
+}
+
+function initThemeToggle() {
+    applyTheme(getSavedTheme(), false);
+    const toggleBtn = document.getElementById('theme-toggle');
+    if (!toggleBtn || toggleBtn.dataset.bound === 'true') return;
+
+    toggleBtn.dataset.bound = 'true';
+    toggleBtn.addEventListener('click', () => {
+        const nextTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        applyTheme(nextTheme, true);
+    });
+}
+
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', async () => {
+    initThemeToggle();
     initSPANavigation();
     initAnalytics();
     setupMediaSession();
