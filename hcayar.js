@@ -4037,5 +4037,26 @@ function sendExitNotification() {
         true
     );
 }
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    if (!themeToggleBtn) return;
 
-// R2 CORS helper patch applied
+    const icon = themeToggleBtn.querySelector('i');
+    const savedTheme = localStorage.getItem('site-theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        icon.classList.replace('fa-sun', 'fa-moon'); 
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('light-theme');
+        
+        if (document.body.classList.contains('light-theme')) {
+            localStorage.setItem('site-theme', 'light');
+            icon.classList.replace('fa-sun', 'fa-moon');
+        } else {
+            localStorage.setItem('site-theme', 'dark');
+            icon.classList.replace('fa-moon', 'fa-sun');
+        }
+    });
+});
