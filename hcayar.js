@@ -442,6 +442,7 @@ const errorMsg = document.getElementById('error-msg');
 
 enterBtn.addEventListener('click', () => {
     enterBtn.style.display = 'none'; 
+    passPanel.classList.remove('hidden');
     passPanel.style.display = 'flex'; 
     passInput.focus();
 });
