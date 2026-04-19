@@ -30,15 +30,21 @@
     <meta name="apple-mobile-web-app-title" content="Dünyamız">
     <script src="gsap.min.js"></script>
     <link rel="apple-touch-icon" href="assets/192.png">
-    <meta name="theme-color" content="#ff4d6d">
+    <meta name="theme-color" content="#0f1015">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 </head>
 <body>
     <canvas id="weather-canvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; opacity:0.6;"></canvas>
     <!-- Welcome Screen -->
     <div id="welcome-screen" data-nosnippet>
-        <div class="welcome-content">
-            <div class="rose-wrapper">
+        <div class="welcome-noise"></div>
+        <div class="welcome-orb welcome-orb--one"></div>
+        <div class="welcome-orb welcome-orb--two"></div>
+        <div class="welcome-content premium-welcome-card">
+            <div class="welcome-badge">Private Love Space</div>
+            <div class="rose-wrapper premium-rose-stage" aria-hidden="true">
                 <div class="rose-flower">
                     <div class="flower-pot">
                         <div class="petal"></div>
@@ -54,13 +60,17 @@
                     </div>
                 </div>
             </div>
+            <p class="welcome-kicker">Hüseyn və Cəmalənin Dünyası</p>
             <h1>Xoş Gəldin, Cəmaləm</h1>
-            <button id="enter-btn">Toxun <i class="fas fa-heart"></i></button>
-            <div id="password-panel" class="hidden" style="margin-top: 20px; display: none; flex-direction: column; align-items: center; gap: 15px;">
-            <input type="password" id="pass-input" placeholder="Şifrəni yaz" 
-                   style="padding: 15px; border-radius: 50px; border: 1px solid var(--primary); background: rgba(255,255,255,0.1); color: white; text-align: center; outline: none; width: 200px;">
-            <p id="error-msg" style="color: #ff4d6d; font-size: 0.8rem; display: none;">Kül başına düz yaz!</p>
-            <button id="verify-btn" style="padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 50px; cursor: pointer;">Təsdiqlə</button>
+            <p class="welcome-subtitle">Bizim kiçik, xüsusi və zərif dünyamız. Hər detal sevgi ilə hazırlanıb.</p>
+            <button id="enter-btn" class="premium-pill-btn">Daxil ol <i class="fas fa-heart"></i></button>
+            <div id="password-panel" class="hidden premium-password-panel" style="margin-top: 20px; display: none; flex-direction: column; align-items: center; gap: 15px;">
+                <div class="premium-input-shell">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="pass-input" placeholder="Şifrəni yaz">
+                </div>
+                <p id="error-msg" class="premium-error-msg" style="display: none;">Kül başına düz yaz!</p>
+                <button id="verify-btn" class="premium-pill-btn premium-pill-btn--solid">Təsdiqlə</button>
             </div>
         </div>
     </div>
@@ -68,22 +78,35 @@
     <!-- Main Content -->
     <main id="main-content" class="hidden" data-nosnippet>
         <!-- Header - Always Visible -->
-        <header class="animate-item delay-1">
-            <div class="logo-container">
-                <span class="letter">H</span>
-                <div class="infinity-wrapper">
-                    <svg viewBox="0 0 100 50" class="infinity-svg">
-                        <path d="M20,25 C20,9 46,9 50,25 C54,41 80,41 80,25 C80,9 54,9 50,25 C46,41 20,41 20,25" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/>
-                    </svg>
+        <header class="animate-item delay-1 app-hero">
+            <div class="hero-topbar">
+                <div class="logo-container premium-logo-lockup">
+                    <span class="letter">H</span>
+                    <div class="infinity-wrapper">
+                        <svg viewBox="0 0 100 50" class="infinity-svg">
+                            <path d="M20,25 C20,9 46,9 50,25 C54,41 80,41 80,25 C80,9 54,9 50,25 C46,41 20,41 20,25" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="letter">C</span>
                 </div>
-                <span class="letter">C</span>
+                <div class="hero-chip">Ultra Premium Edition</div>
             </div>
-            <div class="greeting-box">
-                <h2 id="dynamic-greeting"></h2>
-                <p id="live-clock"></p>
-            </div>
-            <div id="weather-container" style="text-align: center; padding: 15px; font-family: sans-serif; transition: all 1s ease;">
-                <span id="weather-status" style="color: #aaa; font-size: 14px; letter-spacing: 1px;">Bakıda hava yoxlanılır...</span>
+            <div class="hero-dashboard glass-panel glass-panel--hero">
+                <div class="greeting-box hero-copy">
+                    <p class="section-kicker">Love Dashboard</p>
+                    <h2 id="dynamic-greeting"></h2>
+                    <p class="hero-description">Hər günün içində bir xatirə, bir mahnı və bir az da bizdən qalan istilik.</p>
+                    <p id="live-clock" class="hero-clock"></p>
+                </div>
+                <div class="hero-side-stack">
+                    <div id="weather-container" class="weather-widget glass-panel glass-panel--soft">
+                        <span class="weather-label">Bakı • canlı hava</span>
+                        <span id="weather-status">Bakıda hava yoxlanılır...</span>
+                    </div>
+                    <div class="hero-mini-note glass-panel glass-panel--soft">
+                        <span>Private romantic journal experience</span>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -92,82 +115,76 @@
             
             <!-- Page 1: Əsas (Home) -->
             <section class="spa-page active" id="page-home">
-                <div class="page-content animate-item delay-2">
-                    <!-- Time Together Counter - Modern Card -->
-                    <div class="time-together-card">
-                        <div class="time-together-header">
-                            <i class="fas fa-heart"></i>
-                            <h2>Birlikdə Keçən Zaman</h2>
-                        </div>
-                        <div class="time-together-display">
-                            <div class="big-time">
-                                <span id="total-days">0</span>
-                                <label>Gün</label>
-                            </div>
-                            <div class="time-divider"></div>
-                            <div class="small-time-grid">
-                                <div class="small-time">
-                                    <span id="hours">00</span>
-                                    <label>Saat</label>
+                <div class="page-content animate-item delay-2 home-dashboard">
+                    <section class="love-overview-grid">
+                        <article class="time-together-card glass-panel glass-panel--primary dashboard-card dashboard-card--wide">
+                            <div class="time-together-header section-head-inline">
+                                <div>
+                                    <p class="section-kicker">BİRLİKDƏ KEÇƏN ZAMAN</p>
+                                    <h2>Sevgimizin ritmi</h2>
                                 </div>
-                                <div class="small-time">
-                                    <span id="minutes">00</span>
-                                    <label>Dəqiqə</label>
+                                <div class="section-icon-badge"><i class="fas fa-heart"></i></div>
+                            </div>
+                            <div class="time-progress-shell">
+                                <div class="time-progress-ring">
+                                    <div class="ring-core">
+                                        <span id="total-days">0</span>
+                                        <label>Gün</label>
+                                    </div>
                                 </div>
-                                <div class="small-time">
-                                    <span id="seconds">00</span>
-                                    <label>Saniyə</label>
+                                <div class="small-time-grid premium-time-stack">
+                                    <div class="small-time glass-chip">
+                                        <span id="hours">00</span>
+                                        <label>Saat</label>
+                                    </div>
+                                    <div class="small-time glass-chip">
+                                        <span id="minutes">00</span>
+                                        <label>Dəqiqə</label>
+                                    </div>
+                                    <div class="small-time glass-chip">
+                                        <span id="seconds">00</span>
+                                        <label>Saniyə</label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="meeting-info">
-                            <div class="info-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>Görüş sayımız: <strong id="meet-count">0</strong></span>
+                            <div class="meeting-info premium-inline-stats">
+                                <div class="info-item glass-chip">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Görüş sayımız: <strong id="meet-count">0</strong></span>
+                                </div>
+                                <div class="info-item glass-chip">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>İlk görüş: <strong>22.10.2025</strong></span>
+                                </div>
                             </div>
-                            <div class="info-item">
-                                <i class="fas fa-calendar-check"></i>
-                                <span>İlk görüş: <strong>22.10.2025</strong></span>
-                            </div>
-                        </div>
-                    </div>
+                        </article>
 
-                    <!-- Next Meeting Timer -->
-                    <div class="counter-section meeting-timer">
-                        <h3>Növbəti Görüşümüzə Qalan Vaxt:</h3>
-                        <p id="next-meeting-date" class="meeting-date-text"></p> 
-                        <div class="timer-grid">
-                            <div class="time-box">
-                                <span id="meet-days">00</span>
-                                <label>Gün</label>
+                        <article class="counter-section meeting-timer glass-panel dashboard-card">
+                            <div class="section-head-inline">
+                                <div>
+                                    <p class="section-kicker">NEXT DATE</p>
+                                    <h3>Növbəti görüşümüz</h3>
+                                </div>
+                                <div class="section-icon-badge"><i class="fas fa-sparkles"></i></div>
                             </div>
-                            <div class="time-box">
-                                <span id="meet-hours">00</span>
-                                <label>Saat</label>
+                            <p id="next-meeting-date" class="meeting-date-text"></p>
+                            <div class="timer-grid premium-stat-grid">
+                                <div class="time-box"><span id="meet-days">00</span><label>Gün</label></div>
+                                <div class="time-box"><span id="meet-hours">00</span><label>Saat</label></div>
+                                <div class="time-box"><span id="meet-minutes">00</span><label>Dəqiqə</label></div>
+                                <div class="time-box"><span id="meet-seconds">00</span><label>Saniyə</label></div>
                             </div>
-                            <div class="time-box">
-                                <span id="meet-minutes">00</span>
-                                <label>Dəqiqə</label>
-                            </div>
-                            <div class="time-box">
-                                <span id="meet-seconds">00</span>
-                                <label>Saniyə</label>
-                            </div>
-                        </div>
-                    </div>
+                        </article>
+                    </section>
 
-
-                    <!-- Daily Message + Random Memory -->
-                    <section class="daily-memory-grid animate-item delay-3">
-                        <article class="daily-message-card">
+                    <section class="daily-memory-grid animate-item delay-3 dashboard-widget-grid">
+                        <article class="daily-message-card glass-panel widget-card">
                             <div class="daily-card-head">
                                 <div>
                                     <p class="daily-card-kicker">BU GÜNÜN MESAJI</p>
                                     <h3 id="daily-message-title">Bu gün sənə bir sözüm var 🤍</h3>
                                 </div>
-                                <div class="daily-card-icon">
-                                    <i class="fas fa-envelope-open-heart"></i>
-                                </div>
+                                <div class="daily-card-icon"><i class="fas fa-envelope-open-heart"></i></div>
                             </div>
                             <p id="daily-message-text" class="daily-message-text">Sənin üçün bu günün mesajı hazırlanır...</p>
                             <div class="daily-message-meta">
@@ -175,152 +192,147 @@
                             </div>
                         </article>
 
-                        <article class="random-memory-card">
+                        <article class="random-memory-card glass-panel widget-card">
                             <div class="daily-card-head">
                                 <div>
                                     <p class="daily-card-kicker">RANDOM MEMORY</p>
                                     <h3 id="random-memory-title">Təsadüfi bir xatirə seç</h3>
                                 </div>
-                                <div class="daily-card-icon daily-card-icon--alt">
-                                    <i class="fas fa-dice"></i>
-                                </div>
+                                <div class="daily-card-icon daily-card-icon--alt"><i class="fas fa-dice"></i></div>
                             </div>
                             <p id="random-memory-text" class="random-memory-text">Düyməyə bas, sənə ya bir xatirə, ya da qalereyadan sürpriz bir an göstərim.</p>
                             <div class="random-memory-actions">
-                                <button id="random-memory-btn" class="memory-btn" type="button">
-                                    <i class="fas fa-shuffle"></i>
-                                    <span>Xatirə seç</span>
-                                </button>
-                                <button id="random-memory-open-btn" class="memory-btn memory-btn--ghost" type="button" hidden>
-                                    <i class="fas fa-image"></i>
-                                    <span>Şəkli aç</span>
-                                </button>
+                                <button id="random-memory-btn" class="memory-btn" type="button"><i class="fas fa-shuffle"></i><span>Xatirə seç</span></button>
+                                <button id="random-memory-open-btn" class="memory-btn memory-btn--ghost" type="button" hidden><i class="fas fa-image"></i><span>Şəkli aç</span></button>
                             </div>
                         </article>
                     </section>
 
-                    <!-- Love Power Section -->
-                    <section class="love-power-section animate-item delay-3">
-                        <div class="love-container">
-                            <p>Ürəyə basılı tut...</p>
-                            <div id="hold-heart" class="heart-trigger">
-                                <i class="fas fa-heart"></i>
+                    <section class="home-extras-grid">
+                        <section class="love-power-section animate-item delay-3 glass-panel dashboard-card">
+                            <div class="section-head-inline compact-head">
+                                <div>
+                                    <p class="section-kicker">TOUCH INTERACTION</p>
+                                    <h3>Ürəyin gücü</h3>
+                                </div>
                             </div>
-                            <span id="power-percent">0%</span>
+                            <div class="love-container">
+                                <p>Ürəyə basılı tut...</p>
+                                <div id="hold-heart" class="heart-trigger"><i class="fas fa-heart"></i></div>
+                                <span id="power-percent">0%</span>
+                            </div>
+                        </section>
+
+                        <div class="scratch-section glass-panel dashboard-card">
+                            <div class="section-head-inline compact-head">
+                                <div>
+                                    <p class="section-kicker">SECRET MOMENT</p>
+                                    <h3>Gizli mesaj</h3>
+                                </div>
+                            </div>
+                            <p class="scratch-hint">Aşağıdakı qutunu sil</p>
+                            <div class="scratch-container">
+                                <div class="secret-message">
+                                    <h3>Sən mənim hərşeyimsən 🤍</h3>
+                                    <p>Hər zaman yanımda olduğun üçün təşəkkür edirəm.</p>
+                                </div>
+                                <canvas id="scratch-canvas" width="300" height="150"></canvas>
+                            </div>
                         </div>
                     </section>
-
-                    <!-- Scratch Card -->
-                    <div class="scratch-section">
-                        <p class="scratch-hint">Aşağıdakı qutunu sil</p>
-                        <div class="scratch-container">
-                            <div class="secret-message">
-                                <h3>Sən mənim hərşeyimsən 🤍</h3>
-                                <p>Hər zaman yanımda olduğun üçün təşəkkür edirəm.</p>
-                            </div>
-                            <canvas id="scratch-canvas" width="300" height="150"></canvas>
-                        </div>
-                    </div>
                 </div>
             </section>
 
             <!-- Page 2: Zamanımız (Time) -->
             <section class="spa-page" id="page-time">
-                <div class="page-content">
-                    <h2 class="page-title">Zamanımız</h2>
-                    
-                    <!-- Detailed Time Together -->
-                    <div class="detailed-time-card">
-                        <div class="detailed-header">
-                            <i class="fas fa-clock"></i>
-                            <span>Birlikdə Hər Anımız</span>
-                        </div>
-                        <div class="detailed-stats">
-                            <div class="stat-item">
-                                <span class="stat-value" id="detail-days">0</span>
-                                <span class="stat-label">Gün</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-value" id="detail-hours">0</span>
-                                <span class="stat-label">Saat</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-value" id="detail-minutes">0</span>
-                                <span class="stat-label">Dəqiqə</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-value" id="detail-seconds">0</span>
-                                <span class="stat-label">Saniyə</span>
-                            </div>
-                        </div>
-                        <div class="total-experience">
-                            <div class="exp-item">
-                                <i class="fas fa-heart"></i>
-                                <span id="total-hours-love">0</span>
-                                <label>saat sevgi</label>
-                            </div>
-                            <div class="exp-item">
-                                <i class="fas fa-star"></i>
-                                <span id="total-minutes-love">0</span>
-                                <label>dəqiqə xoşbəxtlik</label>
-                            </div>
-                        </div>
+                <div class="page-content premium-page-layout">
+                    <div class="page-hero-head">
+                        <p class="section-kicker">INSIGHTS</p>
+                        <h2 class="page-title">Zamanımız</h2>
+                        <p class="page-subtitle">Səninlə keçən hər anı premium bir xatirə paneli kimi göstərən statistik görünüş.</p>
                     </div>
-
-                    <!-- Love Switcher -->
-                    <div class="love-switcher">
-                        <span id="changing-love">Səni sevirəm</span> <span style="color: #ff4d6d;">🤍</span>
-                    </div>
-
-                    <!-- Links Section -->
-                    <section class="links-section">
-                        <h3>Cəmaləm üçün yazdığım saytlar</h3>
-                        <div class="quote-links">
-                            <a href="https://seniseviremcemale.netlify.app" target="_blank" class="quote-card">
-                                <blockquote>"Dünyalar Gözəlimə"</blockquote>
-                                <cite>Bura toxun</cite>
-                            </a>
-                            <a href="https://cemalem.netlify.app" target="_blank" class="quote-card">
-                                <blockquote>"Bir Məktub"</blockquote>
-                                <cite>Bura toxun</cite>
-                            </a>
-                            <a href="https://cemalemm.netlify.app" target="_blank" class="quote-card">
-                                <blockquote>"Bekar vaxtlarımda belə səni fikirləşirəm"</blockquote>
-                                <cite>Bura toxun</cite>
-                            </a>
+                    <div class="time-insight-grid">
+                        <div class="detailed-time-card glass-panel dashboard-card dashboard-card--wide">
+                            <div class="detailed-header section-head-inline">
+                                <div>
+                                    <p class="section-kicker">LIVE COUNTER</p>
+                                    <span>Birlikdə Hər Anımız</span>
+                                </div>
+                                <div class="section-icon-badge"><i class="fas fa-clock"></i></div>
+                            </div>
+                            <div class="detailed-stats premium-stat-grid premium-stat-grid--four">
+                                <div class="stat-item"><span class="stat-value" id="detail-days">0</span><span class="stat-label">Gün</span></div>
+                                <div class="stat-item"><span class="stat-value" id="detail-hours">0</span><span class="stat-label">Saat</span></div>
+                                <div class="stat-item"><span class="stat-value" id="detail-minutes">0</span><span class="stat-label">Dəqiqə</span></div>
+                                <div class="stat-item"><span class="stat-value" id="detail-seconds">0</span><span class="stat-label">Saniyə</span></div>
+                            </div>
+                            <div class="total-experience premium-inline-stats">
+                                <div class="exp-item glass-chip"><i class="fas fa-heart"></i><span id="total-hours-love">0</span><label>saat sevgi</label></div>
+                                <div class="exp-item glass-chip"><i class="fas fa-star"></i><span id="total-minutes-love">0</span><label>dəqiqə xoşbəxtlik</label></div>
+                            </div>
                         </div>
-                    </section>
+
+                        <aside class="time-side-widgets">
+                            <div class="love-switcher glass-panel widget-card">
+                                <span id="changing-love">Səni sevirəm</span> <span style="color: var(--primary);">🤍</span>
+                            </div>
+                            <section class="links-section glass-panel widget-card">
+                                <div class="section-head-inline compact-head">
+                                    <div>
+                                        <p class="section-kicker">LINK COLLECTION</p>
+                                        <h3>Cəmaləm üçün yazdığım saytlar</h3>
+                                    </div>
+                                </div>
+                                <div class="quote-links">
+                                    <a href="https://seniseviremcemale.netlify.app" target="_blank" class="quote-card"><blockquote>"Dünyalar Gözəlimə"</blockquote><cite>Bura toxun</cite></a>
+                                    <a href="https://cemalem.netlify.app" target="_blank" class="quote-card"><blockquote>"Bir Məktub"</blockquote><cite>Bura toxun</cite></a>
+                                    <a href="https://cemalemm.netlify.app" target="_blank" class="quote-card"><blockquote>"Bekar vaxtlarımda belə səni fikirləşirəm"</blockquote><cite>Bura toxun</cite></a>
+                                </div>
+                            </section>
+                        </aside>
+                    </div>
                 </div>
             </section>
 
             <!-- Page 3: Qalereya (Gallery) -->
             <section class="spa-page" id="page-gallery">
-                <div class="page-content">
-                    <h2 class="page-title">Xatirələrimiz 📸</h2>
-                    <div class="gallery-section">
-                        <div id="gallery-stack" class="gallery-timeline">
-                            </div>
+                <div class="page-content premium-page-layout">
+                    <div class="page-hero-head">
+                        <p class="section-kicker">MEMORIES</p>
+                        <h2 class="page-title">Xatirələrimiz 📸</h2>
+                        <p class="page-subtitle">Daha axıcı, daha nəfəs alan, daha premium qalereya təcrübəsi.</p>
                     </div>
-
-                    <section class="music-player animate-item" style="margin-top: 40px;">
-                        <img src="assets/music-cover.jpg" alt="Mahnı şəkli" class="song-image" id="track-art" />
-                        <div class="song-info">
-                            <h2 id="song-title">Gözlərin dəydi gözümə 🤍</h2>
-                            <audio id="audio" preload="metadata" playsinline webkit-playsinline="true">
-                                <source src="assets/music.mp3" type="audio/mpeg" />
-                            </audio>
-                            <div class="controls">
-                                <button id="playPauseBtn" class="icon-button"><i class="fas fa-play"></i></button>
-                                <button id="muteBtn" class="icon-button"><i class="fas fa-volume-up"></i></button>
-                            </div>
-                            <div class="progress">
-                                <span id="currentTime">00:00</span>
-                                <input type="range" id="seekBar" value="0" min="0" step="1">
-                                <span id="duration">00:00</span>
-                            </div>
-                            <canvas id="visualizer"></canvas>
+                    <div class="gallery-premium-layout">
+                        <div class="gallery-section glass-panel dashboard-card dashboard-card--wide">
+                            <div id="gallery-stack" class="gallery-timeline"></div>
                         </div>
-                    </section>
+
+                        <aside class="gallery-side-player music-player animate-item glass-panel widget-card">
+                            <div class="section-head-inline compact-head">
+                                <div>
+                                    <p class="section-kicker">NOW PLAYING</p>
+                                    <h3>Səsli xatirə</h3>
+                                </div>
+                            </div>
+                            <img src="assets/music-cover.jpg" alt="Mahnı şəkli" class="song-image" id="track-art" />
+                            <div class="song-info">
+                                <h2 id="song-title">Gözlərin dəydi gözümə 🤍</h2>
+                                <audio id="audio" preload="metadata" playsinline webkit-playsinline="true">
+                                    <source src="assets/music.mp3" type="audio/mpeg" />
+                                </audio>
+                                <div class="controls">
+                                    <button id="playPauseBtn" class="icon-button"><i class="fas fa-play"></i></button>
+                                    <button id="muteBtn" class="icon-button"><i class="fas fa-volume-up"></i></button>
+                                </div>
+                                <div class="progress">
+                                    <span id="currentTime">00:00</span>
+                                    <input type="range" id="seekBar" value="0" min="0" step="1">
+                                    <span id="duration">00:00</span>
+                                </div>
+                                <canvas id="visualizer"></canvas>
+                            </div>
+                        </aside>
+                    </div>
                 </div>
             </section>
             <!-- Page 4: Musiqi -->
@@ -449,42 +461,40 @@
             </section>
             <!-- Page 4: Məktublar (Letters) -->
             <section class="spa-page" id="page-letters">
-                <div class="page-content">
-                    <h2 class="page-title">Məni hiss etdiyində...</h2>
-                    <div class="envelopes-grid">
-                        <div class="envelope" id="env-miss">
-                            <i class="fas fa-envelope-open-text"></i>
-                            <span>Darıxanda</span>
-                        </div>
-                        <div class="envelope" id="env-sad">
-                            <i class="fas fa-cloud-rain"></i>
-                            <span>Kefin olmayanda</span>
-                        </div>
-                        <div class="envelope" id="env-happy">
-                            <i class="fas fa-sun"></i>
-                            <span>Xoşbəxt olanda</span>
-                        </div>
-                        <div class="envelope" id="env-us">
-                            <i class="fas fa-heart"></i>
-                            <span>Bizim üçün</span>
-                        </div>
+                <div class="page-content premium-page-layout">
+                    <div class="page-hero-head">
+                        <p class="section-kicker">LETTERS</p>
+                        <h2 class="page-title">Məni hiss etdiyində...</h2>
+                        <p class="page-subtitle">Yüksək səviyyəli digital məktub kartları — daha zərif, daha yumşaq, daha emosional.</p>
                     </div>
-                    
-                    <!-- Additional Love Note -->
-                    <div class="love-note-card">
-                        <div class="note-icon">💌</div>
-                        <p class="note-text">Hər məktub sənə ürəyimdən yazılıb.</p>
+                    <div class="letters-premium-layout">
+                        <div class="envelopes-grid">
+                            <div class="envelope" id="env-miss"><i class="fas fa-envelope-open-text"></i><span>Darıxanda</span></div>
+                            <div class="envelope" id="env-sad"><i class="fas fa-cloud-rain"></i><span>Kefin olmayanda</span></div>
+                            <div class="envelope" id="env-happy"><i class="fas fa-sun"></i><span>Xoşbəxt olanda</span></div>
+                            <div class="envelope" id="env-us"><i class="fas fa-heart"></i><span>Bizim üçün</span></div>
+                        </div>
+                        <div class="love-note-card glass-panel widget-card">
+                            <div class="note-icon">💌</div>
+                            <p class="note-text">Hər məktub sənə ürəyimdən yazılıb.</p>
+                        </div>
                     </div>
                 </div>
             </section>
             <section class="spa-page" id="page-notes">
-                <div class="page-content">
-                    <h2 class="page-title">Notlarımız</h2>
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <button id="open-add-note-btn" class="custom-btn" style="background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; box-shadow: 0 5px 15px var(--primary-glow); transition: 0.3s;"><i class="fas fa-plus"></i> Yeni Not Əlavə Et</button>
+                <div class="page-content premium-page-layout">
+                    <div class="page-hero-head">
+                        <p class="section-kicker">SHARED NOTES</p>
+                        <h2 class="page-title">Notlarımız</h2>
+                        <p class="page-subtitle">Premium kart görünüşündə ortaq qeydlər sahəsi.</p>
                     </div>
-                    <div class="notes-grid" id="notes-container">
-                        <p style="text-align:center; opacity:0.7;">Notlar yüklənir...</p>
+                    <div class="notes-page-shell glass-panel dashboard-card">
+                        <div class="notes-page-head">
+                            <button id="open-add-note-btn" class="custom-btn premium-pill-btn premium-pill-btn--solid" type="button"><i class="fas fa-plus"></i> Yeni Not Əlavə Et</button>
+                        </div>
+                        <div class="notes-grid" id="notes-container">
+                            <p style="text-align:center; opacity:0.7;">Notlar yüklənir...</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -493,30 +503,12 @@
 
         <!-- Glassmorphism Navigation Bar -->
         <nav class="spa-navbar">
-            <button class="nav-item active" data-page="home">
-                <i class="fas fa-home"></i>
-                <span>Əsas</span>
-            </button>
-            <button class="nav-item" data-page="time">
-                <i class="fas fa-clock"></i>
-                <span>Zamanımız</span>
-            </button>
-            <button class="nav-item" data-page="gallery">
-                <i class="fas fa-images"></i>
-                <span>Qalereya</span>
-            </button>
-            <button class="nav-item" data-page="letters">
-                <i class="fas fa-envelope"></i>
-                <span>Məktublar</span>
-            </button>
-            <button class="nav-item" data-page="notes">
-                <i class="fas fa-sticky-note"></i>
-                <span>Notlar</span>
-            </button>
-            <button class="nav-item" data-page="music">
-                <i class="fas fa-music"></i>
-                <span>Musiqi</span>
-            </button>
+            <button class="nav-item active" data-page="home"><i class="fas fa-home"></i><span>Əsas</span></button>
+            <button class="nav-item" data-page="time"><i class="fas fa-clock"></i><span>Zamanımız</span></button>
+            <button class="nav-item" data-page="gallery"><i class="fas fa-images"></i><span>Qalereya</span></button>
+            <button class="nav-item" data-page="letters"><i class="fas fa-envelope"></i><span>Məktublar</span></button>
+            <button class="nav-item" data-page="notes"><i class="fas fa-sticky-note"></i><span>Notlar</span></button>
+            <button class="nav-item" data-page="music"><i class="fas fa-music"></i><span>Musiqi</span></button>
         </nav>
     </main>
 
