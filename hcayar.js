@@ -442,7 +442,6 @@ const errorMsg = document.getElementById('error-msg');
 
 enterBtn.addEventListener('click', () => {
     enterBtn.style.display = 'none'; 
-    passPanel.classList.remove('hidden');
     passPanel.style.display = 'flex'; 
     passInput.focus();
 });
@@ -4040,70 +4039,3 @@ function sendExitNotification() {
 }
 
 // R2 CORS helper patch applied
-
-
-// ========== PREMIUM UX ENHANCEMENTS ==========
-(function(){
-    function syncPremiumPageState(pageId){
-        try {
-            document.body.setAttribute('data-active-page', pageId || '');
-            document.querySelectorAll('.spa-page').forEach((page) => {
-                const isActive = page.classList.contains('active');
-                page.setAttribute('aria-hidden', isActive ? 'false' : 'true');
-            });
-        } catch(_) {}
-    }
-
-    function bindPremiumPageState(){
-        const active = document.querySelector('.spa-page.active');
-        if (active?.id) syncPremiumPageState(active.id.replace('page-',''));
-
-        document.querySelectorAll('.spa-navbar .nav-item').forEach((item) => {
-            item.addEventListener('click', () => {
-                const pageId = item.getAttribute('data-page');
-                setTimeout(() => syncPremiumPageState(pageId), 30);
-            }, { passive: true });
-        });
-    }
-
-    function improveIOSInputs(){
-        document.querySelectorAll('input, textarea, select').forEach((el) => {
-            if (!el.style.fontSize || parseFloat(el.style.fontSize) < 16) {
-                el.style.fontSize = '16px';
-            }
-        });
-    }
-
-    function cleanWelcomeInteractions(){
-        const pass = document.getElementById('pass-input');
-        if (pass) {
-            pass.setAttribute('autocomplete', 'current-password');
-            pass.setAttribute('enterkeyhint', 'go');
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        bindPremiumPageState();
-        improveIOSInputs();
-        cleanWelcomeInteractions();
-
-        const mainContent = document.getElementById('main-content');
-        const welcome = document.getElementById('welcome-screen');
-
-        if (mainContent && !mainContent.classList.contains('hidden')) {
-            document.body.classList.add('is-unlocked');
-        }
-
-        const observer = new MutationObserver(() => {
-            if (mainContent && !mainContent.classList.contains('hidden')) {
-                document.body.classList.add('is-unlocked');
-            }
-            if (welcome && getComputedStyle(welcome).display === 'none') {
-                document.body.classList.add('is-unlocked');
-            }
-        });
-
-        if (mainContent) observer.observe(mainContent, { attributes: true, attributeFilter: ['class'] });
-        if (welcome) observer.observe(welcome, { attributes: true, attributeFilter: ['style', 'class'] });
-    });
-})();
