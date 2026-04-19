@@ -4374,3 +4374,114 @@ transition: box-shadow 0.25s ease;
     overflow-wrap: anywhere;
     word-break: break-word;
 }
+body.light-theme {
+    --glass: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.15);
+    --text: #222222;
+    color: var(--text);
+}
+body.light-theme::before {
+    background-image: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.95)), url('assets/background.jpg');
+}
+body.light-theme #dynamic-greeting,
+body.light-theme .page-title,
+body.light-theme .time-together-header h2,
+body.light-theme .meeting-timer h3,
+body.light-theme .daily-message-card h3,
+body.light-theme .random-memory-card h3,
+body.light-theme .note-card-title,
+body.light-theme .letter-content h2,
+body.light-theme .yt-music-header h3,
+body.light-theme #yt-player-title,
+body.light-theme #yt-player-title-mini {
+    color: var(--primary);
+    text-shadow: none;
+}
+body.light-theme .spa-navbar {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+body.light-theme .nav-item {
+    color: #666;
+}
+body.light-theme .nav-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #333;
+}
+body.light-theme .nav-item.active {
+    background: rgba(255, 77, 109, 0.15);
+    color: var(--primary);
+}
+body.light-theme .time-box,
+body.light-theme .big-time,
+body.light-theme .small-time,
+body.light-theme .stat-item,
+body.light-theme .envelope,
+body.light-theme .quote-card,
+body.light-theme .daily-message-card,
+body.light-theme .random-memory-card,
+body.light-theme .note-card,
+body.light-theme .yt-track-item,
+body.light-theme .music-player,
+body.light-theme .counter-section,
+body.light-theme .detailed-time-card,
+body.light-theme .time-together-card {
+    background: rgba(255, 255, 255, 0.65);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: var(--text);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+body.light-theme .time-box span,
+body.light-theme .big-time span,
+body.light-theme .small-time span,
+body.light-theme .stat-value {
+    color: var(--primary);
+}
+body.light-theme .time-box label,
+body.light-theme .big-time label,
+body.light-theme .small-time label,
+body.light-theme .info-item,
+body.light-theme .meeting-date-text,
+body.light-theme .stat-label,
+body.light-theme .note-card-author,
+body.light-theme .yt-track-artist {
+    color: #555;
+}
+
+body.light-theme .info-item strong {
+    color: #222;
+}
+
+
+body.light-theme .letter-content,
+body.light-theme .lightbox-container {
+    background: #ffffff;
+    color: #333;
+    border: 1px solid #ddd;
+}
+body.light-theme #view-note-text,
+body.light-theme .daily-message-text,
+body.light-theme .random-memory-text {
+    color: #444;
+}
+
+body.light-theme .yt-active-player {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #ddd;
+}
+body.light-theme .yt-player-bg::after {
+    background: linear-gradient(to top, rgba(255,255,255,0.95), rgba(255,255,255,0.7));
+}
+body.light-theme #yt-player-title,
+body.light-theme #yt-player-title-mini {
+    color: #222;
+}
+body.light-theme .yt-lyrics-line {
+    color: rgba(0,0,0,0.5);
+}
+body.light-theme .yt-lyrics-line.active {
+    color: #000;
+    text-shadow: none;
+}
