@@ -418,9 +418,31 @@ function initSPANavigation() {
     });
 }
 
+
+function initPremiumMotion() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            }
+        });
+    }, { threshold: 0.14 });
+
+    document.querySelectorAll('.animate-item, .time-together-card, .meeting-timer, .daily-message-card, .random-memory-card, .detailed-time-card, .gallery-section, .yt-music-shell, .love-note-card, .notes-grid > *, .envelope').forEach((el) => {
+        observer.observe(el);
+    });
+
+    window.addEventListener('scroll', () => {
+        const nav = document.querySelector('.spa-navbar');
+        if (!nav) return;
+        nav.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
+}
+
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', async () => {
     initSPANavigation();
+    initPremiumMotion();
     initAnalytics();
     setupMediaSession();
     await loadSiteSettings();
