@@ -4052,13 +4052,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if(icon) icon.className = 'fas fa-moon';
     }
 
-    if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-            document.body.classList.toggle('dark-ui');
-            const isDark = document.body.classList.contains('dark-ui');
-            
-            localStorage.setItem('ui-theme', isDark ? 'dark' : 'light');
-            icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-        });
+    if (document.body.classList.contains("dark-ui")) {
+        icon.classList.replace("fa-moon", "fa-sun");
+    } else {
+        icon.classList.replace("fa-sun", "fa-moon");
     }
+
 });
