@@ -4044,20 +4044,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const storageKey = 'ui-theme';
 
     const applyTheme = (theme) => {
-        const isDark = theme === 'dark';
+    const isDark = theme === 'dark';
 
-        document.body.classList.toggle('dark-ui', isDark);
-        document.documentElement.setAttribute('data-theme', theme);
-        themeBtn.setAttribute('aria-pressed', String(isDark));
+    document.body.classList.toggle('dark-ui', isDark);
+    document.documentElement.setAttribute('data-theme', theme);
 
-        try {
-            localStorage.setItem(storageKey, theme);
-        } catch (_) {}
-    };
+    /* Vizual toggle state tərsinə çevrilir:
+       mavi ay = dark mode
+       qara ay = light mode
+    */
+    themeBtn.setAttribute('aria-pressed', String(!isDark));
 
-    let savedTheme = 'dark';
     try {
-        savedTheme = localStorage.getItem(storageKey) || 'dark';
+        localStorage.setItem(storageKey, theme);
     } catch (_) {}
 
     applyTheme(savedTheme);
