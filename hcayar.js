@@ -445,8 +445,9 @@ const passInput = document.getElementById('pass-input');
 const errorMsg = document.getElementById('error-msg');
 
 enterBtn.addEventListener('click', () => {
-    enterBtn.style.display = 'none'; 
-    passPanel.style.display = 'flex'; 
+    enterBtn.style.display = 'none';
+    passPanel.classList.remove('hidden');
+    passPanel.style.display = 'flex';
     passInput.focus();
 });
 
