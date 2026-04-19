@@ -30,7 +30,19 @@
     <meta name="apple-mobile-web-app-title" content="Dünyamız">
     <script src="gsap.min.js"></script>
     <link rel="apple-touch-icon" href="assets/192.png">
-    <meta name="theme-color" content="#ff4d6d">
+    <meta name="theme-color" content="#0f0f12" id="theme-color-meta">
+
+    <script>
+        (function () {
+            try {
+                var savedTheme = localStorage.getItem('site-theme');
+                var theme = savedTheme === 'light' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
 
 </head>
 <body>
@@ -84,6 +96,12 @@
             </div>
             <div id="weather-container" style="text-align: center; padding: 15px; font-family: sans-serif; transition: all 1s ease;">
                 <span id="weather-status" style="color: #aaa; font-size: 14px; letter-spacing: 1px;">Bakıda hava yoxlanılır...</span>
+            </div>
+            <div class="theme-switch-wrap">
+                <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Açıq rejimə keç">
+                    <i class="fas fa-moon"></i>
+                    <span id="theme-toggle-text">Qaranlıq</span>
+                </button>
             </div>
         </header>
 
