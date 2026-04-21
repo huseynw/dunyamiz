@@ -4101,3 +4101,64 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(isDarkNow ? 'light' : 'dark');
     });
 });
+function initPlayerSwipeToClose() {
+    const player = document.getElementById('yt-active-player');
+    if (!player) return;
+
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+
+    const threshold = 120; // neçə px sürüşdürəndə bağlansın
+
+    player.addEventListener('touchstart', (e) => {
+        if (player.classList.contains('expanded')) return; // full modda disable
+        startX = e.touches[0].clientX;
+        isDragging = true;
+        player.style.transition = 'none';
+    });
+
+    player.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+
+        currentX = e.touches[0].clientX;
+        const diff = currentX - startX;
+
+        // sağa və ya sola sürüşdür
+        player.style.transform = `translateX(${diff}px)`;
+
+        // opacity azalsın (cool effekt)
+        const opacity = 1 - Math.min(Math.abs(diff) / 200, 0.6);
+        player.style.opacity = opacity;
+    });
+
+    player.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+
+        const diff = currentX - startX;
+
+        if (Math.abs(diff) > threshold) {
+            // 🔥 bağla animasiya ilə
+            player.style.transition = 'all 0.3s ease';
+            player.style.transform = `translateX(${diff > 0 ? 400 : -400}px)`;
+            player.style.opacity = '0';
+
+            setTimeout(() => {
+                player.style.display = 'none';
+                player.style.transform = '';
+                player.style.opacity = '';
+            }, 300);
+
+            // audio pause istəsən aç:
+            const audio = document.getElementById('yt-audio');
+            if (audio) audio.pause();
+
+        } else {
+            // geri qayıtsın
+            player.style.transition = 'all 0.3s ease';
+            player.style.transform = '';
+            player.style.opacity = '';
+        }
+    });
+}
