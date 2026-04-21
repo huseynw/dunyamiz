@@ -423,6 +423,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initSPANavigation();
     initAnalytics();
     setupMediaSession();
+    initPlayerSwipeToClose();
     await loadSiteSettings();
     const meetEl = document.getElementById('meet-count');
     if (meetEl) meetEl.innerText = config.meetingCount;
