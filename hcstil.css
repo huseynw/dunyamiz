@@ -2795,6 +2795,151 @@ transition: box-shadow 0.25s ease;
     color: rgba(255,255,255,0.8);
 }
 
+.yt-mode-btn {
+    position: relative;
+}
+
+.yt-mode-btn.is-active {
+    background: rgba(255, 77, 109, 0.22);
+    color: #ff8aa0;
+    box-shadow: 0 10px 24px rgba(255,77,109,0.18);
+}
+
+.yt-repeat-badge {
+    position: absolute;
+    right: 11px;
+    bottom: 9px;
+    min-width: 12px;
+    height: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: #fff;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: 0.22s ease;
+}
+
+.yt-mode-btn.is-repeat-one .yt-repeat-badge {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.yt-up-next-panel {
+    margin-top: 18px;
+    padding: 16px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+.yt-up-next-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.yt-up-next-head strong {
+    color: #fff;
+    font-size: 1rem;
+}
+
+#yt-up-next-count {
+    color: rgba(255,255,255,0.62);
+    font-size: 0.82rem;
+}
+
+.yt-up-next-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.yt-up-next-item {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 28px 52px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.04);
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.yt-up-next-item:hover {
+    transform: translateY(-2px);
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,77,109,0.26);
+}
+
+.yt-up-next-order {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.72);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.yt-up-next-thumb {
+    width: 52px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 14px;
+    display: block;
+}
+
+.yt-up-next-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.yt-up-next-text strong,
+.yt-up-next-text small {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.yt-up-next-text strong {
+    color: #fff;
+    font-size: 0.94rem;
+}
+
+.yt-up-next-text small {
+    color: rgba(255,255,255,0.62);
+    font-size: 0.8rem;
+}
+
+.yt-up-next-item i {
+    color: rgba(255,255,255,0.5);
+    justify-self: end;
+}
+
+.yt-up-next-empty {
+    padding: 14px 10px;
+    text-align: center;
+    color: rgba(255,255,255,0.58);
+}
+
 
 #volume-value {
     min-width: 42px;
@@ -2978,13 +3123,17 @@ transition: box-shadow 0.25s ease;
 }
 
 .yt-control-btn {
-    width: 50px;
-    height: 50px;
+    width: 46px;
+    height: 46px;
 }
 
 .yt-play-btn {
-    width: 66px;
-    height: 66px;
+    width: 62px;
+    height: 62px;
+}
+
+.yt-controls-row {
+    gap: 10px;
 }
 
 .yt-music-header {
@@ -3039,6 +3188,33 @@ transition: box-shadow 0.25s ease;
     grid-template-columns: 16px minmax(0, 1fr) 38px;
     gap: 8px;
     padding: 12px;
+}
+
+.yt-control-btn {
+    width: 42px;
+    height: 42px;
+    font-size: 1rem;
+}
+
+.yt-play-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 1.15rem;
+}
+
+.yt-controls-row {
+    gap: 8px;
+}
+
+.yt-up-next-item {
+    grid-template-columns: 24px 44px minmax(0, 1fr) 16px;
+    gap: 10px;
+    padding: 9px 10px;
+}
+
+.yt-up-next-thumb {
+    width: 44px;
+    height: 44px;
 }
 
 }
