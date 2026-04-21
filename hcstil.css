@@ -4608,13 +4608,14 @@ body.dark-ui .theme-switch-btn {
     -webkit-tap-highlight-color: transparent;
 }
 
+/* Təxminən 1813-cü sətir ətrafı */
 .theme-switch-btn.toggle::before {
     content: '';
     width: 150vmax;
     height: 200vmax;
     border-radius: 0;
     background: radial-gradient(rgba(255,255,255,0.14), rgba(0,0,0,0.96) 35%);
-    position: fixed; /* <--- BURA DİQQƏT: absolute əvəzinə fixed olmalıdır */
+    position: fixed; /* <--- MÜTLƏQ BU OLMALIDIR (absolute-ni sil) */
     left: 50%;
     top: 50%;
     translate: -50% -65%;
