@@ -42,34 +42,80 @@
     <meta name="theme-color" content="#ff4d6d">
 
 </head>
-<body data-custom-cursor="off">
+<body>
     <canvas id="weather-canvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; opacity:0.6;"></canvas>
     <!-- Welcome Screen -->
     <div id="welcome-screen" data-nosnippet>
-        <div class="welcome-content">
-            <div class="rose-wrapper">
-                <div class="rose-flower">
-                    <div class="flower-pot">
-                        <div class="petal"></div>
-                        <div class="petal"></div>
-                        <div class="petal"></div>
-                        <div class="petal"></div>
-                        <div class="petal"></div>
-                    </div>
-                    <div class="leaf">
-                        <div class="stem"></div>
-                        <div class="leafs"></div>
-                        <div class="leafs"></div>
+        <div class="welcome-orb orb-1"></div>
+        <div class="welcome-orb orb-2"></div>
+        <div class="welcome-orb orb-3"></div>
+        <div class="welcome-grid"></div>
+
+        <div class="welcome-shell">
+            <div class="welcome-content">
+                <div class="welcome-topline">
+                    <span class="welcome-badge"><i class="fas fa-lock"></i> Private Space</span>
+                    <span class="welcome-chip"><i class="fas fa-sparkles"></i> Ultra Modern Experience</span>
+                </div>
+
+                <div class="welcome-hero-icon" aria-hidden="true">
+                    <div class="welcome-icon-ring ring-one"></div>
+                    <div class="welcome-icon-ring ring-two"></div>
+                    <div class="welcome-icon-core">
+                        <i class="fas fa-heart"></i>
                     </div>
                 </div>
-            </div>
-            <h1>Xoş Gəldin, Cəmaləm</h1>
-            <button id="enter-btn">Toxun <i class="fas fa-heart"></i></button>
-            <div id="password-panel" class="hidden" style="margin-top: 20px; display: none; flex-direction: column; align-items: center; gap: 15px;">
-            <input type="password" id="pass-input" placeholder="Şifrəni yaz" 
-                   style="padding: 15px; border-radius: 50px; border: 1px solid var(--primary); background: rgba(255,255,255,0.1); color: white; text-align: center; outline: none; width: 200px;">
-            <p id="error-msg" style="color: #ff4d6d; font-size: 0.8rem; display: none;">Kül başına düz yaz!</p>
-            <button id="verify-btn" style="padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 50px; cursor: pointer;">Təsdiqlə</button>
+
+                <div class="welcome-copy">
+                    <p class="welcome-kicker">Hüseyn &amp; Cəmalənin Dünyası</p>
+                    <h1>Xoş gəldin, <span>Cəmaləm</span></h1>
+                    <p class="welcome-subtitle">Sevgi, xatirə və musiqi ilə hazırlanmış bu özəl məkana daxil olmaq üçün toxun və davam et.</p>
+                </div>
+
+                <div class="welcome-stats" aria-hidden="true">
+                    <div class="welcome-stat-card">
+                        <strong>Premium</strong>
+                        <span>Glass UI</span>
+                    </div>
+                    <div class="welcome-stat-card">
+                        <strong>Secure</strong>
+                        <span>Şifrə qorunur</span>
+                    </div>
+                    <div class="welcome-stat-card">
+                        <strong>Alive</strong>
+                        <span>Soft motion</span>
+                    </div>
+                </div>
+
+                <div class="welcome-actions">
+                    <button id="enter-btn" class="welcome-primary-btn">
+                        <span>Məkana daxil ol</span>
+                        <i class="fas fa-arrow-right-long"></i>
+                    </button>
+                    <p class="welcome-helper">Yalnız icazəli giriş üçün açılır</p>
+                </div>
+
+                <div id="password-panel" class="welcome-password-panel hidden" aria-hidden="true">
+                    <div class="password-panel-head">
+                        <div class="password-panel-icon"><i class="fas fa-shield-heart"></i></div>
+                        <div>
+                            <h3>Təsdiqləmə addımı</h3>
+                            <p>Daxil olmaq üçün şifrəni yaz.</p>
+                        </div>
+                    </div>
+
+                    <label class="welcome-input-wrap" for="pass-input">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="pass-input" placeholder="Şifrəni yaz">
+                    </label>
+
+                    <p id="error-msg" class="welcome-error-msg">Kül başına düz yaz!</p>
+
+                    <button id="verify-btn" class="welcome-secondary-btn">
+                        <span>Təsdiqlə və aç</span>
+                        <i class="fas fa-unlock-keyhole"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -603,7 +649,7 @@
                 </div>
 
         <!-- Glassmorphism Navigation Bar -->
-        <nav class="spa-navbar" aria-label="Əsas naviqasiya">
+        <nav class="spa-navbar">
             <button class="nav-item active" data-page="home">
                 <i class="fas fa-home"></i>
                 <span>Əsas</span>
