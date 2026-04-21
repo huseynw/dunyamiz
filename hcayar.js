@@ -2553,17 +2553,11 @@ function getMusicDom() {
         prevBtnMini: document.getElementById('yt-prev-btn-mini'),
         nextBtn: document.getElementById('yt-next-btn'),
         nextBtnMini: document.getElementById('yt-next-btn-mini'),
-        shuffleBtn: document.getElementById('yt-shuffle-btn'),
-        shuffleBtnMini: document.getElementById('yt-shuffle-btn-mini'),
-        repeatBtn: document.getElementById('yt-repeat-btn'),
-        repeatBtnMini: document.getElementById('yt-repeat-btn-mini'),
         volumeSlider: document.getElementById('volume-slider'),
         volumeValue: document.getElementById('volume-value'),
         rotatingDisc: document.getElementById('yt-rotating-disc'),
         playerBg: document.getElementById('yt-player-bg'),
-        waveform: document.getElementById('yt-waveform'),
-        upNextList: document.getElementById('yt-upnext-list'),
-        upNextCount: document.getElementById('yt-upnext-count')
+        waveform: document.getElementById('yt-waveform')
     };
 }
 
@@ -2715,14 +2709,12 @@ async function fetchMusicJsonList() {
 }
 
 function renderMusicPlaylist() {
-    ensureMusicPlayerState();
     const { playlist, trackCount } = getMusicDom();
     if (!playlist) return;
 
     if (!window.musicLibrary.length) {
         playlist.innerHTML = `<div class="music-empty-state"><i class="fas fa-music"></i><span>Hələ musiqi əlavə edilməyib.</span></div>`;
         if (trackCount) trackCount.textContent = '0 mahnı';
-        renderUpNextList();
         return;
     }
 
@@ -2754,8 +2746,6 @@ function renderMusicPlaylist() {
             openMusicTrack(index);
         });
     });
-
-    renderUpNextList();
 }
 function renderPlainLyrics(text = '') {
     const { lyricsContainer } = getMusicDom();
@@ -3044,200 +3034,6 @@ function updateVolumeUi(value) {
     if (audio) audio.volume = numericValue;
     if (volumeValue) volumeValue.textContent = `${Math.round(numericValue * 100)}%`;
 }
-function ensureMusicPlayerState() {
-    if (!Array.isArray(window.musicLibrary)) window.musicLibrary = [];
-    if (typeof window.currentMusicIndex !== 'number') window.currentMusicIndex = -1;
-    if (typeof window.musicShuffleEnabled !== 'boolean') window.musicShuffleEnabled = false;
-    if (!window.musicRepeatMode) window.musicRepeatMode = 'off';
-    if (!Array.isArray(window.musicQueueIndices)) window.musicQueueIndices = [];
-}
-
-function rebuildMusicQueue() {
-    ensureMusicPlayerState();
-    if (!window.musicShuffleEnabled || !window.musicLibrary.length || window.currentMusicIndex < 0) {
-        window.musicQueueIndices = [];
-        return;
-    }
-
-    const queue = window.musicLibrary
-        .map((_, index) => index)
-        .filter((index) => index !== window.currentMusicIndex);
-
-    for (let i = queue.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [queue[i], queue[j]] = [queue[j], queue[i]];
-    }
-
-    window.musicQueueIndices = queue;
-}
-
-function getRepeatIcon(mode) {
-    return mode === 'one' ? 'fa-repeat-1' : 'fa-repeat';
-}
-
-function updateShuffleRepeatButtons() {
-    ensureMusicPlayerState();
-    const { shuffleBtn, shuffleBtnMini, repeatBtn, repeatBtnMini } = getMusicDom();
-    const shuffleButtons = [shuffleBtn, shuffleBtnMini].filter(Boolean);
-    const repeatButtons = [repeatBtn, repeatBtnMini].filter(Boolean);
-
-    shuffleButtons.forEach((btn) => {
-        btn.classList.toggle('is-active', window.musicShuffleEnabled);
-        btn.setAttribute('aria-pressed', String(window.musicShuffleEnabled));
-        btn.setAttribute('title', window.musicShuffleEnabled ? 'Shuffle aktivdir' : 'Shuffle söndürülüb');
-    });
-
-    repeatButtons.forEach((btn) => {
-        btn.classList.toggle('is-active', window.musicRepeatMode !== 'off');
-        btn.classList.toggle('is-repeat-one', window.musicRepeatMode === 'one');
-        btn.setAttribute('data-repeat-mode', window.musicRepeatMode);
-        btn.setAttribute('aria-pressed', String(window.musicRepeatMode !== 'off'));
-        btn.setAttribute('title', window.musicRepeatMode === 'all' ? 'Playlist təkrarı aktivdir' : window.musicRepeatMode === 'one' ? 'Bu mahnını təkrar oxu' : 'Təkrar söndürülüb');
-        const icon = btn.querySelector('i');
-        if (icon) icon.className = `fas ${getRepeatIcon(window.musicRepeatMode)}`;
-    });
-}
-
-function toggleShuffleMode() {
-    ensureMusicPlayerState();
-    window.musicShuffleEnabled = !window.musicShuffleEnabled;
-    rebuildMusicQueue();
-    updateShuffleRepeatButtons();
-    renderUpNextList();
-}
-
-function cycleRepeatMode() {
-    ensureMusicPlayerState();
-    window.musicRepeatMode = window.musicRepeatMode === 'off'
-        ? 'all'
-        : window.musicRepeatMode === 'all'
-            ? 'one'
-            : 'off';
-    updateShuffleRepeatButtons();
-    renderUpNextList();
-}
-
-function getQueuePreviewIndices(limit = 12) {
-    ensureMusicPlayerState();
-    const total = window.musicLibrary.length;
-    if (!total || window.currentMusicIndex < 0) return [];
-
-    const indices = [];
-    const currentIndex = window.currentMusicIndex;
-
-    if (window.musicRepeatMode === 'one') {
-        return [currentIndex];
-    }
-
-    if (window.musicShuffleEnabled) {
-        if (!window.musicQueueIndices.length && total > 1) {
-            rebuildMusicQueue();
-        }
-        return window.musicQueueIndices.slice(0, Math.min(limit, window.musicQueueIndices.length));
-    }
-
-    for (let step = 1; step < total; step++) {
-        const nextIndex = currentIndex + step;
-        if (nextIndex < total) {
-            indices.push(nextIndex);
-        } else if (window.musicRepeatMode === 'all') {
-            indices.push((nextIndex) % total);
-        }
-
-        if (indices.length >= limit) break;
-    }
-
-    return indices;
-}
-
-function renderUpNextList() {
-    ensureMusicPlayerState();
-    const { upNextList, upNextCount } = getMusicDom();
-    if (!upNextList || !upNextCount) return;
-
-    const queueIndices = getQueuePreviewIndices();
-    const labelCount = queueIndices.length;
-    upNextCount.textContent = `${labelCount} mahnı`;
-
-    if (!window.musicLibrary.length || window.currentMusicIndex < 0) {
-        upNextList.innerHTML = '<div class="yt-upnext-empty">Növbəti mahnılar burada görünəcək.</div>';
-        return;
-    }
-
-    if (!queueIndices.length) {
-        upNextList.innerHTML = '<div class="yt-upnext-empty">Playlist sonuna çatdın.</div>';
-        return;
-    }
-
-    upNextList.innerHTML = queueIndices.map((index, order) => {
-        const track = window.musicLibrary[index];
-        if (!track) return '';
-        const thumbSrc = track.coverUrl || DEFAULT_MUSIC_COVER;
-        return `
-            <button class="yt-upnext-item" type="button" data-upnext-index="${index}">
-                <span class="yt-upnext-order">${order + 1}</span>
-                <img class="yt-upnext-thumb" src="${thumbSrc}" alt="${escapeHtmlMusic(track.title)}">
-                <span class="yt-upnext-text">
-                    <strong>${escapeHtmlMusic(track.title)}</strong>
-                    <small>${escapeHtmlMusic(track.artist)}</small>
-                </span>
-            </button>
-        `;
-    }).join('');
-
-    upNextList.querySelectorAll('.yt-upnext-item').forEach((item) => {
-        item.addEventListener('click', () => {
-            const index = Number(item.dataset.upnextIndex);
-            if (!Number.isNaN(index)) {
-                openMusicTrack(index);
-            }
-        });
-    });
-}
-
-function getNextMusicIndex() {
-    ensureMusicPlayerState();
-    const total = window.musicLibrary.length;
-    if (!total) return -1;
-    if (window.currentMusicIndex < 0) return 0;
-    if (window.musicRepeatMode === 'one') return window.currentMusicIndex;
-
-    if (window.musicShuffleEnabled) {
-        if (!window.musicQueueIndices.length) {
-            rebuildMusicQueue();
-        }
-        if (window.musicQueueIndices.length) {
-            return window.musicQueueIndices[0];
-        }
-        return window.currentMusicIndex;
-    }
-
-    const candidate = window.currentMusicIndex + 1;
-    if (candidate < total) return candidate;
-    return window.musicRepeatMode === 'all' ? 0 : -1;
-}
-
-function getPrevMusicIndex() {
-    ensureMusicPlayerState();
-    const total = window.musicLibrary.length;
-    if (!total) return -1;
-    if (window.currentMusicIndex < 0) return 0;
-    if (window.musicRepeatMode === 'one') return window.currentMusicIndex;
-
-    if (window.musicShuffleEnabled) {
-        if (!window.musicQueueIndices.length) {
-            rebuildMusicQueue();
-        }
-        if (window.musicQueueIndices.length) {
-            return window.musicQueueIndices[0];
-        }
-        return window.currentMusicIndex;
-    }
-
-    const candidate = window.currentMusicIndex - 1;
-    if (candidate >= 0) return candidate;
-    return window.musicRepeatMode === 'all' ? total - 1 : -1;
-}
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -3507,12 +3303,8 @@ async function openMusicTrack(index) {
         dom.audio.pause();
     }
 
-    const previousIndex = window.currentMusicIndex;
     window.currentMusic = track;
     window.currentMusicIndex = index;
-    if (window.musicShuffleEnabled && previousIndex !== index) {
-        rebuildMusicQueue();
-    }
     updateMediaSessionMetadata(track);
 
     await animateTextSwap(track);
@@ -3533,8 +3325,6 @@ async function openMusicTrack(index) {
 
     renderCurrentTrackLyrics(track);
     renderMusicPlaylist();
-    renderUpNextList();
-    updateShuffleRepeatButtons();
     updateMusicCover(track);
     animateTrackChange();
     runMorphTransition(track);
@@ -3567,22 +3357,22 @@ async function openMusicTrack(index) {
     updateMediaSessionPlaybackState();
 }
 function playPrevMusic() {
-    const newIndex = getPrevMusicIndex();
-    if (newIndex < 0) return;
+    if (!window.musicLibrary.length) return;
+    const newIndex = window.currentMusicIndex <= 0
+        ? window.musicLibrary.length - 1
+        : window.currentMusicIndex - 1;
+        
+    // Düzəliş edilən hissə:
     openMusicTrack(newIndex);
 }
 
-function playNextMusic(force = false) {
-    const newIndex = getNextMusicIndex();
-    if (newIndex < 0) {
-        if (force) {
-            const dom = getMusicDom();
-            dom.audio?.pause();
-            updateMusicPlayButtonState();
-            updateMediaSessionPlaybackState();
-        }
-        return;
-    }
+function playNextMusic() {
+    if (!window.musicLibrary.length) return;
+    const newIndex = window.currentMusicIndex >= window.musicLibrary.length - 1
+        ? 0
+        : window.currentMusicIndex + 1;
+        
+    // Düzəliş edilən hissə:
     openMusicTrack(newIndex);
 }
 
@@ -3837,10 +3627,6 @@ function initMusicPlayerEvents() {
     dom.prevBtnMini?.addEventListener('touchstart', unlockHandler, { passive: true });
     dom.nextBtn?.addEventListener('touchstart', unlockHandler, { passive: true });
     dom.nextBtnMini?.addEventListener('touchstart', unlockHandler, { passive: true });
-    dom.shuffleBtn?.addEventListener('touchstart', unlockHandler, { passive: true });
-    dom.shuffleBtnMini?.addEventListener('touchstart', unlockHandler, { passive: true });
-    dom.repeatBtn?.addEventListener('touchstart', unlockHandler, { passive: true });
-    dom.repeatBtnMini?.addEventListener('touchstart', unlockHandler, { passive: true });
     dom.openFullBtn?.addEventListener('touchstart', unlockHandler, { passive: true });
     if (!dom.activePlayer || !dom.audio) return;
     if (dom.activePlayer.dataset.bound === '1') return;
@@ -3948,26 +3734,6 @@ function initMusicPlayerEvents() {
         playNextMusic();
     });
 
-    dom.shuffleBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleShuffleMode();
-    });
-
-    dom.shuffleBtnMini?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleShuffleMode();
-    });
-
-    dom.repeatBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        cycleRepeatMode();
-    });
-
-    dom.repeatBtnMini?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        cycleRepeatMode();
-    });
-
     dom.audio.addEventListener('timeupdate', () => {
         if (dom.seekbar) dom.seekbar.value = dom.audio.currentTime || 0;
         if (dom.currentTime) dom.currentTime.textContent = formatMusicTime(dom.audio.currentTime);
@@ -3995,7 +3761,7 @@ function initMusicPlayerEvents() {
     dom.audio.addEventListener('ended', () => {
         updateMusicPlayButtonState();
         updateMediaSessionPlaybackState();
-        playNextMusic(true);
+        playNextMusic();
     });
 
     dom.seekbar?.addEventListener('input', () => {
@@ -4008,15 +3774,12 @@ function initMusicPlayerEvents() {
     });
 
     updateVolumeUi(dom.volumeSlider?.value || 0.85);
-    updateShuffleRepeatButtons();
-    renderUpNextList();
     updateMusicPlayButtonState();
     updateMediaSessionPlaybackState();
 }
 
 async function initMusicPage() {
     try {
-        ensureMusicPlayerState();
         initMusicPlayerEvents();
         window.musicLibrary = await fetchMusicJsonList();
         renderMusicPlaylist();
