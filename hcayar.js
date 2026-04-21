@@ -423,7 +423,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initSPANavigation();
     initAnalytics();
     setupMediaSession();
-    initPlayerSwipeToClose();
     await loadSiteSettings();
     const meetEl = document.getElementById('meet-count');
     if (meetEl) meetEl.innerText = config.meetingCount;
@@ -2534,6 +2533,8 @@ function getMusicDom() {
         expandHitbox: document.getElementById('yt-expand-hitbox'),
         minimizeBtn: document.getElementById('yt-minimize-btn'),
         lyricsToggle: document.getElementById('yt-lyrics-toggle'),
+        closeBtnMini: document.getElementById('yt-close-btn-mini'),
+        closeBtnFull: document.getElementById('yt-close-btn-full'),
         closeLyricsBtn: document.querySelector('.btn-close-lyrics'),
         lyricsPanel: document.getElementById('yt-lyrics-panel'),
         lyricsContainer: document.getElementById('yt-lyrics-container'),
@@ -2575,6 +2576,38 @@ function syncPlayerExpandedState() {
     document.body.classList.toggle('player-expanded', activePlayer.classList.contains('expanded'));
     syncFloatingPlayerState();
 }
+
+function closeActivePlayer(options = {}) {
+    const { resetTrack = true } = options;
+    const { activePlayer, audio, lyricsPanel } = getMusicDom();
+    if (!activePlayer) return;
+
+    activePlayer.classList.remove('expanded', 'lyrics-open', 'is-transitioning');
+    activePlayer.classList.add('player-mini');
+    activePlayer.style.display = 'none';
+    activePlayer.style.opacity = '';
+    activePlayer.style.transform = '';
+    activePlayer.style.transition = '';
+
+    if (lyricsPanel) {
+        lyricsPanel.classList.add('lyrics-hidden');
+        lyricsPanel.setAttribute('aria-hidden', 'true');
+    }
+
+    if (audio) {
+        audio.pause();
+        if (resetTrack) {
+            try { audio.currentTime = 0; } catch (_) {}
+        }
+    }
+
+    updateLyricsToggleState();
+    updateMusicPlayButtonState();
+    updateMediaSessionPlaybackState();
+    syncPlayerExpandedState();
+}
+window.closeActivePlayer = closeActivePlayer;
+
 
 function setPlayerExpanded(expanded) {
     const { activePlayer, lyricsPanel } = getMusicDom();
@@ -3655,6 +3688,16 @@ function initMusicPlayerEvents() {
         window.toggleLyricsPanel();
     });
 
+    dom.closeBtnMini?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeActivePlayer();
+    });
+
+    dom.closeBtnFull?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeActivePlayer();
+    });
+
     dom.closeLyricsBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         window.toggleLyricsPanel(false);
@@ -4103,63 +4146,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 function initPlayerSwipeToClose() {
-    const player = document.getElementById('yt-active-player');
-    if (!player) return;
-
-    let startX = 0;
-    let currentX = 0;
-    let isDragging = false;
-
-    const threshold = 120; // neçə px sürüşdürəndə bağlansın
-
-    player.addEventListener('touchstart', (e) => {
-        if (player.classList.contains('expanded')) return; // full modda disable
-        startX = e.touches[0].clientX;
-        isDragging = true;
-        player.style.transition = 'none';
-    });
-
-    player.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-
-        currentX = e.touches[0].clientX;
-        const diff = currentX - startX;
-
-        // sağa və ya sola sürüşdür
-        player.style.transform = `translateX(${diff}px)`;
-
-        // opacity azalsın (cool effekt)
-        const opacity = 1 - Math.min(Math.abs(diff) / 200, 0.6);
-        player.style.opacity = opacity;
-    });
-
-    player.addEventListener('touchend', () => {
-        if (!isDragging) return;
-        isDragging = false;
-
-        const diff = currentX - startX;
-
-        if (Math.abs(diff) > threshold) {
-            // 🔥 bağla animasiya ilə
-            player.style.transition = 'all 0.3s ease';
-            player.style.transform = `translateX(${diff > 0 ? 400 : -400}px)`;
-            player.style.opacity = '0';
-
-            setTimeout(() => {
-                player.style.display = 'none';
-                player.style.transform = '';
-                player.style.opacity = '';
-            }, 300);
-
-            // audio pause istəsən aç:
-            const audio = document.getElementById('yt-audio');
-            if (audio) audio.pause();
-
-        } else {
-            // geri qayıtsın
-            player.style.transition = 'all 0.3s ease';
-            player.style.transform = '';
-            player.style.opacity = '';
-        }
-    });
+    return;
 }
