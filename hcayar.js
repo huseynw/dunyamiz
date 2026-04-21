@@ -8,8 +8,6 @@ const config = {
     meetingCount: 0,
     musicTitle: "Gözlərin dəydi gözümə"
 };
-
-
 const SUPABASE_URL = "https://fctwtcakequqvvmjgbhr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjdHd0Y2FrZXF1cXZ2bWpnYmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjE2NzYsImV4cCI6MjA5MTczNzY3Nn0.EE7T4HgrPI5c7ChYu8VDtoQ3oXflkhKDE-wkFckrCeY";
 let siteSettingsLoaded = false;
@@ -3939,6 +3937,41 @@ function initMusicPlayerEvents() {
     dom.nextBtnMini?.addEventListener('click', (e) => {
         e.stopPropagation();
         playNextMusic();
+    });
+        dom.shuffleBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        window.musicShuffleEnabled = !window.musicShuffleEnabled;
+
+        if (window.musicShuffleEnabled) {
+            rebuildShuffleQueue();
+        } else {
+            window.musicShuffleQueue = [];
+        }
+
+        renderUpNextList();
+        updatePlayerModeButtons();
+    });
+
+    dom.repeatBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        const currentMode = window.musicRepeatMode || 'off';
+
+        if (currentMode === 'off') {
+            window.musicRepeatMode = 'all';
+        } else if (currentMode === 'all') {
+            window.musicRepeatMode = 'one';
+        } else {
+            window.musicRepeatMode = 'off';
+        }
+
+        if (window.musicShuffleEnabled) {
+            rebuildShuffleQueue();
+        }
+
+        renderUpNextList();
+        updatePlayerModeButtons();
     });
 
     dom.audio.addEventListener('timeupdate', () => {
