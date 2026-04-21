@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="google-site-verification" content="gfRFjiaDTYd0covypvcJDW_EvOEZDEDH5nMOEZt0WR4" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
     <title>Hüseyn və Cəmalənin Dünyası</title>
     <meta name="description" content="Hüseyn və Cəmalənin özəl dünyası. Birlikdə keçən zamanımız, xatirələrimiz və sevgimiz...">
     <meta name="keywords" content="Hüseyn və Cəmalə, Hüseyn Cəmalə, Bizim Dünyamız, sevgi saytı">
@@ -497,9 +497,14 @@
                             </button>
                         </div>
 
-                        <button id="yt-lyrics-toggle" class="yt-mini-btn" type="button" aria-label="Sözləri aç">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
+                        <div class="yt-player-actions">
+                            <button id="yt-lyrics-toggle" class="yt-mini-btn" type="button" aria-label="Sözləri aç">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            <button id="yt-close-btn-mini" class="yt-mini-btn yt-close-btn" type="button" aria-label="Playeri bağla">
+                                <i class="fas fa-xmark"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="yt-player-body">
@@ -513,7 +518,9 @@
                                     <strong id="yt-player-title">Mahnı seçin</strong>
                                     <small id="yt-player-artist">Artist</small>
                                 </div>
-                                <div class="yt-player-topbar-spacer"></div>
+                                <button id="yt-close-btn-full" class="yt-mini-btn yt-close-btn" type="button" aria-label="Playeri bağla">
+                                    <i class="fas fa-xmark"></i>
+                                </button>
                             </div>
 
                             <div class="yt-player-art-wrap">
