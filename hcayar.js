@@ -2579,17 +2579,26 @@ function setPlayerExpanded(expanded) {
     const { activePlayer, lyricsPanel } = getMusicDom();
     if (!activePlayer) return;
 
-    activePlayer.classList.toggle('expanded', expanded);
-    activePlayer.classList.toggle('player-mini', !expanded);
+    activePlayer.classList.add('is-transitioning');
 
-    if (!expanded && lyricsPanel) {
-        lyricsPanel.classList.add('lyrics-hidden');
-        activePlayer.classList.remove('lyrics-open');
-        lyricsPanel.setAttribute('aria-hidden', 'true');
-    }
+    requestAnimationFrame(() => {
+        activePlayer.classList.toggle('expanded', expanded);
+        activePlayer.classList.toggle('player-mini', !expanded);
 
-    updateLyricsToggleState();
-    syncPlayerExpandedState();
+        if (!expanded && lyricsPanel) {
+            lyricsPanel.classList.add('lyrics-hidden');
+            activePlayer.classList.remove('lyrics-open');
+            lyricsPanel.setAttribute('aria-hidden', 'true');
+        }
+
+        updateLyricsToggleState();
+        syncPlayerExpandedState();
+
+        window.clearTimeout(activePlayer.__expandAnimTimer);
+        activePlayer.__expandAnimTimer = window.setTimeout(() => {
+            activePlayer.classList.remove('is-transitioning');
+        }, expanded ? 420 : 320);
+    });
 }
 
 window.togglePlayerMode = function(forceExpanded) {
