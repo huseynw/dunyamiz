@@ -430,6 +430,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateCounter();
     updateMeetingTimer();
     initDailyMessageAndRandomMemory();
+    syncFloatingPlayerState();
     setInterval(updateCounter, 1000);
 });
 
@@ -2558,11 +2559,20 @@ function getMusicDom() {
     };
 }
 
+function syncFloatingPlayerState() {
+    const { activePlayer } = getMusicDom();
+    if (!activePlayer) return;
+
+    const isVisible = activePlayer.style.display !== 'none' && !activePlayer.hasAttribute('hidden');
+    document.body.classList.toggle('player-visible', isVisible);
+}
+
 function syncPlayerExpandedState() {
     const { activePlayer } = getMusicDom();
     if (!activePlayer) return;
 
     document.body.classList.toggle('player-expanded', activePlayer.classList.contains('expanded'));
+    syncFloatingPlayerState();
 }
 
 function setPlayerExpanded(expanded) {
@@ -3277,6 +3287,7 @@ async function openMusicTrack(index) {
 
     if (dom.activePlayer) {
         dom.activePlayer.style.display = 'block';
+        syncFloatingPlayerState();
         setPlayerExpanded(wasExpanded);
 
         if (wasExpanded && wasLyricsOpen) {
