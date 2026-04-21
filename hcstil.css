@@ -10,7 +10,7 @@
     --text: #ffffff;
 }
 
-• {
+*, *::before, *::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -3984,7 +3984,7 @@ header {
 }
 
 @media (pointer: fine) {
-    * {
+    .custom-cursor-enabled * {
         cursor: none !important;
     }
 
@@ -6521,4 +6521,38 @@ button,
 a,
 input[type="range"] {
     -webkit-tap-highlight-color: transparent;
+}
+
+
+/* ===== Accessibility + Mobile Stability Patch ===== */
+:focus-visible {
+    outline: 2px solid rgba(255, 77, 109, 0.95);
+    outline-offset: 3px;
+}
+
+#pass-input,
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="search"],
+input[type="url"],
+input[type="number"],
+select,
+textarea {
+    font-size: 16px;
+}
+
+@media (pointer: fine) {
+    .custom-cursor-enabled * {
+        cursor: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
