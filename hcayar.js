@@ -2558,6 +2558,13 @@ function getMusicDom() {
     };
 }
 
+function syncPlayerExpandedState() {
+    const { activePlayer } = getMusicDom();
+    if (!activePlayer) return;
+
+    document.body.classList.toggle('player-expanded', activePlayer.classList.contains('expanded'));
+}
+
 function setPlayerExpanded(expanded) {
     const { activePlayer, lyricsPanel } = getMusicDom();
     if (!activePlayer) return;
@@ -2572,6 +2579,7 @@ function setPlayerExpanded(expanded) {
     }
 
     updateLyricsToggleState();
+    syncPlayerExpandedState();
 }
 
 window.togglePlayerMode = function(forceExpanded) {
@@ -3279,6 +3287,8 @@ async function openMusicTrack(index) {
             dom.lyricsPanel.setAttribute('aria-hidden', 'true');
             updateLyricsToggleState();
         }
+
+        syncPlayerExpandedState();
     }
 
     try {
