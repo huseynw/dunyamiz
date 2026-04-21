@@ -2425,6 +2425,10 @@ window.currentMusicLyricsParsed = [];
 window.currentMusicLyricsType = 'none';
 window.currentLyricsActiveIndex = -1;
 window.currentLyricsActiveWordIndex = -1;
+window.musicShuffleEnabled = false;
+window.musicRepeatMode = 'off';
+window.musicShuffleQueue = [];
+window.musicPlaybackHistory = [];
 
 const DEFAULT_MUSIC_COVER = 'assets/music-cover.jpg';
 const GITHUB_RAW_BASE = `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/`;
@@ -2553,6 +2557,10 @@ function getMusicDom() {
         prevBtnMini: document.getElementById('yt-prev-btn-mini'),
         nextBtn: document.getElementById('yt-next-btn'),
         nextBtnMini: document.getElementById('yt-next-btn-mini'),
+        shuffleBtn: document.getElementById('yt-shuffle-btn'),
+        repeatBtn: document.getElementById('yt-repeat-btn'),
+        upNextList: document.getElementById('yt-up-next-list'),
+        upNextCount: document.getElementById('yt-up-next-count'),
         volumeSlider: document.getElementById('volume-slider'),
         volumeValue: document.getElementById('volume-value'),
         rotatingDisc: document.getElementById('yt-rotating-disc'),
@@ -2708,6 +2716,130 @@ async function fetchMusicJsonList() {
         .sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0));
 }
 
+
+function shuffleMusicIndices(indices = []) {
+    const cloned = [...indices];
+    for (let i = cloned.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [cloned[i], cloned[randomIndex]] = [cloned[randomIndex], cloned[i]];
+    }
+    return cloned;
+}
+
+function rebuildShuffleQueue() {
+    const total = window.musicLibrary.length;
+    if (!total) {
+        window.musicShuffleQueue = [];
+        return [];
+    }
+
+    const availableIndices = Array.from({ length: total }, (_, index) => index)
+        .filter((index) => index !== window.currentMusicIndex);
+
+    window.musicShuffleQueue = shuffleMusicIndices(availableIndices);
+    return window.musicShuffleQueue;
+}
+
+function getUpcomingTrackIndices(limit = 12) {
+    if (!window.musicLibrary.length) return [];
+    const currentIndex = window.currentMusicIndex;
+
+    if (window.musicShuffleEnabled) {
+        let queue = Array.isArray(window.musicShuffleQueue) ? [...window.musicShuffleQueue] : [];
+        const missing = Array.from({ length: window.musicLibrary.length }, (_, index) => index)
+            .filter((index) => index !== currentIndex && !queue.includes(index));
+
+        if (missing.length) {
+            queue = queue.concat(shuffleMusicIndices(missing));
+        }
+
+        return queue.slice(0, limit);
+    }
+
+    const indices = [];
+    for (let i = currentIndex + 1; i < window.musicLibrary.length && indices.length < limit; i++) {
+        indices.push(i);
+    }
+
+    if (window.musicRepeatMode === 'all' && indices.length < limit) {
+        for (let i = 0; i < currentIndex && indices.length < limit; i++) {
+            indices.push(i);
+        }
+    }
+
+    return indices;
+}
+
+function updatePlayerModeButtons() {
+    const { shuffleBtn, repeatBtn } = getMusicDom();
+
+    if (shuffleBtn) {
+        shuffleBtn.classList.toggle('is-active', !!window.musicShuffleEnabled);
+    }
+
+    if (repeatBtn) {
+        const repeatMode = window.musicRepeatMode || 'off';
+        repeatBtn.dataset.mode = repeatMode;
+        repeatBtn.classList.toggle('is-active', repeatMode !== 'off');
+        repeatBtn.classList.toggle('is-repeat-one', repeatMode === 'one');
+        repeatBtn.setAttribute(
+            'aria-label',
+            repeatMode === 'one'
+                ? 'Repeat one aktivdir'
+                : repeatMode === 'all'
+                    ? 'Repeat all aktivdir'
+                    : 'Repeat deaktivdir'
+        );
+    }
+}
+
+function renderUpNextList() {
+    const { upNextList, upNextCount } = getMusicDom();
+    if (!upNextList) return;
+
+    const upcomingIndices = getUpcomingTrackIndices(10);
+
+    if (!window.musicLibrary.length || window.currentMusicIndex < 0) {
+        upNextList.innerHTML = `<div class="yt-up-next-empty">Əvvəlcə bir mahnı seç.</div>`;
+        if (upNextCount) upNextCount.textContent = '0 mahnı';
+        return;
+    }
+
+    if (!upcomingIndices.length) {
+        upNextList.innerHTML = `<div class="yt-up-next-empty">Növbədə başqa mahnı yoxdur.</div>`;
+        if (upNextCount) upNextCount.textContent = '0 mahnı';
+        return;
+    }
+
+    upNextList.innerHTML = upcomingIndices.map((index, orderIndex) => {
+        const track = window.musicLibrary[index];
+        const thumbSrc = track?.coverUrl || DEFAULT_MUSIC_COVER;
+
+        return `
+            <button class="yt-up-next-item" type="button" data-up-next-index="${index}">
+                <span class="yt-up-next-order">${orderIndex + 1}</span>
+                <img class="yt-up-next-thumb" src="${thumbSrc}" alt="${escapeHtmlMusic(track?.title || 'Mahnı')}">
+                <span class="yt-up-next-text">
+                    <strong>${escapeHtmlMusic(track?.title || 'Adsız mahnı')}</strong>
+                    <small>${escapeHtmlMusic(track?.artist || 'Naməlum artist')}</small>
+                </span>
+                <i class="fas fa-play"></i>
+            </button>
+        `;
+    }).join('');
+
+    if (upNextCount) {
+        upNextCount.textContent = `${upcomingIndices.length} mahnı`;
+    }
+
+    upNextList.querySelectorAll('.yt-up-next-item').forEach((item) => {
+        item.addEventListener('click', () => {
+            const index = Number(item.dataset.upNextIndex);
+            openMusicTrack(index);
+        });
+    });
+}
+
 function renderMusicPlaylist() {
     const { playlist, trackCount } = getMusicDom();
     if (!playlist) return;
@@ -2739,6 +2871,9 @@ function renderMusicPlaylist() {
     if (trackCount) {
         trackCount.textContent = `${window.musicLibrary.length} mahnı`;
     }
+
+    updatePlayerModeButtons();
+    renderUpNextList();
 
     playlist.querySelectorAll('.yt-track-item').forEach((item) => {
         item.addEventListener('click', () => {
@@ -3281,9 +3416,10 @@ function updateMediaSessionPlaybackState() {
         } catch (_) {}
     }
 }
-async function openMusicTrack(index) {
+async function openMusicTrack(index, options = {}) {
     const track = window.musicLibrary[index];
     const dom = getMusicDom();
+    const { pushHistory = true } = options;
     if (!track || !dom.audio) return;
 
     const wasExpanded = dom.activePlayer?.classList.contains('expanded') || false;
@@ -3303,8 +3439,30 @@ async function openMusicTrack(index) {
         dom.audio.pause();
     }
 
+    if (
+        pushHistory &&
+        Number.isInteger(window.currentMusicIndex) &&
+        window.currentMusicIndex >= 0 &&
+        window.currentMusicIndex !== index
+    ) {
+        window.musicPlaybackHistory.push(window.currentMusicIndex);
+        if (window.musicPlaybackHistory.length > 50) {
+            window.musicPlaybackHistory.shift();
+        }
+    }
+
     window.currentMusic = track;
     window.currentMusicIndex = index;
+
+    if (window.musicShuffleEnabled) {
+        window.musicShuffleQueue = (window.musicShuffleQueue || []).filter((queueIndex) => queueIndex !== index);
+        if (!window.musicShuffleQueue.length && window.musicLibrary.length > 1) {
+            rebuildShuffleQueue();
+        }
+    } else {
+        window.musicShuffleQueue = [];
+    }
+
     updateMediaSessionMetadata(track);
 
     await animateTextSwap(track);
@@ -3325,6 +3483,8 @@ async function openMusicTrack(index) {
 
     renderCurrentTrackLyrics(track);
     renderMusicPlaylist();
+    renderUpNextList();
+    updatePlayerModeButtons();
     updateMusicCover(track);
     animateTrackChange();
     runMorphTransition(track);
@@ -3358,21 +3518,68 @@ async function openMusicTrack(index) {
 }
 function playPrevMusic() {
     if (!window.musicLibrary.length) return;
+
+    if (window.musicRepeatMode === 'one' && window.currentMusicIndex >= 0) {
+        openMusicTrack(window.currentMusicIndex, { pushHistory: false });
+        return;
+    }
+
+    if (window.musicPlaybackHistory.length) {
+        const previousIndex = window.musicPlaybackHistory.pop();
+        if (Number.isInteger(previousIndex) && previousIndex >= 0) {
+            openMusicTrack(previousIndex, { pushHistory: false });
+            return;
+        }
+    }
+
     const newIndex = window.currentMusicIndex <= 0
         ? window.musicLibrary.length - 1
         : window.currentMusicIndex - 1;
-        
-    // Düzəliş edilən hissə:
-    openMusicTrack(newIndex);
+
+    openMusicTrack(newIndex, { pushHistory: false });
 }
 
 function playNextMusic() {
+    const dom = getMusicDom();
     if (!window.musicLibrary.length) return;
-    const newIndex = window.currentMusicIndex >= window.musicLibrary.length - 1
-        ? 0
-        : window.currentMusicIndex + 1;
-        
-    // Düzəliş edilən hissə:
+
+    if (window.musicRepeatMode === 'one' && window.currentMusicIndex >= 0) {
+        openMusicTrack(window.currentMusicIndex, { pushHistory: false });
+        return;
+    }
+
+    if (window.musicShuffleEnabled) {
+        if (!window.musicShuffleQueue.length) {
+            if (window.musicRepeatMode === 'off') {
+                dom.audio?.pause();
+                updateMusicPlayButtonState();
+                updateMediaSessionPlaybackState();
+                return;
+            }
+            rebuildShuffleQueue();
+        }
+
+        const shuffledNextIndex = window.musicShuffleQueue.shift();
+        if (Number.isInteger(shuffledNextIndex)) {
+            openMusicTrack(shuffledNextIndex);
+            return;
+        }
+    }
+
+    const isLastTrack = window.currentMusicIndex >= window.musicLibrary.length - 1;
+
+    if (isLastTrack && window.musicRepeatMode === 'off') {
+        dom.audio?.pause();
+        if (dom.audio) {
+            try { dom.audio.currentTime = dom.audio.duration || dom.audio.currentTime || 0; } catch (_) {}
+        }
+        updateMusicPlayButtonState();
+        updateMediaSessionPlaybackState();
+        renderUpNextList();
+        return;
+    }
+
+    const newIndex = isLastTrack ? 0 : window.currentMusicIndex + 1;
     openMusicTrack(newIndex);
 }
 
@@ -3783,6 +3990,8 @@ async function initMusicPage() {
         initMusicPlayerEvents();
         window.musicLibrary = await fetchMusicJsonList();
         renderMusicPlaylist();
+        updatePlayerModeButtons();
+        renderUpNextList();
         syncAdminOverview();
     } catch (err) {
         console.error(err);
