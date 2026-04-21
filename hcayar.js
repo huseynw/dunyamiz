@@ -8,12 +8,18 @@ const config = {
     meetingCount: 0,
     musicTitle: "Gözlərin dəydi gözümə"
 };
-const SUPABASE_URL = "https://fctwtcakequqvvmjgbhr.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjdHd0Y2FrZXF1cXZ2bWpnYmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjE2NzYsImV4cCI6MjA5MTczNzY3Nn0.EE7T4HgrPI5c7ChYu8VDtoQ3oXflkhKDE-wkFckrCeY";
+const SITE_RUNTIME_CONFIG = window.__SITE_CONFIG__ || {};
+const SUPABASE_URL = SITE_RUNTIME_CONFIG.SUPABASE_URL || "https://fctwtcakequqvvmjgbhr.supabase.co";
+const SUPABASE_ANON_KEY = SITE_RUNTIME_CONFIG.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjdHd0Y2FrZXF1cXZ2bWpnYmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjE2NzYsImV4cCI6MjA5MTczNzY3Nn0.EE7T4HgrPI5c7ChYu8VDtoQ3oXflkhKDE-wkFckrCeY";
 let siteSettingsLoaded = false;
 
 async function loadSiteSettings(force = false) {
     if (siteSettingsLoaded && !force) return;
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        console.warn("Supabase açarı verilməyib. Site settings üçün serverless/proxy istifadə et və ya window.__SITE_CONFIG__ içində açarı ver.");
+        return;
+    }
 
     try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?id=eq.1&select=id,next_meeting_date,meeting_count`, {
@@ -439,13 +445,13 @@ const verifyBtn = document.getElementById('verify-btn');
 const passInput = document.getElementById('pass-input');
 const errorMsg = document.getElementById('error-msg');
 
-enterBtn.addEventListener('click', () => {
+enterBtn?.addEventListener('click', () => {
     enterBtn.style.display = 'none'; 
-    passPanel.style.display = 'flex'; 
-    passInput.focus();
+    if (passPanel) passPanel.style.display = 'flex'; 
+    passInput?.focus();
 });
 
-verifyBtn.addEventListener('click', async () => {
+verifyBtn?.addEventListener('click', async () => {
     const passVal = passInput.value;
     const originalBtnText = verifyBtn.innerHTML;
     verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -508,8 +514,8 @@ verifyBtn.addEventListener('click', async () => {
     }
 });
 
-passInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') verifyBtn.click();
+passInput?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') verifyBtn?.click();
 });
 // ========== TIME TOGETHER COUNTER (ASCENDING) ==========
 // 1. Rəqəmləri artıran köməkçi funksiya
@@ -4397,3 +4403,13 @@ document.addEventListener('DOMContentLoaded', () => {
 function initPlayerSwipeToClose() {
     return;
 }
+
+
+/* ===== Runtime hardening patch ===== */
+(function enableOptionalCustomCursorMode() {
+    const prefersFinePointer = window.matchMedia && window.matchMedia("(pointer: fine)").matches;
+    const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersFinePointer && !prefersReducedMotion && document.querySelector(".custom-cursor")) {
+        document.documentElement.classList.add("custom-cursor-enabled");
+    }
+})();
