@@ -378,46 +378,47 @@ document.addEventListener('touchstart', () => {
 
 // ========== SPA NAVIGATION ==========
 function initSPANavigation() {
-    const navItems = Array.from(document.querySelectorAll('.nav-item'));
-    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages = document.querySelectorAll('.spa-page');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const targetPage = item.getAttribute('data-page');
+            const targetElement = document.getElementById(`page-${targetPage}`);
+            
+            if (targetElement.classList.contains('active')) return;
 
-    const switchPage = (targetPage) => {
-        const targetElement = document.getElementById(`page-${targetPage}`);
-        const currentPage = document.querySelector('.spa-page.active');
-        if (!targetElement || currentPage === targetElement) return;
+            // Aktiv pəncərəni tap
+            const currentPage = document.querySelector('.spa-page.active');
+            
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
 
-        navItems.forEach((nav) => nav.classList.toggle('active', nav.dataset.page === targetPage));
-
-        if (currentPage) {
-            currentPage.classList.remove('active');
-            currentPage.setAttribute('aria-hidden', 'true');
-        }
-
-        targetElement.classList.add('active');
-        targetElement.setAttribute('aria-hidden', 'false');
-
-        if (!prefersReducedMotion && window.gsap) {
-            gsap.killTweensOf([currentPage, targetElement]);
+            // Çıxış animasiyası (GSAP)
             if (currentPage) {
-                gsap.set(currentPage, { clearProps: 'all' });
+                gsap.to(currentPage, {
+                    y: -30, opacity: 0, duration: 0.4, ease: "power2.in",
+                    onComplete: () => {
+                        currentPage.classList.remove('active');
+                        currentPage.style.display = 'none';
+                        
+                        // Giriş animasiyası (GSAP)
+                        targetElement.style.display = 'block';
+                        targetElement.classList.add('active');
+                        gsap.fromTo(targetElement, 
+                            { y: 40, opacity: 0 }, 
+                            { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }
+                        );
+                        
+                        // Elementlərin fərqli sürətlə axması (Stagger)
+                        gsap.fromTo(targetElement.querySelectorAll('.page-title, .animate-item, .time-together-card, .detailed-time-card'),
+                            { y: 30, opacity: 0 },
+                            { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "back.out(1.2)", delay: 0.1 }
+                        );
+                    }
+                });
             }
-            gsap.fromTo(targetElement,
-                { autoAlpha: 0, y: 18, scale: 0.992 },
-                { autoAlpha: 1, y: 0, scale: 1, duration: 0.38, ease: 'power2.out', clearProps: 'transform,opacity,visibility' }
-            );
-
-            const revealItems = targetElement.querySelectorAll('.page-title, .animate-item, .time-together-card, .detailed-time-card, .counter-section, .music-player');
-            if (revealItems.length) {
-                gsap.fromTo(revealItems,
-                    { autoAlpha: 0, y: 14 },
-                    { autoAlpha: 1, y: 0, duration: 0.32, stagger: 0.035, ease: 'power2.out', delay: 0.04, clearProps: 'transform,opacity,visibility' }
-                );
-            }
-        }
-    };
-
-    navItems.forEach((item) => {
-        item.addEventListener('click', () => switchPage(item.dataset.page));
+        });
     });
 }
 
@@ -445,9 +446,14 @@ const passInput = document.getElementById('pass-input');
 const errorMsg = document.getElementById('error-msg');
 
 enterBtn?.addEventListener('click', () => {
-    enterBtn.style.display = 'none'; 
-    if (passPanel) passPanel.style.display = 'flex'; 
-    passInput?.focus();
+    enterBtn.style.display = 'none';
+    if (passPanel) {
+        passPanel.style.display = 'flex';
+        passPanel.classList.add('show');
+        passPanel.setAttribute('aria-hidden', 'false');
+    }
+    if (errorMsg) errorMsg.style.display = 'none';
+    setTimeout(() => passInput?.focus(), 120);
 });
 
 verifyBtn?.addEventListener('click', async () => {
@@ -925,22 +931,20 @@ function initVisualizer(audioElement) {
             const height = canvas.clientHeight || canvas.offsetHeight || 0;
             if (!width || !height) return;
 
-            const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
             analyser.getByteFrequencyData(dataArray);
             ctx.clearRect(0, 0, width, height);
 
             const centerY = height / 2;
-            const activeBars = Math.min(20, bufferLength);
+            const activeBars = Math.min(22, bufferLength);
             const barWidth = Math.max(4, Math.floor(width / (activeBars * 1.9)));
             const gap = Math.max(2, Math.floor(barWidth * 0.55));
             const totalWidth = activeBars * barWidth + (activeBars - 1) * gap;
             let x = Math.max(0, (width - totalWidth) / 2);
 
-            const legacyPlaying = !!(audioElement && !audioElement.paused);
             for (let i = 0; i < activeBars; i++) {
                 const mirroredIndex = Math.floor((i / activeBars) * bufferLength);
-                const value = legacyPlaying ? (dataArray[mirroredIndex] / 255) : 0.14 + (prefersReducedMotion ? 0 : ((Math.sin((Date.now() / 260) + i * 0.4) + 1) * 0.5 * 0.08));
-                const barHeight = Math.max(6, value * height * (legacyPlaying ? 0.72 : 0.34));
+                const value = dataArray[mirroredIndex] / 255;
+                const barHeight = Math.max(6, value * height * 0.82);
                 const y = centerY - barHeight / 2;
                 const radius = Math.min(barWidth / 2, 8);
 
@@ -3001,9 +3005,16 @@ function updateSyncedLyricsByTime(currentTime) {
     ) {
         return;
     }
-    if (activeIndex !== window.currentLyricsActiveIndex && activeIndex >= 0 && lyricsPanel && currentWaveColor) {
-        const glowColor = currentWaveColor.replace('rgb', 'rgba').replace(')', ', 0.18)');
-        lyricsPanel.style.setProperty('--lyrics-accent', glowColor);
+    if (activeIndex !== window.currentLyricsActiveIndex && activeIndex >= 0) {
+        if (lyricsPanel && currentWaveColor) {
+            const glowColor = currentWaveColor.replace('rgb', 'rgba').replace(')', ', 0.15)');
+            const intenseGlow = currentWaveColor.replace('rgb', 'rgba').replace(')', ', 0.3)');
+            lyricsPanel.style.background = `radial-gradient(circle at ${Math.random() * 100}% ${Math.random() * 100}%, ${intenseGlow} 0%, rgba(255,255,255,0.04) 70%)`;
+            lyricsPanel.style.boxShadow = `inset 0 0 50px ${glowColor}, 0 10px 30px rgba(0,0,0,0.3)`;
+            setTimeout(() => {
+                lyricsPanel.style.boxShadow = `inset 0 0 20px rgba(255,255,255,0.02), 0 10px 30px rgba(0,0,0,0.3)`;
+            }, 400);
+        }
     }
 
     window.currentLyricsActiveIndex = activeIndex;
@@ -3715,7 +3726,7 @@ async function initYTWaveform() {
     return await initYTWaveformSafe();
 }
 function drawYTWaveform() {
-    const { waveform, audio, activePlayer } = getMusicDom();
+    const { waveform, audio } = getMusicDom();
     if (!waveform) return;
 
     const dpr = window.devicePixelRatio || 1;
@@ -3726,66 +3737,86 @@ function drawYTWaveform() {
     const ctx = waveform.getContext('2d');
     if (!ctx) return;
 
-    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const render = () => {
         const width = waveform.clientWidth;
         const height = waveform.clientHeight;
         const centerY = height / 2;
-        const playerVisible = activePlayer && activePlayer.style.display !== 'none';
-
-        if (!width || !height || document.hidden || !playerVisible) {
-            ytWaveAnimationId = requestAnimationFrame(render);
-            return;
-        }
 
         ctx.clearRect(0, 0, width, height);
 
-        const totalBars = Math.max(24, Math.min(40, Math.floor(width / 10)));
-        const gap = width < 420 ? 3 : 4;
+        const totalBars = 42;
+        const gap = 4;
         const barWidth = Math.max(3, (width - (totalBars - 1) * gap) / totalBars);
         const totalWidth = totalBars * barWidth + (totalBars - 1) * gap;
         let x = (width - totalWidth) / 2;
 
-        const drawBar = (xPos, yPos, w, h, radius) => {
+        const drawBar = (x, y, w, h, radius) => {
             ctx.beginPath();
             if (ctx.roundRect) {
-                ctx.roundRect(xPos, yPos, w, h, radius);
+                ctx.roundRect(x, y, w, h, radius);
             } else {
-                ctx.rect(xPos, yPos, w, h);
+                ctx.rect(x, y, w, h);
             }
             ctx.fill();
         };
 
-        const accent = (currentWaveColor || 'rgb(255,255,255)');
-        const playing = ytWaveEnabled && ytWaveAnalyser && ytWaveDataArray && audio && !audio.paused && !ytWaveFallbackMode;
-
-        if (playing) {
+        if (
+            ytWaveEnabled &&
+            ytWaveAnalyser &&
+            ytWaveDataArray &&
+            audio &&
+            !audio.paused &&
+            !ytWaveFallbackMode
+        ) {
             ytWaveAnalyser.getByteFrequencyData(ytWaveDataArray);
-            ctx.shadowBlur = 14;
-            ctx.shadowColor = accent;
+
+            ctx.shadowBlur = 18;
+            ctx.shadowColor = currentWaveColor;
 
             for (let i = 0; i < totalBars; i++) {
                 const sourceIndex = Math.floor((i / totalBars) * ytWaveDataArray.length);
                 const value = ytWaveDataArray[sourceIndex] / 255;
-                const edgeFalloff = 1 - Math.abs((i - totalBars / 2) / (totalBars / 2)) * 0.22;
-                const visual = Math.max(0.14, value * edgeFalloff);
-                const barHeight = Math.max(8, visual * height * 0.78);
-                const alpha = 0.2 + visual * 0.78;
-                ctx.fillStyle = accent.replace('rgb', 'rgba').replace(')', `, ${alpha})`);
-                drawBar(x, centerY - barHeight / 2, barWidth, barHeight, barWidth / 2);
+
+                const falloff = 1 - Math.abs((i - totalBars / 2) / (totalBars / 2)) * 0.35;
+                const visual = Math.max(0.18, value * falloff);
+
+                const barHeight = Math.max(8, visual * height * 0.82);
+
+                const alpha = 0.22 + visual * 0.9;
+                ctx.fillStyle = currentWaveColor
+                    .replace("rgb", "rgba")
+                    .replace(")", `, ${alpha})`);
+
+                drawBar(
+                    x,
+                    centerY - barHeight / 2,
+                    barWidth,
+                    barHeight,
+                    barWidth / 2
+                );
+
                 x += barWidth + gap;
             }
         } else {
-            ctx.shadowBlur = 0;
-            const idleHeight = prefersReducedMotion ? height * 0.12 : height * 0.18;
-            const idleAlpha = prefersReducedMotion ? 0.12 : 0.16;
             for (let i = 0; i < totalBars; i++) {
-                const drift = prefersReducedMotion ? 0 : ((Math.sin((Date.now() / 320) + i * 0.33) + 1) * 0.5 * height * 0.06);
-                const barHeight = Math.max(6, idleHeight + drift);
-                ctx.fillStyle = accent.replace('rgb', 'rgba').replace(')', `, ${idleAlpha})`);
-                drawBar(x, centerY - barHeight / 2, barWidth, barHeight, barWidth / 2);
+                const phase = (Date.now() / 180) + i * 0.35;
+                const idle = 0.22 + (Math.sin(phase) + 1) / 2 * 0.22;
+                const barHeight = Math.max(6, idle * height * 0.45);
+
+                ctx.fillStyle = currentWaveColor
+                    .replace("rgb", "rgba")
+                    .replace(")", ", 0.16)");
+
+                drawBar(
+                    x,
+                    centerY - barHeight / 2,
+                    barWidth,
+                    barHeight,
+                    barWidth / 2
+                );
+
                 x += barWidth + gap;
             }
         }
@@ -4012,7 +4043,6 @@ async function initMusicPage() {
         updatePlayerModeButtons();
         renderUpNextList();
         syncAdminOverview();
-        initPlayerKeyboardShortcuts();
     } catch (err) {
         console.error(err);
         const { playlist, trackCount } = getMusicDom();
@@ -4039,45 +4069,39 @@ function seekToLyricsTime(time) {
         audio.play().catch(err => console.error('Lyrics seek play error:', err));
     }
 }
-function initPlayerKeyboardShortcuts() {
-    if (document.body.dataset.playerKeyboardBound === '1') return;
-    document.body.dataset.playerKeyboardBound = '1';
-
-    document.addEventListener('keydown', async (event) => {
-        const dom = getMusicDom();
-        const activeEl = document.activeElement;
-        const typing = activeEl && /INPUT|TEXTAREA|SELECT/.test(activeEl.tagName);
-        if (typing) return;
-
-        const playerVisible = dom.activePlayer && dom.activePlayer.style.display !== 'none';
-        const ytReady = playerVisible && dom.audio?.src;
-        const legacyReady = !!audio;
-
-        if (event.code === 'Space' && (ytReady || legacyReady)) {
-            event.preventDefault();
-            if (ytReady) {
-                if (dom.audio.paused) {
-                    await unlockYTPlayback();
-                    dom.audio.play().catch(() => {});
-                } else {
-                    dom.audio.pause();
-                }
-                updateMusicPlayButtonState();
-                updateMediaSessionPlaybackState();
-            } else if (legacyReady) {
-                playPauseBtn?.click();
-            }
-        }
-
-        if (!ytReady) return;
-
-        if (event.code === 'ArrowRight') {
-            event.preventDefault();
-            dom.audio.currentTime = Math.min((dom.audio.duration || 0), (dom.audio.currentTime || 0) + 5);
-        } else if (event.code === 'ArrowLeft') {
-            event.preventDefault();
-            dom.audio.currentTime = Math.max(0, (dom.audio.currentTime || 0) - 5);
-        }
+if (window.matchMedia("(pointer: fine)").matches) {
+    const cursor = document.createElement('div');
+    cursor.className = 'custom-cursor';
+    document.body.appendChild(cursor);
+    let trails = [];
+    for (let i = 0; i < 8; i++) {
+        let trail = document.createElement('div');
+        trail.className = 'cursor-trail';
+        document.body.appendChild(trail);
+        trails.push({ el: trail, x: 0, y: 0 });
+    }
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        cursor.style.left = mouseX + 'px';
+        cursor.style.top = mouseY + 'px';
+    });
+    gsap.ticker.add(() => {
+        let x = mouseX, y = mouseY;
+        trails.forEach((trail, index) => {
+            let nextTrail = trails[index + 1] || trails[0];
+            x += (nextTrail.x - x) * 0.4;
+            y += (nextTrail.y - y) * 0.4;
+            trail.x = x; trail.y = y;
+            trail.el.style.left = x + 'px';
+            trail.el.style.top = y + 'px';
+            trail.el.style.opacity = 1 - (index / trails.length);
+        });
+    });
+    document.querySelectorAll('a, button, .photo-frame, .note-card, .yt-track-item').forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
+        el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
     });
 }
 
@@ -4390,8 +4414,7 @@ function initPlayerSwipeToClose() {
 (function enableOptionalCustomCursorMode() {
     const prefersFinePointer = window.matchMedia && window.matchMedia("(pointer: fine)").matches;
     const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const wantsFancyCursor = document.body?.dataset?.customCursor === 'on';
-    if (prefersFinePointer && !prefersReducedMotion && wantsFancyCursor && document.querySelector(".custom-cursor")) {
+    if (prefersFinePointer && !prefersReducedMotion && document.querySelector(".custom-cursor")) {
         document.documentElement.classList.add("custom-cursor-enabled");
     }
 })();
