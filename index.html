@@ -541,11 +541,18 @@
                                 <button id="yt-prev-btn" class="yt-control-btn" type="button" aria-label="Əvvəlki mahnı">
                                     <i class="fas fa-backward-step"></i>
                                 </button>
+                                <button id="yt-shuffle-btn" class="yt-control-btn yt-mode-btn" type="button" aria-label="Shuffle">
+                                    <i class="fas fa-shuffle"></i>
+                                </button>
                                 <button id="yt-play-btn" class="yt-play-btn" type="button" aria-label="Play/Pause">
                                     <i class="fas fa-play"></i>
                                 </button>
                                 <button id="yt-next-btn" class="yt-control-btn" type="button" aria-label="Növbəti mahnı">
                                     <i class="fas fa-forward-step"></i>
+                                </button>
+                                <button id="yt-repeat-btn" class="yt-control-btn yt-mode-btn" type="button" aria-label="Repeat" data-mode="off">
+                                    <i class="fas fa-repeat"></i>
+                                    <span class="yt-repeat-badge">1</span>
                                 </button>
                             </div>
 
@@ -554,6 +561,19 @@
                                 <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.85">
                                 <span id="volume-value">85%</span>
                             </div>
+
+                            <section class="yt-up-next-panel" aria-label="Sonrakı mahnılar">
+                                <div class="yt-up-next-head">
+                                    <div>
+                                        <span class="yt-player-kicker">UP NEXT</span>
+                                        <strong>Sonrakı Mahnılar</strong>
+                                    </div>
+                                    <small id="yt-up-next-count">0 mahnı</small>
+                                </div>
+                                <div id="yt-up-next-list" class="yt-up-next-list">
+                                    <div class="yt-up-next-empty">Növbədə mahnı yoxdur.</div>
+                                </div>
+                            </section>
                         </div>
 
                         <aside id="yt-lyrics-panel" class="yt-lyrics-panel lyrics-hidden" aria-hidden="true">
