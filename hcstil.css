@@ -48,109 +48,137 @@ body {
     z-index: 9999;
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 28px;
+    align-items: flex-start;
+    padding: clamp(10px, 1.4vw, 22px);
+    overflow-y: auto;
+    overflow-x: hidden;
     background:
-        radial-gradient(circle at 20% 20%, rgba(255, 77, 109, 0.28), transparent 34%),
-        radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.12), transparent 28%),
-        radial-gradient(circle at 50% 80%, rgba(255, 77, 109, 0.16), transparent 30%),
-        linear-gradient(135deg, rgba(4, 4, 10, 0.96), rgba(13, 10, 20, 0.92));
-    overflow: hidden;
+        radial-gradient(circle at 18% 20%, rgba(255, 77, 109, 0.26), transparent 32%),
+        radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.10), transparent 24%),
+        radial-gradient(circle at 50% 82%, rgba(255, 77, 109, 0.14), transparent 28%),
+        linear-gradient(135deg, rgba(4, 4, 10, 0.97), rgba(13, 10, 20, 0.94));
     transition: opacity 0.8s ease, visibility 0.8s ease;
 }
 
 #welcome-screen::before {
     content: "";
-    position: absolute;
+    position: fixed;
     inset: 0;
-    background: linear-gradient(120deg, rgba(255,255,255,0.06), transparent 28%, transparent 72%, rgba(255,255,255,0.04));
+    background: linear-gradient(120deg, rgba(255,255,255,0.05), transparent 28%, transparent 72%, rgba(255,255,255,0.03));
     pointer-events: none;
 }
 
 .welcome-grid {
-    position: absolute;
+    position: fixed;
     inset: 0;
     background-image:
-        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 48px 48px;
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 46px 46px;
     mask-image: radial-gradient(circle at center, rgba(0,0,0,0.95), transparent 85%);
-    opacity: 0.24;
+    opacity: 0.22;
     pointer-events: none;
 }
 
 .welcome-orb {
-    position: absolute;
+    position: fixed;
     border-radius: 50%;
-    filter: blur(12px);
+    filter: blur(14px);
     pointer-events: none;
     animation: welcomeFloat 14s ease-in-out infinite;
 }
 
 .orb-1 {
-    width: 260px;
-    height: 260px;
-    top: 10%;
-    left: 8%;
-    background: radial-gradient(circle, rgba(255, 77, 109, 0.42), transparent 70%);
+    width: min(26vw, 260px);
+    height: min(26vw, 260px);
+    top: 9%;
+    left: 4%;
+    background: radial-gradient(circle, rgba(255, 77, 109, 0.40), transparent 70%);
 }
 
 .orb-2 {
-    width: 320px;
-    height: 320px;
-    right: 4%;
-    bottom: 10%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.16), transparent 68%);
+    width: min(30vw, 300px);
+    height: min(30vw, 300px);
+    right: 2%;
+    bottom: 8%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 68%);
     animation-delay: -5s;
 }
 
 .orb-3 {
-    width: 180px;
-    height: 180px;
-    top: 50%;
-    right: 18%;
-    background: radial-gradient(circle, rgba(255, 77, 109, 0.22), transparent 72%);
+    width: min(18vw, 170px);
+    height: min(18vw, 170px);
+    top: 48%;
+    right: 15%;
+    background: radial-gradient(circle, rgba(255, 77, 109, 0.18), transparent 72%);
     animation-delay: -9s;
 }
 
 .welcome-shell {
     position: relative;
-    width: min(100%, 980px);
     z-index: 1;
+    width: min(100%, 920px);
+    min-height: calc(100dvh - 20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
 }
 
 .welcome-content {
     position: relative;
-    padding: 38px;
-    border-radius: 36px;
+    width: 100%;
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: clamp(18px, 2vw, 30px);
+    border-radius: clamp(24px, 2.2vw, 34px);
     text-align: center;
-    border: 1px solid rgba(255,255,255,0.14);
-    background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255,255,255,0.12);
+    background: linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.05));
+    backdrop-filter: blur(26px);
+    -webkit-backdrop-filter: blur(26px);
     box-shadow:
-        0 30px 80px rgba(0, 0, 0, 0.45),
-        inset 0 1px 0 rgba(255,255,255,0.12),
+        0 22px 60px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255,255,255,0.10),
         0 0 0 1px rgba(255,255,255,0.03);
-    overflow: hidden;
 }
 
 .welcome-content::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at top center, rgba(255,255,255,0.12), transparent 36%);
+    background: radial-gradient(circle at top center, rgba(255,255,255,0.10), transparent 36%);
     pointer-events: none;
 }
 
-.welcome-topline {
+.welcome-content::-webkit-scrollbar,
+#welcome-screen::-webkit-scrollbar {
+    width: 8px;
+}
+
+.welcome-content::-webkit-scrollbar-thumb,
+#welcome-screen::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.16);
+    border-radius: 999px;
+}
+
+.welcome-topline,
+.welcome-hero-icon,
+.welcome-copy,
+.welcome-stats,
+.welcome-actions,
+.welcome-password-panel {
     position: relative;
     z-index: 1;
+}
+
+.welcome-topline {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 22px;
+    gap: 10px;
+    margin-bottom: 14px;
 }
 
 .welcome-badge,
@@ -158,136 +186,127 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 16px;
+    padding: 9px 14px;
     border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.10);
     background: rgba(255,255,255,0.07);
-    color: rgba(255,255,255,0.88);
-    font-size: 0.82rem;
+    color: rgba(255,255,255,0.86);
+    font-size: 0.76rem;
+    font-weight: 500;
     letter-spacing: 0.04em;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .welcome-hero-icon {
     position: relative;
-    width: 170px;
-    height: 170px;
-    margin: 0 auto 24px;
+    width: clamp(100px, 9vw, 145px);
+    height: clamp(100px, 9vw, 145px);
+    margin: 0 auto 14px;
 }
 
 .welcome-icon-ring {
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid rgba(255, 77, 109, 0.22);
+    animation: welcomePulse 3.8s ease-in-out infinite;
 }
 
-.ring-one {
-    animation: welcomeSpin 16s linear infinite;
-}
-
-.ring-two {
-    inset: 16px;
-    border-color: rgba(255, 77, 109, 0.35);
-    animation: welcomeSpinReverse 12s linear infinite;
+.welcome-icon-ring.ring-two {
+    inset: 14px;
+    animation-delay: -1.4s;
 }
 
 .welcome-icon-core {
     position: absolute;
-    inset: 28px;
+    inset: 18px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.22), rgba(255, 77, 109, 0.18) 48%, rgba(10,10,18,0.88));
-    border: 1px solid rgba(255,255,255,0.14);
-    box-shadow: 0 20px 40px rgba(255, 77, 109, 0.22), inset 0 1px 10px rgba(255,255,255,0.08);
+    background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,0.14), transparent 40%),
+        linear-gradient(135deg, rgba(255, 77, 109, 0.18), rgba(255,255,255,0.08));
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.10),
+        0 12px 30px rgba(255, 77, 109, 0.16);
 }
 
 .welcome-icon-core i {
-    font-size: 3rem;
+    font-size: clamp(1.8rem, 2.4vw, 2.7rem);
     color: #fff;
-    text-shadow: 0 0 25px rgba(255, 77, 109, 0.55);
-    animation: heartBeat 1.7s ease-in-out infinite;
-}
-
-.welcome-copy {
-    position: relative;
-    z-index: 1;
-    max-width: 700px;
-    margin: 0 auto;
+    text-shadow: 0 0 24px rgba(255, 77, 109, 0.45);
+    animation: heartBeat 1.8s ease-in-out infinite;
 }
 
 .welcome-kicker {
-    font-size: 0.82rem;
-    letter-spacing: 0.28em;
+    font-size: clamp(0.72rem, 0.9vw, 0.82rem);
     text-transform: uppercase;
+    letter-spacing: clamp(0.16em, 0.24vw, 0.30em);
     color: rgba(255,255,255,0.62);
-    margin-bottom: 14px;
+    margin-bottom: 8px;
 }
 
 .welcome-content h1 {
     font-family: 'Poppins', sans-serif;
     font-weight: 700;
-    font-size: clamp(2.4rem, 5vw, 4.6rem);
-    line-height: 1.02;
-    margin-bottom: 16px;
-    letter-spacing: -0.04em;
+    font-size: clamp(2.2rem, 5vw, 5rem);
+    line-height: 0.95;
+    letter-spacing: -0.06em;
+    margin-bottom: 12px;
+    color: #fff;
 }
 
 .welcome-content h1 span {
-    display: inline-block;
-    background: linear-gradient(135deg, #ffffff 0%, #ffd4de 38%, #ff4d6d 100%);
+    background: linear-gradient(135deg, #ffe9ef 0%, #ff8da4 55%, #ff5b7a 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    text-shadow: none;
 }
 
 .welcome-subtitle {
     max-width: 620px;
     margin: 0 auto;
     color: rgba(255,255,255,0.78);
-    font-size: 1.02rem;
-    line-height: 1.8;
+    font-size: clamp(0.92rem, 1vw, 1.04rem);
+    line-height: 1.6;
 }
 
 .welcome-stats {
-    position: relative;
-    z-index: 1;
-    margin: 28px auto 24px;
+    margin: 18px auto 14px;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
-    max-width: 720px;
+    gap: 12px;
+    max-width: 760px;
 }
 
 .welcome-stat-card {
-    padding: 16px 18px;
-    border-radius: 22px;
-    background: rgba(255,255,255,0.06);
+    padding: 14px 16px;
+    border-radius: 20px;
     border: 1px solid rgba(255,255,255,0.08);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.05);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
 .welcome-stat-card strong {
     display: block;
-    font-size: 1rem;
-    margin-bottom: 4px;
+    font-size: 0.98rem;
+    color: #fff;
+    margin-bottom: 3px;
 }
 
 .welcome-stat-card span {
     color: rgba(255,255,255,0.62);
-    font-size: 0.86rem;
+    font-size: 0.82rem;
 }
 
 .welcome-actions {
-    position: relative;
-    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .welcome-primary-btn,
@@ -305,11 +324,12 @@ body {
 }
 
 .welcome-primary-btn {
-    min-width: 250px;
-    padding: 18px 28px;
-    border-radius: 22px;
+    min-width: 240px;
+    min-height: 56px;
+    padding: 16px 24px;
+    border-radius: 18px;
     background: linear-gradient(135deg, #ff4d6d, #ff7c94);
-    box-shadow: 0 16px 40px rgba(255, 77, 109, 0.35);
+    box-shadow: 0 16px 40px rgba(255, 77, 109, 0.30);
     font-size: 1rem;
 }
 
@@ -329,24 +349,24 @@ body {
 }
 
 .welcome-helper {
-    color: rgba(255,255,255,0.56);
-    font-size: 0.82rem;
-    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.54);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
 }
 
 .welcome-password-panel {
     width: min(100%, 520px);
-    margin: 24px auto 0;
-    padding: 22px;
-    border-radius: 26px;
-    border: 1px solid rgba(255,255,255,0.12);
-    background: rgba(7, 7, 14, 0.55);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    margin: 14px auto 0;
+    padding: 16px;
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(7, 7, 14, 0.52);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
     display: none;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     text-align: left;
 }
 
@@ -358,30 +378,30 @@ body {
 .password-panel-head {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
 }
 
 .password-panel-head h3 {
-    font-size: 1.05rem;
+    font-size: 1rem;
     margin-bottom: 4px;
 }
 
 .password-panel-head p {
     color: rgba(255,255,255,0.62);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
 }
 
 .password-panel-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, rgba(255,77,109,0.26), rgba(255,255,255,0.1));
     border: 1px solid rgba(255,255,255,0.08);
     color: #fff;
-    font-size: 1.1rem;
+    flex-shrink: 0;
 }
 
 .welcome-input-wrap {
@@ -389,25 +409,27 @@ body {
     align-items: center;
     gap: 12px;
     width: 100%;
-    padding: 0 18px;
-    min-height: 60px;
+    min-height: 56px;
+    padding: 0 16px;
     border-radius: 18px;
     background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.10);
 }
 
 .welcome-input-wrap i {
-    color: rgba(255,255,255,0.72);
+    color: rgba(255,255,255,0.68);
 }
 
 #pass-input {
     width: 100%;
+    min-width: 0;
     border: none;
     outline: none;
     background: transparent;
     color: white;
-    padding: 18px 0;
+    padding: 16px 0;
     text-align: left;
+    font-size: 1rem;
 }
 
 #pass-input::placeholder {
@@ -416,39 +438,45 @@ body {
 
 .welcome-error-msg {
     display: none;
-    color: #ff97ab;
-    font-size: 0.85rem;
-    padding-left: 4px;
+    color: #ff7a90;
+    font-size: 0.84rem;
+    margin-top: -2px;
 }
 
 .welcome-secondary-btn {
     width: 100%;
-    min-height: 56px;
+    min-height: 54px;
     border-radius: 18px;
     background: rgba(255, 77, 109, 0.16);
-    border: 1px solid rgba(255, 77, 109, 0.4);
-    box-shadow: 0 12px 28px rgba(255, 77, 109, 0.12);
+    border: 1px solid rgba(255, 77, 109, 0.36);
+    box-shadow: 0 12px 28px rgba(255, 77, 109, 0.10);
+    font-size: 0.96rem;
+}
+
+@keyframes welcomePulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.75;
+    }
+    50% {
+        transform: scale(1.08);
+        opacity: 0.28;
+    }
 }
 
 @keyframes welcomeFloat {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-    50% { transform: translate3d(0, -18px, 0) scale(1.05); }
-}
-
-@keyframes welcomeSpin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-@keyframes welcomeSpinReverse {
-    from { transform: rotate(360deg); }
-    to { transform: rotate(0deg); }
+    0%, 100% {
+        transform: translateY(0) translateX(0);
+    }
+    50% {
+        transform: translateY(-18px) translateX(10px);
+    }
 }
 
 @keyframes welcomePanelIn {
     from {
         opacity: 0;
-        transform: translateY(18px) scale(0.98);
+        transform: translateY(14px) scale(0.98);
     }
     to {
         opacity: 1;
@@ -456,49 +484,157 @@ body {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-height: 860px) {
     #welcome-screen {
-        padding: 18px;
+        align-items: flex-start;
+    }
+
+    .welcome-shell {
+        min-height: calc(100dvh - 16px);
+        align-items: flex-start;
     }
 
     .welcome-content {
-        padding: 24px 18px;
-        border-radius: 28px;
+        max-height: calc(100dvh - 16px);
+        padding: 16px;
     }
 
     .welcome-hero-icon {
-        width: 136px;
-        height: 136px;
-        margin-bottom: 18px;
+        width: 100px;
+        height: 100px;
+        margin-bottom: 12px;
     }
 
     .welcome-icon-core {
-        inset: 22px;
+        inset: 16px;
+    }
+
+    .welcome-content h1 {
+        font-size: clamp(1.9rem, 4vw, 3.6rem);
+        margin-bottom: 10px;
+    }
+
+    .welcome-subtitle {
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+
+    .welcome-stats {
+        margin: 14px auto 12px;
+        gap: 10px;
+    }
+
+    .welcome-stat-card {
+        padding: 12px 14px;
+    }
+
+    .welcome-password-panel {
+        padding: 14px;
+    }
+}
+
+@media (max-width: 768px) {
+    #welcome-screen {
+        padding: 10px;
+        align-items: flex-start;
+    }
+
+    .welcome-grid,
+    .welcome-orb {
+        opacity: 0.7;
+    }
+
+    .welcome-shell {
+        width: 100%;
+        min-height: calc(100dvh - 20px);
+        align-items: flex-start;
+    }
+
+    .welcome-content {
+        max-height: none;
+        overflow: visible;
+        padding: 16px 14px;
+        border-radius: 24px;
+    }
+
+    .welcome-topline {
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .welcome-badge,
+    .welcome-chip {
+        padding: 8px 12px;
+        font-size: 0.7rem;
+    }
+
+    .welcome-hero-icon {
+        width: 92px;
+        height: 92px;
+        margin-bottom: 12px;
+    }
+
+    .welcome-icon-core {
+        inset: 15px;
     }
 
     .welcome-icon-core i {
-        font-size: 2.35rem;
+        font-size: 1.65rem;
     }
 
-    .welcome-kicker {
-        letter-spacing: 0.18em;
+    .welcome-content h1 {
+        font-size: clamp(1.95rem, 9.5vw, 3rem);
+        line-height: 1.02;
+        margin-bottom: 10px;
+    }
+
+    .welcome-subtitle {
+        font-size: 0.9rem;
+        line-height: 1.5;
     }
 
     .welcome-stats {
         grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .welcome-stat-card {
+        padding: 12px 14px;
+        border-radius: 18px;
     }
 
     .welcome-primary-btn {
         width: 100%;
         min-width: 0;
+        min-height: 54px;
+        padding: 15px 18px;
+        border-radius: 16px;
     }
 
     .welcome-password-panel {
-        padding: 18px;
-        border-radius: 22px;
+        width: 100%;
+        padding: 14px;
+        border-radius: 18px;
+    }
+
+    .password-panel-head h3 {
+        font-size: 0.96rem;
+    }
+
+    .password-panel-head p {
+        font-size: 0.82rem;
+    }
+
+    .welcome-input-wrap {
+        min-height: 54px;
+        padding: 0 14px;
+    }
+
+    #pass-input {
+        font-size: 16px;
     }
 }
-
 
 .hidden {
     display: none;
