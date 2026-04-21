@@ -2614,6 +2614,7 @@ function setPlayerExpanded(expanded) {
     if (!activePlayer) return;
 
     activePlayer.classList.add('is-transitioning');
+    activePlayer.classList.toggle('player-collapsing', !expanded);
 
     requestAnimationFrame(() => {
         activePlayer.classList.toggle('expanded', expanded);
@@ -2630,8 +2631,8 @@ function setPlayerExpanded(expanded) {
 
         window.clearTimeout(activePlayer.__expandAnimTimer);
         activePlayer.__expandAnimTimer = window.setTimeout(() => {
-            activePlayer.classList.remove('is-transitioning');
-        }, expanded ? 420 : 320);
+            activePlayer.classList.remove('is-transitioning', 'player-collapsing');
+        }, expanded ? 420 : 360);
     });
 }
 
