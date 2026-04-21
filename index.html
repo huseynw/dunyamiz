@@ -1,18 +1,15 @@
 <!DOCTYPE html>
 <html lang="az">
-
 <head>
     <meta charset="UTF-8">
     <meta name="google-site-verification" content="gfRFjiaDTYd0covypvcJDW_EvOEZDEDH5nMOEZt0WR4" />
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
     <title>Hüseyn və Cəmalənin Dünyası</title>
-    <meta name="description"
-        content="Hüseyn və Cəmalənin özəl dünyası. Birlikdə keçən zamanımız, xatirələrimiz və sevgimiz...">
+    <meta name="description" content="Hüseyn və Cəmalənin özəl dünyası. Birlikdə keçən zamanımız, xatirələrimiz və sevgimiz...">
     <meta name="keywords" content="Hüseyn və Cəmalə, Hüseyn Cəmalə, Bizim Dünyamız, sevgi saytı">
     <meta property="og:title" content="Hüseyn və Cəmalənin Dünyası ❤️">
     <meta property="og:description" content="Bizim kiçik, gizli və sevgi dolu dünyamız. Giriş yalnız icazə ilədir... ✨">
-    <meta property="og:image" content="https://www.dunyamiz.me/assets/192.png">
+    <meta property="og:image" content="https://www.dunyamiz.me/assets/192.png"> 
     <meta property="og:url" content="https://www.dunyamiz.me">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
@@ -36,10 +33,8 @@
     <meta name="theme-color" content="#ff4d6d">
 
 </head>
-
 <body>
-    <canvas id="weather-canvas"
-        style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; opacity:0.6;"></canvas>
+    <canvas id="weather-canvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; opacity:0.6;"></canvas>
     <!-- Welcome Screen -->
     <div id="welcome-screen" data-nosnippet>
         <div class="welcome-content">
@@ -60,14 +55,12 @@
                 </div>
             </div>
             <h1>Xoş Gəldin, Cəmaləm</h1>
-            <button id="enter-btn" type="button">Toxun <i class="fas fa-heart"></i></button>
-            <div id="password-panel" class="hidden"
-                style="margin-top: 20px; display: none; flex-direction: column; align-items: center; gap: 15px;">
-                <input type="password" id="pass-input" placeholder="Şifrəni yaz"
-                    style="padding: 15px; border-radius: 50px; border: 1px solid var(--primary); background: rgba(255,255,255,0.1); color: white; text-align: center; outline: none; width: 200px;">
-                <p id="error-msg" style="color: #ff4d6d; font-size: 0.8rem; display: none;">Kül başına düz yaz!</p>
-                <button id="verify-btn" type="button"
-                    style="padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 50px; cursor: pointer;">Təsdiqlə</button>
+            <button id="enter-btn">Toxun <i class="fas fa-heart"></i></button>
+            <div id="password-panel" class="hidden" style="margin-top: 20px; display: none; flex-direction: column; align-items: center; gap: 15px;">
+            <input type="password" id="pass-input" placeholder="Şifrəni yaz" 
+                   style="padding: 15px; border-radius: 50px; border: 1px solid var(--primary); background: rgba(255,255,255,0.1); color: white; text-align: center; outline: none; width: 200px;">
+            <p id="error-msg" style="color: #ff4d6d; font-size: 0.8rem; display: none;">Kül başına düz yaz!</p>
+            <button id="verify-btn" style="padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 50px; cursor: pointer;">Təsdiqlə</button>
             </div>
         </div>
     </div>
@@ -76,13 +69,12 @@
     <main id="main-content" class="hidden" data-nosnippet>
         <!-- Header - Always Visible -->
         <header class="animate-item delay-1">
-
+            
             <div class="logo-container">
                 <span class="letter">H</span>
                 <div class="infinity-wrapper">
                     <svg viewBox="0 0 100 50" class="infinity-svg">
-                        <path d="M20,25 C20,9 46,9 50,25 C54,41 80,41 80,25 C80,9 54,9 50,25 C46,41 20,41 20,25"
-                            fill="none" stroke="white" stroke-width="4" stroke-linecap="round" />
+                        <path d="M20,25 C20,9 46,9 50,25 C54,41 80,41 80,25 C80,9 54,9 50,25 C46,41 20,41 20,25" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/>
                     </svg>
                 </div>
                 <span class="letter">C</span>
@@ -91,57 +83,87 @@
                 <h2 id="dynamic-greeting"></h2>
                 <p id="live-clock"></p>
             </div>
-            <div id="weather-container"
-                style="text-align: center; padding: 15px; font-family: sans-serif; transition: all 1s ease;">
-                <span id="weather-status" style="color: #aaa; font-size: 14px; letter-spacing: 1px;">Bakıda hava
-                    yoxlanılır...</span>
+            <div id="weather-container" style="text-align: center; padding: 15px; font-family: sans-serif; transition: all 1s ease;">
+                <span id="weather-status" style="color: #aaa; font-size: 14px; letter-spacing: 1px;">Bakıda hava yoxlanılır...</span>
             </div>
-            <button id="theme-toggle" class="theme-switch-btn toggle bottom-switch" type="button" aria-pressed="true"
-                aria-label="Tema dəyiş" title="Tema dəyiş">
-                <div class="socket">
-                    <div class="socket-shadow"></div>
-                </div>
+            <button
+    id="theme-toggle"
+    class="theme-switch-btn toggle bottom-switch"
+    type="button"
+    aria-pressed="true"
+    aria-label="Tema dəyiş"
+    title="Tema dəyiş"
+>
+    <div class="socket">
+        <div class="socket-shadow"></div>
+    </div>
 
-                <div class="face">
-                    <div class="face-shadow"></div>
-                    <div class="face-glowdrop"></div>
-                    <div class="face-plate"></div>
+    <div class="face">
+        <div class="face-shadow"></div>
+        <div class="face-glowdrop"></div>
+        <div class="face-plate"></div>
 
-                    <div class="face-shine">
-                        <div class="face-shine-shadow"></div>
-                    </div>
+        <div class="face-shine">
+            <div class="face-shine-shadow"></div>
+        </div>
 
-                    <div class="face-glows">
-                        <div></div>
-                    </div>
+        <div class="face-glows">
+            <div></div>
+        </div>
 
-                    <svg class="glow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                        aria-hidden="true">
-                        <path class="glow-path"
-                            d="M9.8815 1.36438L9.88141 1.36429C9.70639 1.18942 9.48342 1.07041 9.24073 1.02235C8.99803 0.974286 8.74653 0.999323 8.51808 1.09429L8.51753 1.09452C4.54484 2.75146 1.75 6.6732 1.75 11.25C1.75 17.3262 6.67489 22.25 12.75 22.25C14.9217 22.2501 17.0448 21.6075 18.852 20.4032C20.6591 19.1989 22.0695 17.4868 22.9055 15.4825L22.9058 15.4818C23.0007 15.2532 23.0256 15.0015 22.9774 14.7587C22.9291 14.5159 22.8099 14.2929 22.6348 14.118C22.4597 13.9431 22.2366 13.8241 21.9937 13.7761C21.7509 13.7281 21.4993 13.7533 21.2708 13.8484L21.2707 13.8485C20.2346 14.2801 19.1231 14.5016 18.0007 14.5H18C15.7457 14.5 13.5837 13.6045 11.9896 12.0104C10.3955 10.4163 9.5 8.25433 9.5 5.99999L9.5 5.99927C9.49838 4.8769 9.71983 3.76541 10.1515 2.72938C10.2468 2.50072 10.2721 2.24888 10.224 2.00584C10.1759 1.76281 10.0567 1.53954 9.8815 1.36438Z"
-                            stroke-width="0" />
-                    </svg>
+        <svg
+            class="glow"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+        >
+            <path
+                class="glow-path"
+                d="M9.8815 1.36438L9.88141 1.36429C9.70639 1.18942 9.48342 1.07041 9.24073 1.02235C8.99803 0.974286 8.74653 0.999323 8.51808 1.09429L8.51753 1.09452C4.54484 2.75146 1.75 6.6732 1.75 11.25C1.75 17.3262 6.67489 22.25 12.75 22.25C14.9217 22.2501 17.0448 21.6075 18.852 20.4032C20.6591 19.1989 22.0695 17.4868 22.9055 15.4825L22.9058 15.4818C23.0007 15.2532 23.0256 15.0015 22.9774 14.7587C22.9291 14.5159 22.8099 14.2929 22.6348 14.118C22.4597 13.9431 22.2366 13.8241 21.9937 13.7761C21.7509 13.7281 21.4993 13.7533 21.2708 13.8484L21.2707 13.8485C20.2346 14.2801 19.1231 14.5016 18.0007 14.5H18C15.7457 14.5 13.5837 13.6045 11.9896 12.0104C10.3955 10.4163 9.5 8.25433 9.5 5.99999L9.5 5.99927C9.49838 4.8769 9.71983 3.76541 10.1515 2.72938C10.2468 2.50072 10.2721 2.24888 10.224 2.00584C10.1759 1.76281 10.0567 1.53954 9.8815 1.36438Z"
+                stroke-width="0"
+            />
+        </svg>
 
-                    <svg class="trail-holder" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                        aria-hidden="true">
-                        <path class="trail"
-                            d="M9.8815 1.36438L9.88141 1.36429C9.70639 1.18942 9.48342 1.07041 9.24073 1.02235C8.99803 0.974286 8.74653 0.999323 8.51808 1.09429L8.51753 1.09452C4.54484 2.75146 1.75 6.6732 1.75 11.25C1.75 17.3262 6.67489 22.25 12.75 22.25C14.9217 22.2501 17.0448 21.6075 18.852 20.4032C20.6591 19.1989 22.0695 17.4868 22.9055 15.4825L22.9058 15.4818C23.0007 15.2532 23.0256 15.0015 22.9774 14.7587C22.9291 14.5159 22.8099 14.2929 22.6348 14.118C22.4597 13.9431 22.2366 13.8241 21.9937 13.7761C21.7509 13.7281 21.4993 13.7533 21.2708 13.8484L21.2707 13.8485C20.2346 14.2801 19.1231 14.5016 18.0007 14.5H18C15.7457 14.5 13.5837 13.6045 11.9896 12.0104C10.3955 10.4163 9.5 8.25433 9.5 5.99999L9.5 5.99927C9.49838 4.8769 9.71983 3.76541 10.1515 2.72938C10.2468 2.50072 10.2721 2.24888 10.224 2.00584C10.1759 1.76281 10.0567 1.53954 9.8815 1.36438Z"
-                            stroke="#2CC6FE" stroke-linecap="round" stroke-dasharray="7 80" stroke-dashoffset="40" />
-                    </svg>
+        <svg
+            class="trail-holder"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+        >
+            <path
+                class="trail"
+                d="M9.8815 1.36438L9.88141 1.36429C9.70639 1.18942 9.48342 1.07041 9.24073 1.02235C8.99803 0.974286 8.74653 0.999323 8.51808 1.09429L8.51753 1.09452C4.54484 2.75146 1.75 6.6732 1.75 11.25C1.75 17.3262 6.67489 22.25 12.75 22.25C14.9217 22.2501 17.0448 21.6075 18.852 20.4032C20.6591 19.1989 22.0695 17.4868 22.9055 15.4825L22.9058 15.4818C23.0007 15.2532 23.0256 15.0015 22.9774 14.7587C22.9291 14.5159 22.8099 14.2929 22.6348 14.118C22.4597 13.9431 22.2366 13.8241 21.9937 13.7761C21.7509 13.7281 21.4993 13.7533 21.2708 13.8484L21.2707 13.8485C20.2346 14.2801 19.1231 14.5016 18.0007 14.5H18C15.7457 14.5 13.5837 13.6045 11.9896 12.0104C10.3955 10.4163 9.5 8.25433 9.5 5.99999L9.5 5.99927C9.49838 4.8769 9.71983 3.76541 10.1515 2.72938C10.2468 2.50072 10.2721 2.24888 10.224 2.00584C10.1759 1.76281 10.0567 1.53954 9.8815 1.36438Z"
+                stroke="#2CC6FE"
+                stroke-linecap="round"
+                stroke-dasharray="7 80"
+                stroke-dashoffset="40"
+            />
+        </svg>
 
-                    <svg class="main" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                        aria-hidden="true">
-                        <path class="outline"
-                            d="M9.8815 1.36438L9.88141 1.36429C9.70639 1.18942 9.48342 1.07041 9.24073 1.02235C8.99803 0.974286 8.74653 0.999323 8.51808 1.09429L8.51753 1.09452C4.54484 2.75146 1.75 6.6732 1.75 11.25C1.75 17.3262 6.67489 22.25 12.75 22.25C14.9217 22.2501 17.0448 21.6075 18.852 20.4032C20.6591 19.1989 22.0695 17.4868 22.9055 15.4825L22.9058 15.4818C23.0007 15.2532 23.0256 15.0015 22.9774 14.7587C22.9291 14.5159 22.8099 14.2929 22.6348 14.118C22.4597 13.9431 22.2366 13.8241 21.9937 13.7761C21.7509 13.7281 21.4993 13.7533 21.2708 13.8484L21.2707 13.8485C20.2346 14.2801 19.1231 14.5016 18.0007 14.5H18C15.7457 14.5 13.5837 13.6045 11.9896 12.0104C10.3955 10.4163 9.5 8.25433 9.5 5.99999L9.5 5.99927C9.49838 4.8769 9.71983 3.76541 10.1515 2.72938C10.2468 2.50072 10.2721 2.24888 10.224 2.00584C10.1759 1.76281 10.0567 1.53954 9.8815 1.36438Z"
-                            fill="black" stroke="black" stroke-width="2" />
-                    </svg>
-                </div>
-            </button>
+        <svg
+            class="main"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+        >
+            <path
+                class="outline"
+                d="M9.8815 1.36438L9.88141 1.36429C9.70639 1.18942 9.48342 1.07041 9.24073 1.02235C8.99803 0.974286 8.74653 0.999323 8.51808 1.09429L8.51753 1.09452C4.54484 2.75146 1.75 6.6732 1.75 11.25C1.75 17.3262 6.67489 22.25 12.75 22.25C14.9217 22.2501 17.0448 21.6075 18.852 20.4032C20.6591 19.1989 22.0695 17.4868 22.9055 15.4825L22.9058 15.4818C23.0007 15.2532 23.0256 15.0015 22.9774 14.7587C22.9291 14.5159 22.8099 14.2929 22.6348 14.118C22.4597 13.9431 22.2366 13.8241 21.9937 13.7761C21.7509 13.7281 21.4993 13.7533 21.2708 13.8484L21.2707 13.8485C20.2346 14.2801 19.1231 14.5016 18.0007 14.5H18C15.7457 14.5 13.5837 13.6045 11.9896 12.0104C10.3955 10.4163 9.5 8.25433 9.5 5.99999L9.5 5.99927C9.49838 4.8769 9.71983 3.76541 10.1515 2.72938C10.2468 2.50072 10.2721 2.24888 10.224 2.00584C10.1759 1.76281 10.0567 1.53954 9.8815 1.36438Z"
+                fill="black"
+                stroke="black"
+                stroke-width="2"
+            />
+        </svg>
+    </div>
+</button>
         </header>
 
         <!-- SPA Pages Container -->
         <div class="spa-container">
-
+            
             <!-- Page 1: Əsas (Home) -->
             <section class="spa-page active" id="page-home">
                 <div class="page-content animate-item delay-2">
@@ -187,7 +209,7 @@
                     <!-- Next Meeting Timer -->
                     <div class="counter-section meeting-timer">
                         <h3>Növbəti Görüşümüzə Qalan Vaxt:</h3>
-                        <p id="next-meeting-date" class="meeting-date-text"></p>
+                        <p id="next-meeting-date" class="meeting-date-text"></p> 
                         <div class="timer-grid">
                             <div class="time-box">
                                 <span id="meet-days">00</span>
@@ -221,11 +243,9 @@
                                     <i class="fas fa-envelope-open-heart"></i>
                                 </div>
                             </div>
-                            <p id="daily-message-text" class="daily-message-text">Sənin üçün bu günün mesajı
-                                hazırlanır...</p>
+                            <p id="daily-message-text" class="daily-message-text">Sənin üçün bu günün mesajı hazırlanır...</p>
                             <div class="daily-message-meta">
-                                <span id="daily-message-date"><i class="fas fa-calendar-day"></i> Tarix
-                                    yüklənir...</span>
+                                <span id="daily-message-date"><i class="fas fa-calendar-day"></i> Tarix yüklənir...</span>
                             </div>
                         </article>
 
@@ -239,15 +259,13 @@
                                     <i class="fas fa-dice"></i>
                                 </div>
                             </div>
-                            <p id="random-memory-text" class="random-memory-text">Düyməyə bas, sənə ya bir xatirə, ya da
-                                qalereyadan sürpriz bir an göstərim.</p>
+                            <p id="random-memory-text" class="random-memory-text">Düyməyə bas, sənə ya bir xatirə, ya da qalereyadan sürpriz bir an göstərim.</p>
                             <div class="random-memory-actions">
                                 <button id="random-memory-btn" class="memory-btn" type="button">
                                     <i class="fas fa-shuffle"></i>
                                     <span>Xatirə seç</span>
                                 </button>
-                                <button id="random-memory-open-btn" class="memory-btn memory-btn--ghost" type="button"
-                                    hidden>
+                                <button id="random-memory-open-btn" class="memory-btn memory-btn--ghost" type="button" hidden>
                                     <i class="fas fa-image"></i>
                                     <span>Şəkli aç</span>
                                 </button>
@@ -284,7 +302,7 @@
             <section class="spa-page" id="page-time">
                 <div class="page-content">
                     <h2 class="page-title">Zamanımız</h2>
-
+                    
                     <!-- Detailed Time Together -->
                     <div class="detailed-time-card">
                         <div class="detailed-header">
@@ -332,18 +350,15 @@
                     <section class="links-section">
                         <h3>Cəmaləm üçün yazdığım saytlar</h3>
                         <div class="quote-links">
-                            <a href="https://seniseviremcemale.netlify.app" target="_blank" rel="noopener noreferrer"
-                                class="quote-card">
+                            <a href="https://seniseviremcemale.netlify.app" target="_blank" class="quote-card">
                                 <blockquote>"Dünyalar Gözəlimə"</blockquote>
                                 <cite>Bura toxun</cite>
                             </a>
-                            <a href="https://cemalem.netlify.app" target="_blank" rel="noopener noreferrer"
-                                class="quote-card">
+                            <a href="https://cemalem.netlify.app" target="_blank" class="quote-card">
                                 <blockquote>"Bir Məktub"</blockquote>
                                 <cite>Bura toxun</cite>
                             </a>
-                            <a href="https://cemalemm.netlify.app" target="_blank" rel="noopener noreferrer"
-                                class="quote-card">
+                            <a href="https://cemalemm.netlify.app" target="_blank" class="quote-card">
                                 <blockquote>"Bekar vaxtlarımda belə səni fikirləşirəm"</blockquote>
                                 <cite>Bura toxun</cite>
                             </a>
@@ -358,7 +373,7 @@
                     <h2 class="page-title">Xatirələrimiz 📸</h2>
                     <div class="gallery-section">
                         <div id="gallery-stack" class="gallery-timeline">
-                        </div>
+                            </div>
                     </div>
 
                     <section class="music-player animate-item" style="margin-top: 40px;">
@@ -404,9 +419,14 @@
                         </div>
                     </div>
                 </div>
-                <audio id="yt-audio" preload="metadata" playsinline webkit-playsinline="true"
-                    crossorigin="anonymous"></audio>
-            </section>
+                <audio
+                    id="yt-audio"
+                    preload="metadata"
+                    playsinline
+                    webkit-playsinline="true"
+                    crossorigin="anonymous"
+                ></audio>
+                            </section>
             <!-- Page 4: Məktublar (Letters) -->
             <section class="spa-page" id="page-letters">
                 <div class="page-content">
@@ -429,7 +449,7 @@
                             <span>Bizim üçün</span>
                         </div>
                     </div>
-
+                    
                     <!-- Additional Love Note -->
                     <div class="love-note-card">
                         <div class="note-icon">💌</div>
@@ -441,9 +461,7 @@
                 <div class="page-content">
                     <h2 class="page-title">Notlarımız</h2>
                     <div style="text-align: center; margin-bottom: 20px;">
-                        <button id="open-add-note-btn" class="custom-btn"
-                            style="background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; box-shadow: 0 5px 15px var(--primary-glow); transition: 0.3s;"><i
-                                class="fas fa-plus"></i> Yeni Not Əlavə Et</button>
+                        <button id="open-add-note-btn" class="custom-btn" style="background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; box-shadow: 0 5px 15px var(--primary-glow); transition: 0.3s;"><i class="fas fa-plus"></i> Yeni Not Əlavə Et</button>
                     </div>
                     <div class="notes-grid" id="notes-container">
                         <p style="text-align:center; opacity:0.7;">Notlar yüklənir...</p>
@@ -453,134 +471,151 @@
 
         </div>
 
-        <div id="yt-active-player" class="yt-active-player player-mini" style="display:none;">
-            <div class="yt-player-bg" id="yt-player-bg"></div>
-            <canvas class="yt-waveform" id="yt-waveform"></canvas>
-            <div class="yt-player-top" data-player-expand="true">
-                <button class="yt-cover-button" id="yt-open-full-btn" type="button" aria-label="Playeri aç">
-                    <img id="yt-cover-image-mini" src="assets/music-cover.jpg" alt="Cover mini">
-                </button>
-
-                <div class="yt-now-playing" id="yt-expand-hitbox">
-                    <span id="yt-now-label">İndi səslənir</span>
-                    <strong id="yt-player-title-mini">Mahnı seçin</strong>
-                    <small id="yt-player-artist-mini">Artist</small>
-                </div>
-
-                <div class="yt-mini-controls mini-controls">
-                    <button id="yt-prev-btn-mini" class="yt-chip-btn" type="button" aria-label="Əvvəlki mahnı">
-                        <i class="fas fa-backward-step"></i>
-                    </button>
-                    <button id="yt-play-btn-mini" class="yt-chip-btn yt-chip-btn--play" type="button"
-                        aria-label="Play/Pause">
-                        <i class="fas fa-play"></i>
-                    </button>
-                    <button id="yt-next-btn-mini" class="yt-chip-btn" type="button" aria-label="Növbəti mahnı">
-                        <i class="fas fa-forward-step"></i>
-                    </button>
-                </div>
-
-                <div class="yt-player-actions">
-                    <button id="yt-lyrics-toggle" class="yt-mini-btn" type="button" aria-label="Sözləri aç">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                    <button id="yt-close-btn-mini" class="yt-mini-btn yt-close-btn" type="button"
-                        aria-label="Playeri bağla">
-                        <i class="fas fa-xmark"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="yt-player-body">
-                <div class="yt-player-main">
-                    <div class="yt-player-topbar">
-                        <button id="yt-minimize-btn" class="yt-mini-btn" type="button" aria-label="Kiçilt">
-                            <i class="fas fa-chevron-down"></i>
+<div id="yt-active-player" class="yt-active-player player-mini" style="display:none;">
+                    <div class="yt-player-bg" id="yt-player-bg"></div>
+                    <canvas class="yt-waveform" id="yt-waveform"></canvas>
+                    <div class="yt-player-top" data-player-expand="true">
+                        <button class="yt-cover-button" id="yt-open-full-btn" type="button" aria-label="Playeri aç">
+                            <img id="yt-cover-image-mini" src="assets/music-cover.jpg" alt="Cover mini">
                         </button>
-                        <div class="yt-player-heading">
-                            <span class="yt-player-kicker">DUNYAMIZ PLAYER</span>
-                            <strong id="yt-player-title">Mahnı seçin</strong>
-                            <small id="yt-player-artist">Artist</small>
+
+                        <div class="yt-now-playing" id="yt-expand-hitbox">
+                            <span id="yt-now-label">İndi səslənir</span>
+                            <strong id="yt-player-title-mini">Mahnı seçin</strong>
+                            <small id="yt-player-artist-mini">Artist</small>
                         </div>
-                        <button id="yt-close-btn-full" class="yt-mini-btn yt-close-btn" type="button"
-                            aria-label="Playeri bağla">
-                            <i class="fas fa-xmark"></i>
-                        </button>
-                    </div>
 
-                    <div class="yt-player-art-wrap">
-                        <div class="yt-rotating-disc" id="yt-rotating-disc">
-                            <img id="yt-cover-image" src="assets/music-cover.jpg" alt="Cover">
+                        <div class="yt-mini-controls mini-controls">
+                            <button id="yt-prev-btn-mini" class="yt-chip-btn" type="button" aria-label="Əvvəlki mahnı">
+                                <i class="fas fa-backward-step"></i>
+                            </button>
+                            <button id="yt-play-btn-mini" class="yt-chip-btn yt-chip-btn--play" type="button" aria-label="Play/Pause">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button id="yt-next-btn-mini" class="yt-chip-btn" type="button" aria-label="Növbəti mahnı">
+                                <i class="fas fa-forward-step"></i>
+                            </button>
+                        </div>
+
+                        <div class="yt-player-actions">
+                            <button id="yt-lyrics-toggle" class="yt-mini-btn" type="button" aria-label="Sözləri aç">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            <button id="yt-close-btn-mini" class="yt-mini-btn yt-close-btn" type="button" aria-label="Playeri bağla">
+                                <i class="fas fa-xmark"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="yt-progress-area">
-                        <input type="range" id="yt-seekbar" min="0" value="0" step="0.1">
-                        <div class="yt-time-row">
-                            <span id="yt-current-time">00:00</span>
-                            <span id="yt-duration">00:00</span>
+                    <div class="yt-player-body">
+                        <div class="yt-player-main">
+                            <div class="yt-player-topbar">
+                                <button id="yt-minimize-btn" class="yt-mini-btn" type="button" aria-label="Kiçilt">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <div class="yt-player-heading">
+                                    <span class="yt-player-kicker">DUNYAMIZ PLAYER</span>
+                                    <strong id="yt-player-title">Mahnı seçin</strong>
+                                    <small id="yt-player-artist">Artist</small>
+                                </div>
+                                <button id="yt-close-btn-full" class="yt-mini-btn yt-close-btn" type="button" aria-label="Playeri bağla">
+                                    <i class="fas fa-xmark"></i>
+                                </button>
+                            </div>
+
+                            <div class="yt-player-art-wrap">
+                                <div class="yt-rotating-disc" id="yt-rotating-disc">
+                                    <img id="yt-cover-image" src="assets/music-cover.jpg" alt="Cover">
+                                </div>
+                            </div>
+
+                            <div class="yt-progress-area">
+                                <input type="range" id="yt-seekbar" min="0" value="0" step="0.1">
+                                <div class="yt-time-row">
+                                    <span id="yt-current-time">00:00</span>
+                                    <span id="yt-duration">00:00</span>
+                                </div>
+                            </div>
+
+                            <div class="yt-controls-row main-controls">
+                                <button id="yt-prev-btn" class="yt-control-btn" type="button" aria-label="Əvvəlki mahnı">
+                                    <i class="fas fa-backward-step"></i>
+                                </button>
+                                <button id="yt-shuffle-btn" class="yt-control-btn yt-mode-btn" type="button" aria-label="Shuffle">
+                                    <i class="fas fa-shuffle"></i>
+                                </button>
+                                <button id="yt-play-btn" class="yt-play-btn" type="button" aria-label="Play/Pause">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button id="yt-next-btn" class="yt-control-btn" type="button" aria-label="Növbəti mahnı">
+                                    <i class="fas fa-forward-step"></i>
+                                </button>
+                                <button id="yt-repeat-btn" class="yt-control-btn yt-mode-btn" type="button" aria-label="Repeat" data-mode="off">
+                                    <i class="fas fa-repeat"></i>
+                                    <span class="yt-repeat-badge">1</span>
+                                </button>
+                            </div>
+
+                            <div class="yt-volume-area volume-area">
+                                <i class="fas fa-volume-low"></i>
+                                <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.85">
+                                <span id="volume-value">85%</span>
+                            </div>
+
+                            <section class="yt-up-next-panel" aria-label="Sonrakı mahnılar">
+                                <div class="yt-up-next-head">
+                                    <div>
+                                        <span class="yt-player-kicker">UP NEXT</span>
+                                        <strong>Sonrakı Mahnılar</strong>
+                                    </div>
+                                    <small id="yt-up-next-count">0 mahnı</small>
+                                </div>
+                                <div id="yt-up-next-list" class="yt-up-next-list">
+                                    <div class="yt-up-next-empty">Növbədə mahnı yoxdur.</div>
+                                </div>
+                            </section>
                         </div>
-                    </div>
 
-                    <div class="yt-controls-row main-controls">
-                        <button id="yt-prev-btn" class="yt-control-btn" type="button" aria-label="Əvvəlki mahnı">
-                            <i class="fas fa-backward-step"></i>
-                        </button>
-                        <button id="yt-play-btn" class="yt-play-btn" type="button" aria-label="Play/Pause">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button id="yt-next-btn" class="yt-control-btn" type="button" aria-label="Növbəti mahnı">
-                            <i class="fas fa-forward-step"></i>
-                        </button>
-                    </div>
-
-                    <div class="yt-volume-area volume-area">
-                        <i class="fas fa-volume-low"></i>
-                        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.85">
-                        <span id="volume-value">85%</span>
+                        <aside id="yt-lyrics-panel" class="yt-lyrics-panel lyrics-hidden" aria-hidden="true">
+                            <div class="yt-lyrics-head">
+                                <div>
+                                    <span class="yt-player-kicker">SYNCED LYRICS</span>
+                                    <strong>Sözlər</strong>
+                                </div>
+                                <button class="yt-mini-btn btn-close-lyrics" type="button" aria-label="Sözləri bağla">
+                                    <i class="fas fa-xmark"></i>
+                                </button>
+                            </div>
+                            <div id="yt-lyrics-container" class="yt-lyrics-container">
+                                <div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>
+                            </div>
+                        </aside>
                     </div>
                 </div>
-
-                <aside id="yt-lyrics-panel" class="yt-lyrics-panel lyrics-hidden" aria-hidden="true">
-                    <div class="yt-lyrics-head">
-                        <div>
-                            <span class="yt-player-kicker">SYNCED LYRICS</span>
-                            <strong>Sözlər</strong>
-                        </div>
-                        <button class="yt-mini-btn btn-close-lyrics" type="button" aria-label="Sözləri bağla">
-                            <i class="fas fa-xmark"></i>
-                        </button>
-                    </div>
-                    <div id="yt-lyrics-container" class="yt-lyrics-container">
-                        <div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>
-                    </div>
-                </aside>
-            </div>
-        </div>
 
         <!-- Glassmorphism Navigation Bar -->
         <nav class="spa-navbar">
-            <button class="nav-item active" type="button" data-page="home" aria-label="Əsas səhifə">
+            <button class="nav-item active" data-page="home">
                 <i class="fas fa-home"></i>
                 <span>Əsas</span>
             </button>
-            <button class="nav-item" type="button" data-page="time" aria-label="Zamanımız səhifəsi">
+            <button class="nav-item" data-page="time">
                 <i class="fas fa-clock"></i>
                 <span>Zamanımız</span>
             </button>
-            <button class="nav-item" type="button" data-page="gallery" aria-label="Qalereya səhifəsi">
+            <button class="nav-item" data-page="gallery">
                 <i class="fas fa-images"></i>
                 <span>Qalereya</span>
             </button>
-            <button class="nav-item" type="button" data-page="letters" aria-label="Məktublar səhifəsi">
+            <button class="nav-item" data-page="letters">
                 <i class="fas fa-envelope"></i>
                 <span>Məktublar</span>
             </button>
-            <button class="nav-item" type="button" data-page="notes" aria-label="Notlar səhifəsi">
+            <button class="nav-item" data-page="notes">
                 <i class="fas fa-sticky-note"></i>
                 <span>Notlar</span>
             </button>
-            <button class="nav-item" type="button" data-page="music" aria-label="Musiqi səhifəsi">
+            <button class="nav-item" data-page="music">
                 <i class="fas fa-music"></i>
                 <span>Musiqi</span>
             </button>
@@ -588,7 +623,7 @@
     </main>
 
     <script src="hcayar.js"></script>
-
+    
     <!-- Lightbox -->
     <div id="lightbox" class="lightbox">
         <span id="close-lb-btn" class="close-lightbox">&times;</span>
@@ -601,7 +636,7 @@
                 <button id="prev-btn" class="lightbox-nav prev-btn">
                     <i class="fas fa-chevron-left"></i>
                 </button>
-
+            
                 <div class="image-wrapper">
                     <img id="lightbox-img" src="" alt="Bizim Xatirəmiz">
                 </div>
@@ -619,7 +654,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Letter Modal -->
     <div id="letter-modal" class="letter-modal">
         <div class="letter-content">
@@ -634,26 +669,20 @@
             <h2 style="font-size: 2.2rem;">Yeni Not</h2>
             <div style="text-align: left; margin-bottom: 15px;">
                 <label style="font-size: 0.9rem; color: #555; font-weight: 600;">Kim yazır?</label>
-                <select id="note-author"
-                    style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; outline: none; margin-top: 5px; font-family: 'Poppins', sans-serif;">
+                <select id="note-author" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; outline: none; margin-top: 5px; font-family: 'Poppins', sans-serif;">
                     <option value="Hüseyn">Hüseyn</option>
                     <option value="Cəmalə">Cəmalə</option>
                 </select>
             </div>
             <div style="text-align: left; margin-bottom: 15px;">
-                <label style="font-size: 0.9rem; color: #555; font-weight: 600;">Başlıq (boş qoysan tarix
-                    olacaq):</label>
-                <input type="text" id="note-title" placeholder="Məs: Bu gün çox gözəl idi..."
-                    style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; outline: none; margin-top: 5px; font-family: 'Poppins', sans-serif;">
+                <label style="font-size: 0.9rem; color: #555; font-weight: 600;">Başlıq (boş qoysan tarix olacaq):</label>
+                <input type="text" id="note-title" placeholder="Məs: Bu gün çox gözəl idi..." style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; outline: none; margin-top: 5px; font-family: 'Poppins', sans-serif;">
             </div>
             <div style="text-align: left; margin-bottom: 20px;">
                 <label style="font-size: 0.9rem; color: #555; font-weight: 600;">Məzmun:</label>
-                <textarea id="note-content" rows="4" placeholder="Ürəyindən keçənləri yaz..."
-                    style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; outline: none; margin-top: 5px; resize: vertical; font-family: 'Poppins', sans-serif;"></textarea>
+                <textarea id="note-content" rows="4" placeholder="Ürəyindən keçənləri yaz..." style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; outline: none; margin-top: 5px; resize: vertical; font-family: 'Poppins', sans-serif;"></textarea>
             </div>
-            <button id="submit-note-btn"
-                style="width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; box-shadow: 0 5px 15px var(--primary-glow); transition: 0.3s;">Təsdiqlə
-                və Göndər</button>
+            <button id="submit-note-btn" style="width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; box-shadow: 0 5px 15px var(--primary-glow); transition: 0.3s;">Təsdiqlə və Göndər</button>
         </div>
     </div>
 
@@ -661,16 +690,10 @@
         <div class="letter-content" style="max-width: 500px; text-align: left;">
             <span class="close-letter" id="close-view-note-btn">&times;</span>
             <h2 id="view-note-title" style="font-size: 1.8rem; margin-bottom: 5px;">Başlıq</h2>
-            <p id="view-note-author"
-                style="font-style: italic; color: var(--primary); font-size: 0.95rem; font-weight: 600; margin-bottom: 20px;">
-                Hüseyn tərəfindən</p>
-            <p id="view-note-text"
-                style="white-space: pre-wrap; line-height: 1.6; font-size: 1rem; color: #333; max-height: 50vh; overflow-y: auto;">
-                Məzmun...</p>
+            <p id="view-note-author" style="font-style: italic; color: var(--primary); font-size: 0.95rem; font-weight: 600; margin-bottom: 20px;">Hüseyn tərəfindən</p>
+            <p id="view-note-text" style="white-space: pre-wrap; line-height: 1.6; font-size: 1rem; color: #333; max-height: 50vh; overflow-y: auto;">Məzmun...</p>
             <div style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 10px; text-align: right;">
-                <span id="view-note-date"
-                    style="font-size: 0.8rem; color: #888; background: #f5f5f5; padding: 5px 10px; border-radius: 15px;"><i
-                        class="far fa-clock"></i> Tarix</span>
+                <span id="view-note-date" style="font-size: 0.8rem; color: #888; background: #f5f5f5; padding: 5px 10px; border-radius: 15px;"><i class="far fa-clock"></i> Tarix</span>
             </div>
         </div>
     </div>
@@ -732,7 +755,7 @@
                         <div class="admin-section-head">
                             <div>
                                 <p class="admin-section-kicker">ÜMUMİ BAXIŞ</p>
-
+                                
                             </div>
                             <div class="admin-chip">
                                 <i class="fas fa-wand-magic-sparkles"></i>
@@ -816,8 +839,7 @@
                                             <strong id="admin-dashboard-total-images">0 şəkil</strong>
                                         </div>
                                         <div class="admin-dashboard-media-preview">
-                                            <img id="admin-dashboard-image-preview" src="assets/512.png"
-                                                alt="Son şəkil">
+                                            <img id="admin-dashboard-image-preview" src="assets/512.png" alt="Son şəkil">
                                             <div class="admin-dashboard-media-overlay">
                                                 <strong id="admin-dashboard-image-name">Şəkil yoxdur</strong>
                                                 <small id="admin-dashboard-image-date">Tarix bilinmir</small>
@@ -831,8 +853,7 @@
                                             <strong id="admin-dashboard-total-music">0 musiqi</strong>
                                         </div>
                                         <div class="admin-dashboard-media-preview admin-dashboard-media-preview--music">
-                                            <img id="admin-dashboard-music-cover" src="assets/music-cover.jpg"
-                                                alt="Son musiqi cover">
+                                            <img id="admin-dashboard-music-cover" src="assets/music-cover.jpg" alt="Son musiqi cover">
                                             <div class="admin-dashboard-media-overlay">
                                                 <strong id="admin-dashboard-music-name">Musiqi yoxdur</strong>
                                                 <small id="admin-dashboard-music-artist">Artist bilinmir</small>
@@ -869,8 +890,7 @@
                                     </div>
                                     <div class="admin-field">
                                         <label for="admin-count">Görüş Sayı</label>
-                                        <input type="number" id="admin-count" min="0" inputmode="numeric"
-                                            placeholder="Məs: 96">
+                                        <input type="number" id="admin-count" min="0" inputmode="numeric" placeholder="Məs: 96">
                                     </div>
                                 </div>
                                 <button id="update-config-btn" class="admin-btn admin-btn--primary" type="button">
@@ -912,15 +932,14 @@
                                     <i class="fas fa-images"></i>
                                     <div>
                                         <h3>Qalereya</h3>
-
+                                       
                                     </div>
                                 </div>
                                 <div class="input-group">
                                     <div class="admin-field admin-file-field">
                                         <label for="admin-file">Qalereya şəkli</label>
                                         <input type="file" id="admin-file" accept="image/*">
-                                        <small id="admin-file-meta" class="admin-file-meta">PNG, JPG, WEBP və digər
-                                            şəkillər dəstəklənir.</small>
+                                        <small id="admin-file-meta" class="admin-file-meta">PNG, JPG, WEBP və digər şəkillər dəstəklənir.</small>
                                     </div>
                                 </div>
                                 <button id="upload-image-btn" class="admin-btn admin-btn--secondary" type="button">
@@ -968,21 +987,18 @@
                                 <div class="admin-field admin-field--span-2 admin-file-field">
                                     <label for="admin-music-file">Musiqi faylı (MP3)</label>
                                     <input type="file" id="admin-music-file" accept=".mp3,audio/mpeg">
-                                    <div id="admin-music-dropzone" class="admin-dropzone" tabindex="0" role="button"
-                                        aria-label="Musiqi faylını bura at və ya seç">
+                                    <div id="admin-music-dropzone" class="admin-dropzone" tabindex="0" role="button" aria-label="Musiqi faylını bura at və ya seç">
                                         <div class="admin-dropzone-icon"><i class="fas fa-cloud-arrow-up"></i></div>
                                         <strong>MP3 faylı bura sürüklə və burax</strong>
                                         <span>Toxunub fayl seçə də bilərsən</span>
                                     </div>
-                                    <small id="admin-music-file-meta" class="admin-file-meta">Yalnız .mp3 formatı qəbul
-                                        edilir.</small>
+                                    <small id="admin-music-file-meta" class="admin-file-meta">Yalnız .mp3 formatı qəbul edilir.</small>
                                 </div>
 
                                 <div class="admin-field admin-file-field">
                                     <label for="admin-music-cover">Cover şəkli</label>
                                     <input type="file" id="admin-music-cover" accept="image/*">
-                                    <div id="admin-cover-dropzone" class="admin-dropzone admin-dropzone--cover"
-                                        tabindex="0" role="button" aria-label="Cover şəklini bura at və ya seç">
+                                    <div id="admin-cover-dropzone" class="admin-dropzone admin-dropzone--cover" tabindex="0" role="button" aria-label="Cover şəklini bura at və ya seç">
                                         <div class="admin-dropzone-icon"><i class="fas fa-image"></i></div>
                                         <strong>Cover şəklini bura sürüklə və burax</strong>
                                         <span>PNG, JPG, WEBP və digər şəkillər</span>
@@ -1010,23 +1026,22 @@
                                 <div class="admin-field admin-field--span-2">
                                     <label>Smart metadata</label>
                                     <div class="admin-smart-meta-box">
-                                        <button id="admin-auto-metadata-btn" class="admin-btn admin-btn--ghost"
-                                            type="button">
+                                        <button id="admin-auto-metadata-btn" class="admin-btn admin-btn--ghost" type="button">
                                             <i class="fas fa-wand-magic-sparkles"></i>
                                             <span>Fayldan title / artist çıxart</span>
                                         </button>
-
+                                    
                                     </div>
                                 </div>
 
                                 <div class="admin-field">
                                     <label for="admin-music-source">Yükləmə yeri</label>
                                     <select id="admin-music-source">
-                                        <option value="github">GitHub</option>
-                                        <option value="cloudinary">Cloudinary</option>
-                                        <option value="r2">Cloudflare R2</option>
+                                     <option value="github">GitHub</option>
+                                     <option value="cloudinary">Cloudinary</option>
+                                     <option value="r2">Cloudflare R2</option>
                                     </select>
-
+                                   
                                 </div>
 
                                 <div class="admin-field">
@@ -1040,8 +1055,11 @@
 
                                 <div class="admin-field admin-field--span-2">
                                     <label for="admin-lyrics-text">Sözlər</label>
-                                    <textarea id="admin-lyrics-text" rows="8"
-                                        placeholder="[00:12.00] İlk sətir&#10;[00:18.20] İkinci sətir"></textarea>
+                                    <textarea
+                                        id="admin-lyrics-text"
+                                        rows="8"
+                                        placeholder="[00:12.00] İlk sətir&#10;[00:18.20] İkinci sətir"
+                                    ></textarea>
                                 </div>
                             </div>
 
@@ -1085,8 +1103,7 @@
                                         <p>Mövcud not sisteminin pəncərəsini birbaşa aç.</p>
                                     </div>
                                 </div>
-                                <button type="button" class="admin-btn admin-btn--secondary"
-                                    id="admin-open-note-modal-secondary">
+                                <button type="button" class="admin-btn admin-btn--secondary" id="admin-open-note-modal-secondary">
                                     <i class="fas fa-pen"></i>
                                     <span>Not pəncərəsini aç</span>
                                 </button>
@@ -1116,5 +1133,4 @@
     </div>
 
 </body>
-
 </html>
