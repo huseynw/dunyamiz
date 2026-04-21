@@ -1,4 +1,4 @@
-/* Google Fonts */
+* Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Great+Vibes&display=swap');
 
 
@@ -5244,5 +5244,117 @@ body.player-expanded #page-music .page-content {
 
     body.player-visible:not(.player-expanded) #page-music .page-content {
         padding-bottom: 146px !important;
+    }
+}
+
+
+/* ========== FINAL ANDROID + PLAYER STABILITY PATCH ========== */
+html {
+    width: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+}
+
+body::before {
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background-size: cover;
+    background-position: center center;
+    transform: translateZ(0) scale(1);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+main,
+.spa-container,
+.spa-page,
+.page-content {
+    max-width: 100%;
+}
+
+.yt-player-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.yt-close-btn {
+    background: rgba(255,255,255,0.08);
+}
+
+.yt-close-btn:hover {
+    background: rgba(255,255,255,0.16);
+}
+
+.yt-active-player {
+    touch-action: pan-y;
+    transform-origin: center center !important;
+}
+
+.yt-active-player .yt-player-top,
+.yt-active-player .yt-player-body,
+.yt-active-player .yt-player-main,
+.yt-active-player .yt-lyrics-panel {
+    position: relative;
+    z-index: 2;
+}
+
+.yt-active-player.is-transitioning {
+    pointer-events: none;
+}
+
+.yt-active-player:not(.expanded) {
+    opacity: 1 !important;
+}
+
+.yt-active-player.expanded {
+    transform-origin: center center !important;
+    animation: playerExpandFromCenter 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.yt-active-player.expanded .yt-player-body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+body.player-expanded {
+    overflow: hidden;
+}
+
+@keyframes playerExpandFromCenter {
+    0% {
+        opacity: 0.92;
+        transform: scale(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (max-width: 760px) {
+    .yt-player-top {
+        grid-template-columns: 56px minmax(0, 1fr) auto auto;
+    }
+
+    .yt-player-actions {
+        gap: 6px;
+    }
+
+    .yt-player-actions .yt-mini-btn {
+        width: 40px;
+        height: 40px;
     }
 }
