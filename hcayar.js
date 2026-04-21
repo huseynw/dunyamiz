@@ -3942,7 +3942,11 @@ function initMusicPlayerEvents() {
     });
 
     dom.audio.addEventListener('timeupdate', () => {
-        if (dom.seekbar) dom.seekbar.value = dom.audio.currentTime || 0;
+        if (dom.seekbar) {
+            dom.seekbar.value = dom.audio.currentTime || 0;
+            const percent = (dom.audio.currentTime / (dom.audio.duration || 1)) * 100;
+            dom.seekbar.style.setProperty('--yt-progress', `${percent}%`);
+        }
         if (dom.currentTime) dom.currentTime.textContent = formatMusicTime(dom.audio.currentTime);
         updateSyncedLyricsByTime(dom.audio.currentTime);
         updateMediaSessionPlaybackState();
@@ -3973,6 +3977,8 @@ function initMusicPlayerEvents() {
 
     dom.seekbar?.addEventListener('input', () => {
         dom.audio.currentTime = Number(dom.seekbar.value);
+        const percent = (dom.audio.currentTime / (dom.audio.duration || 1)) * 100;
+        dom.seekbar.style.setProperty('--yt-progress', `${percent}%`);
         updateSyncedLyricsByTime(dom.audio.currentTime);
     });
 
