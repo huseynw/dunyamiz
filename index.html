@@ -426,7 +426,52 @@
                     webkit-playsinline="true"
                     crossorigin="anonymous"
                 ></audio>
-                <div id="yt-active-player" class="yt-active-player player-mini" style="display:none;">
+                            </section>
+            <!-- Page 4: Məktublar (Letters) -->
+            <section class="spa-page" id="page-letters">
+                <div class="page-content">
+                    <h2 class="page-title">Məni hiss etdiyində...</h2>
+                    <div class="envelopes-grid">
+                        <div class="envelope" id="env-miss">
+                            <i class="fas fa-envelope-open-text"></i>
+                            <span>Darıxanda</span>
+                        </div>
+                        <div class="envelope" id="env-sad">
+                            <i class="fas fa-cloud-rain"></i>
+                            <span>Kefin olmayanda</span>
+                        </div>
+                        <div class="envelope" id="env-happy">
+                            <i class="fas fa-sun"></i>
+                            <span>Xoşbəxt olanda</span>
+                        </div>
+                        <div class="envelope" id="env-us">
+                            <i class="fas fa-heart"></i>
+                            <span>Bizim üçün</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Love Note -->
+                    <div class="love-note-card">
+                        <div class="note-icon">💌</div>
+                        <p class="note-text">Hər məktub sənə ürəyimdən yazılıb.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="spa-page" id="page-notes">
+                <div class="page-content">
+                    <h2 class="page-title">Notlarımız</h2>
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <button id="open-add-note-btn" class="custom-btn" style="background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; box-shadow: 0 5px 15px var(--primary-glow); transition: 0.3s;"><i class="fas fa-plus"></i> Yeni Not Əlavə Et</button>
+                    </div>
+                    <div class="notes-grid" id="notes-container">
+                        <p style="text-align:center; opacity:0.7;">Notlar yüklənir...</p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+<div id="yt-active-player" class="yt-active-player player-mini" style="display:none;">
                     <div class="yt-player-bg" id="yt-player-bg"></div>
                     <canvas class="yt-waveform" id="yt-waveform"></canvas>
                     <div class="yt-player-top" data-player-expand="true">
@@ -520,50 +565,6 @@
                         </aside>
                     </div>
                 </div>
-            </section>
-            <!-- Page 4: Məktublar (Letters) -->
-            <section class="spa-page" id="page-letters">
-                <div class="page-content">
-                    <h2 class="page-title">Məni hiss etdiyində...</h2>
-                    <div class="envelopes-grid">
-                        <div class="envelope" id="env-miss">
-                            <i class="fas fa-envelope-open-text"></i>
-                            <span>Darıxanda</span>
-                        </div>
-                        <div class="envelope" id="env-sad">
-                            <i class="fas fa-cloud-rain"></i>
-                            <span>Kefin olmayanda</span>
-                        </div>
-                        <div class="envelope" id="env-happy">
-                            <i class="fas fa-sun"></i>
-                            <span>Xoşbəxt olanda</span>
-                        </div>
-                        <div class="envelope" id="env-us">
-                            <i class="fas fa-heart"></i>
-                            <span>Bizim üçün</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Additional Love Note -->
-                    <div class="love-note-card">
-                        <div class="note-icon">💌</div>
-                        <p class="note-text">Hər məktub sənə ürəyimdən yazılıb.</p>
-                    </div>
-                </div>
-            </section>
-            <section class="spa-page" id="page-notes">
-                <div class="page-content">
-                    <h2 class="page-title">Notlarımız</h2>
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <button id="open-add-note-btn" class="custom-btn" style="background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; box-shadow: 0 5px 15px var(--primary-glow); transition: 0.3s;"><i class="fas fa-plus"></i> Yeni Not Əlavə Et</button>
-                    </div>
-                    <div class="notes-grid" id="notes-container">
-                        <p style="text-align:center; opacity:0.7;">Notlar yüklənir...</p>
-                    </div>
-                </div>
-            </section>
-
-        </div>
 
         <!-- Glassmorphism Navigation Bar -->
         <nav class="spa-navbar">
