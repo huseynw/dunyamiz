@@ -5300,7 +5300,7 @@ main,
 
 .yt-active-player {
     touch-action: pan-y;
-    transform-origin: center center !important;
+    transform-origin: center bottom !important;
 }
 
 .yt-active-player .yt-player-top,
@@ -5320,8 +5320,14 @@ main,
 }
 
 .yt-active-player.expanded {
-    transform-origin: center center !important;
-    animation: playerExpandFromCenter 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transform-origin: center bottom !important;
+    animation: none !important;
+}
+
+.yt-active-player.is-transitioning.expanded,
+.yt-active-player.is-transitioning.player-mini,
+.yt-active-player.player-collapsing {
+    animation: none !important;
 }
 
 .yt-active-player.expanded .yt-player-body {
@@ -5329,19 +5335,12 @@ main,
     -webkit-overflow-scrolling: touch;
 }
 
-body.player-expanded {
+.yt-active-player.player-mini .yt-player-body {
     overflow: hidden;
 }
 
-@keyframes playerExpandFromCenter {
-    0% {
-        opacity: 0.92;
-        transform: scale(0.96);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
+body.player-expanded {
+    overflow: hidden;
 }
 
 @media (max-width: 760px) {
