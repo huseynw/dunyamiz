@@ -4614,7 +4614,7 @@ body.dark-ui .theme-switch-btn {
     height: 200vmax;
     border-radius: 0;
     background: radial-gradient(rgba(255,255,255,0.14), rgba(0,0,0,0.96) 35%);
-    position: absolute;
+    position: fixed; /* <--- BURA DİQQƏT: absolute əvəzinə fixed olmalıdır */
     left: 50%;
     top: 50%;
     translate: -50% -65%;
