@@ -16,8 +16,11 @@
     <meta name="twitter:title" content="Hüseyn və Cəmalənin Dünyası">
     <meta name="twitter:description" content="Bizim dünyamıza xoş gəldin.">
     <meta name="twitter:image" content="https://www.dunyamiz.me/assets/192.png">
-    <meta name="robots" content="index,follow,max-image-preview:large,max-video-preview:-1,max-snippet:-1">
+    <meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <link rel="canonical" href="https://www.dunyamiz.me/">
     <link rel="stylesheet" href="hcstil.css">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
@@ -28,7 +31,13 @@
     <link rel="icon" type="image/png" sizes="512x512" href="assets/512.png">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Dünyamız">
-    <script src="gsap.min.js"></script>
+    <script defer src="gsap.min.js"></script>
+    <script>
+        window.__SITE_CONFIG__ = Object.freeze({
+            SUPABASE_URL: "https://fctwtcakequqvvmjgbhr.supabase.co",
+            SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjdHd0Y2FrZXF1cXZ2bWpnYmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjE2NzYsImV4cCI6MjA5MTczNzY3Nn0.EE7T4HgrPI5c7ChYu8VDtoQ3oXflkhKDE-wkFckrCeY"
+        });
+    </script>
     <link rel="apple-touch-icon" href="assets/192.png">
     <meta name="theme-color" content="#ff4d6d">
 
@@ -622,7 +631,7 @@
         </nav>
     </main>
 
-    <script src="hcayar.js"></script>
+    <script defer src="hcayar.js"></script>
     
     <!-- Lightbox -->
     <div id="lightbox" class="lightbox">
