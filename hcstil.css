@@ -3483,9 +3483,7 @@ header {
 
 
 .yt-active-player.expanded .yt-player-body {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
-    gap: 18px;
+    display: block;
 }
 
 
@@ -3654,6 +3652,56 @@ header {
     color: rgba(255, 255, 255, 0.8);
 }
 
+.yt-player-tabs {
+    margin-top: 18px;
+}
+
+.yt-player-tab-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.yt-player-tab-btn {
+    min-height: 52px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.72);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: 0.25s ease;
+    cursor: pointer;
+}
+
+.yt-player-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.yt-player-tab-btn.is-active,
+.yt-player-tab-btn[aria-selected="true"] {
+    background: linear-gradient(135deg, rgba(255, 77, 109, 0.24), rgba(255, 255, 255, 0.08));
+    border-color: rgba(255, 77, 109, 0.34);
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(255, 77, 109, 0.16);
+}
+
+.yt-player-tab-panels {
+    position: relative;
+}
+
+.yt-player-tab-panel[hidden] {
+    display: none !important;
+}
+
 .yt-mode-btn {
     position: relative;
 }
@@ -3687,7 +3735,7 @@ header {
 }
 
 .yt-up-next-panel {
-    margin-top: 18px;
+    margin-top: 0;
     padding: 16px;
     border-radius: 20px;
     background: rgba(255, 255, 255, 0.05);
@@ -3814,20 +3862,13 @@ header {
     padding: 18px;
     display: flex;
     flex-direction: column;
-    min-height: 100%;
-    transition: transform 0.28s ease, opacity 0.28s ease, background 1s ease, box-shadow 0.5s ease;
+    min-height: 0;
+    transition: background 1s ease, box-shadow 0.5s ease;
     background-size: 200% 200%;
 }
 
 
 .yt-lyrics-panel.lyrics-hidden {
-    opacity: 0;
-    transform: translateX(22px);
-    pointer-events: none;
-}
-
-
-.yt-active-player.expanded .yt-lyrics-panel.lyrics-hidden {
     display: none;
 }
 
@@ -3922,7 +3963,7 @@ header {
 
 @media (max-width: 940px) {
     .yt-active-player.expanded .yt-player-body {
-        grid-template-columns: 1fr;
+        display: block;
     }
 }
 
@@ -3973,9 +4014,15 @@ header {
     }
 
     .yt-player-main,
-    .yt-lyrics-panel {
+    .yt-lyrics-panel,
+    .yt-up-next-panel {
         border-radius: 20px;
         padding: 16px;
+    }
+
+    .yt-player-tab-btn {
+        min-height: 50px;
+        font-size: 0.92rem;
     }
 
     .yt-rotating-disc {
@@ -4049,6 +4096,17 @@ header {
         grid-template-columns: 16px minmax(0, 1fr) 38px;
         gap: 8px;
         padding: 12px;
+    }
+
+    .yt-player-tab-buttons {
+        gap: 8px;
+    }
+
+    .yt-player-tab-btn {
+        min-height: 48px;
+        padding: 0 10px;
+        font-size: 0.88rem;
+        gap: 8px;
     }
 
     .yt-control-btn {
