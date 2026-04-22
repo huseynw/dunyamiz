@@ -1,0 +1,22 @@
+{
+  "id": "kim-qalacaq-hiss-x-jeyhun-samedov-1776884747514",
+  "title": "Kim qalacaq",
+  "artist": "Hiss x Jeyhun Samedov",
+  "lyrics": {
+    "type": "plain",
+    "text": "[Bənd 1]\nBu dünyadan, görən, bizə\nNə yetəcək? Nə qalacaq?\nÖzüm sındıran könlünü\nMən almasam, kim alacaq?\n\nBu dünyadan, görən, bizə\nNə yetəcək? Nə qalacaq?\nÖzüm sındıran könlünü\nMən almasam, kim alacaq?\n\n[Nəqərat]\nKaş qəlbimiz bir döyünə\nGəl uçaq eşq göyünə\nBu sevgisiz ürəyinə\nMən dolmasam, kim dolacaq?\n\nBir döyünə\nGəl uçaq eşq göyünə\nBu sevgisiz ürəyinə\nMən dolmasam, kim dolacaq?\n\n[Keçid]\nMən dolmasam, kim dolacaq?\nMən dolmasam, kim dolacaq?\nMən dolmasam, kim dolacaq?\n\n[Bənd 2]\nGecə-gündüz oda yanan\nGözləri yollarda qalan\nHəsrətindən gültək solan\nMən olmasam, kim olacaq?\n\nGecə-gündüz oda yanan\nGözləri yollarda qalan\nHəsrətindən gültək solan\nMən olmasam, kim olacaq?\n\n[Nəqərat]\nKaş qəlbimiz bir döyünə\nGəl uçaq eşq göyünə\nBu sevgisiz ürəyinə\nMən dolmasam, kim dolacaq?\n\nBir döyünə\nGəl uçaq eşq göyünə\nBu sevgisiz ürəyinə\nMən dolmasam, kim dolacaq?\n\nBir döyünə\nGəl uçaq eşq göyünə\nBu sevgisiz ürəyinə\nMən dolmasam, kim dolacaq?"
+  },
+  "uploadedAt": "2026-04-22T19:05:47.514Z",
+  "provider": "r2",
+  "audio": "https://cdn.dunyamiz.me/music/kim-qalacaq-hiss-x-jeyhun-samedov-1776884747514.mp3",
+  "cover": "https://cdn.dunyamiz.me/covers/kim-qalacaq-hiss-x-jeyhun-samedov-1776884747514.jpg",
+  "storage": {
+    "provider": "r2",
+    "bucket": "dunyamiz",
+    "publicBaseUrl": "https://cdn.dunyamiz.me",
+    "audioKey": "music/kim-qalacaq-hiss-x-jeyhun-samedov-1776884747514.mp3",
+    "coverKey": "covers/kim-qalacaq-hiss-x-jeyhun-samedov-1776884747514.jpg",
+    "mode": "direct-browser-upload",
+    "finalizedAt": "2026-04-22T19:05:50.830Z"
+  }
+}
