@@ -6214,10 +6214,49 @@ body.player-expanded #page-music .page-content {
 
 
 
-@keyframes playerExpandSmooth {
+@keyframes ytMiniPlayerIn {
+    0% {
+        opacity: 0;
+        transform: translate3d(-50%, 120%, 0) scale(0.94);
+        filter: blur(10px);
+    }
+
+    60% {
+        opacity: 1;
+        transform: translate3d(-50%, -6px, 0) scale(1.015);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(-50%, 0, 0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes ytMiniPlayerOut {
+    0% {
+        opacity: 1;
+        transform: translate3d(-50%, 0, 0) scale(1);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate3d(-50%, 120%, 0) scale(0.94);
+        filter: blur(8px);
+    }
+}
+
+@keyframes ytExpandToFull {
     0% {
         opacity: 0.96;
-        transform: translate3d(0, 16px, 0) scale(0.985);
+        transform: translate3d(-50%, 18px, 0) scale(0.985);
+    }
+
+    55% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1.01);
     }
 
     100% {
@@ -6226,24 +6265,54 @@ body.player-expanded #page-music .page-content {
     }
 }
 
-@keyframes playerCollapseSmooth {
+@keyframes ytCollapseToMini {
     0% {
-        opacity: 0.98;
+        opacity: 1;
         transform: translate3d(0, 0, 0) scale(1);
     }
 
     100% {
         opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
+        transform: translate3d(-50%, 0, 0) scale(1);
     }
+}
+
+.yt-active-player.player-appearing {
+    animation: ytMiniPlayerIn 0.65s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+
+.yt-active-player.player-hiding {
+    animation: ytMiniPlayerOut 0.38s cubic-bezier(0.4, 0, 1, 1) both !important;
 }
 
 .yt-active-player.is-transitioning.expanded {
-    animation: playerExpandSmooth 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: ytExpandToFull 0.52s cubic-bezier(0.19, 1, 0.22, 1) both !important;
 }
 
-.yt-active-player.is-transitioning.player-mini {
-    animation: playerCollapseSmooth 0.28s ease;
+.yt-active-player.is-transitioning.player-mini,
+.yt-active-player.player-collapsing {
+    animation: ytCollapseToMini 0.34s cubic-bezier(0.4, 0, 0.2, 1) both !important;
+}
+
+@keyframes ytMiniPlayerGlow {
+    0%,
+    100% {
+        box-shadow:
+            0 15px 40px rgba(0, 0, 0, 0.40),
+            0 0 20px rgba(255, 77, 109, 0.15);
+        border-color: rgba(255, 77, 109, 0.20);
+    }
+
+    50% {
+        box-shadow:
+            0 20px 50px rgba(0, 0, 0, 0.52),
+            0 0 35px rgba(255, 77, 109, 0.35);
+        border-color: rgba(255, 77, 109, 0.45);
+    }
+}
+
+.yt-active-player.player-mini.is-playing {
+    animation: ytMiniPlayerGlow 3s ease-in-out infinite;
 }
 
 /* ========== FINAL FLOATING PLAYER FIX ========== */
@@ -6432,8 +6501,10 @@ main,
 
 .yt-active-player.is-transitioning.expanded,
 .yt-active-player.is-transitioning.player-mini,
-.yt-active-player.player-collapsing {
-    animation: none !important;
+.yt-active-player.player-collapsing,
+.yt-active-player.player-appearing,
+.yt-active-player.player-hiding {
+    animation-play-state: running !important;
 }
 
 .yt-active-player.expanded .yt-player-body {
