@@ -614,34 +614,53 @@
                                 <span id="volume-value">85%</span>
                             </div>
 
-                            <section class="yt-up-next-panel" aria-label="Sonrakı mahnılar">
-                                <div class="yt-up-next-head">
-                                    <div>
-                                        <span class="yt-player-kicker">UP NEXT</span>
-                                        <strong>Sonrakı Mahnılar</strong>
-                                    </div>
-                                    <small id="yt-up-next-count">0 mahnı</small>
+                            <div class="yt-player-tabs">
+                                <div class="yt-player-tab-buttons" role="tablist" aria-label="Player bölmələri">
+                                    <button id="yt-tab-lyrics" class="yt-player-tab-btn" type="button" role="tab" aria-selected="true" aria-controls="yt-lyrics-panel-wrap" data-player-tab="lyrics">
+                                        <i class="fas fa-microphone-lines"></i>
+                                        <span>Sözlər</span>
+                                    </button>
+                                    <button id="yt-tab-upnext" class="yt-player-tab-btn" type="button" role="tab" aria-selected="false" aria-controls="yt-up-next-panel-wrap" data-player-tab="upnext">
+                                        <i class="fas fa-list-ul"></i>
+                                        <span>Sıradakı</span>
+                                    </button>
                                 </div>
-                                <div id="yt-up-next-list" class="yt-up-next-list">
-                                    <div class="yt-up-next-empty">Növbədə mahnı yoxdur.</div>
-                                </div>
-                            </section>
-                        </div>
 
-                        <aside id="yt-lyrics-panel" class="yt-lyrics-panel lyrics-hidden" aria-hidden="true">
-                            <div class="yt-lyrics-head">
-                                <div>
-                                    <span class="yt-player-kicker">SYNCED LYRICS</span>
-                                    <strong>Sözlər</strong>
+                                <div class="yt-player-tab-panels">
+                                    <div id="yt-lyrics-panel-wrap" class="yt-player-tab-panel" data-tab-panel="lyrics">
+                                        <aside id="yt-lyrics-panel" class="yt-lyrics-panel" aria-hidden="false">
+                                            <div class="yt-lyrics-head">
+                                                <div>
+                                                    <span class="yt-player-kicker">SYNCED LYRICS</span>
+                                                    <strong>Sözlər</strong>
+                                                </div>
+                                                <button class="yt-mini-btn btn-close-lyrics" type="button" aria-label="Sözləri bağla">
+                                                    <i class="fas fa-xmark"></i>
+                                                </button>
+                                            </div>
+                                            <div id="yt-lyrics-container" class="yt-lyrics-container">
+                                                <div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>
+                                            </div>
+                                        </aside>
+                                    </div>
+
+                                    <div id="yt-up-next-panel-wrap" class="yt-player-tab-panel" data-tab-panel="upnext" hidden>
+                                        <section class="yt-up-next-panel" aria-label="Sonrakı mahnılar">
+                                            <div class="yt-up-next-head">
+                                                <div>
+                                                    <span class="yt-player-kicker">UP NEXT</span>
+                                                    <strong>Sonrakı Mahnılar</strong>
+                                                </div>
+                                                <small id="yt-up-next-count">0 mahnı</small>
+                                            </div>
+                                            <div id="yt-up-next-list" class="yt-up-next-list">
+                                                <div class="yt-up-next-empty">Növbədə mahnı yoxdur.</div>
+                                            </div>
+                                        </section>
+                                    </div>
                                 </div>
-                                <button class="yt-mini-btn btn-close-lyrics" type="button" aria-label="Sözləri bağla">
-                                    <i class="fas fa-xmark"></i>
-                                </button>
                             </div>
-                            <div id="yt-lyrics-container" class="yt-lyrics-container">
-                                <div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>
-                            </div>
-                        </aside>
+                        </div>
                     </div>
                 </div>
 
