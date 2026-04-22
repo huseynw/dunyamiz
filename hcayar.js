@@ -2594,17 +2594,34 @@ function syncPlayerExpandedState() {
     syncFloatingPlayerState();
 }
 
-function closeActivePlayer(options = {}) {
+function showActivePlayerWithAnimation() {
+    const { activePlayer } = getMusicDom();
+    if (!activePlayer) return;
+
+    activePlayer.hidden = false;
+    activePlayer.style.display = 'block';
+    activePlayer.style.opacity = '';
+    activePlayer.style.transform = '';
+    activePlayer.style.transition = '';
+    activePlayer.classList.remove('player-hiding');
+    activePlayer.classList.add('player-appearing');
+
+    window.clearTimeout(activePlayer.__appearTimer);
+    activePlayer.__appearTimer = window.setTimeout(() => {
+        activePlayer.classList.remove('player-appearing');
+    }, 700);
+
+    syncPlayerExpandedState();
+}
+
+function hideActivePlayerWithAnimation(options = {}) {
     const { resetTrack = true } = options;
     const { activePlayer, audio, lyricsPanel } = getMusicDom();
     if (!activePlayer) return;
 
     activePlayer.classList.remove('expanded', 'lyrics-open', 'is-transitioning');
-    activePlayer.classList.add('player-mini');
-    activePlayer.style.display = 'none';
-    activePlayer.style.opacity = '';
-    activePlayer.style.transform = '';
-    activePlayer.style.transition = '';
+    activePlayer.classList.add('player-mini', 'player-hiding');
+    activePlayer.classList.remove('player-appearing');
 
     if (lyricsPanel) {
         lyricsPanel.classList.add('lyrics-hidden');
@@ -2622,6 +2639,21 @@ function closeActivePlayer(options = {}) {
     updateMusicPlayButtonState();
     updateMediaSessionPlaybackState();
     syncPlayerExpandedState();
+
+    window.clearTimeout(activePlayer.__hideTimer);
+    activePlayer.__hideTimer = window.setTimeout(() => {
+        activePlayer.style.display = 'none';
+        activePlayer.hidden = true;
+        activePlayer.classList.remove('player-hiding');
+        activePlayer.style.opacity = '';
+        activePlayer.style.transform = '';
+        activePlayer.style.transition = '';
+        syncPlayerExpandedState();
+    }, 420);
+}
+
+function closeActivePlayer(options = {}) {
+    hideActivePlayerWithAnimation(options);
 }
 window.closeActivePlayer = closeActivePlayer;
 
@@ -3162,13 +3194,14 @@ async function updateMusicCover(track) {
 }
 
 function updateMusicPlayButtonState() {
-    const { audio, playBtnFull, playBtnMini, rotatingDisc } = getMusicDom();
+    const { audio, playBtnFull, playBtnMini, rotatingDisc, activePlayer } = getMusicDom();
     if (!audio) return;
 
     const icon = audio.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
     if (playBtnFull) playBtnFull.innerHTML = icon;
     if (playBtnMini) playBtnMini.innerHTML = icon;
     if (rotatingDisc) rotatingDisc.classList.toggle('playing', !audio.paused);
+    if (activePlayer) activePlayer.classList.toggle('is-playing', !audio.paused);
 }
 
 function updateVolumeUi(value) {
@@ -3499,8 +3532,7 @@ async function openMusicTrack(index, options = {}) {
     runMorphTransition(track);
 
     if (dom.activePlayer) {
-        dom.activePlayer.style.display = 'block';
-        syncFloatingPlayerState();
+        showActivePlayerWithAnimation();
         setPlayerExpanded(wasExpanded);
 
         if (wasExpanded && wasLyricsOpen) {
