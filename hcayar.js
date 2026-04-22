@@ -2546,6 +2546,10 @@ function getMusicDom() {
         expandHitbox: document.getElementById('yt-expand-hitbox'),
         minimizeBtn: document.getElementById('yt-minimize-btn'),
         lyricsToggle: document.getElementById('yt-lyrics-toggle'),
+        tabLyricsBtn: document.getElementById('yt-tab-lyrics'),
+        tabUpNextBtn: document.getElementById('yt-tab-upnext'),
+        lyricsTabPanel: document.getElementById('yt-lyrics-panel-wrap'),
+        upNextTabPanel: document.getElementById('yt-up-next-panel-wrap'),
         closeBtnMini: document.getElementById('yt-close-btn-mini'),
         closeBtnFull: document.getElementById('yt-close-btn-full'),
         closeLyricsBtn: document.querySelector('.btn-close-lyrics'),
@@ -2627,6 +2631,7 @@ function hideActivePlayerWithAnimation(options = {}) {
         lyricsPanel.classList.add('lyrics-hidden');
         lyricsPanel.setAttribute('aria-hidden', 'true');
     }
+    setPlayerTab('lyrics');
 
     if (audio) {
         audio.pause();
@@ -2670,9 +2675,7 @@ function setPlayerExpanded(expanded) {
         activePlayer.classList.toggle('player-mini', !expanded);
 
         if (!expanded && lyricsPanel) {
-            lyricsPanel.classList.add('lyrics-hidden');
-            activePlayer.classList.remove('lyrics-open');
-            lyricsPanel.setAttribute('aria-hidden', 'true');
+            setPlayerTab('lyrics');
         }
 
         updateLyricsToggleState();
@@ -2696,19 +2699,75 @@ window.togglePlayerMode = function(forceExpanded) {
     setPlayerExpanded(expanded);
 };
 
+
+function setPlayerTab(tabName = 'lyrics') {
+    const dom = getMusicDom();
+    const {
+        activePlayer,
+        lyricsPanel,
+        lyricsToggle,
+        tabLyricsBtn,
+        tabUpNextBtn,
+        lyricsTabPanel,
+        upNextTabPanel
+    } = dom;
+
+    const resolvedTab = tabName === 'upnext' ? 'upnext' : 'lyrics';
+    window.currentPlayerTab = resolvedTab;
+
+    if (lyricsTabPanel) {
+        lyricsTabPanel.hidden = resolvedTab !== 'lyrics';
+    }
+
+    if (upNextTabPanel) {
+        upNextTabPanel.hidden = resolvedTab !== 'upnext';
+    }
+
+    if (tabLyricsBtn) {
+        const isActive = resolvedTab === 'lyrics';
+        tabLyricsBtn.classList.toggle('is-active', isActive);
+        tabLyricsBtn.setAttribute('aria-selected', String(isActive));
+    }
+
+    if (tabUpNextBtn) {
+        const isActive = resolvedTab === 'upnext';
+        tabUpNextBtn.classList.toggle('is-active', isActive);
+        tabUpNextBtn.setAttribute('aria-selected', String(isActive));
+    }
+
+    if (lyricsPanel) {
+        const lyricsHidden = resolvedTab !== 'lyrics';
+        lyricsPanel.classList.toggle('lyrics-hidden', lyricsHidden);
+        lyricsPanel.setAttribute('aria-hidden', String(lyricsHidden));
+    }
+
+    if (activePlayer) {
+        activePlayer.classList.toggle('lyrics-open', resolvedTab === 'lyrics');
+    }
+
+    if (lyricsToggle) {
+        const isLyrics = resolvedTab === 'lyrics';
+        lyricsToggle.classList.toggle('is-open', isLyrics);
+        lyricsToggle.setAttribute('aria-label', isLyrics ? 'Sözlər açıqdır' : 'Sözləri aç');
+    }
+}
+
+window.setPlayerTab = setPlayerTab;
+
 function updateLyricsToggleState() {
-    const { activePlayer, lyricsToggle, lyricsPanel } = getMusicDom();
-    if (!activePlayer || !lyricsToggle || !lyricsPanel) return;
+    const { activePlayer, lyricsToggle } = getMusicDom();
+    if (!activePlayer || !lyricsToggle) return;
 
     const isExpanded = activePlayer.classList.contains('expanded');
-    const isOpen = !lyricsPanel.classList.contains('lyrics-hidden');
-    lyricsToggle.classList.toggle('is-open', isOpen && isExpanded);
-    lyricsToggle.setAttribute('aria-label', isOpen ? 'Sözləri bağla' : 'Sözləri aç');
+    const activeTab = window.currentPlayerTab === 'upnext' ? 'upnext' : 'lyrics';
+
+    lyricsToggle.classList.toggle('is-open', isExpanded && activeTab === 'lyrics');
+    lyricsToggle.setAttribute('aria-label', activeTab === 'lyrics' ? 'Sözlər açıqdır' : 'Sözləri aç');
 }
 
 window.toggleLyricsPanel = function(forceOpen) {
-    const { activePlayer, lyricsPanel } = getMusicDom();
-    if (!activePlayer || !lyricsPanel) return;
+    const { activePlayer } = getMusicDom();
+    if (!activePlayer) return;
 
     if (!activePlayer.classList.contains('expanded')) {
         setPlayerExpanded(true);
@@ -2716,11 +2775,9 @@ window.toggleLyricsPanel = function(forceOpen) {
 
     const shouldOpen = typeof forceOpen === 'boolean'
         ? forceOpen
-        : lyricsPanel.classList.contains('lyrics-hidden');
+        : window.currentPlayerTab !== 'lyrics';
 
-    lyricsPanel.classList.toggle('lyrics-hidden', !shouldOpen);
-    activePlayer.classList.toggle('lyrics-open', shouldOpen);
-    lyricsPanel.setAttribute('aria-hidden', String(!shouldOpen));
+    setPlayerTab(shouldOpen ? 'lyrics' : 'upnext');
     updateLyricsToggleState();
 };
 
@@ -3465,7 +3522,8 @@ async function openMusicTrack(index, options = {}) {
     if (!track || !dom.audio) return;
 
     const wasExpanded = dom.activePlayer?.classList.contains('expanded') || false;
-    const wasLyricsOpen = dom.activePlayer?.classList.contains('lyrics-open') || false;
+    const previousTab = window.currentPlayerTab === 'upnext' ? 'upnext' : 'lyrics';
+    const wasLyricsOpen = previousTab === 'lyrics';
 
     const mainAudio = document.getElementById("audio");
 
@@ -3535,12 +3593,11 @@ async function openMusicTrack(index, options = {}) {
         showActivePlayerWithAnimation();
         setPlayerExpanded(wasExpanded);
 
-        if (wasExpanded && wasLyricsOpen) {
-            window.toggleLyricsPanel(true);
-        } else if (dom.lyricsPanel) {
-            dom.lyricsPanel.classList.add('lyrics-hidden');
-            dom.activePlayer.classList.remove('lyrics-open');
-            dom.lyricsPanel.setAttribute('aria-hidden', 'true');
+        if (wasExpanded) {
+            setPlayerTab(wasLyricsOpen ? 'lyrics' : 'upnext');
+            updateLyricsToggleState();
+        } else {
+            setPlayerTab('lyrics');
             updateLyricsToggleState();
         }
 
@@ -3674,6 +3731,7 @@ let ytWaveDataArray = null;
 let ytWaveEnabled = false;
 let ytWaveInitialized = false;
 let ytWaveFallbackMode = false;
+window.currentPlayerTab = 'lyrics';
 
 async function ensureYTAudioReady() {
     const { audio } = getMusicDom();
@@ -3879,6 +3937,7 @@ function initMusicPlayerEvents() {
     if (!dom.activePlayer || !dom.audio) return;
     if (dom.activePlayer.dataset.bound === '1') return;
     dom.activePlayer.dataset.bound = '1';
+    setPlayerTab(window.currentPlayerTab || 'lyrics');
     drawYTWaveform();
     window.addEventListener('resize', resizeYTWaveform);
     const togglePlay = async () => {
@@ -3937,6 +3996,24 @@ function initMusicPlayerEvents() {
         window.toggleLyricsPanel();
     });
 
+    dom.tabLyricsBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!dom.activePlayer?.classList.contains('expanded')) {
+            window.togglePlayerMode(true);
+        }
+        setPlayerTab('lyrics');
+        updateLyricsToggleState();
+    });
+
+    dom.tabUpNextBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!dom.activePlayer?.classList.contains('expanded')) {
+            window.togglePlayerMode(true);
+        }
+        setPlayerTab('upnext');
+        updateLyricsToggleState();
+    });
+
     dom.closeBtnMini?.addEventListener('click', (e) => {
         e.stopPropagation();
         closeActivePlayer();
@@ -3949,7 +4026,8 @@ function initMusicPlayerEvents() {
 
     dom.closeLyricsBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
-        window.toggleLyricsPanel(false);
+        setPlayerTab('upnext');
+        updateLyricsToggleState();
     });
 
     dom.playBtnFull?.addEventListener('click', (e) => {
