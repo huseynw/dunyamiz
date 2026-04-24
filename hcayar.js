@@ -1205,31 +1205,51 @@ updateMeetingTimer();
 function setupMediaSession() {
     if (!('mediaSession' in navigator)) return;
 
+    navigator.mediaSession.setActionHandler('play', async () => {
+        const dom = typeof getMusicDom === 'function' ? getMusicDom() : null;
+        const targetAudio = dom?.audio?.src ? dom.audio : audio;
+        if (!targetAudio) return;
+
+        try {
+            await targetAudio.play();
+            updateMusicPlayButtonState?.();
+            updateMediaSessionPlaybackState?.();
+        } catch (err) {
+            console.error('MediaSession play error:', err);
+        }
+    });
+
+    navigator.mediaSession.setActionHandler('pause', () => {
+        const dom = typeof getMusicDom === 'function' ? getMusicDom() : null;
+        const targetAudio = dom?.audio?.src ? dom.audio : audio;
+        if (!targetAudio) return;
+
+        targetAudio.pause();
+        updateMusicPlayButtonState?.();
+        updateMediaSessionPlaybackState?.();
+    });
+
     navigator.mediaSession.setActionHandler('nexttrack', () => {
-        audio.currentTime = 0;
-        audio.play();
+        if (typeof playNextMusic === 'function') {
+            playNextMusic();
+        }
     });
 
     navigator.mediaSession.setActionHandler('previoustrack', () => {
-        audio.currentTime = 0;
-        audio.play();
+        if (typeof playPrevMusic === 'function') {
+            playPrevMusic();
+        }
     });
 
-    // 🔥 ƏSAS FIX
-    navigator.mediaSession.setActionHandler('seekforward', () => {
-        audio.currentTime = 0;
-        audio.play();
-    });
-
-    navigator.mediaSession.setActionHandler('seekbackward', () => {
-        audio.currentTime = 0;
-        audio.play();
-    });
+    navigator.mediaSession.setActionHandler('seekforward', null);
+    navigator.mediaSession.setActionHandler('seekbackward', null);
 
     navigator.mediaSession.setActionHandler('seekto', (details) => {
-        if (details.seekTime != null) {
-            audio.currentTime = details.seekTime;
-        }
+        const dom = typeof getMusicDom === 'function' ? getMusicDom() : null;
+        const targetAudio = dom?.audio?.src ? dom.audio : audio;
+        if (!targetAudio || details.seekTime == null) return;
+
+        targetAudio.currentTime = details.seekTime;
     });
 }
 let shouldResumeMainAudio = false;
