@@ -4532,7 +4532,24 @@ async function sendTelegramMessage(text, keepalive = false) {
         console.error('Telegram bildiriş xətası:', e);
     }
 }
+function getDeviceInfo() {
+    const ua = navigator.userAgent || "Naməlum";
+    const platform = navigator.platform || "Naməlum";
+    const language = navigator.language || "Naməlum";
 
+    let device = /Mobi|Android|iPhone|iPad|iPod/i.test(ua) ? "Telefon / Tablet" : "Kompüter";
+    let browser = "Naməlum brauzer";
+
+    if (/Edg/i.test(ua)) browser = "Microsoft Edge";
+    else if (/Chrome/i.test(ua)) browser = "Google Chrome";
+    else if (/Safari/i.test(ua)) browser = "Safari";
+    else if (/Firefox/i.test(ua)) browser = "Firefox";
+
+    return `📱 Cihaz: ${device}
+🌐 Brauzer: ${browser}
+💻 Platforma: ${platform}
+🗣 Dil: ${language}`;
+}
 async function initAnalytics() {
     try {
         const response = await fetch('https://api.ipify.org?format=json');
@@ -4540,7 +4557,10 @@ async function initAnalytics() {
         AppState.visitorIp = data.ip || 'Naməlum IP';
 
         await sendTelegramMessage(
-            `🟢 Sayta giriş oldu!\n📍 IP: ${AppState.visitorIp}\n⏰ Vaxt: ${new Date().toLocaleString('az-AZ')}`
+            `🟢 Sayta giriş oldu!
+        📍 IP: ${AppState.visitorIp}
+        ${getDeviceInfo()}
+        ⏰ Vaxt: ${new Date().toLocaleString('az-AZ')}`
         );
     } catch (e) {
         console.error('IP alma xətası:', e);
