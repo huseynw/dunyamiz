@@ -11,7 +11,7 @@ const config = {
 const SITE_RUNTIME_CONFIG = window.__SITE_CONFIG__ || {};
 const SUPABASE_URL = SITE_RUNTIME_CONFIG.SUPABASE_URL || "https://fctwtcakequqvvmjgbhr.supabase.co";
 const SUPABASE_ANON_KEY = SITE_RUNTIME_CONFIG.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjdHd0Y2FrZXF1cXZ2bWpnYmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjE2NzYsImV4cCI6MjA5MTczNzY3Nn0.EE7T4HgrPI5c7ChYu8VDtoQ3oXflkhKDE-wkFckrCeY";
-let siteSettingsLoaded = false;
+let siteSettingsLoaded = false;f
 
 async function loadSiteSettings(force = false) {
     if (siteSettingsLoaded && !force) return;
@@ -1202,53 +1202,7 @@ updateMeetingTimer();
 
 // ========== MEDIA SESSION ==========
 
-function setupMediaSession() {
-    if (!('mediaSession' in navigator)) return;
 
-    navigator.mediaSession.setActionHandler('play', async () => {
-        const dom = getMusicDom();
-        const targetAudio = dom.audio?.src ? dom.audio : audio;
-        if (!targetAudio) return;
-
-        try {
-            await targetAudio.play();
-            updateMusicPlayButtonState();
-            if (audio && targetAudio === audio && playPauseBtn) {
-                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-            }
-        } catch (err) {
-            console.error('MediaSession play error:', err);
-        }
-    });
-
-    navigator.mediaSession.setActionHandler('pause', () => {
-        const dom = getMusicDom();
-        const targetAudio = dom.audio?.src && !dom.audio.paused ? dom.audio : audio;
-        if (!targetAudio) return;
-
-        targetAudio.pause();
-        updateMusicPlayButtonState();
-        if (audio && targetAudio === audio && playPauseBtn) {
-            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-        }
-    });
-
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-        if (window.musicLibrary?.length) {
-            playPrevMusic();
-        }
-    });
-
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
-        if (window.musicLibrary?.length) {
-            playNextMusic();
-        }
-    });
-
-    // TELEFON PANELİNDE ŞARKI DEĞİŞTİRME BUTONLARINI ZORLAMAK İÇİN BUNLARI NULL YAPIYORUZ
-    navigator.mediaSession.setActionHandler('seekbackward', null);
-    navigator.mediaSession.setActionHandler('seekforward', null);
-}
 let shouldResumeMainAudio = false;
 let shouldResumeYTPlayer = false;
 
