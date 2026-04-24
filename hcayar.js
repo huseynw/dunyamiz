@@ -3610,31 +3610,53 @@ async function animateTextSwap(track) {
 function setupMediaSession() {
     if (!('mediaSession' in navigator)) return;
 
-    // Kilit ekranındaki süreyi ve çubuğu güncelleyen yardımcı fonksiyon
+    const getTargetAudio = () => {
+        const dom = getMusicDom();
+        return dom.audio?.src ? dom.audio : audio;
+    };
+
     const updatePositionState = () => {
-        if ('setPositionState' in navigator.mediaSession) {
-            const dom = getMusicDom();
-            const targetAudio = dom.audio?.src ? dom.audio : audio;
-            
-            if (targetAudio && !isNaN(targetAudio.duration) && isFinite(targetAudio.duration)) {
-                try {
-                    navigator.mediaSession.setPositionState({
-                        duration: targetAudio.duration,
-                        playbackRate: targetAudio.playbackRate || 1,
-                        position: targetAudio.currentTime || 0
-                    });
-                } catch (e) {
-                    console.error("MediaSession position error:", e);
-                }
+        if (!('setPositionState' in navigator.mediaSession)) return;
+
+        const targetAudio = getTargetAudio();
+
+        if (
+            targetAudio &&
+            !isNaN(targetAudio.duration) &&
+            isFinite(targetAudio.duration)
+        ) {
+            try {
+                navigator.mediaSession.setPositionState({
+                    duration: targetAudio.duration,
+                    playbackRate: targetAudio.playbackRate || 1,
+                    position: targetAudio.currentTime || 0
+                });
+            } catch (e) {
+                console.error("MediaSession position error:", e);
             }
         }
     };
 
-    // Oynat (Play)
+    const bindPositionEvents = () => {
+        const targetAudio = getTargetAudio();
+        if (!targetAudio || targetAudio.__mediaSessionBound) return;
+
+        targetAudio.__mediaSessionBound = true;
+
+        targetAudio.addEventListener('timeupdate', updatePositionState);
+        targetAudio.addEventListener('durationchange', updatePositionState);
+        targetAudio.addEventListener('loadedmetadata', updatePositionState);
+        targetAudio.addEventListener('play', updatePositionState);
+        targetAudio.addEventListener('pause', updatePositionState);
+        targetAudio.addEventListener('seeked', updatePositionState);
+    };
+
+    bindPositionEvents();
+
     navigator.mediaSession.setActionHandler('play', async () => {
-        const dom = getMusicDom();
-        const targetAudio = dom.audio?.src ? dom.audio : audio;
+        const targetAudio = getTargetAudio();
         if (!targetAudio) return;
+
         try {
             await targetAudio.play();
             updateMusicPlayButtonState();
@@ -3644,41 +3666,64 @@ function setupMediaSession() {
         }
     });
 
-    // Durdur (Pause)
     navigator.mediaSession.setActionHandler('pause', () => {
-        const dom = getMusicDom();
-        const targetAudio = (dom.audio?.src && !dom.audio.paused) ? dom.audio : audio;
-        if (targetAudio) {
-            targetAudio.pause();
-            updateMusicPlayButtonState();
-        }
+        const targetAudio = getTargetAudio();
+        if (!targetAudio) return;
+
+        targetAudio.pause();
+        updateMusicPlayButtonState();
+        updatePositionState();
     });
 
-    // Kilit Ekranında Çubuğu Kaydırınca (Seek To)
-    navigator.mediaSession.setActionHandler('seekto', (details) => {
-        const dom = getMusicDom();
-        const targetAudio = dom.audio?.src ? dom.audio : audio;
-        if (targetAudio && details.seekTime !== undefined) {
-            targetAudio.currentTime = details.seekTime;
+    navigator.mediaSession.setActionHandler('seekto', async (details) => {
+        const targetAudio = getTargetAudio();
+
+        if (!targetAudio || details.seekTime == null) return;
+
+        try {
+            const duration = targetAudio.duration;
+            let seekTime = details.seekTime;
+
+            if (!isNaN(duration) && isFinite(duration)) {
+                seekTime = Math.max(0, Math.min(seekTime, duration));
+            }
+
+            if ('fastSeek' in targetAudio) {
+                targetAudio.fastSeek(seekTime);
+            } else {
+                targetAudio.currentTime = seekTime;
+            }
+
             updatePositionState();
+
+            if (targetAudio.paused) {
+                await targetAudio.play().catch(() => {});
+            }
+        } catch (e) {
+            console.error("SeekTo error:", e);
         }
     });
 
-    // Sonraki Şarkı (Next)
     navigator.mediaSession.setActionHandler('nexttrack', () => {
         if (window.musicLibrary && window.musicLibrary.length > 0) {
             playNextMusic();
+            setTimeout(() => {
+                bindPositionEvents();
+                updatePositionState();
+            }, 300);
         }
     });
 
-    // Önceki Şarkı (Previous)
     navigator.mediaSession.setActionHandler('previoustrack', () => {
         if (window.musicLibrary && window.musicLibrary.length > 0) {
             playPrevMusic();
+            setTimeout(() => {
+                bindPositionEvents();
+                updatePositionState();
+            }, 300);
         }
     });
 
-    // 10 Saniye Butonlarını Devre Dışı Bırak (Şarkı değiştirme butonları gözüksün diye)
     navigator.mediaSession.setActionHandler('seekbackward', null);
     navigator.mediaSession.setActionHandler('seekforward', null);
 }
