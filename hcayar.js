@@ -67,6 +67,92 @@ async function loadSiteSettings(force = false) {
     }
 }
 
+
+
+// ========== PERFORMANCE PATCH HELPERS ==========
+const IS_TOUCH_DEVICE = navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches;
+const IS_LOW_END_DEVICE = (navigator.hardwareConcurrency || 8) < 4;
+const PERF_REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const PERF_MOBILE = IS_TOUCH_DEVICE || window.innerWidth <= 768;
+const PERF_CACHE_PREFIX = 'dunyamiz-cache:';
+const PERF_GITHUB_TTL = 7 * 60 * 1000;
+const perfDomCache = new Map();
+const perfTextCache = new Map();
+
+function perfGetEl(id) {
+    if (!perfDomCache.has(id)) perfDomCache.set(id, document.getElementById(id));
+    return perfDomCache.get(id);
+}
+
+function perfSetText(id, value) {
+    const text = String(value);
+    if (perfTextCache.get(id) === text) return;
+    const el = perfGetEl(id);
+    if (!el) return;
+    el.textContent = text;
+    perfTextCache.set(id, text);
+}
+
+function perfSetHtml(id, value) {
+    const html = String(value);
+    if (perfTextCache.get(id) === html) return;
+    const el = perfGetEl(id);
+    if (!el) return;
+    el.innerHTML = html;
+    perfTextCache.set(id, html);
+}
+
+function perfGetCached(key, ttl = PERF_GITHUB_TTL) {
+    try {
+        const raw = localStorage.getItem(PERF_CACHE_PREFIX + key);
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        if (!cached || Date.now() - cached.time > ttl) return null;
+        return cached.value;
+    } catch (_) {
+        return null;
+    }
+}
+
+function perfSetCached(key, value) {
+    try {
+        localStorage.setItem(PERF_CACHE_PREFIX + key, JSON.stringify({ time: Date.now(), value }));
+    } catch (_) {}
+}
+
+async function perfFetchJsonCached(key, url, ttl = PERF_GITHUB_TTL) {
+    const cached = perfGetCached(key, ttl);
+    if (cached) return cached;
+    const response = await fetch(url);
+    const data = await response.json();
+    if (!response.ok) throw Object.assign(new Error(data?.message || data?.error || 'Məlumat yüklənmədi'), { status: response.status, data });
+    perfSetCached(key, data);
+    return data;
+}
+
+function perfThrottle(fn, wait = 120) {
+    let last = 0;
+    let timer = null;
+    return (...args) => {
+        const now = Date.now();
+        const remain = wait - (now - last);
+        clearTimeout(timer);
+        if (remain <= 0) {
+            last = now;
+            fn(...args);
+        } else {
+            timer = setTimeout(() => {
+                last = Date.now();
+                fn(...args);
+            }, remain);
+        }
+    };
+}
+
+if (window.gsap) {
+    gsap.defaults({ overwrite: 'auto' });
+}
+
 // Security - Disable right-click and dev tools
 //document.addEventListener('contextmenu', event => event.preventDefault());
 //document.onkeydown = function(e) {
@@ -501,7 +587,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateMeetingTimer();
     initDailyMessageAndRandomMemory();
     syncFloatingPlayerState();
-    setInterval(updateCounter, 1000);
+    startPerfMainLoop();
 });
 
 // ========== PASSWORD SYSTEM ==========
@@ -592,32 +678,63 @@ passInput?.addEventListener('keypress', (e) => {
 // 1. Rəqəmləri artıran köməkçi funksiya
 function updateCounter() {
     const start = new Date(config.startDate).getTime();
-    const now = new Date().getTime();
+    const now = Date.now();
     const diff = now - start;
     if (isNaN(diff)) return;
-    
-    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const s = Math.floor((diff % (1000 * 60)) / 1000);
-    const totalHours = Math.floor(diff / (1000 * 60 * 60));
-    const totalMinutes = Math.floor(diff / (1000 * 60));
+
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const sec = Math.floor((diff % 60000) / 1000);
+    const totalHours = Math.floor(diff / 3600000);
+    const totalMinutes = Math.floor(diff / 60000);
 
     if (!window.isAnimating) {
-        if(document.getElementById('total-days')) document.getElementById('total-days').innerText = d;
-        if(document.getElementById('detail-days')) document.getElementById('detail-days').innerText = d;
-        if(document.getElementById('total-hours-love')) document.getElementById('total-hours-love').innerText = totalHours.toLocaleString('tr-TR');
-        if(document.getElementById('total-minutes-love')) document.getElementById('total-minutes-love').innerText = totalMinutes.toLocaleString('tr-TR');
-        if(document.getElementById('meet-count')) document.getElementById('meet-count').innerText = config.meetingCount;
+        perfSetText('total-days', d);
+        perfSetText('detail-days', d);
+        perfSetText('total-hours-love', totalHours.toLocaleString('tr-TR'));
+        perfSetText('total-minutes-love', totalMinutes.toLocaleString('tr-TR'));
+        perfSetText('meet-count', config.meetingCount);
     }
 
-    if(document.getElementById('hours')) document.getElementById('hours').innerText = h < 10 ? '0' + h : h;
-    if(document.getElementById('minutes')) document.getElementById('minutes').innerText = m < 10 ? '0' + m : m;
-    if(document.getElementById('seconds')) document.getElementById('seconds').innerText = s < 10 ? '0' + s : s;
-    if(document.getElementById('detail-hours')) document.getElementById('detail-hours').innerText = h;
-    if(document.getElementById('detail-minutes')) document.getElementById('detail-minutes').innerText = m;
-    if(document.getElementById('detail-seconds')) document.getElementById('detail-seconds').innerText = s;
+    perfSetText('hours', h < 10 ? '0' + h : h);
+    perfSetText('minutes', m < 10 ? '0' + m : m);
+    perfSetText('seconds', sec < 10 ? '0' + sec : sec);
+    perfSetText('detail-hours', h);
+    perfSetText('detail-minutes', m);
+    perfSetText('detail-seconds', sec);
 }
+
+let perfMainLoopStarted = false;
+let perfLastSecond = -1;
+let perfPhraseTick = 0;
+function startPerfMainLoop() {
+    if (perfMainLoopStarted) return;
+    perfMainLoopStarted = true;
+
+    const loop = (ts) => {
+        const second = Math.floor(ts / 1000);
+        if (second !== perfLastSecond) {
+            perfLastSecond = second;
+            updateCounter();
+            updateMeetingTimer();
+            updateDynamicContent();
+        }
+
+        if (!PERF_REDUCED_MOTION && !document.hidden) {
+            const phraseStep = PERF_MOBILE ? 900 : 500;
+            if (ts - perfPhraseTick > phraseStep) {
+                perfPhraseTick = ts;
+                fastChangeLoveText();
+            }
+        }
+
+        requestAnimationFrame(loop);
+    };
+
+    requestAnimationFrame(loop);
+}
+
 function parseImageDate(img) {
     if (img.git_date) {
         const d = new Date(img.git_date);
@@ -662,20 +779,8 @@ async function fetchImages() {
     stack.className = 'gallery-timeline';
     stack.innerHTML = '<p class="timeline-loading"><i class="fas fa-spinner fa-spin"></i> Xatirələr yüklənir...</p>';
 
-    const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/gallery`;
-
     try {
-        const response = await fetch("/.netlify/functions/github-content?path=gallery");
-        const data = await response.json();
-
-        if (!response.ok) {
-            if (response.status === 403) {
-                stack.innerHTML = '<p class="timeline-empty">GitHub API limiti dolub. Bir az sonra yenidən yoxla.</p>';
-            } else {
-                stack.innerHTML = `<p class="timeline-empty">${data?.message || 'Qalereya yüklənmədi.'}</p>`;
-            }
-            return;
-        }
+        const data = await perfFetchJsonCached('gallery-list', '/.netlify/functions/github-content?path=gallery', PERF_GITHUB_TTL);
 
         if (!Array.isArray(data)) {
             stack.innerHTML = '<p class="timeline-empty">Qalereya məlumatı düzgün gəlmədi.</p>';
@@ -701,7 +806,7 @@ async function fetchImages() {
             html += `
                 <article class="timeline-item ${side}">
                     <div class="photo-frame gallery-item" data-index="${idx}">
-                        <img src="${img.download_url}" loading="lazy" alt="Bizim Xatirəmiz">
+                        <img data-src="${img.download_url}" loading="lazy" decoding="async" alt="Bizim Xatirəmiz">
                         <div class="hover-heart"><i class="fas fa-heart"></i></div>
                     </div>
                     <div class="timeline-date">
@@ -723,18 +828,18 @@ async function fetchImages() {
         const observer = new IntersectionObserver((entries, obs) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
+                    const img = entry.target.querySelector('img[data-src]');
+                    if (img && !img.src) img.src = img.dataset.src;
                     entry.target.classList.add('show');
                     obs.unobserve(entry.target);
                 }
             });
         }, {
-            threshold: 0.15,
-            rootMargin: '0px 0px -40px 0px'
+            threshold: 0.06,
+            rootMargin: '220px 0px 220px 0px'
         });
 
-        document.querySelectorAll('.timeline-item').forEach(item => {
-            observer.observe(item);
-        });
+        document.querySelectorAll('.timeline-item').forEach(item => observer.observe(item));
 
         syncAdminOverview();
 
@@ -875,7 +980,7 @@ function createHeart() {
     }, 4000);
 }
 
-setInterval(createHeart, 500);
+if (!IS_TOUCH_DEVICE && !IS_LOW_END_DEVICE && !PERF_REDUCED_MOTION) setInterval(createHeart, 900);
 
 // ========== LETTERS ==========
 const letters = {
@@ -925,7 +1030,7 @@ function fastChangeLoveText() {
     textElement.innerText = lovePhrases[phraseIndex];
 }
 
-setInterval(fastChangeLoveText, 200);
+// fastChangeLoveText is driven by the shared requestAnimationFrame loop for smoother mobile performance.
 
 // ========== AUDIO VISUALIZER ==========
 let audioContext, analyser, source, gainNode, canvas, ctx, visualizerFrame;
@@ -968,9 +1073,7 @@ function initVisualizer(audioElement) {
         source = sharedNodes.source;
         gainNode = sharedNodes.gain;
         analyser = sharedNodes.analyser;
-        if (gainNode) {
-            gainNode.gain.value = Number(currentVolume || audioElement.volume || 0.85);
-        }
+        if (gainNode) gainNode.gain.value = Number(currentVolume || audioElement.volume || 0.85);
 
         audioElement.addEventListener('play', resumeAudioContextSafely);
         audioElement.addEventListener('playing', resumeAudioContextSafely);
@@ -982,14 +1085,20 @@ function initVisualizer(audioElement) {
         if (!ctx) return;
 
         resizeVisualizerCanvas();
-        window.addEventListener('resize', resizeVisualizerCanvas, { passive: true });
+        window.addEventListener('resize', perfThrottle(resizeVisualizerCanvas, 160), { passive: true });
 
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
+        let frameSkip = 0;
 
         const draw = () => {
+            if (document.hidden || audioElement.paused || !canvas || !ctx) {
+                stopVisualizer();
+                return;
+            }
+
             visualizerFrame = requestAnimationFrame(draw);
-            if (document.hidden || !canvas || !ctx) return;
+            if (PERF_MOBILE && (++frameSkip % 2 !== 0)) return;
 
             const width = canvas.clientWidth || canvas.offsetWidth || 0;
             const height = canvas.clientHeight || canvas.offsetHeight || 0;
@@ -999,11 +1108,14 @@ function initVisualizer(audioElement) {
             ctx.clearRect(0, 0, width, height);
 
             const centerY = height / 2;
-            const activeBars = Math.min(22, bufferLength);
+            const activeBars = Math.min(PERF_MOBILE ? 12 : 22, bufferLength);
             const barWidth = Math.max(4, Math.floor(width / (activeBars * 1.9)));
             const gap = Math.max(2, Math.floor(barWidth * 0.55));
             const totalWidth = activeBars * barWidth + (activeBars - 1) * gap;
             let x = Math.max(0, (width - totalWidth) / 2);
+
+            ctx.shadowBlur = PERF_MOBILE ? 0 : 12;
+            ctx.shadowColor = currentWaveColor || 'rgba(255,255,255,0.8)';
 
             for (let i = 0; i < activeBars; i++) {
                 const mirroredIndex = Math.floor((i / activeBars) * bufferLength);
@@ -1013,31 +1125,32 @@ function initVisualizer(audioElement) {
                 const radius = Math.min(barWidth / 2, 8);
 
                 ctx.beginPath();
-                if (typeof ctx.roundRect === 'function') {
-                    ctx.roundRect(x, y, barWidth, barHeight, radius);
-                } else {
-                    ctx.rect(x, y, barWidth, barHeight);
-                }
+                if (typeof ctx.roundRect === 'function') ctx.roundRect(x, y, barWidth, barHeight, radius);
+                else ctx.rect(x, y, barWidth, barHeight);
 
-                const gradient = ctx.createLinearGradient(0, y, 0, y + barHeight);
-                gradient.addColorStop(0, currentWaveColor || 'rgba(255,255,255,0.95)');
-                gradient.addColorStop(1, 'rgba(255,255,255,0.18)');
-                ctx.fillStyle = gradient;
-                ctx.shadowBlur = 18;
-                ctx.shadowColor = currentWaveColor || 'rgba(255,255,255,0.8)';
+                ctx.fillStyle = currentWaveColor || 'rgba(255,255,255,0.9)';
                 ctx.fill();
-
                 x += barWidth + gap;
             }
 
             ctx.shadowBlur = 0;
         };
 
-        resumeAudioContextSafely();
+        const startVisualizer = async () => {
+            await resumeAudioContextSafely();
+            if (!visualizerFrame && !audioElement.paused && !document.hidden) draw();
+        };
 
-        if (!visualizerFrame) {
-            draw();
-        }
+        audioElement.addEventListener('play', startVisualizer);
+        audioElement.addEventListener('playing', startVisualizer);
+        audioElement.addEventListener('pause', stopVisualizer);
+        audioElement.addEventListener('ended', stopVisualizer);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) stopVisualizer();
+            else if (!audioElement.paused) startVisualizer();
+        });
+
+        startVisualizer();
     } catch (e) {
         console.error('Vizualizator xətası:', e);
     }
@@ -1058,18 +1171,15 @@ function updateMeetingTimer() {
     const formatliTarix = `${gun} ${ayAdi} saat ${saat}:${deqiqe}`;
 
     const titleEl = document.querySelector('.meeting-timer h3');
-    if (titleEl) titleEl.innerText = 'Növbəti Görüşümüzə Qalan Vaxt:';
+    if (titleEl && titleEl.textContent !== 'Növbəti Görüşümüzə Qalan Vaxt:') titleEl.textContent = 'Növbəti Görüşümüzə Qalan Vaxt:';
 
     const dateEl = document.getElementById('next-meeting-date');
-    if (dateEl) dateEl.innerText = 'Görüş vaxtı: ' + formatliTarix;
+    if (dateEl && dateEl.textContent !== 'Görüş vaxtı: ' + formatliTarix) dateEl.textContent = 'Görüş vaxtı: ' + formatliTarix;
 
-    const setValue = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) el.innerText = String(value).padStart(2, '0');
-    };
+    const setValue = (id, value) => perfSetText(id, String(value).padStart(2, '0'));
 
     if (diff <= 0) {
-        if (titleEl) titleEl.innerText = 'Görüş vaxtı gəldi!';
+        if (titleEl && titleEl.textContent !== 'Görüş vaxtı gəldi!') titleEl.textContent = 'Görüş vaxtı gəldi!';
         setValue('meet-days', 0);
         setValue('meet-hours', 0);
         setValue('meet-minutes', 0);
@@ -1088,7 +1198,6 @@ function updateMeetingTimer() {
     setValue('meet-seconds', s);
 }
 
-setInterval(updateMeetingTimer, 1000);
 updateMeetingTimer();
 
 // ========== MEDIA SESSION ==========
@@ -1136,7 +1245,7 @@ function updateDynamicContent() {
     
     const greetingElement = document.getElementById("dynamic-greeting");
     if (greetingElement) {
-        greetingElement.innerHTML = greeting + ", Cəmaləm <span style='color: #ff4d6d;'>🤍</span>";
+        perfSetHtml('dynamic-greeting', greeting + ", Cəmaləm <span style='color: #ff4d6d;'>🤍</span>");
     }
     
     const minute = String(now.getMinutes()).padStart(2, '0');
@@ -1152,11 +1261,10 @@ function updateDynamicContent() {
     
     const clockElement = document.getElementById("live-clock");
     if (clockElement) {
-        clockElement.innerText = `${timeString} | ${gunAdi}, ${ayGun} ${ayAdi} ${il}`;
+        perfSetText('live-clock', `${timeString} | ${gunAdi}, ${ayGun} ${ayAdi} ${il}`);
     }
 }
 
-setInterval(updateDynamicContent, 1000);
 updateDynamicContent();
 
 // ========== AUDIO CONTROLS ==========
@@ -2865,9 +2973,10 @@ window.toggleLyricsPanel = function(forceOpen) {
 };
 
 async function fetchMusicJsonList() {
-    const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/musiqiler`;
-    const response = await fetch("/.netlify/functions/github-content?path=musiqiler");
-    const files = await response.json();
+    const cachedTracks = perfGetCached('music-json-list', PERF_GITHUB_TTL);
+    if (cachedTracks) return cachedTracks;
+
+    const files = await perfFetchJsonCached('music-file-list', '/.netlify/functions/github-content?path=musiqiler', PERF_GITHUB_TTL);
 
     if (!Array.isArray(files)) {
         throw new Error(files?.message || 'musiqiler qovluğu oxunmadı');
@@ -2877,24 +2986,35 @@ async function fetchMusicJsonList() {
 
     const jsonData = await Promise.all(
         jsonFiles.map(async (file) => {
-            const res = await fetch(file.download_url);
-            if (!res.ok) return null;
-            const data = await res.json();
+            try {
+                const cacheKey = `music-meta:${file.name}:${file.sha || file.git_date || ''}`;
+                let data = perfGetCached(cacheKey, PERF_GITHUB_TTL);
+                if (!data) {
+                    const res = await fetch(file.download_url, { cache: 'force-cache' });
+                    if (!res.ok) return null;
+                    data = await res.json();
+                    perfSetCached(cacheKey, data);
+                }
 
-            const normalized = normalizeTrackMeta({
-                ...data,
-                id: data.id || file.name,
-                jsonName: file.name,
-                title: data.title || 'Adsız mahnı',
-                artist: data.artist || 'Naməlum artist'
-            });
-
-            return normalized;
+                return normalizeTrackMeta({
+                    ...data,
+                    id: data.id || file.name,
+                    jsonName: file.name,
+                    title: data.title || 'Adsız mahnı',
+                    artist: data.artist || 'Naməlum artist'
+                });
+            } catch (_) {
+                return null;
+            }
         })
     );
-    return jsonData
+
+    const tracks = jsonData
         .filter(Boolean)
         .sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0));
+
+    perfSetCached('music-json-list', tracks);
+    return tracks;
 }
 
 
@@ -3916,7 +4036,7 @@ function drawYTWaveform() {
     const { waveform, audio } = getMusicDom();
     if (!waveform) return;
 
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, PERF_MOBILE ? 1.5 : 2);
     const rect = waveform.getBoundingClientRect();
     waveform.width = Math.max(1, Math.floor(rect.width * dpr));
     waveform.height = Math.max(1, Math.floor(rect.height * dpr));
@@ -3925,97 +4045,72 @@ function drawYTWaveform() {
     if (!ctx) return;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    let frameSkip = 0;
 
     const render = () => {
+        if (document.hidden || !waveform.isConnected || (audio && audio.paused && ytWaveEnabled && !ytWaveFallbackMode)) {
+            if (ytWaveAnimationId) cancelAnimationFrame(ytWaveAnimationId);
+            ytWaveAnimationId = null;
+            return;
+        }
+
+        ytWaveAnimationId = requestAnimationFrame(render);
+        if (PERF_MOBILE && (++frameSkip % 2 !== 0)) return;
+
         const width = waveform.clientWidth;
         const height = waveform.clientHeight;
         const centerY = height / 2;
 
         ctx.clearRect(0, 0, width, height);
 
-        const totalBars = 42;
-        const gap = 4;
+        const totalBars = PERF_MOBILE ? 20 : 42;
+        const gap = PERF_MOBILE ? 3 : 4;
         const barWidth = Math.max(3, (width - (totalBars - 1) * gap) / totalBars);
         const totalWidth = totalBars * barWidth + (totalBars - 1) * gap;
         let x = (width - totalWidth) / 2;
 
         const drawBar = (x, y, w, h, radius) => {
             ctx.beginPath();
-            if (ctx.roundRect) {
-                ctx.roundRect(x, y, w, h, radius);
-            } else {
-                ctx.rect(x, y, w, h);
-            }
+            if (ctx.roundRect) ctx.roundRect(x, y, w, h, radius);
+            else ctx.rect(x, y, w, h);
             ctx.fill();
         };
 
-        if (
-            ytWaveEnabled &&
-            ytWaveAnalyser &&
-            ytWaveDataArray &&
-            audio &&
-            !audio.paused &&
-            !ytWaveFallbackMode
-        ) {
+        if (ytWaveEnabled && ytWaveAnalyser && ytWaveDataArray && audio && !audio.paused && !ytWaveFallbackMode) {
             ytWaveAnalyser.getByteFrequencyData(ytWaveDataArray);
-
-            ctx.shadowBlur = 18;
+            ctx.shadowBlur = PERF_MOBILE ? 0 : 12;
             ctx.shadowColor = currentWaveColor;
 
             for (let i = 0; i < totalBars; i++) {
                 const sourceIndex = Math.floor((i / totalBars) * ytWaveDataArray.length);
                 const value = ytWaveDataArray[sourceIndex] / 255;
-
                 const falloff = 1 - Math.abs((i - totalBars / 2) / (totalBars / 2)) * 0.35;
                 const visual = Math.max(0.18, value * falloff);
-
                 const barHeight = Math.max(8, visual * height * 0.82);
-
                 const alpha = 0.22 + visual * 0.9;
-                ctx.fillStyle = currentWaveColor
-                    .replace("rgb", "rgba")
-                    .replace(")", `, ${alpha})`);
 
-                drawBar(
-                    x,
-                    centerY - barHeight / 2,
-                    barWidth,
-                    barHeight,
-                    barWidth / 2
-                );
-
+                ctx.fillStyle = currentWaveColor.replace('rgb', 'rgba').replace(')', `, ${alpha})`);
+                drawBar(x, centerY - barHeight / 2, barWidth, barHeight, barWidth / 2);
                 x += barWidth + gap;
             }
+            ctx.shadowBlur = 0;
         } else {
             for (let i = 0; i < totalBars; i++) {
-                const phase = (Date.now() / 180) + i * 0.35;
-                const idle = 0.22 + (Math.sin(phase) + 1) / 2 * 0.22;
-                const barHeight = Math.max(6, idle * height * 0.45);
-
-                ctx.fillStyle = currentWaveColor
-                    .replace("rgb", "rgba")
-                    .replace(")", ", 0.16)");
-
-                drawBar(
-                    x,
-                    centerY - barHeight / 2,
-                    barWidth,
-                    barHeight,
-                    barWidth / 2
-                );
-
+                const phase = (Date.now() / 220) + i * 0.35;
+                const idle = 0.18 + (Math.sin(phase) + 1) / 2 * 0.18;
+                const barHeight = Math.max(5, idle * height * 0.45);
+                ctx.fillStyle = currentWaveColor.replace('rgb', 'rgba').replace(')', ', 0.14)');
+                drawBar(x, centerY - barHeight / 2, barWidth, barHeight, barWidth / 2);
                 x += barWidth + gap;
             }
         }
-
-        ytWaveAnimationId = requestAnimationFrame(render);
     };
 
     if (ytWaveAnimationId) cancelAnimationFrame(ytWaveAnimationId);
     render();
 }
 function resizeYTWaveform() {
-    if (!ytWaveAnalyser) return;
+    if (!ytWaveAnalyser && !ytWaveFallbackMode) return;
     drawYTWaveform();
 }
 function initMusicPlayerEvents() {
