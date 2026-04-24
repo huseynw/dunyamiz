@@ -2885,15 +2885,17 @@ function setPlayerExpanded(expanded) {
 
         void activePlayer.offsetHeight; // force reflow before animation
 
-        // Heavy DOM ops AFTER animation ends to avoid freezing
         activePlayer.__expandAnimTimer = window.setTimeout(() => {
+            // Suppress CSS transitions so layout swap is instant (no extra delay)
+            activePlayer.style.transition = 'none';
             activePlayer.classList.remove('expanded', 'is-transitioning', 'player-collapsing');
             activePlayer.classList.add('player-mini');
-            void activePlayer.offsetHeight;
+            void activePlayer.offsetHeight; // flush
+            activePlayer.style.transition = '';
             setPlayerTab('lyrics');
             updateLyricsToggleState();
             syncPlayerExpandedState();
-        }, 400);
+        }, 390);
     }
 }
 
