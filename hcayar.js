@@ -1202,7 +1202,36 @@ updateMeetingTimer();
 
 // ========== MEDIA SESSION ==========
 
+function setupMediaSession() {
+    if (!('mediaSession' in navigator)) return;
 
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+        audio.currentTime = 0;
+        audio.play();
+    });
+
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+        audio.currentTime = 0;
+        audio.play();
+    });
+
+    // 🔥 ƏSAS FIX
+    navigator.mediaSession.setActionHandler('seekforward', () => {
+        audio.currentTime = 0;
+        audio.play();
+    });
+
+    navigator.mediaSession.setActionHandler('seekbackward', () => {
+        audio.currentTime = 0;
+        audio.play();
+    });
+
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime != null) {
+            audio.currentTime = details.seekTime;
+        }
+    });
+}
 let shouldResumeMainAudio = false;
 let shouldResumeYTPlayer = false;
 
