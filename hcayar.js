@@ -105,22 +105,40 @@ let audioGainNode;
 let audioSourceNode;
 let currentVolume = 0.85;
 
-function initIOSVolumeFix() {
-    if (!audio) return;
+function getOrCreateSharedAudioNodes(audioElement = audio) {
+    if (!audioElement) return null;
 
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 
     if (!audioSourceNode) {
-        audioSourceNode = audioContext.createMediaElementSource(audio);
+        audioSourceNode = audioContext.createMediaElementSource(audioElement);
         audioGainNode = audioContext.createGain();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 128;
+        analyser.smoothingTimeConstant = 0.82;
 
+        // Eyni <audio> elementi üçün createMediaElementSource yalnız 1 dəfə çağırılır.
+        // Zəncir: audio -> gain -> analyser -> speakers
         audioSourceNode.connect(audioGainNode);
-        audioGainNode.connect(audioContext.destination);
+        audioGainNode.connect(analyser);
+        analyser.connect(audioContext.destination);
     }
 
-    audioGainNode.gain.value = currentVolume;
+    if (audioGainNode) {
+        audioGainNode.gain.value = currentVolume;
+    }
+
+    return { context: audioContext, source: audioSourceNode, gain: audioGainNode, analyser };
+}
+
+function initIOSVolumeFix() {
+    try {
+        getOrCreateSharedAudioNodes(audio);
+    } catch (err) {
+        console.error('iOS audio init xətası:', err);
+    }
 }
 window.allImages = []; 
 let currentImgIdx = 0;
@@ -944,21 +962,14 @@ function initVisualizer(audioElement) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
 
-        if (!analyser) {
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 128;
-            analyser.smoothingTimeConstant = 0.82;
-        }
+        const sharedNodes = getOrCreateSharedAudioNodes(audioElement);
+        if (!sharedNodes || !sharedNodes.analyser) return;
 
-        if (!source) {
-            source = audioContext.createMediaElementSource(audioElement);
-            if (!gainNode) {
-                gainNode = audioContext.createGain();
-                gainNode.gain.value = Number(audioElement.volume || 0.85);
-            }
-            source.connect(gainNode);
-            source.connect(analyser);
-            analyser.connect(audioContext.destination);
+        source = sharedNodes.source;
+        gainNode = sharedNodes.gain;
+        analyser = sharedNodes.analyser;
+        if (gainNode) {
+            gainNode.gain.value = Number(currentVolume || audioElement.volume || 0.85);
         }
 
         audioElement.addEventListener('play', resumeAudioContextSafely);
@@ -2501,14 +2512,32 @@ function resolveMusicAssetUrl(value, fallback = '') {
     const cleaned = String(value).trim();
     if (!cleaned) return fallback;
 
+    // Tam URL-dirsə saxla, amma github-raw linkinin içindəki fayl yolunu təmizlə.
     if (/^https?:\/\//i.test(cleaned)) {
+        try {
+            const url = new URL(cleaned);
+            const fileParam = url.searchParams.get('file');
+            if (url.pathname.includes('/.netlify/functions/github-raw') && fileParam) {
+                return `${GITHUB_RAW_BASE}${encodeURIComponent(fileParam.replace(/^\/+/, ''))}`;
+            }
+        } catch (_) {}
         return cleaned;
     }
 
-    const normalized = cleaned.replace(/^\/+/, '');
+    let normalized = cleaned.replace(/^\/+/, '');
+
+    // Əvvəlki bug: ".netlify/functions/github-raw?file=musiqiler/xxx" yenidən github-raw içinə salınırdı.
+    // Burada iç file parametrini çıxarıb backend-in icazə verdiyi təmiz path-ə çeviririk.
+    if (normalized.includes('.netlify/functions/github-raw')) {
+        try {
+            const fakeUrl = new URL(normalized, window.location.origin);
+            const fileParam = fakeUrl.searchParams.get('file');
+            if (fileParam) normalized = fileParam.replace(/^\/+/, '');
+        } catch (_) {}
+    }
 
     if (!normalized.includes('/')) {
-        return `${GITHUB_RAW_BASE}${encodeURIComponent(`musiqiler/${normalized}`)}`;
+        normalized = `musiqiler/${normalized}`;
     }
 
     return `${GITHUB_RAW_BASE}${encodeURIComponent(normalized)}`;
@@ -3222,7 +3251,11 @@ function getDominantColorFromImage(imgSrc) {
         }
 
         const img = new Image();
-        const proxiedSrc = `/.netlify/functions/cover-proxy?src=${encodeURIComponent(imgSrc)}`;
+        img.crossOrigin = 'anonymous';
+        const absoluteImgSrc = /^https?:\/\//i.test(imgSrc)
+            ? imgSrc
+            : new URL(imgSrc, window.location.origin).href;
+        const proxiedSrc = `/.netlify/functions/cover-proxy?src=${encodeURIComponent(absoluteImgSrc)}`;
 
         img.src = proxiedSrc;
 
@@ -3847,17 +3880,15 @@ async function initYTWaveformSafe() {
     }
 
     try {
-        const analyser = ytWaveCtx.createAnalyser();
-        analyser.fftSize = 128;
-        analyser.smoothingTimeConstant = 0.82;
+        const sharedNodes = getOrCreateSharedAudioNodes(audio);
+        if (!sharedNodes || !sharedNodes.analyser) {
+            ytWaveFallbackMode = true;
+            return false;
+        }
 
-        const source = ytWaveCtx.createMediaElementSource(audio);
-        source.connect(analyser);
-        analyser.connect(ytWaveCtx.destination);
-
-        ytWaveAnalyser = analyser;
-        ytWaveSource = source;
-        ytWaveDataArray = new Uint8Array(analyser.frequencyBinCount);
+        ytWaveAnalyser = sharedNodes.analyser;
+        ytWaveSource = sharedNodes.source;
+        ytWaveDataArray = new Uint8Array(ytWaveAnalyser.frequencyBinCount);
         ytWaveInitialized = true;
         ytWaveEnabled = true;
         ytWaveFallbackMode = false;
