@@ -2866,39 +2866,34 @@ function setPlayerExpanded(expanded) {
     window.clearTimeout(activePlayer.__expandAnimTimer);
 
     if (expanded) {
-        // EXPAND: snap to full-screen layout instantly, then slide up from bottom
-        activePlayer.classList.add('is-transitioning');
-        activePlayer.classList.remove('player-mini', 'player-collapsing');
-        activePlayer.classList.add('expanded');
+        // EXPAND: snap to full-screen, then scaleY grows upward from bottom
+        activePlayer.classList.remove('player-collapsing', 'player-mini');
+        activePlayer.classList.add('is-transitioning', 'expanded');
 
-        // Force reflow so layout snaps before animation
-        void activePlayer.offsetHeight;
+        void activePlayer.offsetHeight; // force reflow before animation
 
         updateLyricsToggleState();
         syncPlayerExpandedState();
 
         activePlayer.__expandAnimTimer = window.setTimeout(() => {
             activePlayer.classList.remove('is-transitioning');
-        }, 620);
+        }, 500);
 
     } else {
-        // COLLAPSE: stay full-screen, animate sliding down, then snap to mini
-        activePlayer.classList.add('is-transitioning', 'player-collapsing');
+        // COLLAPSE: play shrink animation on full-screen element, THEN snap to mini
+        activePlayer.classList.add('player-collapsing');
 
-        // Force reflow
-        void activePlayer.offsetHeight;
+        void activePlayer.offsetHeight; // force reflow before animation
 
-        if (lyricsPanel) setPlayerTab('lyrics');
-        updateLyricsToggleState();
-        syncPlayerExpandedState();
-
+        // Heavy DOM ops AFTER animation ends to avoid freezing
         activePlayer.__expandAnimTimer = window.setTimeout(() => {
-            // After slide-down animation, snap to mini layout
             activePlayer.classList.remove('expanded', 'is-transitioning', 'player-collapsing');
             activePlayer.classList.add('player-mini');
             void activePlayer.offsetHeight;
+            setPlayerTab('lyrics');
+            updateLyricsToggleState();
             syncPlayerExpandedState();
-        }, 420);
+        }, 400);
     }
 }
 
