@@ -1206,51 +1206,48 @@ function setupMediaSession() {
     if (!('mediaSession' in navigator)) return;
 
     navigator.mediaSession.setActionHandler('play', async () => {
-        const dom = typeof getMusicDom === 'function' ? getMusicDom() : null;
-        const targetAudio = dom?.audio?.src ? dom.audio : audio;
+        const dom = getMusicDom();
+        const targetAudio = dom.audio?.src ? dom.audio : audio;
         if (!targetAudio) return;
 
         try {
             await targetAudio.play();
-            updateMusicPlayButtonState?.();
-            updateMediaSessionPlaybackState?.();
+            updateMusicPlayButtonState();
+            if (audio && targetAudio === audio && playPauseBtn) {
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            }
         } catch (err) {
             console.error('MediaSession play error:', err);
         }
     });
 
     navigator.mediaSession.setActionHandler('pause', () => {
-        const dom = typeof getMusicDom === 'function' ? getMusicDom() : null;
-        const targetAudio = dom?.audio?.src ? dom.audio : audio;
+        const dom = getMusicDom();
+        const targetAudio = dom.audio?.src && !dom.audio.paused ? dom.audio : audio;
         if (!targetAudio) return;
 
         targetAudio.pause();
-        updateMusicPlayButtonState?.();
-        updateMediaSessionPlaybackState?.();
-    });
-
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
-        if (typeof playNextMusic === 'function') {
-            playNextMusic();
+        updateMusicPlayButtonState();
+        if (audio && targetAudio === audio && playPauseBtn) {
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
         }
     });
 
     navigator.mediaSession.setActionHandler('previoustrack', () => {
-        if (typeof playPrevMusic === 'function') {
+        if (window.musicLibrary?.length) {
             playPrevMusic();
         }
     });
 
-    navigator.mediaSession.setActionHandler('seekforward', null);
-    navigator.mediaSession.setActionHandler('seekbackward', null);
-
-    navigator.mediaSession.setActionHandler('seekto', (details) => {
-        const dom = typeof getMusicDom === 'function' ? getMusicDom() : null;
-        const targetAudio = dom?.audio?.src ? dom.audio : audio;
-        if (!targetAudio || details.seekTime == null) return;
-
-        targetAudio.currentTime = details.seekTime;
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+        if (window.musicLibrary?.length) {
+            playNextMusic();
+        }
     });
+
+    // TELEFON PANELİNDE ŞARKI DEĞİŞTİRME BUTONLARINI ZORLAMAK İÇİN BUNLARI NULL YAPIYORUZ
+    navigator.mediaSession.setActionHandler('seekbackward', null);
+    navigator.mediaSession.setActionHandler('seekforward', null);
 }
 let shouldResumeMainAudio = false;
 let shouldResumeYTPlayer = false;
