@@ -102,15 +102,26 @@ const seekBar = document.getElementById('seekBar');
 const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
 let audioContext;
-let gainNode;
+let audioGainNode;
+let audioSourceNode;
+let currentVolume = 0.85;
 
-function initAudioSystem() {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioContext.createMediaElementSource(audio);
-    gainNode = audioContext.createGain();
+function initIOSVolumeFix() {
+    if (!audio) return;
 
-    source.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    if (!audioSourceNode) {
+        audioSourceNode = audioContext.createMediaElementSource(audio);
+        audioGainNode = audioContext.createGain();
+
+        audioSourceNode.connect(audioGainNode);
+        audioGainNode.connect(audioContext.destination);
+    }
+
+    audioGainNode.gain.value = currentVolume;
 }
 window.allImages = []; 
 let currentImgIdx = 0;
@@ -386,8 +397,10 @@ document.addEventListener('touchstart', () => {
     resumeAudioContextSafely();
 }, { passive: true });
 document.addEventListener('touchstart', () => {
+    initIOSVolumeFix();
+
     if (audioContext && audioContext.state === 'suspended') {
-        audioContext.resume();
+        audioContext.resume().catch(() => {});
     }
 }, { passive: true });
 // ========== SPA NAVIGATION ==========
@@ -439,10 +452,31 @@ function initSPANavigation() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', async () => {
     initSPANavigation();
-    initAudioSystem();
+    initIOSVolumeFix();
+
+    const volumeSlider = document.getElementById('volume-slider');
+    const volumeValue = document.getElementById('volume-value');
+
+    if (volumeSlider) {
+        volumeSlider.value = currentVolume;
+
+        volumeSlider.addEventListener('input', (e) => {
+            currentVolume = Number(e.target.value);
+
+            if (audioGainNode) {
+                audioGainNode.gain.value = currentVolume;
+            }
+
+            if (volumeValue) {
+                volumeValue.textContent = Math.round(currentVolume * 100) + '%';
+            }
+        });
+    }
+
     initAnalytics();
     setupMediaSession();
     await loadSiteSettings();
+
     const meetEl = document.getElementById('meet-count');
     if (meetEl) meetEl.innerText = config.meetingCount;
 
