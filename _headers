@@ -1,6 +1,32 @@
+# HTML heç vaxt cache olunmasın
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+
+# CSS və JS cache (amma hash sistemin varsa)
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# Manifest cache olmasın (PWA problemi üçün)
+/manifest.json
+  Cache-Control: no-cache, no-store, must-revalidate
+
+
+# Assets (şəkillər və s.)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# Security headers (hamısına tətbiq olunur)
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   X-XSS-Protection: 1; mode=block
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://fctwtcakequqvvmjgbhr.supabase.co; object-src 'none';
-  Cache-Control: no-cache, no-store, must-revalidate
