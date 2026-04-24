@@ -7236,3 +7236,207 @@ textarea {
         scroll-behavior: auto !important;
     }
 }
+
+
+/* ========== PERFORMANCE + UI PATCH ========== */
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.075);
+    --glass-bg-strong: rgba(12, 10, 18, 0.72);
+    --glass-border-soft: rgba(255, 255, 255, 0.13);
+    --glass-blur: 14px;
+    --tap-size: 44px;
+    --motion-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Poppins", sans-serif;
+    line-height: 1.6;
+}
+
+button,
+[role="button"],
+.icon-button,
+.welcome-primary-btn,
+.welcome-secondary-btn,
+.yt-player-btn,
+.yt-mini-action,
+.yt-tab-btn,
+.admin-action-btn {
+    min-width: var(--tap-size);
+    min-height: var(--tap-size);
+    touch-action: manipulation;
+    transform: translateZ(0);
+    transition: transform 0.22s var(--motion-smooth), box-shadow 0.22s var(--motion-smooth), background 0.22s var(--motion-smooth), border-color 0.22s var(--motion-smooth), opacity 0.22s var(--motion-smooth);
+}
+
+button:active,
+[role="button"]:active,
+.icon-button:active,
+.welcome-primary-btn:active,
+.welcome-secondary-btn:active,
+.yt-player-btn:active,
+.yt-mini-action:active,
+.yt-tab-btn:active,
+.admin-action-btn:active {
+    transform: scale(0.96) translateZ(0);
+}
+
+.welcome-content,
+.welcome-password-panel,
+nav,
+.glass,
+.letter-card,
+.memory-card,
+.timeline-item,
+.active-player,
+.yt-active-player,
+.admin-panel,
+.modal-content {
+    background: var(--glass-bg);
+    border-color: var(--glass-border-soft);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.welcome-content {
+    padding: clamp(20px, 3vw, 36px);
+}
+
+.welcome-content h1,
+.page-title,
+.section-title {
+    line-height: 1.12;
+    letter-spacing: -0.045em;
+}
+
+.welcome-subtitle,
+.timeline-date,
+.note-text,
+.memory-text,
+.yt-lyrics-container {
+    line-height: 1.65;
+}
+
+.animate-item,
+.timeline-item,
+.photo-frame,
+.gallery-item,
+#track-art,
+.yt-active-player,
+#yt-cover-image,
+#yt-cover-image-mini,
+.welcome-primary-btn,
+.welcome-secondary-btn {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.timeline-item,
+.note-card,
+.memory-card,
+.music-card {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 420px;
+}
+
+.gallery-timeline img,
+.photo-frame img,
+.yt-cover-button img,
+.song-image {
+    image-rendering: auto;
+    content-visibility: auto;
+}
+
+.welcome-primary-btn {
+    background: linear-gradient(135deg, #ff4d6d, #ff7f96);
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: 0 18px 42px rgba(255, 77, 109, 0.26), inset 0 1px 0 rgba(255,255,255,0.22);
+}
+
+.welcome-primary-btn:hover {
+    transform: translateY(-3px) translateZ(0);
+    box-shadow: 0 24px 62px rgba(255, 77, 109, 0.42), inset 0 1px 0 rgba(255,255,255,0.26);
+}
+
+.welcome-password-panel {
+    background: linear-gradient(180deg, rgba(12, 10, 18, 0.68), rgba(12, 10, 18, 0.54));
+    box-shadow: 0 18px 44px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.09);
+}
+
+#visualizer,
+#yt-waveform {
+    contain: strict;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+    :root {
+        --glass-blur: 0px;
+        --glass-bg: rgba(9, 8, 14, 0.72);
+    }
+
+    body::before {
+        background-attachment: scroll;
+    }
+
+    .welcome-orb,
+    .heart-particle,
+    .cursor,
+    .cursor-trail,
+    .trail-particle {
+        display: none !important;
+    }
+
+    .welcome-content,
+    .welcome-password-panel,
+    nav,
+    .glass,
+    .letter-card,
+    .memory-card,
+    .timeline-item,
+    .active-player,
+    .yt-active-player,
+    .admin-panel,
+    .modal-content {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background: rgba(10, 9, 15, 0.76) !important;
+    }
+
+    .welcome-content {
+        max-height: calc(100dvh - 18px);
+        border-radius: 24px;
+    }
+
+    .welcome-stats {
+        gap: 10px;
+    }
+
+    .welcome-primary-btn,
+    .welcome-secondary-btn {
+        width: 100%;
+        min-height: 54px;
+    }
+
+    .photo-frame,
+    .gallery-item,
+    .timeline-item,
+    .yt-active-player,
+    .active-player {
+        box-shadow: 0 12px 28px rgba(0,0,0,0.28) !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+    }
+}
