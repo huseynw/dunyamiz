@@ -8,7 +8,17 @@ const ALLOWED_PREFIXES = ["musiqiler/", "notlar/", "gallery/", "assets/"];
 
 exports.handler = async (event) => {
   try {
-    const file = String(event.queryStringParameters?.file || "").replace(/^\/+/, "");
+    let file = String(event.queryStringParameters?.file || "").trim().replace(/^\/+/, "");
+
+    // Əvvəlki frontend bəzən file parametrinə yenidən ".netlify/functions/github-raw?file=..." göndərirdi.
+    // Bu halda real fayl yolunu çıxarırıq ki, 403 olmasın.
+    if (file.includes(".netlify/functions/github-raw")) {
+      try {
+        const nested = new URL(file, "https://dunyamiz.me");
+        const nestedFile = nested.searchParams.get("file");
+        if (nestedFile) file = nestedFile.replace(/^\/+/, "");
+      } catch (_) {}
+    }
 
     if (!file) {
       return json(400, { success: false, error: "file parametri yoxdur" });
