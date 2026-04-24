@@ -3284,7 +3284,6 @@ function updateVolumeUi(value) {
     if (volumeValue) {
         volumeValue.textContent = `${Math.round(numericValue * 100)}%`;
     }
-}meValue) volumeValue.textContent = `${Math.round(numericValue * 100)}%`;
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
