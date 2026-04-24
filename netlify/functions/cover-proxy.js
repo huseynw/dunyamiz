@@ -11,12 +11,16 @@ exports.handler = async (event) => {
       };
     }
 
-    const url = String(src);
+    const rawUrl = String(src).trim();
+    const host = event.headers?.host || 'dunyamiz.me';
+    const proto = event.headers?.['x-forwarded-proto'] || 'https';
+    const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : `${proto}://${host}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
+
     if (!/^https?:\/\//i.test(url)) {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json; charset=utf-8' },
-        body: JSON.stringify({ success: false, error: 'Yalnız http/https URL qəbul olunur.' })
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ success: false, error: 'URL düzgün deyil.' })
       };
     }
 
