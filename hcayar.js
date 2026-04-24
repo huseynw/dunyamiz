@@ -3656,79 +3656,78 @@ async function animateTextSwap(track) {
 function setupMediaSession() {
     if (!('mediaSession' in navigator)) return;
 
+    // Kilit ekranındaki süreyi ve çubuğu güncelleyen yardımcı fonksiyon
+    const updatePositionState = () => {
+        if ('setPositionState' in navigator.mediaSession) {
+            const dom = getMusicDom();
+            const targetAudio = dom.audio?.src ? dom.audio : audio;
+            
+            if (targetAudio && !isNaN(targetAudio.duration) && isFinite(targetAudio.duration)) {
+                try {
+                    navigator.mediaSession.setPositionState({
+                        duration: targetAudio.duration,
+                        playbackRate: targetAudio.playbackRate || 1,
+                        position: targetAudio.currentTime || 0
+                    });
+                } catch (e) {
+                    console.error("MediaSession position error:", e);
+                }
+            }
+        }
+    };
+
+    // Oynat (Play)
     navigator.mediaSession.setActionHandler('play', async () => {
         const dom = getMusicDom();
         const targetAudio = dom.audio?.src ? dom.audio : audio;
         if (!targetAudio) return;
-
         try {
             await targetAudio.play();
             updateMusicPlayButtonState();
-            if (audio && targetAudio === audio && playPauseBtn) {
-                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-            }
+            updatePositionState();
         } catch (err) {
-            console.error('MediaSession play error:', err);
+            console.error('Play error:', err);
         }
     });
 
+    // Durdur (Pause)
     navigator.mediaSession.setActionHandler('pause', () => {
         const dom = getMusicDom();
-        const targetAudio = dom.audio?.src && !dom.audio.paused ? dom.audio : audio;
-        if (!targetAudio) return;
-
-        targetAudio.pause();
-        updateMusicPlayButtonState();
-        if (audio && targetAudio === audio && playPauseBtn) {
-            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        const targetAudio = (dom.audio?.src && !dom.audio.paused) ? dom.audio : audio;
+        if (targetAudio) {
+            targetAudio.pause();
+            updateMusicPlayButtonState();
         }
     });
 
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-        if (window.musicLibrary?.length) {
-            playPrevMusic();
+    // Kilit Ekranında Çubuğu Kaydırınca (Seek To)
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+        const dom = getMusicDom();
+        const targetAudio = dom.audio?.src ? dom.audio : audio;
+        if (targetAudio && details.seekTime !== undefined) {
+            targetAudio.currentTime = details.seekTime;
+            updatePositionState();
         }
     });
 
+    // Sonraki Şarkı (Next)
     navigator.mediaSession.setActionHandler('nexttrack', () => {
-        if (window.musicLibrary?.length) {
+        if (window.musicLibrary && window.musicLibrary.length > 0) {
             playNextMusic();
         }
     });
 
-    // TELEFON PANELİNDE ŞARKI DEĞİŞTİRME BUTONLARINI ZORLAMAK İÇİN BUNLARI NULL YAPIYORUZ
+    // Önceki Şarkı (Previous)
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+        if (window.musicLibrary && window.musicLibrary.length > 0) {
+            playPrevMusic();
+        }
+    });
+
+    // 10 Saniye Butonlarını Devre Dışı Bırak (Şarkı değiştirme butonları gözüksün diye)
     navigator.mediaSession.setActionHandler('seekbackward', null);
     navigator.mediaSession.setActionHandler('seekforward', null);
 }
-
-function updateLegacyMediaSession() {
-    if (!('mediaSession' in navigator) || !audio) return;
-
-    const legacyCover = document.getElementById('track-art')?.getAttribute('src') || 'assets/music-cover.jpg';
-
-    navigator.mediaSession.metadata = new MediaMetadata({
-        title: document.getElementById('song-title')?.textContent?.trim() || config.musicTitle || 'Mahnı',
-        artist: 'Hüseyn və Cəmalənin Dünyası',
-        album: 'Legacy Player',
-        artwork: [
-            { src: legacyCover, sizes: '192x192', type: 'image/png' },
-            { src: legacyCover, sizes: '512x512', type: 'image/png' }
-        ]
-    });
-
-    navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
-
-    if ('setPositionState' in navigator.mediaSession && Number.isFinite(audio.duration)) {
-        try {
-            navigator.mediaSession.setPositionState({
-                duration: audio.duration || 0,
-                playbackRate: audio.playbackRate || 1,
-                position: audio.currentTime || 0
-            });
-        } catch (_) {}
-    }
-}
-
 function updateMediaSessionMetadata(track) {
     if (!('mediaSession' in navigator) || !track) return;
 
