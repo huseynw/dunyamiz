@@ -101,7 +101,6 @@ const muteBtn = document.getElementById('muteBtn');
 const seekBar = document.getElementById('seekBar');
 const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
-let audioContext;
 let audioGainNode;
 let audioSourceNode;
 let currentVolume = 0.85;
