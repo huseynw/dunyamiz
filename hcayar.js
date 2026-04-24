@@ -101,7 +101,17 @@ const muteBtn = document.getElementById('muteBtn');
 const seekBar = document.getElementById('seekBar');
 const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
+let audioContext;
+let gainNode;
 
+function initAudioSystem() {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaElementSource(audio);
+    gainNode = audioContext.createGain();
+
+    source.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+}
 window.allImages = []; 
 let currentImgIdx = 0;
 let isPlaying = false;
@@ -375,7 +385,11 @@ window.addEventListener('pageshow', () => {
 document.addEventListener('touchstart', () => {
     resumeAudioContextSafely();
 }, { passive: true });
-
+document.addEventListener('touchstart', () => {
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+}, { passive: true });
 // ========== SPA NAVIGATION ==========
 function initSPANavigation() {
     const navItems = document.querySelectorAll('.nav-item');
@@ -425,6 +439,7 @@ function initSPANavigation() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', async () => {
     initSPANavigation();
+    initAudioSystem();
     initAnalytics();
     setupMediaSession();
     await loadSiteSettings();
