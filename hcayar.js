@@ -3696,21 +3696,9 @@ function setupMediaSession() {
         }
     });
 
-    try {
-        navigator.mediaSession.setActionHandler('seekbackward', (details) => {
-            const dom = getMusicDom();
-            const targetAudio = dom.audio?.src && !dom.audio.paused ? dom.audio : audio;
-            if (!targetAudio) return;
-            targetAudio.currentTime = Math.max(0, targetAudio.currentTime - (details.seekOffset || 10));
-        });
-
-        navigator.mediaSession.setActionHandler('seekforward', (details) => {
-            const dom = getMusicDom();
-            const targetAudio = dom.audio?.src && !dom.audio.paused ? dom.audio : audio;
-            if (!targetAudio || !Number.isFinite(targetAudio.duration)) return;
-            targetAudio.currentTime = Math.min(targetAudio.duration, targetAudio.currentTime + (details.seekOffset || 10));
-        });
-    } catch (_) {}
+    // TELEFON PANELİNDE ŞARKI DEĞİŞTİRME BUTONLARINI ZORLAMAK İÇİN BUNLARI NULL YAPIYORUZ
+    navigator.mediaSession.setActionHandler('seekbackward', null);
+    navigator.mediaSession.setActionHandler('seekforward', null);
 }
 
 function updateLegacyMediaSession() {
