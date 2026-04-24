@@ -4533,21 +4533,53 @@ async function sendTelegramMessage(text, keepalive = false) {
     }
 }
 function getDeviceInfo() {
-    const ua = navigator.userAgent || "Naməlum";
-    const platform = navigator.platform || "Naməlum";
+    const ua = navigator.userAgent || "";
+    const platform = navigator.platform || "";
     const language = navigator.language || "Naməlum";
+    const touchPoints = navigator.maxTouchPoints || 0;
 
-    let device = /Mobi|Android|iPhone|iPad|iPod/i.test(ua) ? "Telefon / Tablet" : "Kompüter";
+    let device = "Naməlum cihaz";
+    let brand = "Naməlum marka";
     let browser = "Naməlum brauzer";
 
+    const isIOS = /iPhone|iPad|iPod/i.test(ua) || 
+        (platform === "MacIntel" && touchPoints > 1);
+
+    if (isIOS) {
+        brand = "Apple";
+
+        if (/iPhone/i.test(ua) || (platform === "MacIntel" && touchPoints > 1)) {
+            device = "iPhone";
+        } else if (/iPad/i.test(ua)) {
+            device = "iPad";
+        } else {
+            device = "iOS cihaz";
+        }
+    } else if (/Android/i.test(ua)) {
+        device = "Android telefon";
+
+        if (/Samsung|SM-/i.test(ua)) brand = "Samsung";
+        else if (/Redmi|Xiaomi|Mi\s/i.test(ua)) brand = "Xiaomi / Redmi";
+        else if (/Huawei/i.test(ua)) brand = "Huawei";
+        else if (/Honor/i.test(ua)) brand = "Honor";
+        else if (/OPPO/i.test(ua)) brand = "OPPO";
+        else if (/Vivo/i.test(ua)) brand = "Vivo";
+        else brand = "Android";
+    } else {
+        device = "Kompüter";
+        brand = platform || "Naməlum";
+    }
+
     if (/Edg/i.test(ua)) browser = "Microsoft Edge";
+    else if (/CriOS/i.test(ua)) browser = "Chrome iOS";
     else if (/Chrome/i.test(ua)) browser = "Google Chrome";
     else if (/Safari/i.test(ua)) browser = "Safari";
     else if (/Firefox/i.test(ua)) browser = "Firefox";
 
     return `📱 Cihaz: ${device}
+🏷 Marka: ${brand}
 🌐 Brauzer: ${browser}
-💻 Platforma: ${platform}
+💻 Platforma: ${platform || "Naməlum"}
 🗣 Dil: ${language}`;
 }
 async function initAnalytics() {
