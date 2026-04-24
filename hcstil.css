@@ -6308,35 +6308,41 @@ body.player-expanded #page-music .page-content {
 
 @keyframes ytExpandToFull {
     0% {
-        opacity: 0.9;
-        transform: scaleY(0.05) translateY(0);
-        border-radius: 24px;
+        transform: translateY(100%);
+        opacity: 0.6;
+        border-radius: 22px;
     }
 
     60% {
+        transform: translateY(-6px);
         opacity: 1;
-        transform: scaleY(1.015) translateY(0);
-        border-radius: 4px;
+        border-radius: 6px;
     }
 
     100% {
+        transform: translateY(0);
         opacity: 1;
-        transform: scaleY(1) translateY(0);
         border-radius: 0;
     }
 }
 
 @keyframes ytCollapseToMini {
     0% {
+        transform: translateY(0);
         opacity: 1;
-        transform: scaleY(1) translateY(0);
         border-radius: 0;
     }
 
+    35% {
+        transform: translateY(-6px);
+        opacity: 1;
+        border-radius: 6px;
+    }
+
     100% {
-        opacity: 0.6;
-        transform: scaleY(0.04) translateY(0);
-        border-radius: 24px;
+        transform: translateY(100%);
+        opacity: 0.5;
+        border-radius: 22px;
     }
 }
 
@@ -6354,6 +6360,8 @@ body.player-expanded #page-music .page-content {
     animation: ytExpandToFull 0.48s cubic-bezier(0.22, 1, 0.36, 1) both !important;
 }
 
+/* .expanded.player-collapsing = (0,3,0) beats .expanded alone (0,2,0) */
+.yt-active-player.expanded.player-collapsing,
 .yt-active-player.player-collapsing {
     transition: none !important;
     transform-origin: center bottom !important;
@@ -6562,7 +6570,6 @@ main,
 
 .yt-active-player.expanded {
     transform-origin: center bottom !important;
-    animation: none !important;
 }
 
 .yt-active-player.is-transitioning.expanded,
