@@ -2793,12 +2793,17 @@ function showActivePlayerWithAnimation() {
     const { activePlayer } = getMusicDom();
     if (!activePlayer) return;
 
-    activePlayer.hidden = false;
-    activePlayer.style.display = 'block';
+    activePlayer.classList.remove('player-hiding', 'player-appearing');
     activePlayer.style.opacity = '';
     activePlayer.style.transform = '';
     activePlayer.style.transition = '';
-    activePlayer.classList.remove('player-hiding');
+
+    activePlayer.hidden = false;
+    activePlayer.style.display = 'block';
+
+    // Force reflow so browser registers display:block before animating
+    void activePlayer.offsetHeight;
+
     activePlayer.classList.add('player-appearing');
 
     window.clearTimeout(activePlayer.__appearTimer);
@@ -2875,7 +2880,7 @@ function setPlayerExpanded(expanded) {
         window.clearTimeout(activePlayer.__expandAnimTimer);
         activePlayer.__expandAnimTimer = window.setTimeout(() => {
             activePlayer.classList.remove('is-transitioning', 'player-collapsing');
-        }, expanded ? 420 : 360);
+        }, expanded ? 600 : 440);
     });
 }
 
