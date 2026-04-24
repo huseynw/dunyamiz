@@ -862,7 +862,7 @@ function fastChangeLoveText() {
 setInterval(fastChangeLoveText, 200);
 
 // ========== AUDIO VISUALIZER ==========
-let audioContext, analyser, source, canvas, ctx, visualizerFrame;
+let audioContext, analyser, source, gainNode, canvas, ctx, visualizerFrame;
 
 function resizeVisualizerCanvas() {
     if (!canvas) return;
@@ -904,6 +904,11 @@ function initVisualizer(audioElement) {
 
         if (!source) {
             source = audioContext.createMediaElementSource(audioElement);
+            if (!gainNode) {
+                gainNode = audioContext.createGain();
+                gainNode.gain.value = Number(audioElement.volume || 0.85);
+            }
+            source.connect(gainNode);
             source.connect(analyser);
             analyser.connect(audioContext.destination);
         }
@@ -3264,9 +3269,22 @@ function updateMusicPlayButtonState() {
 function updateVolumeUi(value) {
     const { volumeSlider, volumeValue, audio } = getMusicDom();
     const numericValue = Math.min(1, Math.max(0, Number(value)));
+
     if (volumeSlider) volumeSlider.value = numericValue;
-    if (audio) audio.volume = numericValue;
-    if (volumeValue) volumeValue.textContent = `${Math.round(numericValue * 100)}%`;
+
+    if (audio) {
+        audio.volume = numericValue;
+        audio.muted = numericValue === 0;
+    }
+
+    if (gainNode) {
+        gainNode.gain.value = numericValue;
+    }
+
+    if (volumeValue) {
+        volumeValue.textContent = `${Math.round(numericValue * 100)}%`;
+    }
+}meValue) volumeValue.textContent = `${Math.round(numericValue * 100)}%`;
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
