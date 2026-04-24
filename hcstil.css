@@ -6308,20 +6308,20 @@ body.player-expanded #page-music .page-content {
 
 @keyframes ytExpandToFull {
     0% {
-        opacity: 0.85;
-        transform: translateY(100vh);
-        border-radius: 26px;
+        opacity: 0.9;
+        transform: scaleY(0.05) translateY(0);
+        border-radius: 24px;
     }
 
-    65% {
+    60% {
         opacity: 1;
-        transform: translateY(-4px);
-        border-radius: 6px;
+        transform: scaleY(1.015) translateY(0);
+        border-radius: 4px;
     }
 
     100% {
         opacity: 1;
-        transform: translateY(0);
+        transform: scaleY(1) translateY(0);
         border-radius: 0;
     }
 }
@@ -6329,19 +6329,14 @@ body.player-expanded #page-music .page-content {
 @keyframes ytCollapseToMini {
     0% {
         opacity: 1;
-        transform: translateY(0);
+        transform: scaleY(1) translateY(0);
         border-radius: 0;
     }
 
-    25% {
-        transform: translateY(-8px);
-        border-radius: 8px;
-    }
-
     100% {
-        opacity: 0.75;
-        transform: translateY(100vh);
-        border-radius: 26px;
+        opacity: 0.6;
+        transform: scaleY(0.04) translateY(0);
+        border-radius: 24px;
     }
 }
 
@@ -6355,12 +6350,14 @@ body.player-expanded #page-music .page-content {
 
 .yt-active-player.is-transitioning.expanded:not(.player-collapsing) {
     transition: none !important;
-    animation: ytExpandToFull 0.58s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+    transform-origin: center bottom !important;
+    animation: ytExpandToFull 0.48s cubic-bezier(0.22, 1, 0.36, 1) both !important;
 }
 
 .yt-active-player.player-collapsing {
     transition: none !important;
-    animation: ytCollapseToMini 0.42s cubic-bezier(0.4, 0, 0.6, 1) both !important;
+    transform-origin: center bottom !important;
+    animation: ytCollapseToMini 0.38s cubic-bezier(0.4, 0, 0.8, 1) both !important;
 }
 
 @keyframes ytMiniPlayerGlow {
