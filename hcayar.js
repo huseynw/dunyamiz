@@ -2863,25 +2863,28 @@ function setPlayerExpanded(expanded) {
     const { activePlayer, lyricsPanel } = getMusicDom();
     if (!activePlayer) return;
 
+    // Add transitioning class first
     activePlayer.classList.add('is-transitioning');
     activePlayer.classList.toggle('player-collapsing', !expanded);
 
-    requestAnimationFrame(() => {
-        activePlayer.classList.toggle('expanded', expanded);
-        activePlayer.classList.toggle('player-mini', !expanded);
+    // Apply layout class immediately (snaps to full/mini layout instantly)
+    activePlayer.classList.toggle('expanded', expanded);
+    activePlayer.classList.toggle('player-mini', !expanded);
 
-        if (!expanded && lyricsPanel) {
-            setPlayerTab('lyrics');
-        }
+    // Force reflow so browser registers the layout change before animation runs
+    void activePlayer.offsetHeight;
 
-        updateLyricsToggleState();
-        syncPlayerExpandedState();
+    if (!expanded && lyricsPanel) {
+        setPlayerTab('lyrics');
+    }
 
-        window.clearTimeout(activePlayer.__expandAnimTimer);
-        activePlayer.__expandAnimTimer = window.setTimeout(() => {
-            activePlayer.classList.remove('is-transitioning', 'player-collapsing');
-        }, expanded ? 600 : 440);
-    });
+    updateLyricsToggleState();
+    syncPlayerExpandedState();
+
+    window.clearTimeout(activePlayer.__expandAnimTimer);
+    activePlayer.__expandAnimTimer = window.setTimeout(() => {
+        activePlayer.classList.remove('is-transitioning', 'player-collapsing');
+    }, expanded ? 600 : 440);
 }
 
 window.togglePlayerMode = function(forceExpanded) {
