@@ -2863,28 +2863,43 @@ function setPlayerExpanded(expanded) {
     const { activePlayer, lyricsPanel } = getMusicDom();
     if (!activePlayer) return;
 
-    // Add transitioning class first
-    activePlayer.classList.add('is-transitioning');
-    activePlayer.classList.toggle('player-collapsing', !expanded);
-
-    // Apply layout class immediately (snaps to full/mini layout instantly)
-    activePlayer.classList.toggle('expanded', expanded);
-    activePlayer.classList.toggle('player-mini', !expanded);
-
-    // Force reflow so browser registers the layout change before animation runs
-    void activePlayer.offsetHeight;
-
-    if (!expanded && lyricsPanel) {
-        setPlayerTab('lyrics');
-    }
-
-    updateLyricsToggleState();
-    syncPlayerExpandedState();
-
     window.clearTimeout(activePlayer.__expandAnimTimer);
-    activePlayer.__expandAnimTimer = window.setTimeout(() => {
-        activePlayer.classList.remove('is-transitioning', 'player-collapsing');
-    }, expanded ? 600 : 440);
+
+    if (expanded) {
+        // EXPAND: snap to full-screen layout instantly, then slide up from bottom
+        activePlayer.classList.add('is-transitioning');
+        activePlayer.classList.remove('player-mini', 'player-collapsing');
+        activePlayer.classList.add('expanded');
+
+        // Force reflow so layout snaps before animation
+        void activePlayer.offsetHeight;
+
+        updateLyricsToggleState();
+        syncPlayerExpandedState();
+
+        activePlayer.__expandAnimTimer = window.setTimeout(() => {
+            activePlayer.classList.remove('is-transitioning');
+        }, 620);
+
+    } else {
+        // COLLAPSE: stay full-screen, animate sliding down, then snap to mini
+        activePlayer.classList.add('is-transitioning', 'player-collapsing');
+
+        // Force reflow
+        void activePlayer.offsetHeight;
+
+        if (lyricsPanel) setPlayerTab('lyrics');
+        updateLyricsToggleState();
+        syncPlayerExpandedState();
+
+        activePlayer.__expandAnimTimer = window.setTimeout(() => {
+            // After slide-down animation, snap to mini layout
+            activePlayer.classList.remove('expanded', 'is-transitioning', 'player-collapsing');
+            activePlayer.classList.add('player-mini');
+            void activePlayer.offsetHeight;
+            syncPlayerExpandedState();
+        }, 420);
+    }
 }
 
 window.togglePlayerMode = function(forceExpanded) {
