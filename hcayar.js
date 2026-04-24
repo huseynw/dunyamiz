@@ -2445,7 +2445,7 @@ window.musicShuffleQueue = [];
 window.musicPlaybackHistory = [];
 
 const DEFAULT_MUSIC_COVER = 'assets/music-cover.jpg';
-const GITHUB_RAW_BASE = `https://raw.githubusercontent.com/${config.githubUsername}/${config.repoName}/main/`;
+const GITHUB_RAW_BASE = '/.netlify/functions/github-raw?file=';
 
 function resolveMusicAssetUrl(value, fallback = '') {
     if (!value) return fallback;
@@ -2458,11 +2458,12 @@ function resolveMusicAssetUrl(value, fallback = '') {
     }
 
     const normalized = cleaned.replace(/^\/+/, '');
+
     if (!normalized.includes('/')) {
-        return `${GITHUB_RAW_BASE}musiqiler/${encodeURIComponent(normalized)}`;
+        return `${GITHUB_RAW_BASE}${encodeURIComponent(`musiqiler/${normalized}`)}`;
     }
 
-    return `${GITHUB_RAW_BASE}${normalized.split('/').map(part => encodeURIComponent(part)).join('/')}`;
+    return `${GITHUB_RAW_BASE}${encodeURIComponent(normalized)}`;
 }
 function normalizeTrackMeta(meta = {}) {
     const audioValue = meta.audio || (meta.file ? `musiqiler/${meta.file}` : '');
