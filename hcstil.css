@@ -6308,41 +6308,40 @@ body.player-expanded #page-music .page-content {
 
 @keyframes ytExpandToFull {
     0% {
-        transform: translateY(100%);
-        opacity: 0.6;
-        border-radius: 22px;
+        opacity: 0.85;
+        transform: translateY(100vh);
+        border-radius: 26px;
     }
 
-    60% {
-        transform: translateY(-6px);
+    65% {
         opacity: 1;
+        transform: translateY(-4px);
         border-radius: 6px;
     }
 
     100% {
-        transform: translateY(0);
         opacity: 1;
+        transform: translateY(0);
         border-radius: 0;
     }
 }
 
 @keyframes ytCollapseToMini {
     0% {
-        transform: translateY(0);
         opacity: 1;
+        transform: translateY(0);
         border-radius: 0;
     }
 
-    35% {
-        transform: translateY(-6px);
-        opacity: 1;
-        border-radius: 6px;
+    25% {
+        transform: translateY(-8px);
+        border-radius: 8px;
     }
 
     100% {
-        transform: translateY(100%);
-        opacity: 0.5;
-        border-radius: 22px;
+        opacity: 0.75;
+        transform: translateY(100vh);
+        border-radius: 26px;
     }
 }
 
@@ -6356,16 +6355,12 @@ body.player-expanded #page-music .page-content {
 
 .yt-active-player.is-transitioning.expanded:not(.player-collapsing) {
     transition: none !important;
-    transform-origin: center bottom !important;
-    animation: ytExpandToFull 0.48s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+    animation: ytExpandToFull 0.58s cubic-bezier(0.22, 1, 0.36, 1) both !important;
 }
 
-/* .expanded.player-collapsing = (0,3,0) beats .expanded alone (0,2,0) */
-.yt-active-player.expanded.player-collapsing,
 .yt-active-player.player-collapsing {
     transition: none !important;
-    transform-origin: center bottom !important;
-    animation: ytCollapseToMini 0.38s cubic-bezier(0.4, 0, 0.8, 1) both !important;
+    animation: ytCollapseToMini 0.42s cubic-bezier(0.4, 0, 0.6, 1) both !important;
 }
 
 @keyframes ytMiniPlayerGlow {
@@ -6570,6 +6565,7 @@ main,
 
 .yt-active-player.expanded {
     transform-origin: center bottom !important;
+    animation: none !important;
 }
 
 .yt-active-player.is-transitioning.expanded,
@@ -7453,58 +7449,5 @@ nav,
         animation-iteration-count: 1 !important;
         scroll-behavior: auto !important;
         transition-duration: 0.001ms !important;
-    }
-}
-
-/* ========== ULTRA PREMIUM YT PLAYER MORPH PATCH ========== */
-.yt-active-player.yt-premium-morphing {
-    contain: layout paint style;
-    transform-origin: 0 0 !important;
-    animation: none !important;
-    transition: none !important;
-    pointer-events: none !important;
-    overflow: hidden !important;
-    isolation: isolate;
-}
-
-.yt-active-player.yt-premium-morphing::after {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    z-index: 3;
-    pointer-events: none;
-    background:
-        radial-gradient(circle at 28% 12%, rgba(255,255,255,0.28), transparent 32%),
-        linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.14) 42%, transparent 68%);
-    mix-blend-mode: screen;
-    opacity: 0.75;
-    animation: ytPremiumMorphShine 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.yt-active-player.yt-premium-morphing .yt-player-bg {
-    transform: scale(1.24) !important;
-    filter: blur(36px) brightness(0.42) saturate(1.28) !important;
-}
-
-@keyframes ytPremiumMorphShine {
-    0% {
-        transform: translateX(-38%) skewX(-16deg);
-        opacity: 0;
-    }
-    38% {
-        opacity: 0.85;
-    }
-    100% {
-        transform: translateX(38%) skewX(-16deg);
-        opacity: 0;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .yt-active-player.yt-premium-morphing,
-    .yt-active-player.yt-premium-morphing::after {
-        animation: none !important;
-        transition: none !important;
-        filter: none !important;
     }
 }
