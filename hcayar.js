@@ -2860,48 +2860,21 @@ window.closeActivePlayer = closeActivePlayer;
 
 
 function setPlayerExpanded(expanded) {
-    const { activePlayer, lyricsPanel } = getMusicDom();
+    const { activePlayer } = getMusicDom();
     if (!activePlayer) return;
 
-    window.clearTimeout(activePlayer.__expandAnimTimer);
+    // Əgər artıq animasiya gedirsə, müdaxilə etmə
+    if (activePlayer._playerAnimating) return;
+
+    const isCurrentlyExpanded = activePlayer.classList.contains('expanded');
+    if (expanded === isCurrentlyExpanded) return;
 
     if (expanded) {
-        // EXPAND: snap to full-screen layout instantly, then slide up from bottom
-        activePlayer.classList.add('is-transitioning');
-        activePlayer.classList.remove('player-mini', 'player-collapsing');
-        activePlayer.classList.add('expanded');
-
-        // Force reflow so layout snaps before animation
-        void activePlayer.offsetHeight;
-
-        updateLyricsToggleState();
-        syncPlayerExpandedState();
-
-        activePlayer.__expandAnimTimer = window.setTimeout(() => {
-            activePlayer.classList.remove('is-transitioning');
-        }, 620);
-
+        animatePlayerExpand();
     } else {
-        // COLLAPSE: stay full-screen, animate sliding down, then snap to mini
-        activePlayer.classList.add('is-transitioning', 'player-collapsing');
-
-        // Force reflow
-        void activePlayer.offsetHeight;
-
-        if (lyricsPanel) setPlayerTab('lyrics');
-        updateLyricsToggleState();
-        syncPlayerExpandedState();
-
-        activePlayer.__expandAnimTimer = window.setTimeout(() => {
-            // After slide-down animation, snap to mini layout
-            activePlayer.classList.remove('expanded', 'is-transitioning', 'player-collapsing');
-            activePlayer.classList.add('player-mini');
-            void activePlayer.offsetHeight;
-            syncPlayerExpandedState();
-        }, 420);
+        animatePlayerCollapse();
     }
 }
-
 window.togglePlayerMode = function(forceExpanded) {
     const { activePlayer } = getMusicDom();
     if (!activePlayer) return;
@@ -4849,3 +4822,107 @@ document.addEventListener("DOMContentLoaded", () => {
         typeWriter("Xoş gəldin, Cəmaləm ❤️", el, 70);
     }
 });
+// ========== ULTRA PREMIUM PLAYER EXPAND / COLLAPSE ==========
+function animatePlayerExpand(complete) {
+    const player = getMusicDom().activePlayer;
+    if (!player || player._playerAnimating) return;
+    player._playerAnimating = true;
+
+    const bodyEl = player.querySelector('.yt-player-body');
+    const miniRect = player.getBoundingClientRect();
+    player._miniRect = miniRect;
+
+    // Anlıq görünüşü dondur
+    player.classList.remove('player-mini', 'expanded');
+    gsap.set(player, {
+        position: 'fixed',
+        top: miniRect.top,
+        left: miniRect.left,
+        width: miniRect.width,
+        height: miniRect.height,
+        margin: 0,
+        borderRadius: '24px',
+        x: 0, y: 0, scaleX: 1, scaleY: 1,
+        clearProps: 'transform,transition'
+    });
+    // Bədəni gizlə, amma opasitini 0‑la göstər
+    if (bodyEl) {
+        bodyEl.style.display = 'block';
+        gsap.set(bodyEl, { opacity: 0 });
+    }
+
+    // Browser‑ə reflow üçün
+    player.offsetHeight;
+
+    gsap.to(player, {
+        top: 0,
+        left: 0,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        borderRadius: 0,
+        duration: 0.65,
+        ease: 'expo.inOut',
+        onUpdate: () => {
+            // Lazım gələrsə, məs. en/boy dəyişəndə yenidən hesablama
+        },
+        onComplete: () => {
+            gsap.set(player, { clearProps: 'all' });
+            player.classList.add('expanded');
+            if (bodyEl) gsap.to(bodyEl, { opacity: 1, duration: 0.25, ease: 'power2.out' });
+            player._playerAnimating = false;
+            syncPlayerExpandedState();
+            if (typeof complete === 'function') complete();
+        }
+    });
+}
+
+function animatePlayerCollapse(complete) {
+    const player = getMusicDom().activePlayer;
+    if (!player || player._playerAnimating || !player._miniRect) return;
+    player._playerAnimating = true;
+
+    const miniRect = player._miniRect;
+    const bodyEl = player.querySelector('.yt-player-body');
+
+    // Bədəni yumşaq gizlət
+    if (bodyEl) {
+        gsap.to(bodyEl, { opacity: 0, duration: 0.2, ease: 'power2.in' });
+    }
+
+    // Tam ekran görünüşdən başla
+    player.classList.remove('expanded');
+    gsap.set(player, {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        borderRadius: 0,
+        x: 0, y: 0, scaleX: 1, scaleY: 1,
+        clearProps: 'transform,transition'
+    });
+    player.offsetHeight;
+
+    gsap.to(player, {
+        top: miniRect.top,
+        left: miniRect.left,
+        width: miniRect.width,
+        height: miniRect.height,
+        borderRadius: '24px',
+        duration: 0.55,
+        ease: 'expo.inOut',
+        onComplete: () => {
+            gsap.set(player, { clearProps: 'all' });
+            player.classList.add('player-mini');
+            if (bodyEl) bodyEl.style.display = 'none';
+            player._playerAnimating = false;
+            // Köhnə mini‑pleyerin default CSS-ə qayıt
+            player.style.removeProperty('top');
+            player.style.removeProperty('left');
+            player.style.removeProperty('width');
+            player.style.removeProperty('height');
+            syncPlayerExpandedState();
+            if (typeof complete === 'function') complete();
+        }
+    });
+}
