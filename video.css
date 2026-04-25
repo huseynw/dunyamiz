@@ -732,3 +732,148 @@ html, body {
         height: 760svh;
     }
 }
+
+/* === FINAL MOBILE FIX: no zoom, faster scroll, safer video view === */
+@media (max-width: 768px) {
+    html,
+    body {
+        width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+        touch-action: pan-y;
+    }
+
+    body {
+        min-height: 100dvh;
+    }
+
+    body::before {
+        transform: translateZ(0);
+        background-size: cover;
+        background-position: center center;
+    }
+
+    #preloader {
+        min-height: 100dvh;
+        padding: 18px;
+    }
+
+    .loader-content {
+        width: min(86vw, 315px);
+        padding: 24px 18px;
+        border-radius: 25px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+
+    .loader-heart {
+        width: 76px;
+        height: 76px;
+        font-size: 1.95rem;
+        margin-bottom: 14px;
+    }
+
+    .page-header {
+        top: calc(env(safe-area-inset-top) + 12px);
+        width: 100%;
+        max-width: 100vw;
+        padding: 0 18px;
+    }
+
+    .page-header h1 {
+        max-width: 100%;
+        font-size: clamp(2rem, 10vw, 3.1rem);
+        line-height: 0.98;
+        letter-spacing: -0.06em;
+        word-break: normal;
+    }
+
+    .page-header p {
+        max-width: 320px;
+        font-size: 0.78rem;
+    }
+
+    .scene {
+        width: 100vw;
+        height: 100dvh;
+        perspective: none;
+        transform: translateZ(0);
+    }
+
+    .gallery {
+        transform-style: flat;
+    }
+
+    .pillar-container {
+        display: none;
+    }
+
+    .card {
+        top: 56%;
+        left: 50%;
+        width: min(88vw, 360px);
+        height: min(52vh, 410px);
+        min-height: 310px;
+        max-height: 430px;
+        margin: 0 !important;
+        border-radius: 28px;
+        transform-origin: center center;
+        transform-style: flat;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        contain: layout paint style;
+        will-change: transform, opacity;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    .card video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: translateZ(0);
+        will-change: opacity;
+    }
+
+    .card::before {
+        display: none;
+    }
+
+    .card::after {
+        bottom: 12px;
+        left: 12px;
+        right: 12px;
+        border-radius: 18px;
+        background: rgba(5, 5, 10, 0.56);
+    }
+
+    .scroll-hint {
+        bottom: calc(env(safe-area-inset-bottom) + 16px);
+    }
+}
+
+@media (max-width: 420px) {
+    .page-header h1 {
+        font-size: clamp(1.85rem, 9.5vw, 2.55rem);
+    }
+
+    .card {
+        top: 57%;
+        width: 88vw;
+        height: 50vh;
+        min-height: 300px;
+        max-height: 390px;
+        border-radius: 26px;
+    }
+}
+
+@media (max-width: 360px) {
+    .card {
+        height: 47vh;
+        min-height: 275px;
+    }
+
+    .page-header h1 {
+        font-size: 1.8rem;
+    }
+}
