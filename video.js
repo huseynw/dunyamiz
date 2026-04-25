@@ -135,22 +135,26 @@ async function fetchLocalManifest() {
 
 async function getVideoFiles() {
     try {
-        const manifestFiles = await fetchVideosFromBuildManifest();
-        if (manifestFiles.length) return manifestFiles;
-    } catch (err) {
-        console.warn(err);
-    }
+        const res = await fetch('/video-manifest.json?v=' + Date.now(), {
+            cache: 'no-store'
+        });
 
-    try {
-        const localFiles = await fetchLocalManifest();
-        if (localFiles.length) return localFiles;
-    } catch (err) {
-        console.warn(err);
-    }
+        if (!res.ok) {
+            throw new Error('video-manifest.json oxunmadı: ' + res.status);
+        }
 
-    return [];
+        const data = await res.json();
+
+        if (Array.isArray(data)) return data;
+
+        if (Array.isArray(data.videos)) return data.videos;
+
+        return [];
+    } catch (err) {
+        console.error('Manifest xətası:', err);
+        return [];
+    }
 }
-
 function updateLoader() {
     if (loaderDone) return;
     loadedVideos = Math.min(totalVideos, loadedVideos + 1);
@@ -185,7 +189,7 @@ function createVideoCard(file, index) {
     video.volume = 0;
 
     const source = document.createElement('source');
-    source.src = file.url;
+    source.src = '/' + (file.url || file.path).replace(/^\/+/, '');
     source.type = getMimeType(file.name || file.url);
 
     video.appendChild(source);
