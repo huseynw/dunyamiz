@@ -585,7 +585,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateCounter();
     updateMeetingTimer();
-    initDailyMessageAndRandomMemory();
+    // İlk yüklənmənin kritik yolunu boşaltmaq üçün gecikdir
+    if (window.requestIdleCallback) {
+        requestIdleCallback(() => initDailyMessageAndRandomMemory());
+    } else {
+        setTimeout(initDailyMessageAndRandomMemory, 50);
+    }
     syncFloatingPlayerState();
     startPerfMainLoop();
 });
@@ -723,12 +728,10 @@ function startPerfMainLoop() {
 
         if (!PERF_REDUCED_MOTION && !document.hidden) {
             const phraseStep = PERF_MOBILE ? 900 : 500;
-            if (ts - perfPhraseTick > phraseStep) {
+            if (ts - perfPhraseTick > (PERF_MOBILE ? 1200 : 700)) {
                 perfPhraseTick = ts;
                 fastChangeLoveText();
             }
-        }
-
         requestAnimationFrame(loop);
     };
 
@@ -980,7 +983,25 @@ function createHeart() {
     }, 4000);
 }
 
-if (!IS_TOUCH_DEVICE && !IS_LOW_END_DEVICE && !PERF_REDUCED_MOTION) setInterval(createHeart, 900);
+// ----- YENİ: CPU optimized heart particles -----
+let heartThrottle = 0;
+function createHeartIfNeeded(now) {
+    if (now - heartThrottle < 900) return;
+    heartThrottle = now;
+    createHeart();
+}
+
+function startHeartLoop() {
+    if (!IS_TOUCH_DEVICE && !IS_LOW_END_DEVICE && !PERF_REDUCED_MOTION) {
+        const loop = (ts) => {
+            if (!document.hidden) createHeartIfNeeded(ts);
+            requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+    }
+}
+startHeartLoop();
+// --------------------------------------------------
 
 // ========== LETTERS ==========
 const letters = {
@@ -4801,17 +4822,15 @@ function initPlayerSwipeToClose() {
     }
 })();
 function typeWriter(text, element, speed = 80) {
+    element.textContent = "";   // innerHTML yerinə
     let i = 0;
-    element.innerHTML = "";
-    
     function typing() {
         if (i < text.length) {
-            element.innerHTML += text.charAt(i);
+            element.textContent += text.charAt(i);  // innerHTML yox
             i++;
-            setTimeout(typing, speed);
+            requestAnimationFrame(() => setTimeout(typing, speed));
         }
     }
-
     typing();
 }
 
