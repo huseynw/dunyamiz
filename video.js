@@ -135,23 +135,16 @@ async function fetchLocalManifest() {
 
 async function getVideoFiles() {
     try {
-        const res = await fetch('/video-manifest.json?v=' + Date.now(), {
+        const res = await fetch('./video-manifest.json?v=' + Date.now(), {
             cache: 'no-store'
         });
 
-        if (!res.ok) {
-            throw new Error('video-manifest.json oxunmadı: ' + res.status);
-        }
-
         const data = await res.json();
+        console.log("Manifest data:", data);
 
-        if (Array.isArray(data)) return data;
-
-        if (Array.isArray(data.videos)) return data.videos;
-
-        return [];
+        return Array.isArray(data.videos) ? data.videos : [];
     } catch (err) {
-        console.error('Manifest xətası:', err);
+        console.error("Manifest oxunmadı:", err);
         return [];
     }
 }
@@ -189,8 +182,8 @@ function createVideoCard(file, index) {
     video.volume = 0;
 
     const source = document.createElement('source');
-    source.src = '/' + (file.url || file.path).replace(/^\/+/, '');
-    source.type = getMimeType(file.name || file.url);
+    source.src = encodeURI(file.url || file.path);
+    source.type = file.type || getMimeType(file.name || file.url || file.path);
 
     video.appendChild(source);
     card.appendChild(video);
@@ -211,7 +204,7 @@ function unlockAudioOnGesture() {
         video.muted = false;
     });
 }
-
+console.log("Gələn videolar:", files);
 function mountVideos(files) {
     if (!gallery) return;
 
