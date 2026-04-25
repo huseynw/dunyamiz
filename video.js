@@ -33,7 +33,9 @@ function markVideoReady(video) {
   countedVideos.add(video);
   loadedVideos = Math.min(totalVideos, loadedVideos + 1);
   const required = isSmallScreen ? 2 : Math.min(totalVideos, 4);
-  const progress = totalVideos > 0 ? Math.min(100, Math.max((loadedVideos / required) * 100, (loadedVideos / totalVideos) * 100)) : 100;
+  const progress = totalVideos > 0
+    ? Math.min(100, Math.max((loadedVideos / required) * 100, (loadedVideos / totalVideos) * 100))
+    : 100;
   if (loaderBar) loaderBar.style.width = `${progress}%`;
   if (loadedCountEl) loadedCountEl.textContent = Math.min(loadedVideos, totalVideos);
   if (loadedVideos >= required || totalVideos === 0) closeLoader(200);
@@ -52,7 +54,10 @@ function closeLoader(delay = 0) {
 
 function guessMimeType(filename) {
   const ext = filename.split('.').pop().toLowerCase();
-  const mimes = { mp4: 'video/mp4', webm: 'video/webm', ogv: 'video/ogg', ogg: 'video/ogg', mov: 'video/quicktime', avi: 'video/x-msvideo', mkv: 'video/x-matroska' };
+  const mimes = {
+    mp4: 'video/mp4', webm: 'video/webm', ogv: 'video/ogg', ogg: 'video/ogg',
+    mov: 'video/quicktime', avi: 'video/x-msvideo', mkv: 'video/x-matroska'
+  };
   return mimes[ext] || 'video/mp4';
 }
 
@@ -107,7 +112,9 @@ function handleFirstInteraction() {
   userInteracted = true;
   videos.forEach(v => { v.muted = true; v.play().catch(() => {}); });
 }
-['touchstart', 'pointerdown', 'click'].forEach(e => window.addEventListener(e, handleFirstInteraction, { once: true, passive: true }));
+['touchstart', 'pointerdown', 'click'].forEach(e =>
+  window.addEventListener(e, handleFirstInteraction, { once: true, passive: true })
+);
 
 function updateScrollSpace() {
   if (!scrollSpace) return;
@@ -191,9 +198,11 @@ function initParticles() {
   canvas.style.height = `${window.innerHeight}px`;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   particles = Array.from({ length: 58 }, () => ({
-    x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
     size: 0.6 + Math.random() * 1.5,
-    speedX: (Math.random() - 0.5) * 0.14, speedY: (Math.random() - 0.5) * 0.14,
+    speedX: (Math.random() - 0.5) * 0.14,
+    speedY: (Math.random() - 0.5) * 0.14,
     opacity: 0.18 + Math.random() * 0.48,
     twinkle: Math.random() * Math.PI * 2,
     color: particleColors[Math.floor(Math.random() * particleColors.length)]
@@ -215,9 +224,19 @@ function drawParticles() {
   if (enableParticles) requestAnimationFrame(drawParticles);
 }
 
-window.addEventListener('scroll', () => { targetScroll = window.scrollY || 0; if (scrollHint && targetScroll > 60) scrollHint.style.opacity = '0'; }, { passive: true });
+window.addEventListener('scroll', () => {
+  targetScroll = window.scrollY || 0;
+  if (scrollHint && targetScroll > 60) scrollHint.style.opacity = '0';
+}, { passive: true });
+
 let resizeTimer;
-window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { updateScrollSpace(); initParticles(); }, 180); }, { passive: true });
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    updateScrollSpace();
+    initParticles();
+  }, 180);
+}, { passive: true });
 
 async function init() {
   try {
