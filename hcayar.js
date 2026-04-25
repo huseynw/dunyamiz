@@ -736,8 +736,8 @@ function startPerfMainLoop() {
     };
 
     requestAnimationFrame(loop);
+    }
 }
-
 function parseImageDate(img) {
     if (img.git_date) {
         const d = new Date(img.git_date);
