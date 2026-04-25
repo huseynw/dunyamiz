@@ -4827,3 +4827,25 @@ function initPlayerSwipeToClose() {
         document.documentElement.classList.add("custom-cursor-enabled");
     }
 })();
+function typeWriter(text, element, speed = 80) {
+    let i = 0;
+    element.innerHTML = "";
+    
+    function typing() {
+        if (i < text.length) {
+            element.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(typing, speed);
+        }
+    }
+
+    typing();
+}
+
+// DOM hazır olanda işə sal
+document.addEventListener("DOMContentLoaded", () => {
+    const el = document.getElementById("typed-text");
+    if (el) {
+        typeWriter("Xoş gəldin, Cəmaləm ❤️", el, 70);
+    }
+});
