@@ -24,7 +24,7 @@ html {
 }
 
 body {
-    min-height: 100dvh;
+    min-height: 100vh;
     background:
         radial-gradient(circle at 18% 16%, rgba(255, 77, 109, 0.24), transparent 30%),
         radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.10), transparent 24%),
@@ -49,7 +49,6 @@ body::before {
     pointer-events: none;
 }
 
-/* ---------- PRELOADER ---------- */
 #preloader {
     position: fixed;
     inset: 0;
@@ -187,10 +186,11 @@ body::before {
     font-variant-numeric: tabular-nums;
 }
 
-/* ---------- PARTICLES & DOTS ---------- */
 #particles {
     position: fixed;
     inset: 0;
+    width: 100%;
+    height: 100%;
     z-index: -3;
     pointer-events: none;
 }
@@ -219,7 +219,6 @@ body::before {
         radial-gradient(circle at center, transparent 46%, rgba(0,0,0,0.58));
 }
 
-/* ---------- HEADER ---------- */
 .page-header {
     position: fixed;
     top: max(18px, env(safe-area-inset-top));
@@ -269,7 +268,6 @@ body::before {
     font-size: clamp(0.84rem, 1vw, 1rem);
 }
 
-/* ---------- SCENE & 3D GALLERY (DESKTOP) ---------- */
 .scene {
     position: fixed;
     inset: 0;
@@ -289,7 +287,6 @@ body::before {
     transform-style: preserve-3d;
 }
 
-/* Sütun effektləri yalnız masaüstü üçün */
 .pillar-container {
     position: absolute;
     top: 50%;
@@ -300,7 +297,6 @@ body::before {
     transform-style: preserve-3d;
     pointer-events: none;
     z-index: -1;
-    display: block;
 }
 
 .shard-system {
@@ -360,7 +356,6 @@ body::before {
     opacity: 0.34;
 }
 
-/* ---------- VİDEO KARTLAR ---------- */
 .card {
     position: absolute;
     top: 50%;
@@ -389,7 +384,6 @@ body::before {
     backface-visibility: visible;
     overflow: hidden;
     transition: box-shadow 0.6s var(--ease-premium), border-color 0.6s var(--ease-premium), filter 0.45s var(--ease-premium);
-    will-change: transform, opacity;
 }
 
 .card::before {
@@ -439,11 +433,8 @@ body::before {
     opacity: 0.58;
     filter: grayscale(22%) saturate(0.92) contrast(1.04) brightness(0.86);
     transition: opacity 0.75s var(--ease-premium), filter 0.75s var(--ease-premium), transform 0.75s var(--ease-premium);
-    background: #000;
-    will-change: transform, opacity;
 }
 
-/* ---------- FOKUS ---------- */
 .card.focused {
     border-color: rgba(255, 141, 164, 0.88);
     box-shadow:
@@ -465,7 +456,6 @@ body::before {
     transform: scale(1.018);
 }
 
-/* ---------- SCROLL ---------- */
 .scroll-space {
     height: 820vh;
 }
@@ -505,52 +495,10 @@ body::before {
     to { background-position: 46px 46px; }
 }
 
-/* ========== MOBİL UYĞUNLAŞMA ========== */
 @media (max-width: 768px) {
-    body {
-        min-height: 100dvh;
-        background:
-            radial-gradient(circle at 18% 16%, rgba(255, 77, 109, 0.18), transparent 30%),
-            linear-gradient(135deg, rgba(4, 4, 10, 0.98), rgba(13, 10, 20, 0.96));
-    }
-
-    body::before {
-        opacity: 0.48;
-        background-position: center;
-    }
-
-    #particles {
-        display: none;
-    }
-
-    .bg-dots {
-        opacity: 0.16;
-        animation: none;
-    }
-
-    .romantic-vignette {
-        z-index: 5;
-        background:
-            linear-gradient(180deg, rgba(5,5,10,0.62), transparent 31%, transparent 70%, rgba(5,5,10,0.72)),
-            radial-gradient(circle at center, transparent 52%, rgba(0,0,0,0.54));
-    }
-
     .page-header {
-        top: max(12px, env(safe-area-inset-top));
-        width: 100%;
-        max-width: 100vw;
-        padding: 0 18px;
-    }
-
-    .page-header h1 {
-        font-size: clamp(2rem, 10vw, 3.1rem);
-        line-height: 0.98;
-        letter-spacing: -0.06em;
-    }
-
-    .page-header p {
-        max-width: 320px;
-        font-size: 0.78rem;
+        top: max(14px, env(safe-area-inset-top));
+        width: 94vw;
     }
 
     .header-badge {
@@ -559,137 +507,52 @@ body::before {
         margin-bottom: 8px;
     }
 
-    .pillar-container {
-        display: none; /* mobil üçün tamamilə gizlət */
+    .page-header h1 {
+        font-size: clamp(1.9rem, 9.2vw, 3.2rem);
+        letter-spacing: -0.055em;
+    }
+
+    .page-header p {
+        margin-top: 8px;
+        font-size: 0.82rem;
     }
 
     .scene {
-        perspective: none;
-        height: 100dvh;
-    }
-
-    .gallery {
-        transform-style: flat;
+        perspective: 1050px;
     }
 
     .card {
-        top: 52%;
-        left: 50%;
-        width: 78vw;
-        height: 38vh;
-        min-height: 165px;
-        max-height: 230px;
-        margin: 0 !important;
-        border-radius: 24px;
-        transform-style: flat;
-        backface-visibility: hidden;
-        -webkit-backface-visibility: hidden;
-        contain: layout paint style;
-        will-change: transform, opacity;
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-        box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.08),
-            0 12px 32px rgba(0, 0, 0, 0.38);
-        transition: box-shadow 0.28s var(--ease-premium), border-color 0.28s var(--ease-premium);
+        width: 82vw;
+        height: 52vw;
+        min-height: 178px;
+        max-height: 236px;
+        margin-left: -41vw;
+        margin-top: -26vw;
+        border-radius: 26px;
     }
 
-    .card::before {
-        display: none;
-    }
-
-    .card::after {
-        left: 12px;
-        right: 12px;
-        bottom: 10px;
-        padding: 8px 10px;
-        font-size: 0.72rem;
-        border-radius: 18px;
-        background: rgba(5, 5, 10, 0.56);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-    }
-
-    .card video {
-        opacity: 0.70;
-        filter: saturate(0.94) contrast(1.02) brightness(0.9);
-        transition: opacity 0.28s var(--ease-premium), filter 0.28s var(--ease-premium), transform 0.28s var(--ease-premium);
-    }
-
-    .card.focused {
-        border-color: rgba(255, 141, 164, 0.7);
-        box-shadow:
-            inset 0 0 14px rgba(255, 77, 109, 0.12),
-            0 0 28px rgba(255, 77, 109, 0.20),
-            0 17px 44px rgba(0, 0, 0, 0.48);
-    }
-
-    .card.focused video {
-        transform: scale(1.01);
-    }
-
-    .scroll-space {
-        height: 580dvh;
+    .pillar-container {
+        transform: translate(-50%, -50%) scale(0.82);
     }
 
     .scroll-hint {
         font-size: 0.72rem;
         bottom: max(14px, env(safe-area-inset-bottom));
     }
+}
 
-    html, body {
-        overscroll-behavior-y: none;
-        -webkit-text-size-adjust: 100%;
-        touch-action: pan-y;
-        min-width: 0;
-        overflow-x: hidden;
-    }
-
-    #preloader {
-        min-height: 100dvh;
-        padding: 18px;
+@media (max-width: 420px) {
+    .card {
+        width: 86vw;
+        height: 58vw;
+        margin-left: -43vw;
+        margin-top: -29vw;
+        border-radius: 24px;
     }
 
     .loader-content {
         border-radius: 24px;
         padding: 24px 18px;
-        width: min(86vw, 315px);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-    }
-
-    .loader-heart {
-        width: 76px;
-        height: 76px;
-        font-size: 1.95rem;
-        margin-bottom: 14px;
-    }
-}
-
-@media (max-width: 480px) {
-    .page-header h1 {
-        font-size: clamp(1.7rem, 9vw, 2.4rem);
-    }
-
-    .card {
-        width: 84vw;
-        height: 40vh;
-        min-height: 160px;
-        max-height: 210px;
-        border-radius: 22px;
-    }
-
-    .scroll-space {
-        height: 600dvh;
-    }
-}
-
-@media (max-width: 380px) {
-    .card {
-        width: 88vw;
-        height: 38vh;
-        min-height: 150px;
-        max-height: 195px;
     }
 }
 
@@ -700,4 +563,23 @@ body::before {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
+}
+
+
+.video-empty {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 5;
+    width: min(86vw, 430px);
+    padding: 22px 20px;
+    transform: translate(-50%, -50%);
+    border-radius: 26px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(5, 5, 10, 0.54);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    color: rgba(255,255,255,0.82);
+    text-align: center;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.48);
 }
