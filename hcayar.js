@@ -585,12 +585,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateCounter();
     updateMeetingTimer();
-    // İlk yüklənmənin kritik yolunu boşaltmaq üçün gecikdir
-    if (window.requestIdleCallback) {
-        requestIdleCallback(() => initDailyMessageAndRandomMemory());
-    } else {
-        setTimeout(initDailyMessageAndRandomMemory, 50);
-    }
+    initDailyMessageAndRandomMemory();
     syncFloatingPlayerState();
     startPerfMainLoop();
 });
@@ -728,16 +723,18 @@ function startPerfMainLoop() {
 
         if (!PERF_REDUCED_MOTION && !document.hidden) {
             const phraseStep = PERF_MOBILE ? 900 : 500;
-            if (ts - perfPhraseTick > (PERF_MOBILE ? 1200 : 700)) {
+            if (ts - perfPhraseTick > phraseStep) {
                 perfPhraseTick = ts;
                 fastChangeLoveText();
             }
+        }
+
         requestAnimationFrame(loop);
     };
 
     requestAnimationFrame(loop);
-    }
 }
+
 function parseImageDate(img) {
     if (img.git_date) {
         const d = new Date(img.git_date);
@@ -983,25 +980,7 @@ function createHeart() {
     }, 4000);
 }
 
-// ----- YENİ: CPU optimized heart particles -----
-let heartThrottle = 0;
-function createHeartIfNeeded(now) {
-    if (now - heartThrottle < 900) return;
-    heartThrottle = now;
-    createHeart();
-}
-
-function startHeartLoop() {
-    if (!IS_TOUCH_DEVICE && !IS_LOW_END_DEVICE && !PERF_REDUCED_MOTION) {
-        const loop = (ts) => {
-            if (!document.hidden) createHeartIfNeeded(ts);
-            requestAnimationFrame(loop);
-        };
-        requestAnimationFrame(loop);
-    }
-}
-startHeartLoop();
-// --------------------------------------------------
+if (!IS_TOUCH_DEVICE && !IS_LOW_END_DEVICE && !PERF_REDUCED_MOTION) setInterval(createHeart, 900);
 
 // ========== LETTERS ==========
 const letters = {
@@ -4822,15 +4801,17 @@ function initPlayerSwipeToClose() {
     }
 })();
 function typeWriter(text, element, speed = 80) {
-    element.textContent = "";   // innerHTML yerinə
     let i = 0;
+    element.innerHTML = "";
+    
     function typing() {
         if (i < text.length) {
-            element.textContent += text.charAt(i);  // innerHTML yox
+            element.innerHTML += text.charAt(i);
             i++;
-            requestAnimationFrame(() => setTimeout(typing, speed));
+            setTimeout(typing, speed);
         }
     }
+
     typing();
 }
 
