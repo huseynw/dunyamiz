@@ -4,10 +4,10 @@
   "description": "Admin paneli üçün GitHub proxy funksiyası",
   "main": "index.js",
   "scripts": {
-    "build": "node build.js"
+    "build": "node scripts/generate-video-manifest.js",
+    "generate": "node scripts/generate-video-manifest.js"
   },
   "dependencies": {
     "node-fetch": "^2.7.0"
-  },
-  "devDependencies": {}
+  }
 }
