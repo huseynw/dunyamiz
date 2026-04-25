@@ -46,7 +46,29 @@ for (const item of fs.readdirSync(".")) {
     fs.copyFileSync(srcPath, destPath);
   }
 }
+function generateVideoList() {
+  const videoDir = path.join(__dirname, "video");
+  const outputJson = path.join(outDir, "video-list.json");
+  const supportedExts = [".mp4", ".webm", ".ogv", ".mov", ".avi", ".mkv"];
 
+  if (!fs.existsSync(videoDir)) {
+    fs.writeFileSync(outputJson, JSON.stringify([]));
+    console.log("video qovluğu yoxdur, boş video-list.json yaradıldı.");
+    return;
+  }
+
+  const files = fs.readdirSync(videoDir)
+    .filter(f => supportedExts.includes(path.extname(f).toLowerCase()))
+    .map(f => ({
+      name: f,
+      path: `video/${f}`,
+      type: `video/${f.split(".").pop().toLowerCase()}`
+    }));
+
+  fs.writeFileSync(outputJson, JSON.stringify(files, null, 2));
+  console.log(`${files.length} video tapıldı → dist/video-list.json yaradıldı.`);
+}
+generateVideoList();
 let html = fs.readFileSync(path.join(outDir, "index.html"), "utf8");
 
 for (const file of filesToHash) {
