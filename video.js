@@ -14,13 +14,14 @@ const scrollHint = document.querySelector('.scroll-hint');
 const scrollSpace = document.querySelector('.scroll-space');
 
 /*
-    Netlify + GitHub token video sistemi:
-    - GH_TOKEN frontend-ə çıxmır, yalnız Netlify Function içində istifadə olunur.
-    - Videolar repo içində video/ qovluğundan avtomatik tapılır.
-    - Fayl adları random ola bilər.
+    GitHub video sistemi:
+    - Videoları repoda video/ qovluğuna at.
+    - Fayl adları istənilən ad ola bilər: askim.mp4, 2026-xatire.webm və s.
+    - GitHub Pages-də işləyəndə owner/repo avtomatik tapılır.
+    - Custom domain və ya local test üçün githubOwner/githubRepo yaz.
 */
 const VIDEO_CONFIG = {
-    apiEndpoint: '/.netlify/functions/github-videos',
+    manifestUrl: '/video-manifest.json',
     localManifest: 'video/manifest.json',
     allowedExtensions: [
         'mp4', 'webm', 'ogv', 'ogg', 'mov', 'm4v', 'avi', 'mkv',
@@ -84,12 +85,12 @@ function prettyTitle(fileName = '', index = 0) {
     return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
-async function fetchVideosFromNetlifyFunction() {
-    const res = await fetch(VIDEO_CONFIG.apiEndpoint, { cache: 'no-store' });
+async function fetchVideosFromBuildManifest() {
+    const res = await fetch(VIDEO_CONFIG.manifestUrl, { cache: 'no-store' });
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-        throw new Error(data.error || `Netlify video API xətası: ${res.status}`);
+        throw new Error(data.error || `Video manifest xətası: ${res.status}`);
     }
 
     const list = Array.isArray(data) ? data : data.videos;
@@ -103,7 +104,7 @@ async function fetchVideosFromNetlifyFunction() {
             }
 
             const name = item.name || item.title || item.url?.split('/').pop() || '';
-            const url = item.url || item.src || '';
+            const url = item.url || item.src || item.download_url || '';
             return { name, url, title: item.title };
         })
         .filter((item) => item.url && isSupportedVideoFile(item.name || item.url));
@@ -134,15 +135,15 @@ async function fetchLocalManifest() {
 
 async function getVideoFiles() {
     try {
-        const functionFiles = await fetchVideosFromNetlifyFunction();
-        if (functionFiles.length) return functionFiles;
+        const manifestFiles = await fetchVideosFromBuildManifest();
+        if (manifestFiles.length) return manifestFiles;
     } catch (err) {
         console.warn(err);
     }
 
     try {
-        const manifestFiles = await fetchLocalManifest();
-        if (manifestFiles.length) return manifestFiles;
+        const localFiles = await fetchLocalManifest();
+        if (localFiles.length) return localFiles;
     } catch (err) {
         console.warn(err);
     }
