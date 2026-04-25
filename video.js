@@ -218,7 +218,6 @@ function unlockAudioOnGesture() {
         video.muted = false;
     });
 }
-console.log("Gələn videolar:", files);
 function mountVideos(files) {
     if (!gallery) return;
 
@@ -417,14 +416,16 @@ async function start() {
         initParticles();
         drawParticles();
 
-        const files = await getVideoFiles();
+        const files = await getVideoFiles(); // BURADA yaranır
 
         console.log("Tapılan videolar:", files);
 
         if (totalCountEl) totalCountEl.textContent = files.length;
 
-        mountVideos(files);
+        mountVideos(files); // BURADA istifadə olunur
+
         animate();
+
     } catch (err) {
         console.error("START ERROR:", err);
         if (totalCountEl) totalCountEl.textContent = "ERR";
