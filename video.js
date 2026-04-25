@@ -134,19 +134,33 @@ async function fetchLocalManifest() {
 }
 
 async function getVideoFiles() {
-    try {
-        const res = await fetch('./video-manifest.json?v=' + Date.now(), {
-            cache: 'no-store'
-        });
+    const urls = [
+        "/video-manifest.json",
+        "./video-manifest.json",
+        "video-manifest.json"
+    ];
 
-        const data = await res.json();
-        console.log("Manifest data:", data);
+    for (const url of urls) {
+        try {
+            const res = await fetch(url + "?v=" + Date.now(), {
+                cache: "no-store"
+            });
 
-        return Array.isArray(data.videos) ? data.videos : [];
-    } catch (err) {
-        console.error("Manifest oxunmadı:", err);
-        return [];
+            console.log("Manifest yoxlanır:", url, res.status);
+
+            if (!res.ok) continue;
+
+            const data = await res.json();
+            console.log("Manifest data:", data);
+
+            if (Array.isArray(data.videos)) return data.videos;
+            if (Array.isArray(data)) return data;
+        } catch (e) {
+            console.error("Manifest error:", url, e);
+        }
     }
+
+    return [];
 }
 function updateLoader() {
     if (loaderDone) return;
@@ -182,7 +196,7 @@ function createVideoCard(file, index) {
     video.volume = 0;
 
     const source = document.createElement('source');
-    source.src = encodeURI(file.url || file.path);
+    source.src = "/" + String(file.url || file.path).replace(/^\/+/, "");
     source.type = file.type || getMimeType(file.name || file.url || file.path);
 
     video.appendChild(source);
@@ -399,13 +413,22 @@ function animate() {
 }
 
 async function start() {
-    initParticles();
-    drawParticles();
+    try {
+        initParticles();
+        drawParticles();
 
-    const files = await getVideoFiles();
-    mountVideos(files);
+        const files = await getVideoFiles();
 
-    animate();
+        console.log("Tapılan videolar:", files);
+
+        if (totalCountEl) totalCountEl.textContent = files.length;
+
+        mountVideos(files);
+        animate();
+    } catch (err) {
+        console.error("START ERROR:", err);
+        if (totalCountEl) totalCountEl.textContent = "ERR";
+        closeLoader(1000);
+    }
 }
-
 start();
