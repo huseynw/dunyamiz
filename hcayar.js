@@ -2859,7 +2859,22 @@ function closeActivePlayer(options = {}) {
 window.closeActivePlayer = closeActivePlayer;
 
 
+function setPlayerExpanded(expanded) {
+    const { activePlayer } = getMusicDom();
+    if (!activePlayer) return;
 
+    // Əgər artıq animasiya gedirsə, müdaxilə etmə
+    if (activePlayer._playerAnimating) return;
+
+    const isCurrentlyExpanded = activePlayer.classList.contains('expanded');
+    if (expanded === isCurrentlyExpanded) return;
+
+    if (expanded) {
+        animatePlayerExpand();
+    } else {
+        animatePlayerCollapse();
+    }
+}
 window.togglePlayerMode = function(forceExpanded) {
     const { activePlayer } = getMusicDom();
     if (!activePlayer) return;
@@ -4349,137 +4364,7 @@ function initMusicPlayerEvents() {
     updateMusicPlayButtonState();
     updateMediaSessionPlaybackState();
 }
-// ========== ULTRA PREMIUM FLIP EXPAND/COLLAPSE (GSAP) ==========
-function getMiniRectFromPlayer(player) {
-    const currentRect = player.getBoundingClientRect();
-    if (currentRect.width > 0 && currentRect.height > 0) return currentRect;
-    // İlk dəfə açılırsa, standart mini ölçü
-    return {
-        top: window.innerHeight - 120,
-        left: (window.innerWidth - 380) / 2,
-        width: Math.min(380, window.innerWidth - 24),
-        height: 80
-    };
-}
 
-function flipPlayerToFull(complete) {
-    const player = getMusicDom().activePlayer;
-    if (!player || player._playerAnimating) return;
-    player._playerAnimating = true;
-
-    const bodyEl = player.querySelector('.yt-player-body');
-    const miniRect = getMiniRectFromPlayer(player);
-    player._miniRect = miniRect;
-
-    gsap.set(player, {
-        position: 'fixed',
-        top: 0, left: 0,
-        width: window.innerWidth,
-        height: window.innerHeight,
-        margin: 0,
-        transformOrigin: '0 0',
-        x: miniRect.left,
-        y: miniRect.top,
-        scaleX: miniRect.width / window.innerWidth,
-        scaleY: miniRect.height / window.innerHeight,
-        borderRadius: '24px',
-        clearProps: 'transition'
-    });
-
-    if (bodyEl) {
-        gsap.set(bodyEl, { display: 'block', opacity: 0, y: 30 });
-    }
-    player.offsetHeight; // reflow
-
-    const anim = gsap.to(player, {
-        x: 0, y: 0,
-        scaleX: 1, scaleY: 1,
-        borderRadius: 0,
-        duration: 0.72,
-        ease: 'expo.inOut',
-        onUpdate: function() {
-            if (bodyEl && this.progress() > 0.3) {
-                gsap.to(bodyEl, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', overwrite: 'auto' });
-            }
-        },
-        onComplete: () => {
-            gsap.set(player, { clearProps: 'all' });
-            player.classList.add('expanded');
-            player.classList.remove('player-mini');
-            if (bodyEl) gsap.set(bodyEl, { clearProps: 'all' });
-            player._playerAnimating = false;
-            syncPlayerExpandedState();
-            if (typeof complete === 'function') complete();
-        }
-    });
-}
-
-function flipPlayerToMini(complete) {
-    const player = getMusicDom().activePlayer;
-    if (!player || player._playerAnimating || !player._miniRect) return;
-    player._playerAnimating = true;
-
-    const miniRect = player._miniRect;
-    const bodyEl = player.querySelector('.yt-player-body');
-
-    if (bodyEl) {
-        gsap.to(bodyEl, {
-            opacity: 0,
-            y: 40,
-            duration: 0.25,
-            ease: 'power2.in',
-            onComplete: () => { bodyEl.style.display = 'none'; }
-        });
-    }
-
-    player.classList.remove('expanded');
-    gsap.set(player, {
-        position: 'fixed',
-        top: 0, left: 0,
-        width: window.innerWidth,
-        height: window.innerHeight,
-        margin: 0,
-        transformOrigin: '0 0',
-        x: 0, y: 0,
-        scaleX: 1, scaleY: 1,
-        borderRadius: 0,
-        clearProps: 'transition'
-    });
-    player.offsetHeight;
-
-    gsap.to(player, {
-        x: miniRect.left,
-        y: miniRect.top,
-        scaleX: miniRect.width / window.innerWidth,
-        scaleY: miniRect.height / window.innerHeight,
-        borderRadius: '24px',
-        duration: 0.55,
-        ease: 'expo.inOut',
-        onComplete: () => {
-            gsap.set(player, { clearProps: 'all' });
-            player.classList.add('player-mini');
-            player.style.removeProperty('top');
-            player.style.removeProperty('left');
-            player.style.removeProperty('width');
-            player.style.removeProperty('height');
-            player._playerAnimating = false;
-            syncPlayerExpandedState();
-            if (typeof complete === 'function') complete();
-        }
-    });
-}
-
-function setPlayerExpanded(expanded) {
-    const { activePlayer } = getMusicDom();
-    if (!activePlayer || activePlayer._playerAnimating) return;
-    const isExpanded = activePlayer.classList.contains('expanded');
-    if (expanded === isExpanded) return;
-    if (expanded) {
-        flipPlayerToFull();
-    } else {
-        flipPlayerToMini();
-    }
-}
 async function initMusicPage() {
     try {
         initMusicPlayerEvents();
@@ -4937,3 +4822,107 @@ document.addEventListener("DOMContentLoaded", () => {
         typeWriter("Xoş gəldin, Cəmaləm ❤️", el, 70);
     }
 });
+// ========== ULTRA PREMIUM PLAYER EXPAND / COLLAPSE ==========
+function animatePlayerExpand(complete) {
+    const player = getMusicDom().activePlayer;
+    if (!player || player._playerAnimating) return;
+    player._playerAnimating = true;
+
+    const bodyEl = player.querySelector('.yt-player-body');
+    const miniRect = player.getBoundingClientRect();
+    player._miniRect = miniRect;
+
+    // Anlıq görünüşü dondur
+    player.classList.remove('player-mini', 'expanded');
+    gsap.set(player, {
+        position: 'fixed',
+        top: miniRect.top,
+        left: miniRect.left,
+        width: miniRect.width,
+        height: miniRect.height,
+        margin: 0,
+        borderRadius: '24px',
+        x: 0, y: 0, scaleX: 1, scaleY: 1,
+        clearProps: 'transform,transition'
+    });
+    // Bədəni gizlə, amma opasitini 0‑la göstər
+    if (bodyEl) {
+        bodyEl.style.display = 'block';
+        gsap.set(bodyEl, { opacity: 0 });
+    }
+
+    // Browser‑ə reflow üçün
+    player.offsetHeight;
+
+    gsap.to(player, {
+        top: 0,
+        left: 0,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        borderRadius: 0,
+        duration: 0.65,
+        ease: 'expo.inOut',
+        onUpdate: () => {
+            // Lazım gələrsə, məs. en/boy dəyişəndə yenidən hesablama
+        },
+        onComplete: () => {
+            gsap.set(player, { clearProps: 'all' });
+            player.classList.add('expanded');
+            if (bodyEl) gsap.to(bodyEl, { opacity: 1, duration: 0.25, ease: 'power2.out' });
+            player._playerAnimating = false;
+            syncPlayerExpandedState();
+            if (typeof complete === 'function') complete();
+        }
+    });
+}
+
+function animatePlayerCollapse(complete) {
+    const player = getMusicDom().activePlayer;
+    if (!player || player._playerAnimating || !player._miniRect) return;
+    player._playerAnimating = true;
+
+    const miniRect = player._miniRect;
+    const bodyEl = player.querySelector('.yt-player-body');
+
+    // Bədəni yumşaq gizlət
+    if (bodyEl) {
+        gsap.to(bodyEl, { opacity: 0, duration: 0.2, ease: 'power2.in' });
+    }
+
+    // Tam ekran görünüşdən başla
+    player.classList.remove('expanded');
+    gsap.set(player, {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        borderRadius: 0,
+        x: 0, y: 0, scaleX: 1, scaleY: 1,
+        clearProps: 'transform,transition'
+    });
+    player.offsetHeight;
+
+    gsap.to(player, {
+        top: miniRect.top,
+        left: miniRect.left,
+        width: miniRect.width,
+        height: miniRect.height,
+        borderRadius: '24px',
+        duration: 0.55,
+        ease: 'expo.inOut',
+        onComplete: () => {
+            gsap.set(player, { clearProps: 'all' });
+            player.classList.add('player-mini');
+            if (bodyEl) bodyEl.style.display = 'none';
+            player._playerAnimating = false;
+            // Köhnə mini‑pleyerin default CSS-ə qayıt
+            player.style.removeProperty('top');
+            player.style.removeProperty('left');
+            player.style.removeProperty('width');
+            player.style.removeProperty('height');
+            syncPlayerExpandedState();
+            if (typeof complete === 'function') complete();
+        }
+    });
+}
