@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Hüseyn və Cəmalənin Video Xatirələri</title>
+    <meta name="theme-color" content="#ff4d6d">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="video.css">
+</head>
+<body>
+    <div id="preloader" data-nosnippet>
+        <div class="loader-content">
+            <div class="loader-heart" aria-hidden="true">
+                <i class="fas fa-heart"></i>
+                <div class="heart-ring ring-one"></div>
+                <div class="heart-ring ring-two"></div>
+            </div>
+            <div class="loader-kicker">Hüseyn &amp; Cəmalə</div>
+            <div class="loader-text">Video xatirələrimiz hazırlanır...</div>
+            <div class="loader-bar-container">
+                <div id="loader-bar"></div>
+            </div>
+            <div class="loader-status"><span id="loaded-count">0</span> / 8 video</div>
+        </div>
+    </div>
+
+    <canvas id="particles"></canvas>
+    <div class="bg-dots"></div>
+    <div class="romantic-vignette"></div>
+
+    <div class="page-header" data-nosnippet>
+        <span class="header-badge"><i class="fas fa-heart"></i> Dünyamız</span>
+        <h1>Video <span>Xatirələrimiz</span></h1>
+        <p>Scroll et, hər video öz anı kimi qarşına çıxsın.</p>
+    </div>
+
+    <div class="scene">
+        <div class="gallery">
+            <div class="pillar-container" aria-hidden="true">
+                <div class="shard-system">
+                    <div class="shard shard-1"></div>
+                    <div class="shard shard-2"></div>
+                    <div class="shard shard-3"></div>
+                    <div class="shard shard-4"></div>
+                    <div class="shard shard-5"></div>
+                </div>
+                <div class="light-beam"></div>
+                <div class="pillar-glow"></div>
+            </div>
+
+            <div class="card" data-title="Birinci xatirə"><video src="https://res.cloudinary.com/dojz9uzhe/video/upload/q_auto,f_auto,w_720/video1.mp4" loop playsinline preload="auto"></video></div>
+            <div class="card" data-title="İkinci xatirə"><video src="https://res.cloudinary.com/dojz9uzhe/video/upload/q_auto,f_auto,w_720/video2.mp4" loop playsinline preload="auto"></video></div>
+            <div class="card" data-title="Üçüncü xatirə"><video src="https://res.cloudinary.com/dojz9uzhe/video/upload/q_auto,f_auto,w_720/video3.mp4" loop playsinline preload="auto"></video></div>
+            <div class="card" data-title="Dördüncü xatirə"><video src="https://res.cloudinary.com/dojz9uzhe/video/upload/q_auto,f_auto,w_720/video4.mp4" loop playsinline preload="auto"></video></div>
+            <div class="card" data-title="Beşinci xatirə"><video src="https://res.cloudinary.com/dojz9uzhe/video/upload/q_auto,f_auto,w_720/video5.mp4" loop playsinline preload="auto"></video></div>
+            <div class="card" data-title="Altıncı xatirə"><video src="https://res.cloudinary.com/dojz9uzhe/video/upload/q_auto,f_auto,w_720/video6.mp4" loop playsinline preload="auto"></video></div>
+            <div class="card" data-title="Yeddinci xatirə"><video src="https://res.cloudinary.com/dojz9uzhe/video/upload/q_auto,f_auto,w_720/video7.mp4" loop playsinline preload="auto"></video></div>
+            <div class="card" data-title="Səkkizinci xatirə"><video src="https://res.cloudinary.com/dojz9uzhe/video/upload/q_auto,f_auto,w_720/video8.mp4" loop playsinline preload="auto"></video></div>
+        </div>
+    </div>
+
+    <div class="scroll-hint" data-nosnippet>
+        <i class="fas fa-angle-down"></i>
+        <span>Aşağı sürüşdür</span>
+    </div>
+
+    <div class="scroll-space"></div>
+
+    <script src="video.js"></script>
+</body>
+</html>
