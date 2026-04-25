@@ -181,7 +181,7 @@ function animate(now = 0) {
   requestAnimationFrame(animate);
 }
 
-// Particles (copied from original)
+// Particles
 function initParticles() {
   if (!enableParticles || !canvas || !ctx) return;
   const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
