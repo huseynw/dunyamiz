@@ -14,18 +14,13 @@ const scrollHint = document.querySelector('.scroll-hint');
 const scrollSpace = document.querySelector('.scroll-space');
 
 /*
-    GitHub video sistemi:
-    - Videoları repoda video/ qovluğuna at.
-    - Fayl adları istənilən ad ola bilər: askim.mp4, 2026-xatire.webm və s.
-    - GitHub Pages-də işləyəndə owner/repo avtomatik tapılır.
-    - Custom domain və ya local test üçün githubOwner/githubRepo yaz.
+    Netlify + GitHub token video sistemi:
+    - GH_TOKEN frontend-ə çıxmır, yalnız Netlify Function içində istifadə olunur.
+    - Videolar repo içində video/ qovluğundan avtomatik tapılır.
+    - Fayl adları random ola bilər.
 */
 const VIDEO_CONFIG = {
-    githubOwner: 'huseynw',          // məsələn: 'username'
-    githubRepo: 'dunyamiz',           // məsələn: 'repo-adi'
-    githubBranch: '',         // boş qalsa default branch götürülür
-    githubFolder: 'video',
-    recursive: true,
+    apiEndpoint: '/.netlify/functions/github-videos',
     localManifest: 'video/manifest.json',
     allowedExtensions: [
         'mp4', 'webm', 'ogv', 'ogg', 'mov', 'm4v', 'avi', 'mkv',
@@ -89,54 +84,29 @@ function prettyTitle(fileName = '', index = 0) {
     return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
-function detectGithubRepo() {
-    const host = location.hostname;
-    const pathParts = location.pathname.split('/').filter(Boolean);
+async function fetchVideosFromNetlifyFunction() {
+    const res = await fetch(VIDEO_CONFIG.apiEndpoint, { cache: 'no-store' });
+    const data = await res.json().catch(() => ({}));
 
-    if (VIDEO_CONFIG.githubOwner && VIDEO_CONFIG.githubRepo) {
-        return {
-            owner: VIDEO_CONFIG.githubOwner,
-            repo: VIDEO_CONFIG.githubRepo,
-            branch: VIDEO_CONFIG.githubBranch
-        };
+    if (!res.ok) {
+        throw new Error(data.error || `Netlify video API xətası: ${res.status}`);
     }
 
-    if (host.endsWith('github.io')) {
-        const owner = host.replace('.github.io', '');
-        const repo = pathParts[0] || `${owner}.github.io`;
-        return { owner, repo, branch: VIDEO_CONFIG.githubBranch };
-    }
+    const list = Array.isArray(data) ? data : data.videos;
+    if (!Array.isArray(list)) return [];
 
-    return null;
-}
+    return list
+        .map((item) => {
+            if (typeof item === 'string') {
+                const name = item.split('/').pop() || '';
+                return { name, url: item };
+            }
 
-async function fetchGithubFolder(owner, repo, folder, branch = '') {
-    const ref = branch ? `?ref=${encodeURIComponent(branch)}` : '';
-    const apiUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(folder)}${ref}`;
-    const res = await fetch(apiUrl, { headers: { Accept: 'application/vnd.github+json' } });
-
-    if (!res.ok) throw new Error(`GitHub video qovluğu oxunmadı: ${res.status}`);
-    const items = await res.json();
-
-    if (!Array.isArray(items)) return [];
-
-    const files = [];
-    for (const item of items) {
-        if (item.type === 'file' && isSupportedVideoFile(item.name)) {
-            files.push({
-                name: item.name,
-                url: item.download_url || item.html_url,
-                path: item.path
-            });
-        }
-
-        if (VIDEO_CONFIG.recursive && item.type === 'dir') {
-            const nested = await fetchGithubFolder(owner, repo, item.path, branch);
-            files.push(...nested);
-        }
-    }
-
-    return files;
+            const name = item.name || item.title || item.url?.split('/').pop() || '';
+            const url = item.url || item.src || '';
+            return { name, url, title: item.title };
+        })
+        .filter((item) => item.url && isSupportedVideoFile(item.name || item.url));
 }
 
 async function fetchLocalManifest() {
@@ -163,15 +133,11 @@ async function fetchLocalManifest() {
 }
 
 async function getVideoFiles() {
-    const repo = detectGithubRepo();
-
-    if (repo) {
-        try {
-            const files = await fetchGithubFolder(repo.owner, repo.repo, VIDEO_CONFIG.githubFolder, repo.branch);
-            if (files.length) return files;
-        } catch (err) {
-            console.warn(err);
-        }
+    try {
+        const functionFiles = await fetchVideosFromNetlifyFunction();
+        if (functionFiles.length) return functionFiles;
+    } catch (err) {
+        console.warn(err);
     }
 
     try {
