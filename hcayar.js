@@ -2914,11 +2914,20 @@ function hideActivePlayerWithAnimation(options = {}) {
     const { activePlayer, audio, lyricsPanel } = getMusicDom();
     if (!activePlayer) return;
 
-    const startRect = getElementRectSafe(activePlayer);
-    const sourceRect = getElementRectSafe(sourceElement) || activePlayer.__lastSourceRect || getFallbackMiniSourceRect();
-    activePlayer.__lastSourceRect = sourceRect;
+    window.cancelAnimationFrame(activePlayer.__premiumMorphRaf);
 
-    activePlayer.classList.remove('lyrics-open', 'is-transitioning', 'player-appearing');
+    const startRect = getElementRectSafe(activePlayer);
+
+    // Bağlanış target-i həmişə mini player-in real, mərkəzdəki yeridir.
+    // Əvvəlki versiyada target bəzən sağdakı close/open düyməsi olurdu və player sağa sürüşüb sonra ortaya qayıdırdı.
+    const clickedRect = getElementRectSafe(sourceElement);
+    if (clickedRect && !activePlayer.classList.contains('expanded')) {
+        activePlayer.__lastSourceRect = clickedRect;
+    }
+
+    activePlayer.classList.remove('lyrics-open', 'player-appearing');
+    activePlayer.classList.add('is-transitioning', 'player-hiding', 'yt-premium-morphing');
+    activePlayer.style.setProperty('transition', 'none', 'important');
 
     if (lyricsPanel) {
         lyricsPanel.classList.add('lyrics-hidden');
@@ -2942,19 +2951,22 @@ function hideActivePlayerWithAnimation(options = {}) {
     void activePlayer.offsetHeight;
     syncPlayerExpandedState();
 
-    const fromRect = startRect || getElementRectSafe(activePlayer);
-    animatePlayerMorph(activePlayer, fromRect, sourceRect, {
+    const miniHomeRect = getElementRectSafe(activePlayer) || activePlayer.__lastSourceRect || getFallbackMiniSourceRect();
+    activePlayer.__lastSourceRect = miniHomeRect;
+
+    const fromRect = startRect || miniHomeRect;
+    animatePlayerMorph(activePlayer, fromRect, miniHomeRect, {
         duration: 520,
         easing: ytPlayerEaseInOutCubic,
-        fromRadius: 24,
-        toRadius: Math.min(28, sourceRect.height / 2),
+        fromRadius: activePlayer.classList.contains('expanded') ? 0 : 24,
+        toRadius: Math.min(28, miniHomeRect.height / 2),
         fromOpacity: 1,
         toOpacity: 0,
         glow: true
     }).then(() => {
         activePlayer.style.display = 'none';
         activePlayer.hidden = true;
-        activePlayer.classList.remove('player-hiding', 'player-collapsing', 'is-transitioning');
+        activePlayer.classList.remove('player-hiding', 'player-collapsing', 'is-transitioning', 'yt-premium-morphing');
         activePlayer.style.opacity = '';
         activePlayer.style.transform = '';
         activePlayer.style.transition = '';
