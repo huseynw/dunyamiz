@@ -2789,145 +2789,39 @@ function syncPlayerExpandedState() {
     syncFloatingPlayerState();
 }
 
-
-/* ========== ULTRA PREMIUM YT PLAYER MORPH ANIMATION ========== */
-function ytPlayerEaseOutExpo(t) {
-    return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
-}
-
-function ytPlayerEaseInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
-function getElementRectSafe(element) {
-    if (!element || typeof element.getBoundingClientRect !== 'function') return null;
-    const rect = element.getBoundingClientRect();
-    if (!rect.width || !rect.height) return null;
-    return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
-}
-
-function getFallbackMiniSourceRect() {
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 360;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 760;
-    return { left: viewportWidth / 2 - 28, top: viewportHeight - 136, width: 56, height: 56 };
-}
-
-function animatePlayerMorph(activePlayer, fromRect, toRect, options = {}) {
-    if (!activePlayer || !fromRect || !toRect) return Promise.resolve();
-    const { duration = 620, easing = ytPlayerEaseOutExpo, fromRadius = 28, toRadius = 0, fromOpacity = 1, toOpacity = 1, glow = true } = options;
-    window.cancelAnimationFrame(activePlayer.__premiumMorphRaf);
-    const dx = fromRect.left - toRect.left;
-    const dy = fromRect.top - toRect.top;
-    const sx = Math.max(0.02, fromRect.width / Math.max(1, toRect.width));
-    const sy = Math.max(0.02, fromRect.height / Math.max(1, toRect.height));
-    const start = performance.now();
-    activePlayer.classList.add('yt-premium-morphing');
-    activePlayer.style.setProperty('transform-origin', '0 0', 'important');
-    activePlayer.style.setProperty('will-change', 'transform, opacity, border-radius, filter, box-shadow', 'important');
-    activePlayer.style.setProperty('overflow', 'hidden', 'important');
-    activePlayer.style.setProperty('pointer-events', 'none', 'important');
-    return new Promise((resolve) => {
-        const frame = (now) => {
-            const raw = Math.min(1, (now - start) / duration);
-            const p = easing(raw);
-            const tx = dx * (1 - p);
-            const ty = dy * (1 - p);
-            const scaleX = sx + (1 - sx) * p;
-            const scaleY = sy + (1 - sy) * p;
-            const radius = fromRadius + (toRadius - fromRadius) * p;
-            const opacity = fromOpacity + (toOpacity - fromOpacity) * p;
-            const blur = (1 - p) * 10;
-            const lift = Math.sin(p * Math.PI) * -8;
-            const glowPower = glow ? Math.sin(p * Math.PI) : 0;
-            activePlayer.style.setProperty('transform', `translate3d(${tx}px, ${ty + lift}px, 0) scale(${scaleX}, ${scaleY})`, 'important');
-            activePlayer.style.setProperty('opacity', String(opacity), 'important');
-            activePlayer.style.setProperty('border-radius', `${radius}px`, 'important');
-            activePlayer.style.setProperty('filter', `blur(${blur}px) saturate(${1 + glowPower * 0.12})`, 'important');
-            activePlayer.style.setProperty('box-shadow', `0 ${18 + glowPower * 30}px ${45 + glowPower * 50}px rgba(0,0,0,${0.34 + glowPower * 0.24}), 0 0 ${20 + glowPower * 54}px rgba(255,77,109,${0.16 + glowPower * 0.26})`, 'important');
-            if (raw < 1) {
-                activePlayer.__premiumMorphRaf = window.requestAnimationFrame(frame);
-            } else {
-                activePlayer.style.removeProperty('transform');
-                activePlayer.style.removeProperty('opacity');
-                activePlayer.style.removeProperty('border-radius');
-                activePlayer.style.removeProperty('filter');
-                activePlayer.style.removeProperty('box-shadow');
-                activePlayer.style.removeProperty('transform-origin');
-                activePlayer.style.removeProperty('will-change');
-                activePlayer.style.removeProperty('overflow');
-                activePlayer.style.removeProperty('pointer-events');
-                activePlayer.classList.remove('yt-premium-morphing');
-                resolve();
-            }
-        };
-        activePlayer.__premiumMorphRaf = window.requestAnimationFrame(frame);
-    });
-}
-
-function rememberPlayerSourceRect(sourceElement) {
-    const { activePlayer } = getMusicDom();
-    if (!activePlayer) return;
-    const sourceRect = getElementRectSafe(sourceElement);
-    if (sourceRect) {
-        activePlayer.__lastSourceRect = sourceRect;
-        return;
-    }
-    activePlayer.__lastSourceRect = activePlayer.__lastSourceRect || getFallbackMiniSourceRect();
-}
-
-function showActivePlayerWithAnimation(options = {}) {
-    const { sourceElement = null } = options;
+function showActivePlayerWithAnimation() {
     const { activePlayer } = getMusicDom();
     if (!activePlayer) return;
 
-    const wasHidden = activePlayer.style.display === 'none' || activePlayer.hidden;
-    const sourceRect = getElementRectSafe(sourceElement) || activePlayer.__lastSourceRect || getFallbackMiniSourceRect();
-    activePlayer.__lastSourceRect = sourceRect;
-
-    activePlayer.classList.remove('expanded', 'lyrics-open', 'is-transitioning', 'player-hiding', 'player-appearing', 'player-collapsing');
-    activePlayer.classList.add('player-mini');
+    activePlayer.classList.remove('player-hiding', 'player-appearing');
     activePlayer.style.opacity = '';
     activePlayer.style.transform = '';
     activePlayer.style.transition = '';
+
     activePlayer.hidden = false;
     activePlayer.style.display = 'block';
 
+    // Force reflow so browser registers display:block before animating
     void activePlayer.offsetHeight;
-    syncPlayerExpandedState();
 
-    if (wasHidden) {
-        const targetRect = getElementRectSafe(activePlayer);
-        animatePlayerMorph(activePlayer, sourceRect, targetRect, {
-            duration: 680,
-            easing: ytPlayerEaseOutExpo,
-            fromRadius: Math.min(28, sourceRect.height / 2),
-            toRadius: 24,
-            fromOpacity: 0.12,
-            toOpacity: 1,
-            glow: true
-        });
-    }
+    activePlayer.classList.add('player-appearing');
+
+    window.clearTimeout(activePlayer.__appearTimer);
+    activePlayer.__appearTimer = window.setTimeout(() => {
+        activePlayer.classList.remove('player-appearing');
+    }, 700);
+
+    syncPlayerExpandedState();
 }
 
 function hideActivePlayerWithAnimation(options = {}) {
-    const { resetTrack = true, sourceElement = null } = options;
+    const { resetTrack = true } = options;
     const { activePlayer, audio, lyricsPanel } = getMusicDom();
     if (!activePlayer) return;
 
-    window.cancelAnimationFrame(activePlayer.__premiumMorphRaf);
-
-    const startRect = getElementRectSafe(activePlayer);
-
-    // Bağlanış target-i həmişə mini player-in real, mərkəzdəki yeridir.
-    // Əvvəlki versiyada target bəzən sağdakı close/open düyməsi olurdu və player sağa sürüşüb sonra ortaya qayıdırdı.
-    const clickedRect = getElementRectSafe(sourceElement);
-    if (clickedRect && !activePlayer.classList.contains('expanded')) {
-        activePlayer.__lastSourceRect = clickedRect;
-    }
-
-    activePlayer.classList.remove('lyrics-open', 'player-appearing');
-    activePlayer.classList.add('is-transitioning', 'player-hiding', 'yt-premium-morphing');
-    activePlayer.style.setProperty('transition', 'none', 'important');
+    activePlayer.classList.remove('expanded', 'lyrics-open', 'is-transitioning');
+    activePlayer.classList.add('player-mini', 'player-hiding');
+    activePlayer.classList.remove('player-appearing');
 
     if (lyricsPanel) {
         lyricsPanel.classList.add('lyrics-hidden');
@@ -2945,33 +2839,18 @@ function hideActivePlayerWithAnimation(options = {}) {
     updateLyricsToggleState();
     updateMusicPlayButtonState();
     updateMediaSessionPlaybackState();
-
-    activePlayer.classList.remove('expanded', 'player-collapsing');
-    activePlayer.classList.add('player-mini');
-    void activePlayer.offsetHeight;
     syncPlayerExpandedState();
 
-    const miniHomeRect = getElementRectSafe(activePlayer) || activePlayer.__lastSourceRect || getFallbackMiniSourceRect();
-    activePlayer.__lastSourceRect = miniHomeRect;
-
-    const fromRect = startRect || miniHomeRect;
-    animatePlayerMorph(activePlayer, fromRect, miniHomeRect, {
-        duration: 520,
-        easing: ytPlayerEaseInOutCubic,
-        fromRadius: activePlayer.classList.contains('expanded') ? 0 : 24,
-        toRadius: Math.min(28, miniHomeRect.height / 2),
-        fromOpacity: 1,
-        toOpacity: 0,
-        glow: true
-    }).then(() => {
+    window.clearTimeout(activePlayer.__hideTimer);
+    activePlayer.__hideTimer = window.setTimeout(() => {
         activePlayer.style.display = 'none';
         activePlayer.hidden = true;
-        activePlayer.classList.remove('player-hiding', 'player-collapsing', 'is-transitioning', 'yt-premium-morphing');
+        activePlayer.classList.remove('player-hiding');
         activePlayer.style.opacity = '';
         activePlayer.style.transform = '';
         activePlayer.style.transition = '';
         syncPlayerExpandedState();
-    });
+    }, 420);
 }
 
 function closeActivePlayer(options = {}) {
@@ -2980,67 +2859,50 @@ function closeActivePlayer(options = {}) {
 window.closeActivePlayer = closeActivePlayer;
 
 
-function setPlayerExpanded(expanded, options = {}) {
-    const { sourceElement = null } = options;
-    const { activePlayer } = getMusicDom();
+function setPlayerExpanded(expanded) {
+    const { activePlayer, lyricsPanel } = getMusicDom();
     if (!activePlayer) return;
 
-    rememberPlayerSourceRect(sourceElement);
     window.clearTimeout(activePlayer.__expandAnimTimer);
-    window.cancelAnimationFrame(activePlayer.__premiumMorphRaf);
-
-    const currentlyExpanded = activePlayer.classList.contains('expanded');
-    if (expanded && currentlyExpanded) return;
-    if (!expanded && !currentlyExpanded) return;
 
     if (expanded) {
-        const fromRect = getElementRectSafe(activePlayer) || activePlayer.__lastSourceRect || getFallbackMiniSourceRect();
-        activePlayer.classList.remove('player-collapsing', 'player-mini', 'player-hiding', 'player-appearing');
-        activePlayer.classList.add('is-transitioning', 'expanded');
-        activePlayer.hidden = false;
-        activePlayer.style.display = 'block';
+        // EXPAND: snap to full-screen layout instantly, then slide up from bottom
+        activePlayer.classList.add('is-transitioning');
+        activePlayer.classList.remove('player-mini', 'player-collapsing');
+        activePlayer.classList.add('expanded');
+
+        // Force reflow so layout snaps before animation
         void activePlayer.offsetHeight;
-        const toRect = getElementRectSafe(activePlayer);
+
         updateLyricsToggleState();
         syncPlayerExpandedState();
-        animatePlayerMorph(activePlayer, fromRect, toRect, {
-            duration: 720,
-            easing: ytPlayerEaseOutExpo,
-            fromRadius: 24,
-            toRadius: 0,
-            fromOpacity: 0.98,
-            toOpacity: 1,
-            glow: true
-        }).then(() => {
+
+        activePlayer.__expandAnimTimer = window.setTimeout(() => {
             activePlayer.classList.remove('is-transitioning');
-            syncPlayerExpandedState();
-        });
+        }, 620);
+
     } else {
-        const fromRect = getElementRectSafe(activePlayer);
-        activePlayer.classList.add('player-collapsing');
-        activePlayer.classList.remove('expanded', 'is-transitioning');
-        activePlayer.classList.add('player-mini');
+        // COLLAPSE: stay full-screen, animate sliding down, then snap to mini
+        activePlayer.classList.add('is-transitioning', 'player-collapsing');
+
+        // Force reflow
         void activePlayer.offsetHeight;
-        const toRect = getElementRectSafe(activePlayer);
+
+        if (lyricsPanel) setPlayerTab('lyrics');
+        updateLyricsToggleState();
         syncPlayerExpandedState();
-        animatePlayerMorph(activePlayer, fromRect, toRect, {
-            duration: 560,
-            easing: ytPlayerEaseInOutCubic,
-            fromRadius: 0,
-            toRadius: 24,
-            fromOpacity: 1,
-            toOpacity: 1,
-            glow: true
-        }).then(() => {
-            activePlayer.classList.remove('player-collapsing');
-            setPlayerTab('lyrics');
-            updateLyricsToggleState();
+
+        activePlayer.__expandAnimTimer = window.setTimeout(() => {
+            // After slide-down animation, snap to mini layout
+            activePlayer.classList.remove('expanded', 'is-transitioning', 'player-collapsing');
+            activePlayer.classList.add('player-mini');
+            void activePlayer.offsetHeight;
             syncPlayerExpandedState();
-        });
+        }, 420);
     }
 }
 
-window.togglePlayerMode = function(forceExpanded, options = {}) {
+window.togglePlayerMode = function(forceExpanded) {
     const { activePlayer } = getMusicDom();
     if (!activePlayer) return;
 
@@ -3048,7 +2910,7 @@ window.togglePlayerMode = function(forceExpanded, options = {}) {
         ? forceExpanded
         : !activePlayer.classList.contains('expanded');
 
-    setPlayerExpanded(expanded, options);
+    setPlayerExpanded(expanded);
 };
 
 
@@ -3297,7 +3159,7 @@ function renderUpNextList() {
     upNextList.querySelectorAll('.yt-up-next-item').forEach((item) => {
         item.addEventListener('click', () => {
             const index = Number(item.dataset.upNextIndex);
-            openMusicTrack(index, { sourceElement: item });
+            openMusicTrack(index);
         });
     });
 }
@@ -3340,7 +3202,7 @@ function renderMusicPlaylist() {
     playlist.querySelectorAll('.yt-track-item').forEach((item) => {
         item.addEventListener('click', () => {
             const index = Number(item.dataset.musicIndex);
-            openMusicTrack(index, { sourceElement: item });
+            openMusicTrack(index);
         });
     });
 }
@@ -3930,7 +3792,7 @@ function updateMediaSessionPlaybackState() {
 async function openMusicTrack(index, options = {}) {
     const track = window.musicLibrary[index];
     const dom = getMusicDom();
-    const { pushHistory = true, sourceElement = null } = options;
+    const { pushHistory = true } = options;
     if (!track || !dom.audio) return;
 
     const wasExpanded = dom.activePlayer?.classList.contains('expanded') || false;
@@ -4002,8 +3864,8 @@ async function openMusicTrack(index, options = {}) {
     runMorphTransition(track);
 
     if (dom.activePlayer) {
-        showActivePlayerWithAnimation({ sourceElement });
-        if (wasExpanded) setPlayerExpanded(true, { sourceElement });
+        showActivePlayerWithAnimation();
+        setPlayerExpanded(wasExpanded);
 
         if (wasExpanded) {
             setPlayerTab(wasLyricsOpen ? 'lyrics' : 'upnext');
@@ -4364,16 +4226,16 @@ function initMusicPlayerEvents() {
     });
     dom.openFullBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
-        window.togglePlayerMode(true, { sourceElement: e.currentTarget });
+        window.togglePlayerMode(true);
     });
 
-    dom.expandHitbox?.addEventListener('click', (e) => {
-        window.togglePlayerMode(true, { sourceElement: e.currentTarget });
+    dom.expandHitbox?.addEventListener('click', () => {
+        window.togglePlayerMode(true);
     });
 
     dom.minimizeBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
-        window.togglePlayerMode(false, { sourceElement: e.currentTarget });
+        window.togglePlayerMode(false);
     });
 
     dom.lyricsToggle?.addEventListener('click', (e) => {
