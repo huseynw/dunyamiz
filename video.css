@@ -17,6 +17,8 @@
     --muted: rgba(255, 255, 255, 0.68);
     --bg-dark: #05050a;
     --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+    --card-width: min(76vw, 390px);
+    --card-height: min(48vw, 245px);
 }
 
 html {
@@ -49,6 +51,7 @@ body::before {
     pointer-events: none;
 }
 
+/* ---------- PRELOADER ---------- */
 #preloader {
     position: fixed;
     inset: 0;
@@ -186,11 +189,10 @@ body::before {
     font-variant-numeric: tabular-nums;
 }
 
+/* ---------- PARTICLES & DOTS ---------- */
 #particles {
     position: fixed;
     inset: 0;
-    width: 100%;
-    height: 100%;
     z-index: -3;
     pointer-events: none;
 }
@@ -219,6 +221,7 @@ body::before {
         radial-gradient(circle at center, transparent 46%, rgba(0,0,0,0.58));
 }
 
+/* ---------- HEADER ---------- */
 .page-header {
     position: fixed;
     top: max(18px, env(safe-area-inset-top));
@@ -268,6 +271,7 @@ body::before {
     font-size: clamp(0.84rem, 1vw, 1rem);
 }
 
+/* ---------- SCENE & 3D GALLERY (DESKTOP) ---------- */
 .scene {
     position: fixed;
     inset: 0;
@@ -356,16 +360,17 @@ body::before {
     opacity: 0.34;
 }
 
+/* ---------- VİDEO KARTLAR ---------- */
 .card {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: min(76vw, 390px);
-    height: min(48vw, 245px);
+    width: var(--card-width);
+    height: var(--card-height);
     max-height: 255px;
     min-height: 185px;
-    margin-left: calc(min(76vw, 390px) / -2);
-    margin-top: calc(min(48vw, 245px) / -2);
+    margin-left: calc(var(--card-width) / -2);
+    margin-top: calc(var(--card-height) / -2);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -384,6 +389,7 @@ body::before {
     backface-visibility: visible;
     overflow: hidden;
     transition: box-shadow 0.6s var(--ease-premium), border-color 0.6s var(--ease-premium), filter 0.45s var(--ease-premium);
+    will-change: transform, opacity;
 }
 
 .card::before {
@@ -433,8 +439,11 @@ body::before {
     opacity: 0.58;
     filter: grayscale(22%) saturate(0.92) contrast(1.04) brightness(0.86);
     transition: opacity 0.75s var(--ease-premium), filter 0.75s var(--ease-premium), transform 0.75s var(--ease-premium);
+    background: #000;
+    will-change: transform, opacity;
 }
 
+/* ---------- FOKUS ---------- */
 .card.focused {
     border-color: rgba(255, 141, 164, 0.88);
     box-shadow:
@@ -456,6 +465,7 @@ body::before {
     transform: scale(1.018);
 }
 
+/* ---------- SCROLL BOŞLUĞU ---------- */
 .scroll-space {
     height: 820vh;
 }
@@ -495,101 +505,10 @@ body::before {
     to { background-position: 46px 46px; }
 }
 
-@media (max-width: 768px) {
-    .page-header {
-        top: max(14px, env(safe-area-inset-top));
-        width: 94vw;
-    }
-
-    .header-badge {
-        padding: 7px 11px;
-        font-size: 0.68rem;
-        margin-bottom: 8px;
-    }
-
-    .page-header h1 {
-        font-size: clamp(1.9rem, 9.2vw, 3.2rem);
-        letter-spacing: -0.055em;
-    }
-
-    .page-header p {
-        margin-top: 8px;
-        font-size: 0.82rem;
-    }
-
-    .scene {
-        perspective: 1050px;
-    }
-
-    .card {
-        width: 82vw;
-        height: 52vw;
-        min-height: 178px;
-        max-height: 236px;
-        margin-left: -41vw;
-        margin-top: -26vw;
-        border-radius: 26px;
-    }
-
-    .pillar-container {
-        transform: translate(-50%, -50%) scale(0.82);
-    }
-
-    .scroll-hint {
-        font-size: 0.72rem;
-        bottom: max(14px, env(safe-area-inset-bottom));
-    }
-}
-
-@media (max-width: 420px) {
-    .card {
-        width: 86vw;
-        height: 58vw;
-        margin-left: -43vw;
-        margin-top: -29vw;
-        border-radius: 24px;
-    }
-
-    .loader-content {
-        border-radius: 24px;
-        padding: 24px 18px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-
-/* === MOBILE PERFORMANCE TWEAKS === */
-html, body {
-    width: 100%;
-    overscroll-behavior-y: none;
-    -webkit-text-size-adjust: 100%;
-}
-
-.card,
-.card video,
-.shard,
-.shard-system,
-.pillar-glow,
-.light-beam {
-    will-change: transform, opacity;
-}
-
-.card video {
-    background: rgba(0, 0, 0, 0.28);
-    transform: translateZ(0);
-}
-
+/* ========== MOBİL UYĞUNLAŞMA ========== */
 @media (max-width: 768px) {
     body {
-        min-height: 100svh;
+        min-height: 100dvh;
         background:
             radial-gradient(circle at 18% 16%, rgba(255, 77, 109, 0.18), transparent 30%),
             linear-gradient(135deg, rgba(4, 4, 10, 0.98), rgba(13, 10, 20, 0.96));
@@ -618,59 +537,67 @@ html, body {
 
     .page-header {
         top: max(12px, env(safe-area-inset-top));
-        padding: 0 8px;
+        width: 100%;
+        max-width: 100vw;
+        padding: 0 18px;
+    }
+
+    .page-header h1 {
+        font-size: clamp(2rem, 10vw, 3.1rem);
+        line-height: 0.98;
+        letter-spacing: -0.06em;
     }
 
     .page-header p {
-        max-width: 330px;
-        line-height: 1.35;
+        max-width: 320px;
+        font-size: 0.78rem;
+    }
+
+    .header-badge {
+        padding: 7px 11px;
+        font-size: 0.68rem;
+        margin-bottom: 8px;
+    }
+
+    /* 3D sütunları mobil üçün tamamilə gizlət */
+    .pillar-container {
+        display: none;
     }
 
     .scene {
-        height: 100svh;
-        perspective: 720px;
+        perspective: none;
+        height: 100dvh;
     }
 
-    .pillar-container {
-        opacity: 0.55;
-        transform: translate(-50%, -50%) scale(0.62);
+    .gallery {
+        transform-style: flat;
     }
 
-    .shard {
-        width: 30px;
+    /* MOBİL KART ÖLÇÜSÜ – artıq nəhəng deyil */
+    .card {
+        top: 52%;
+        left: 50%;
+        width: 78vw;
+        height: 38vh;
+        min-height: 165px;
+        max-height: 230px;
+        margin: 0 !important;
+        border-radius: 24px;
+        transform-style: flat;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        contain: layout paint style;
+        will-change: transform, opacity;
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
-    }
-
-    .light-beam {
-        filter: blur(12px);
-        opacity: 0.28;
-    }
-
-    .pillar-glow {
-        opacity: 0.24;
-        box-shadow: 0 0 28px var(--primary), 0 0 54px var(--primary-soft);
-    }
-
-    .card {
-        width: min(90vw, 380px);
-        height: min(62vw, 250px);
-        min-height: 190px;
-        max-height: 250px;
-        margin-left: calc(min(90vw, 380px) / -2);
-        margin-top: calc(min(62vw, 250px) / -2);
-        border-radius: 24px;
-        backdrop-filter: blur(10px) saturate(130%);
-        -webkit-backdrop-filter: blur(10px) saturate(130%);
         box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.10),
-            0 14px 38px rgba(0, 0, 0, 0.42);
-        transition: box-shadow 0.28s var(--ease-premium), border-color 0.28s var(--ease-premium), opacity 0.18s linear;
+            inset 0 1px 0 rgba(255, 255, 255, 0.08),
+            0 12px 32px rgba(0, 0, 0, 0.38);
+        transition: box-shadow 0.28s var(--ease-premium), border-color 0.28s var(--ease-premium);
     }
 
     .card::before {
-        opacity: 0.32;
-        mix-blend-mode: normal;
+        display: none;
     }
 
     .card::after {
@@ -679,6 +606,8 @@ html, body {
         bottom: 10px;
         padding: 8px 10px;
         font-size: 0.72rem;
+        border-radius: 18px;
+        background: rgba(5, 5, 10, 0.56);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
     }
@@ -690,9 +619,10 @@ html, body {
     }
 
     .card.focused {
+        border-color: rgba(255, 141, 164, 0.7);
         box-shadow:
-            inset 0 0 14px rgba(255, 77, 109, 0.13),
-            0 0 28px rgba(255, 77, 109, 0.22),
+            inset 0 0 14px rgba(255, 77, 109, 0.12),
+            0 0 28px rgba(255, 77, 109, 0.20),
             0 17px 44px rgba(0, 0, 0, 0.48);
     }
 
@@ -701,56 +631,21 @@ html, body {
     }
 
     .scroll-space {
-        height: 720svh;
-    }
-}
-
-@media (max-width: 420px) {
-    .page-header h1 {
-        font-size: clamp(1.65rem, 8.8vw, 2.65rem);
+        height: 580dvh;   /* daha dəqiq hündürlük */
     }
 
-    .page-header p {
-        font-size: 0.76rem;
+    .scroll-hint {
+        font-size: 0.72rem;
+        bottom: max(14px, env(safe-area-inset-bottom));
     }
 
-    .header-badge {
-        padding: 6px 10px;
-        font-size: 0.64rem;
-    }
-
-    .card {
-        width: 90vw;
-        height: 64vw;
-        min-height: 178px;
-        max-height: 232px;
-        margin-left: -45vw;
-        margin-top: -32vw;
-    }
-
-    .scroll-space {
-        height: 760svh;
-    }
-}
-
-/* === FINAL MOBILE FIX: no zoom, faster scroll, safer video view === */
-@media (max-width: 768px) {
-    html,
-    body {
-        width: 100%;
+    /* sürüşmə təcrübəsi */
+    html, body {
+        overscroll-behavior-y: none;
+        -webkit-text-size-adjust: 100%;
+        touch-action: pan-y;
         min-width: 0;
         overflow-x: hidden;
-        touch-action: pan-y;
-    }
-
-    body {
-        min-height: 100dvh;
-    }
-
-    body::before {
-        transform: translateZ(0);
-        background-size: cover;
-        background-position: center center;
     }
 
     #preloader {
@@ -759,9 +654,9 @@ html, body {
     }
 
     .loader-content {
-        width: min(86vw, 315px);
+        border-radius: 24px;
         padding: 24px 18px;
-        border-radius: 25px;
+        width: min(86vw, 315px);
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
     }
@@ -772,108 +667,41 @@ html, body {
         font-size: 1.95rem;
         margin-bottom: 14px;
     }
+}
 
-    .page-header {
-        top: calc(env(safe-area-inset-top) + 12px);
-        width: 100%;
-        max-width: 100vw;
-        padding: 0 18px;
-    }
-
+@media (max-width: 480px) {
     .page-header h1 {
-        max-width: 100%;
-        font-size: clamp(2rem, 10vw, 3.1rem);
-        line-height: 0.98;
-        letter-spacing: -0.06em;
-        word-break: normal;
-    }
-
-    .page-header p {
-        max-width: 320px;
-        font-size: 0.78rem;
-    }
-
-    .scene {
-        width: 100vw;
-        height: 100dvh;
-        perspective: none;
-        transform: translateZ(0);
-    }
-
-    .gallery {
-        transform-style: flat;
-    }
-
-    .pillar-container {
-        display: none;
+        font-size: clamp(1.7rem, 9vw, 2.4rem);
     }
 
     .card {
-        top: 56%;
-        left: 50%;
-        width: min(88vw, 360px);
-        height: min(52vh, 410px);
-        min-height: 310px;
-        max-height: 430px;
-        margin: 0 !important;
-        border-radius: 28px;
-        transform-origin: center center;
-        transform-style: flat;
-        backface-visibility: hidden;
-        -webkit-backface-visibility: hidden;
-        contain: layout paint style;
-        will-change: transform, opacity;
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
+        width: 84vw;
+        height: 40vh;
+        min-height: 160px;
+        max-height: 210px;
+        border-radius: 22px;
     }
 
-    .card video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transform: translateZ(0);
-        will-change: opacity;
-    }
-
-    .card::before {
-        display: none;
-    }
-
-    .card::after {
-        bottom: 12px;
-        left: 12px;
-        right: 12px;
-        border-radius: 18px;
-        background: rgba(5, 5, 10, 0.56);
-    }
-
-    .scroll-hint {
-        bottom: calc(env(safe-area-inset-bottom) + 16px);
+    .scroll-space {
+        height: 600dvh;
     }
 }
 
-@media (max-width: 420px) {
-    .page-header h1 {
-        font-size: clamp(1.85rem, 9.5vw, 2.55rem);
-    }
-
+@media (max-width: 380px) {
     .card {
-        top: 57%;
         width: 88vw;
-        height: 50vh;
-        min-height: 300px;
-        max-height: 390px;
-        border-radius: 26px;
+        height: 38vh;
+        min-height: 150px;
+        max-height: 195px;
     }
 }
 
-@media (max-width: 360px) {
-    .card {
-        height: 47vh;
-        min-height: 275px;
-    }
-
-    .page-header h1 {
-        font-size: 1.8rem;
+/* azaldılmış hərəkət */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
