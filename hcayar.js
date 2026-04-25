@@ -791,7 +791,6 @@ async function fetchImages() {
             .filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name))
             .sort((a, b) => new Date(a.git_date || 0) - new Date(b.git_date || 0));
 
-
         if (window.allImages.length === 0) {
             stack.innerHTML = '<p class="timeline-empty">Hələ ki, şəkil yoxdur.</p>';
             return;
@@ -818,6 +817,7 @@ async function fetchImages() {
 
         stack.innerHTML = html;
 
+        // Klik hadisələrini bağla
         document.querySelectorAll('.gallery-item').forEach(item => {
             item.onclick = function() {
                 const index = parseInt(this.getAttribute('data-index'));
@@ -825,21 +825,39 @@ async function fetchImages() {
             };
         });
 
-        const observer = new IntersectionObserver((entries, obs) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target.querySelector('img[data-src]');
+        // Animasiyalı yüklənmə üçün təkmilləşdirilmiş IntersectionObserver
+        requestAnimationFrame(() => {
+            const items = document.querySelectorAll('.timeline-item');
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Lazy-loaded şəkili yüklə
+                        const img = entry.target.querySelector('img[data-src]');
+                        if (img && !img.src) {
+                            img.src = img.dataset.src;
+                        }
+                        // 'show' sinfini əlavə et (CSS animasiyasını tetikler)
+                        entry.target.classList.add('show');
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.06,
+                rootMargin: '220px 0px 220px 0px'
+            });
+
+            items.forEach(item => {
+                observer.observe(item);
+                // Səhifə açılanda artıq görünən elementlərə birbaşa 'show' ver
+                const rect = item.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    // Şəkil yüklənməsi üçün mənbəni təyin et
+                    const img = item.querySelector('img[data-src]');
                     if (img && !img.src) img.src = img.dataset.src;
-                    entry.target.classList.add('show');
-                    obs.unobserve(entry.target);
+                    item.classList.add('show');
                 }
             });
-        }, {
-            threshold: 0.06,
-            rootMargin: '220px 0px 220px 0px'
         });
-
-        document.querySelectorAll('.timeline-item').forEach(item => observer.observe(item));
 
         syncAdminOverview();
 
