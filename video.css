@@ -17,8 +17,6 @@
     --muted: rgba(255, 255, 255, 0.68);
     --bg-dark: #05050a;
     --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
-    --card-width: min(76vw, 390px);
-    --card-height: min(48vw, 245px);
 }
 
 html {
@@ -26,7 +24,7 @@ html {
 }
 
 body {
-    min-height: 100vh;
+    min-height: 100dvh;
     background:
         radial-gradient(circle at 18% 16%, rgba(255, 77, 109, 0.24), transparent 30%),
         radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.10), transparent 24%),
@@ -291,6 +289,7 @@ body::before {
     transform-style: preserve-3d;
 }
 
+/* Sütun effektləri yalnız masaüstü üçün */
 .pillar-container {
     position: absolute;
     top: 50%;
@@ -301,6 +300,7 @@ body::before {
     transform-style: preserve-3d;
     pointer-events: none;
     z-index: -1;
+    display: block;
 }
 
 .shard-system {
@@ -365,12 +365,12 @@ body::before {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: var(--card-width);
-    height: var(--card-height);
+    width: min(76vw, 390px);
+    height: min(48vw, 245px);
     max-height: 255px;
     min-height: 185px;
-    margin-left: calc(var(--card-width) / -2);
-    margin-top: calc(var(--card-height) / -2);
+    margin-left: calc(min(76vw, 390px) / -2);
+    margin-top: calc(min(48vw, 245px) / -2);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -465,7 +465,7 @@ body::before {
     transform: scale(1.018);
 }
 
-/* ---------- SCROLL BOŞLUĞU ---------- */
+/* ---------- SCROLL ---------- */
 .scroll-space {
     height: 820vh;
 }
@@ -559,9 +559,8 @@ body::before {
         margin-bottom: 8px;
     }
 
-    /* 3D sütunları mobil üçün tamamilə gizlət */
     .pillar-container {
-        display: none;
+        display: none; /* mobil üçün tamamilə gizlət */
     }
 
     .scene {
@@ -573,7 +572,6 @@ body::before {
         transform-style: flat;
     }
 
-    /* MOBİL KART ÖLÇÜSÜ – artıq nəhəng deyil */
     .card {
         top: 52%;
         left: 50%;
@@ -631,7 +629,7 @@ body::before {
     }
 
     .scroll-space {
-        height: 580dvh;   /* daha dəqiq hündürlük */
+        height: 580dvh;
     }
 
     .scroll-hint {
@@ -639,7 +637,6 @@ body::before {
         bottom: max(14px, env(safe-area-inset-bottom));
     }
 
-    /* sürüşmə təcrübəsi */
     html, body {
         overscroll-behavior-y: none;
         -webkit-text-size-adjust: 100%;
@@ -696,7 +693,6 @@ body::before {
     }
 }
 
-/* azaldılmış hərəkət */
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     *, *::before, *::after {
