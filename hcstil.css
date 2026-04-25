@@ -7717,3 +7717,24 @@ body.dark-ui .yt-music-shell, body.dark-ui .admin-card {
     max-height: min(52dvh, 430px);
     padding-right: 8px;
 }
+#typed-text {
+    background: linear-gradient(
+        135deg,
+        #ff4d6d,
+        #ff8da4,
+        #ffffff,
+        #ff5b7a,
+        #ff4d6d
+    );
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent !important;
+    animation: gradientShift 4s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
