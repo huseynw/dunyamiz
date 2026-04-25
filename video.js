@@ -21,8 +21,8 @@ const scrollSpace = document.querySelector('.scroll-space');
     - Custom domain və ya local test üçün githubOwner/githubRepo yaz.
 */
 const VIDEO_CONFIG = {
-    githubOwner: '',          // məsələn: 'username'
-    githubRepo: '',           // məsələn: 'repo-adi'
+    githubOwner: 'huseynw',          // məsələn: 'username'
+    githubRepo: 'dunyamiz',           // məsələn: 'repo-adi'
     githubBranch: '',         // boş qalsa default branch götürülür
     githubFolder: 'video',
     recursive: true,
