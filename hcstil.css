@@ -1412,8 +1412,8 @@ header {
     cursor: pointer;
     transition: transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease;
     aspect-ratio: 4 / 5;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: transparent !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
     backdrop-filter: blur(10px);
 }
 
@@ -2140,13 +2140,17 @@ header {
 
 
 .heart-trigger {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
     font-size: 4rem;
     color: var(--primary);
     cursor: pointer;
     display: inline-block;
     transition: transform 0.2s ease;
     user-select: none;
-    -webkit-user-select: none;
+    -webkit-user-select: none !important;
     filter: drop-shadow(0 0 10px rgba(255, 77, 109, 0.3));
 }
 
@@ -5376,7 +5380,7 @@ header {
     color: white;
     background: linear-gradient(135deg, #ff4d6d, #ff7b93);
     box-shadow: 0 14px 30px rgba(255, 77, 109, 0.28);
-    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+    transition: all 0.45s cubic-bezier(0.25, 0.8, 0.25, 1.2) !important;
 }
 
 
@@ -7354,6 +7358,7 @@ nav,
 .music-card {
     content-visibility: auto;
     contain-intrinsic-size: 1px 420px;
+    transition: all 0.45s cubic-bezier(0.25, 0.8, 0.25, 1.2) !important;
 }
 
 .gallery-timeline img,
@@ -7582,6 +7587,7 @@ body {
 /* ============ KART HOVER + FOCUS (PREMIUM) ============ */
 .note-card, .envelope, .quote-card, .photo-frame, .time-box, .stat-item,
 .yt-track-item, .admin-btn, .memory-btn, .welcome-primary-btn, .welcome-secondary-btn {
+    transition: all 0.45s cubic-bezier(0.25, 0.8, 0.25, 1.2) !important;
     transition:
         transform var(--transition-card) var(--motion-safe),
         box-shadow var(--transition-card) var(--motion-safe),
