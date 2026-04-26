@@ -137,6 +137,35 @@ function closeLoader(delay = 0) {
     }, delay);
 }
 
+
+function setSoundEnabled(enabled) {
+    soundEnabled = enabled;
+
+    videos.forEach((video) => {
+        video.muted = !enabled;
+        video.defaultMuted = !enabled;
+        video.volume = enabled ? 1 : 0;
+    });
+
+    if (soundToggle) {
+        soundToggle.classList.toggle('active', enabled);
+        soundToggle.setAttribute('aria-label', enabled ? 'Videoların səsini bağla' : 'Videoların səsini aç');
+        soundToggle.innerHTML = enabled
+            ? '<i class="fas fa-volume-high"></i><span>Səs açıq</span>'
+            : '<i class="fas fa-volume-xmark"></i><span>Səsi aç</span>';
+    }
+}
+
+if (soundToggle) {
+    soundToggle.addEventListener('click', () => {
+        setSoundEnabled(!soundEnabled);
+        const current = videos[activeIndex];
+        if (current && soundEnabled) {
+            current.play().catch(() => {});
+        }
+    }, { passive: true });
+}
+
 function normalizeVideoUrl(url = '') {
     if (/^https?:\/\//i.test(url)) return url;
     return '/' + String(url).replace(/^\/+/, '');
@@ -150,48 +179,15 @@ function createVideoCard(file, index) {
     const video = document.createElement('video');
     video.loop = true;
     video.playsInline = true;
-    // Autoplay üçün əvvəlcə səssiz başlayırıq. İstifadəçi düyməyə basanda səs açılır.
     video.muted = true;
     video.defaultMuted = true;
-    video.volume = 1;
+    video.volume = 0;
     video.preload = 'none';
     video.dataset.src = normalizeVideoUrl(file.url || file.path);
     video.dataset.type = file.type || getMimeType(file.name || file.url || file.path);
 
     card.appendChild(video);
     return card;
-}
-
-
-function setSoundEnabled(enabled) {
-    soundEnabled = enabled;
-
-    videos.forEach((video) => {
-        video.muted = !enabled;
-        video.defaultMuted = !enabled;
-        video.volume = enabled ? 1 : 0;
-    });
-
-    if (soundToggle) {
-        soundToggle.classList.toggle('active', enabled);
-        soundToggle.innerHTML = enabled
-            ? '<i class="fas fa-volume-high"></i><span>Səs açıqdır</span>'
-            : '<i class="fas fa-volume-xmark"></i><span>Səsi aç</span>';
-    }
-}
-
-if (soundToggle) {
-    soundToggle.addEventListener('click', () => {
-        setSoundEnabled(!soundEnabled);
-        const current = videos[activeIndex];
-        if (current && soundEnabled) {
-            current.muted = false;
-            current.defaultMuted = false;
-            current.volume = 1;
-            const p = current.play();
-            if (p) p.catch(() => {});
-        }
-    });
 }
 
 function attachVideoSource(video) {
@@ -252,7 +248,7 @@ function mountVideos(files) {
     totalVideos = videos.length || 1;
 
     if (totalCountEl) totalCountEl.textContent = totalVideos;
-    if (scrollSpace) scrollSpace.style.height = `${Math.max(360, totalVideos * (isSmallMobile ? 112 : 105))}vh`;
+    if (scrollSpace) scrollSpace.style.height = `${Math.max(340, totalVideos * (isSmallMobile ? 118 : 105))}vh`;
 
     preloadAround(0);
     closeLoader(isSmallMobile ? 2200 : 4500);
@@ -320,10 +316,10 @@ window.addEventListener('scroll', () => {
 function getResponsiveSettings() {
     const width = window.innerWidth;
     if (width <= 420) {
-        return { scrollStep: 285, baseRadius: 135, yFactor: 0.78, snapRange: 105, focusRange: 108, scaleFocus: 1.01 };
+        return { scrollStep: 285, baseRadius: 210, yFactor: 0.52, snapRange: 92, focusRange: 90, scaleFocus: 1.01 };
     }
     if (width <= 768) {
-        return { scrollStep: 300, baseRadius: 165, yFactor: 0.72, snapRange: 112, focusRange: 116, scaleFocus: 1.015 };
+        return { scrollStep: 300, baseRadius: 245, yFactor: 0.52, snapRange: 102, focusRange: 100, scaleFocus: 1.015 };
     }
     return { scrollStep: 250, baseRadius: 600, yFactor: 0.45, snapRange: 150, focusRange: 150, scaleFocus: 1.06 };
 }
@@ -339,10 +335,11 @@ function handleVideoFocus(video, card, isClosest, index) {
 
         attachVideoSource(video);
 
+        video.muted = !soundEnabled;
+        video.defaultMuted = !soundEnabled;
+        video.volume = soundEnabled ? 1 : 0;
+
         if (video.paused) {
-            video.muted = !soundEnabled;
-            video.defaultMuted = !soundEnabled;
-            video.volume = soundEnabled ? 1 : 0;
             const playPromise = video.play();
             if (playPromise) playPromise.catch(() => {});
         }
@@ -394,7 +391,6 @@ function animate() {
         const farAway = Math.abs(index - estimatedIndex) > (isSmallMobile ? 3 : 6);
         if (farAway) {
             card.style.opacity = '0';
-            card.style.pointerEvents = 'none';
             if (video && !video.paused) video.pause();
             card.classList.remove('focused');
             return;
@@ -405,8 +401,6 @@ function animate() {
             relScroll = rawRelScroll * Math.pow(Math.abs(rawRelScroll / settings.snapRange), 0.5);
         }
 
-        card.style.pointerEvents = 'auto';
-
         const isClosest = Math.abs(rawRelScroll) < settings.focusRange;
         handleVideoFocus(video, card, isClosest, index);
 
@@ -414,7 +408,7 @@ function animate() {
         const floatX = isSmallMobile ? 0 : Math.cos(time + index * 0.8) * 10;
         const floatRot = isSmallMobile ? 0 : Math.sin(time * 0.5 + index) * 1.6;
         const yPos = (-relScroll * settings.yFactor) + floatY;
-        const angle = (relScroll * (isSmallMobile ? 0.038 : 0.14)) + (floatX * 0.1);
+        const angle = (relScroll * (isSmallMobile ? 0.075 : 0.14)) + (floatX * 0.1);
         const breathing = isSmallMobile ? 0 : Math.sin(time * 0.8 + index) * 15;
         const speedExpand = isSmallMobile ? 0 : Math.min(32, scrollVelocity * 0.48);
         const radius = settings.baseRadius + breathing + speedExpand;
@@ -425,7 +419,7 @@ function animate() {
         const angleRad = (angle % 360) * Math.PI / 180;
         const zDepth = Math.cos(angleRad);
         const blurAmount = isSmallMobile ? 0 : Math.max(0, (1 - zDepth) * 9);
-        const fadeRange = isSmallMobile ? 560 : 1500;
+        const fadeRange = isSmallMobile ? 820 : 1500;
         const opacityY = 1 - Math.abs(yPos / fadeRange);
         const opacityZ = Math.pow((zDepth + 1) / 2, 2) * 0.78 + 0.22;
         const finalOpacity = Math.max(0, Math.min(1, opacityY * opacityZ));
