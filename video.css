@@ -401,6 +401,7 @@ body::before {
 }
 
 .card::after {
+    content: none;
     position: absolute;
     left: 16px;
     right: 16px;
