@@ -583,3 +583,84 @@ body::before {
     text-align: center;
     box-shadow: 0 24px 70px rgba(0,0,0,0.48);
 }
+
+
+/* Mobil performans modu: scroll zamanı donmanı azaldır */
+.card,
+.card video {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+}
+
+.card {
+    contain: layout paint style;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    body::before {
+        opacity: 0.46;
+        background-attachment: scroll;
+    }
+
+    #particles,
+    .bg-dots {
+        display: none !important;
+    }
+
+    .romantic-vignette {
+        background:
+            linear-gradient(180deg, rgba(5,5,10,0.42), transparent 30%, transparent 70%, rgba(5,5,10,0.48)),
+            radial-gradient(circle at center, transparent 52%, rgba(0,0,0,0.42));
+    }
+
+    .card {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.10),
+            0 14px 34px rgba(0, 0, 0, 0.42);
+        transition: opacity 0.28s var(--ease-premium), border-color 0.28s var(--ease-premium);
+    }
+
+    .card::before {
+        opacity: 0.28;
+        mix-blend-mode: normal;
+    }
+
+    .card::after {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    .card video {
+        filter: none;
+        opacity: 0.72;
+        transition: opacity 0.28s var(--ease-premium), transform 0.28s var(--ease-premium);
+    }
+
+    .card.focused {
+        box-shadow:
+            0 0 24px rgba(255, 77, 109, 0.24),
+            0 16px 38px rgba(0,0,0,0.46);
+    }
+
+    .card.focused video {
+        opacity: 1;
+        transform: scale(1.006);
+        filter: none;
+    }
+
+    .shard {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        opacity: 0.48;
+    }
+
+    .light-beam {
+        filter: blur(12px);
+    }
+}
