@@ -138,7 +138,17 @@ function closeLoader(delay = 0) {
 }
 
 
-function setSoundEnabled(enabled) {
+function syncSoundButton() {
+    if (!soundToggle) return;
+
+    soundToggle.classList.toggle('active', soundEnabled);
+    soundToggle.setAttribute('aria-label', soundEnabled ? 'Videoların səsini bağla' : 'Videoların səsini aç');
+    soundToggle.innerHTML = soundEnabled
+        ? '<i class="fas fa-volume-high"></i><span>Səs açıq</span>'
+        : '<i class="fas fa-volume-xmark"></i><span>Səsi aç</span>';
+}
+
+async function setSoundEnabled(enabled) {
     soundEnabled = enabled;
 
     videos.forEach((video) => {
@@ -147,23 +157,31 @@ function setSoundEnabled(enabled) {
         video.volume = enabled ? 1 : 0;
     });
 
-    if (soundToggle) {
-        soundToggle.classList.toggle('active', enabled);
-        soundToggle.setAttribute('aria-label', enabled ? 'Videoların səsini bağla' : 'Videoların səsini aç');
-        soundToggle.innerHTML = enabled
-            ? '<i class="fas fa-volume-high"></i><span>Səs açıq</span>'
-            : '<i class="fas fa-volume-xmark"></i><span>Səsi aç</span>';
+    syncSoundButton();
+
+    const current = videos[activeIndex] || videos[0];
+    if (current) {
+        attachVideoSource(current);
+        current.muted = !enabled;
+        current.defaultMuted = !enabled;
+        current.volume = enabled ? 1 : 0;
+
+        try {
+            await current.play();
+        } catch (e) {
+            console.warn('Səs/play aktivləşmədi:', e);
+        }
     }
 }
 
 if (soundToggle) {
-    soundToggle.addEventListener('click', () => {
-        setSoundEnabled(!soundEnabled);
-        const current = videos[activeIndex];
-        if (current && soundEnabled) {
-            current.play().catch(() => {});
-        }
-    }, { passive: true });
+    syncSoundButton();
+
+    soundToggle.addEventListener('click', async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        await setSoundEnabled(!soundEnabled);
+    });
 }
 
 function normalizeVideoUrl(url = '') {
@@ -248,7 +266,7 @@ function mountVideos(files) {
     totalVideos = videos.length || 1;
 
     if (totalCountEl) totalCountEl.textContent = totalVideos;
-    if (scrollSpace) scrollSpace.style.height = `${Math.max(340, totalVideos * (isSmallMobile ? 118 : 105))}vh`;
+    if (scrollSpace) scrollSpace.style.height = `${Math.max(340, totalVideos * (isSmallMobile ? 150 : 105))}vh`;
 
     preloadAround(0);
     closeLoader(isSmallMobile ? 2200 : 4500);
@@ -316,10 +334,10 @@ window.addEventListener('scroll', () => {
 function getResponsiveSettings() {
     const width = window.innerWidth;
     if (width <= 420) {
-        return { scrollStep: 285, baseRadius: 210, yFactor: 0.52, snapRange: 92, focusRange: 90, scaleFocus: 1.01 };
+        return { scrollStep: 390, baseRadius: 135, yFactor: 0.78, snapRange: 64, focusRange: 72, scaleFocus: 1.012 };
     }
     if (width <= 768) {
-        return { scrollStep: 300, baseRadius: 245, yFactor: 0.52, snapRange: 102, focusRange: 100, scaleFocus: 1.015 };
+        return { scrollStep: 410, baseRadius: 155, yFactor: 0.74, snapRange: 72, focusRange: 82, scaleFocus: 1.018 };
     }
     return { scrollStep: 250, baseRadius: 600, yFactor: 0.45, snapRange: 150, focusRange: 150, scaleFocus: 1.06 };
 }
