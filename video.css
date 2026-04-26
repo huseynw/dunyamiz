@@ -909,3 +909,41 @@ body::before {
         border-radius: 17px !important;
     }
 }
+/* === MOBILE SPIRAL CARD BOOST === */
+@media (max-width: 768px), (pointer: coarse) {
+    .scene {
+        perspective: 980px !important;
+    }
+
+    .gallery {
+        transform-style: preserve-3d !important;
+    }
+
+    .card {
+        transform-style: preserve-3d !important;
+        backface-visibility: visible !important;
+        transition:
+            box-shadow 0.35s var(--ease-premium),
+            border-color 0.35s var(--ease-premium),
+            opacity 0.25s linear !important;
+    }
+
+    .card.focused {
+        transform-style: preserve-3d !important;
+    }
+
+    .pillar-container {
+        transform: translate(-50%, -50%) scale(0.88) !important;
+        opacity: 0.9 !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .scene {
+        perspective: 900px !important;
+    }
+
+    .pillar-container {
+        transform: translate(-50%, -50%) scale(0.82) !important;
+    }
+}
