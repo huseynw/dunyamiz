@@ -778,3 +778,134 @@ body::before {
         font-size: 0.66rem !important;
     }
 }
+
+
+/* === PATCH 1010: Mobile sound button + card spacing fix === */
+#sound-toggle.sound-toggle,
+.sound-toggle {
+    position: fixed !important;
+    top: max(148px, calc(env(safe-area-inset-top) + 124px)) !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    z-index: 2147483647 !important;
+    transform: translateX(-50%) translateZ(0) !important;
+    min-width: 138px !important;
+    height: 44px !important;
+    padding: 0 17px !important;
+    gap: 9px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    border-radius: 999px !important;
+    background:
+        radial-gradient(circle at 18% 12%, rgba(255,255,255,0.28), transparent 34%),
+        linear-gradient(135deg, rgba(255,77,109,0.62), rgba(18,8,18,0.82)) !important;
+    color: #fff !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+    box-shadow:
+        0 16px 42px rgba(0,0,0,0.48),
+        0 0 34px rgba(255,77,109,0.34),
+        inset 0 1px 0 rgba(255,255,255,0.22) !important;
+    backdrop-filter: blur(18px) saturate(170%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(170%) !important;
+}
+
+#sound-toggle.sound-toggle::before,
+.sound-toggle::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,77,109,0.55), rgba(255,255,255,0.10));
+    filter: blur(12px);
+    opacity: 0.55;
+}
+
+#sound-toggle.sound-toggle:hover,
+.sound-toggle:hover {
+    transform: translateX(-50%) translateY(-2px) translateZ(0) !important;
+}
+
+#sound-toggle.sound-toggle:active,
+.sound-toggle:active {
+    transform: translateX(-50%) scale(0.96) translateZ(0) !important;
+}
+
+#sound-toggle.sound-toggle.active,
+.sound-toggle.active {
+    background:
+        radial-gradient(circle at 18% 12%, rgba(255,255,255,0.32), transparent 34%),
+        linear-gradient(135deg, rgba(255,77,109,0.92), rgba(201,24,74,0.88)) !important;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+    .page-header {
+        top: max(12px, env(safe-area-inset-top)) !important;
+    }
+
+    #sound-toggle.sound-toggle,
+    .sound-toggle {
+        top: max(158px, calc(env(safe-area-inset-top) + 132px)) !important;
+        left: 50% !important;
+        right: auto !important;
+        bottom: auto !important;
+        min-width: 128px !important;
+        width: auto !important;
+        height: 40px !important;
+        padding: 0 14px !important;
+        font-size: 0.70rem !important;
+    }
+
+    .scene {
+        perspective: 760px !important;
+    }
+
+    .card {
+        width: 62vw !important;
+        height: 38vw !important;
+        min-height: 112px !important;
+        max-height: 172px !important;
+        margin-left: -31vw !important;
+        margin-top: -19vw !important;
+        border-radius: 19px !important;
+    }
+
+    .card::after {
+        left: 10px !important;
+        right: 10px !important;
+        bottom: 9px !important;
+        padding: 7px 10px !important;
+        font-size: 0.68rem !important;
+    }
+
+    .pillar-container {
+        transform: translate(-50%, -50%) scale(0.70) !important;
+        opacity: 0.76 !important;
+    }
+}
+
+@media (max-width: 420px) {
+    #sound-toggle.sound-toggle,
+    .sound-toggle {
+        top: max(152px, calc(env(safe-area-inset-top) + 128px)) !important;
+        height: 38px !important;
+        min-width: 120px !important;
+        font-size: 0.66rem !important;
+    }
+
+    .card {
+        width: 58vw !important;
+        height: 36vw !important;
+        min-height: 104px !important;
+        max-height: 152px !important;
+        margin-left: -29vw !important;
+        margin-top: -18vw !important;
+        border-radius: 17px !important;
+    }
+}
