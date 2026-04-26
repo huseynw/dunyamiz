@@ -333,15 +333,41 @@ window.addEventListener('scroll', () => {
 
 function getResponsiveSettings() {
     const width = window.innerWidth;
-    if (width <= 420) {
-        return { scrollStep: 390, baseRadius: 135, yFactor: 0.78, snapRange: 64, focusRange: 72, scaleFocus: 1.012 };
-    }
-    if (width <= 768) {
-        return { scrollStep: 410, baseRadius: 155, yFactor: 0.74, snapRange: 72, focusRange: 82, scaleFocus: 1.018 };
-    }
-    return { scrollStep: 250, baseRadius: 600, yFactor: 0.45, snapRange: 150, focusRange: 150, scaleFocus: 1.06 };
-}
 
+    if (width <= 420) {
+        return {
+            scrollStep: 330,
+            baseRadius: 245,
+            yFactor: 0.62,
+            snapRange: 82,
+            focusRange: 88,
+            scaleFocus: 1.045,
+            spiralPower: 0.16
+        };
+    }
+
+    if (width <= 768) {
+        return {
+            scrollStep: 350,
+            baseRadius: 285,
+            yFactor: 0.60,
+            snapRange: 92,
+            focusRange: 98,
+            scaleFocus: 1.05,
+            spiralPower: 0.17
+        };
+    }
+
+    return {
+        scrollStep: 250,
+        baseRadius: 600,
+        yFactor: 0.45,
+        snapRange: 150,
+        focusRange: 150,
+        scaleFocus: 1.06,
+        spiralPower: 0.14
+    };
+}
 function handleVideoFocus(video, card, isClosest, index) {
     if (!video) return;
 
@@ -422,18 +448,23 @@ function animate() {
         const isClosest = Math.abs(rawRelScroll) < settings.focusRange;
         handleVideoFocus(video, card, isClosest, index);
 
-        const floatY = isSmallMobile ? 0 : Math.sin(time + index * 0.8) * 14;
-        const floatX = isSmallMobile ? 0 : Math.cos(time + index * 0.8) * 10;
-        const floatRot = isSmallMobile ? 0 : Math.sin(time * 0.5 + index) * 1.6;
+        const mobileFloat = isSmallMobile ? 1 : 1;
+        const floatY = Math.sin(time + index * 0.8) * (isSmallMobile ? 8 : 14) * mobileFloat;
+        const floatX = Math.cos(time + index * 0.8) * (isSmallMobile ? 7 : 10) * mobileFloat;
+        const floatRot = Math.sin(time * 0.5 + index) * (isSmallMobile ? 1.15 : 1.6);
+
         const yPos = (-relScroll * settings.yFactor) + floatY;
-        const angle = (relScroll * (isSmallMobile ? 0.075 : 0.14)) + (floatX * 0.1);
-        const breathing = isSmallMobile ? 0 : Math.sin(time * 0.8 + index) * 15;
-        const speedExpand = isSmallMobile ? 0 : Math.min(32, scrollVelocity * 0.48);
+        const angle = (relScroll * settings.spiralPower) + (floatX * 0.34);
+
+        const breathing = Math.sin(time * 0.8 + index) * (isSmallMobile ? 18 : 15);
+        const speedExpand = Math.min(isSmallMobile ? 42 : 32, scrollVelocity * (isSmallMobile ? 0.75 : 0.48));
         const radius = settings.baseRadius + breathing + speedExpand;
+
         const scale = isClosest ? settings.scaleFocus : 1;
+        const rotateX = (-yPos * (isSmallMobile ? 0.008 : 0.006)) + floatRot;
+        const rotateZ = isSmallMobile ? Math.sin(time + index) * 0.9 : 0;
 
-        card.style.transform = `rotateY(${angle}deg) translateY(${yPos}px) translateZ(${radius}px) rotateX(${-yPos * 0.006 + floatRot}deg) scale(${scale})`;
-
+        card.style.transform = `rotateY(${angle}deg) translateY(${yPos}px) translateZ(${radius}px) rotateX(${rotateX}deg) rotateZ(${rotateZ}deg) scale(${scale})`;
         const angleRad = (angle % 360) * Math.PI / 180;
         const zDepth = Math.cos(angleRad);
         const blurAmount = isSmallMobile ? 0 : Math.max(0, (1 - zDepth) * 9);
