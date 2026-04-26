@@ -13,19 +13,12 @@ const lightBeam = document.querySelector('.light-beam');
 const scrollHint = document.querySelector('.scroll-hint');
 const scrollSpace = document.querySelector('.scroll-space');
 
-/*
-    GitHub video sistemi:
-    - Videoları repoda video/ qovluğuna at.
-    - Fayl adları istənilən ad ola bilər: askim.mp4, 2026-xatire.webm və s.
-    - GitHub Pages-də işləyəndə owner/repo avtomatik tapılır.
-    - Custom domain və ya local test üçün githubOwner/githubRepo yaz.
-*/
 const VIDEO_CONFIG = {
     manifestUrl: '/video-manifest.json',
     localManifest: 'video/manifest.json',
     allowedExtensions: [
-        'mp4', 'webm', 'ogv', 'ogg', 'mov', 'm4v', 'avi', 'mkv',
-        '3gp', '3g2', 'mpeg', 'mpg', 'ts', 'mts', 'm2ts'
+        'mp4', 'webm', 'ogv', 'ogg', 'mov', 'm4v',
+        '3gp', '3g2', 'mpeg', 'mpg'
     ]
 };
 
@@ -38,10 +31,13 @@ let targetScroll = window.scrollY || 0;
 let currentScroll = targetScroll;
 let scrollVelocity = 0;
 let particles = [];
-let audioUnlocked = false;
+let activeIndex = -1;
+let lastPreloadCenter = -99;
+let frameCount = 0;
 
 const isTouchDevice = navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches;
-const isLowPower = (navigator.hardwareConcurrency || 8) < 4 || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isSmallMobile = window.innerWidth <= 768 || isTouchDevice;
+const isLowPower = isSmallMobile || (navigator.hardwareConcurrency || 8) < 4 || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const particleColors = ['#ff4d6d', '#ff8da4', '#ffe9ef', '#ffffff'];
 
 function getFileExtension(name = '') {
@@ -61,15 +57,10 @@ function getMimeType(name = '') {
         ogv: 'video/ogg',
         ogg: 'video/ogg',
         mov: 'video/quicktime',
-        avi: 'video/x-msvideo',
-        mkv: 'video/x-matroska',
         '3gp': 'video/3gpp',
         '3g2': 'video/3gpp2',
         mpeg: 'video/mpeg',
-        mpg: 'video/mpeg',
-        ts: 'video/mp2t',
-        mts: 'video/mp2t',
-        m2ts: 'video/mp2t'
+        mpg: 'video/mpeg'
     };
     return types[ext] || `video/${ext}`;
 }
@@ -85,92 +76,53 @@ function prettyTitle(fileName = '', index = 0) {
     return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
-async function fetchVideosFromBuildManifest() {
-    const res = await fetch(VIDEO_CONFIG.manifestUrl, { cache: 'no-store' });
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-        throw new Error(data.error || `Video manifest xətası: ${res.status}`);
-    }
-
-    const list = Array.isArray(data) ? data : data.videos;
-    if (!Array.isArray(list)) return [];
-
-    return list
-        .map((item) => {
-            if (typeof item === 'string') {
-                const name = item.split('/').pop() || '';
-                return { name, url: item };
-            }
-
-            const name = item.name || item.title || item.url?.split('/').pop() || '';
-            const url = item.url || item.src || item.download_url || '';
-            return { name, url, title: item.title };
-        })
-        .filter((item) => item.url && isSupportedVideoFile(item.name || item.url));
-}
-
-async function fetchLocalManifest() {
-    const res = await fetch(VIDEO_CONFIG.localManifest, { cache: 'no-store' });
-    if (!res.ok) throw new Error('manifest tapılmadı');
-
-    const data = await res.json();
-    const list = Array.isArray(data) ? data : data.videos;
-
-    if (!Array.isArray(list)) return [];
-
-    return list
-        .map((item) => {
-            if (typeof item === 'string') {
-                const name = item.split('/').pop();
-                return { name, url: item.startsWith('http') ? item : `video/${item}` };
-            }
-
-            const name = item.name || item.title || item.url?.split('/').pop() || '';
-            const url = item.url || item.src || '';
-            return { name, url, title: item.title };
-        })
-        .filter((item) => item.url && isSupportedVideoFile(item.name || item.url));
-}
-
 async function getVideoFiles() {
     const urls = [
-        "/video-manifest.json",
-        "./video-manifest.json",
-        "video-manifest.json"
+        '/video-manifest.json',
+        './video-manifest.json',
+        'video-manifest.json',
+        VIDEO_CONFIG.localManifest
     ];
 
     for (const url of urls) {
         try {
-            const res = await fetch(url + "?v=" + Date.now(), {
-                cache: "no-store"
-            });
-
-            console.log("Manifest yoxlanır:", url, res.status);
-
+            const res = await fetch(url + '?v=' + Date.now(), { cache: 'no-store' });
             if (!res.ok) continue;
 
             const data = await res.json();
-            console.log("Manifest data:", data);
+            const list = Array.isArray(data.videos) ? data.videos : data;
 
-            if (Array.isArray(data.videos)) return data.videos;
-            if (Array.isArray(data)) return data;
+            if (!Array.isArray(list)) continue;
+
+            return list
+                .map((item) => {
+                    if (typeof item === 'string') {
+                        const name = item.split('/').pop() || '';
+                        return { name, url: item };
+                    }
+
+                    const name = item.name || item.title || item.url?.split('/').pop() || item.path?.split('/').pop() || '';
+                    const url = item.url || item.src || item.path || '';
+                    return { name, url, title: item.title, type: item.type };
+                })
+                .filter((item) => item.url && isSupportedVideoFile(item.name || item.url));
         } catch (e) {
-            console.error("Manifest error:", url, e);
+            console.warn('Manifest oxunmadı:', url, e);
         }
     }
 
     return [];
 }
-function updateLoader() {
-    if (loaderDone) return;
+
+function updateLoader(force = false) {
+    if (loaderDone && !force) return;
     loadedVideos = Math.min(totalVideos, loadedVideos + 1);
-    const progress = (loadedVideos / totalVideos) * 100;
+    const progress = Math.min(100, (loadedVideos / totalVideos) * 100);
 
     if (loaderBar) loaderBar.style.width = `${progress}%`;
     if (loadedCountEl) loadedCountEl.textContent = loadedVideos;
 
-    if (loadedVideos >= totalVideos) closeLoader(520);
+    if (loadedVideos >= Math.min(totalVideos, isSmallMobile ? 2 : totalVideos)) closeLoader(350);
 }
 
 function closeLoader(delay = 0) {
@@ -183,6 +135,11 @@ function closeLoader(delay = 0) {
     }, delay);
 }
 
+function normalizeVideoUrl(url = '') {
+    if (/^https?:\/\//i.test(url)) return url;
+    return '/' + String(url).replace(/^\/+/, '');
+}
+
 function createVideoCard(file, index) {
     const card = document.createElement('div');
     card.className = 'card';
@@ -191,33 +148,54 @@ function createVideoCard(file, index) {
     const video = document.createElement('video');
     video.loop = true;
     video.playsInline = true;
-    video.preload = isTouchDevice ? 'metadata' : 'auto';
     video.muted = true;
+    video.defaultMuted = true;
     video.volume = 0;
+    video.preload = 'none';
+    video.dataset.src = normalizeVideoUrl(file.url || file.path);
+    video.dataset.type = file.type || getMimeType(file.name || file.url || file.path);
 
-    const source = document.createElement('source');
-    source.src = "/" + String(file.url || file.path).replace(/^\/+/, "");
-    source.type = file.type || getMimeType(file.name || file.url || file.path);
-
-    video.appendChild(source);
     card.appendChild(video);
-
-    video.addEventListener('loadedmetadata', updateLoader, { once: true });
-    video.addEventListener('loadeddata', updateLoader, { once: true });
-    video.addEventListener('canplaythrough', updateLoader, { once: true });
-    video.addEventListener('error', updateLoader, { once: true });
-
     return card;
 }
 
-function unlockAudioOnGesture() {
-    if (audioUnlocked) return;
-    audioUnlocked = true;
+function attachVideoSource(video) {
+    if (!video || video.dataset.loaded === '1') return;
 
-    videos.forEach((video) => {
-        video.muted = false;
+    const source = document.createElement('source');
+    source.src = video.dataset.src;
+    source.type = video.dataset.type;
+
+    video.appendChild(source);
+    video.dataset.loaded = '1';
+    video.preload = 'metadata';
+
+    video.addEventListener('loadedmetadata', () => updateLoader(), { once: true });
+    video.addEventListener('canplay', () => updateLoader(), { once: true });
+    video.addEventListener('error', () => updateLoader(), { once: true });
+
+    video.load();
+}
+
+function preloadAround(index) {
+    if (!videos.length || Math.abs(index - lastPreloadCenter) < 1) return;
+    lastPreloadCenter = index;
+
+    const range = isSmallMobile ? 1 : 2;
+
+    videos.forEach((video, i) => {
+        if (Math.abs(i - index) <= range) {
+            attachVideoSource(video);
+        } else if (isSmallMobile && Math.abs(i - index) > 2 && video.dataset.loaded === '1') {
+            video.pause();
+            video.removeAttribute('src');
+            video.innerHTML = '';
+            video.dataset.loaded = '0';
+            video.preload = 'none';
+        }
     });
 }
+
 function mountVideos(files) {
     if (!gallery) return;
 
@@ -225,7 +203,7 @@ function mountVideos(files) {
         totalVideos = 1;
         if (totalCountEl) totalCountEl.textContent = '0';
         if (emptyState) emptyState.hidden = false;
-        closeLoader(700);
+        closeLoader(500);
         return;
     }
 
@@ -235,48 +213,46 @@ function mountVideos(files) {
     });
 
     cards = Array.from(document.querySelectorAll('.card'));
-    videos = Array.from(document.querySelectorAll('video'));
+    videos = Array.from(document.querySelectorAll('.card video'));
     totalVideos = videos.length || 1;
 
     if (totalCountEl) totalCountEl.textContent = totalVideos;
-    if (scrollSpace) {
-        scrollSpace.style.height = `${Math.max(360, totalVideos * 105)}vh`;
-    }
+    if (scrollSpace) scrollSpace.style.height = `${Math.max(360, totalVideos * (isSmallMobile ? 92 : 105))}vh`;
 
-    document.addEventListener('pointerdown', unlockAudioOnGesture, { once: true, passive: true });
-    document.addEventListener('touchstart', unlockAudioOnGesture, { once: true, passive: true });
-
-    setTimeout(() => closeLoader(0), 12000);
+    preloadAround(0);
+    closeLoader(isSmallMobile ? 2200 : 4500);
 }
 
 function initParticles() {
-    if (!canvas || !ctx) return;
+    if (!canvas || !ctx || isSmallMobile) {
+        if (canvas) canvas.style.display = 'none';
+        return;
+    }
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     canvas.width = Math.floor(window.innerWidth * dpr);
     canvas.height = Math.floor(window.innerHeight * dpr);
     canvas.style.width = `${window.innerWidth}px`;
     canvas.style.height = `${window.innerHeight}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const amount = isLowPower ? 55 : isTouchDevice ? 80 : 135;
+    const amount = isLowPower ? 35 : 95;
     particles = Array.from({ length: amount }, () => ({
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
-        size: 0.6 + Math.random() * 1.8,
-        speedX: (Math.random() - 0.5) * 0.18,
-        speedY: (Math.random() - 0.5) * 0.18,
-        opacity: 0.22 + Math.random() * 0.72,
+        size: 0.6 + Math.random() * 1.6,
+        speedX: (Math.random() - 0.5) * 0.14,
+        speedY: (Math.random() - 0.5) * 0.14,
+        opacity: 0.20 + Math.random() * 0.62,
         twinkle: Math.random() * Math.PI * 2,
         color: particleColors[Math.floor(Math.random() * particleColors.length)]
     }));
 }
 
 function drawParticles() {
-    if (!canvas || !ctx) return;
+    if (!canvas || !ctx || isSmallMobile) return;
 
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-    const velocityFactor = 1 + Math.min(5, scrollVelocity * 0.04);
     const time = Date.now() * 0.001;
 
     particles.forEach((p) => {
@@ -284,15 +260,11 @@ function drawParticles() {
         ctx.globalAlpha = Math.max(0.08, alpha);
         ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * velocityFactor, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
 
         p.x += p.speedX;
         p.y += p.speedY;
-
-        if (scrollVelocity > 2) {
-            p.y += (p.y - window.innerHeight / 2) * 0.006 * Math.min(scrollVelocity, 12);
-        }
 
         if (p.x < -10) p.x = window.innerWidth + 10;
         if (p.x > window.innerWidth + 10) p.x = -10;
@@ -313,61 +285,81 @@ window.addEventListener('scroll', () => {
 function getResponsiveSettings() {
     const width = window.innerWidth;
     if (width <= 420) {
-        return { scrollStep: 230, baseRadius: 330, yFactor: 0.44, snapRange: 135, focusRange: 135, scaleFocus: 1.055 };
+        return { scrollStep: 222, baseRadius: 255, yFactor: 0.38, snapRange: 118, focusRange: 120, scaleFocus: 1.025 };
     }
     if (width <= 768) {
-        return { scrollStep: 240, baseRadius: 390, yFactor: 0.44, snapRange: 145, focusRange: 145, scaleFocus: 1.055 };
+        return { scrollStep: 230, baseRadius: 300, yFactor: 0.40, snapRange: 130, focusRange: 132, scaleFocus: 1.035 };
     }
     return { scrollStep: 250, baseRadius: 600, yFactor: 0.45, snapRange: 150, focusRange: 150, scaleFocus: 1.06 };
 }
 
-function handleVideoFocus(video, card, isClosest) {
+function handleVideoFocus(video, card, isClosest, index) {
     if (!video) return;
 
     if (isClosest) {
-        const playPromise = video.play();
-        if (playPromise) playPromise.catch(() => {});
-        video.volume += (1 - video.volume) * 0.08;
+        if (activeIndex !== index) {
+            activeIndex = index;
+            preloadAround(index);
+        }
+
+        attachVideoSource(video);
+
+        if (video.paused) {
+            const playPromise = video.play();
+            if (playPromise) playPromise.catch(() => {});
+        }
+
         card.classList.add('focused');
     } else {
-        video.volume += (0 - video.volume) * 0.10;
-        if (video.volume < 0.04) {
-            video.volume = 0;
-            if (!video.paused) video.pause();
-        }
+        if (!video.paused) video.pause();
         card.classList.remove('focused');
     }
 }
 
 function animate() {
+    frameCount += 1;
     const prevScroll = currentScroll;
-    currentScroll += (targetScroll - currentScroll) * 0.085;
+    currentScroll += (targetScroll - currentScroll) * (isSmallMobile ? 0.16 : 0.085);
     scrollVelocity = Math.abs(currentScroll - prevScroll);
 
     const time = Date.now() * 0.001;
     const settings = getResponsiveSettings();
+    const estimatedIndex = Math.max(0, Math.min(cards.length - 1, Math.round(currentScroll / settings.scrollStep)));
 
-    if (shardSystem) {
-        shardSystem.style.transform = `rotateY(${currentScroll * 0.045}deg)`;
+    if (isSmallMobile && frameCount % 2 === 0 && scrollVelocity > 2.5) {
+        requestAnimationFrame(animate);
+        return;
     }
 
-    shards.forEach((shard, i) => {
-        const offset = Math.sin(time + i) * 18;
-        const individualRot = currentScroll * (0.018 + i * 0.008);
-        const depth = 56 + i * 10;
-        shard.style.transform = `rotateY(${i * 72 + individualRot}deg) translateZ(${depth}px) translateY(${offset}px)`;
-    });
+    if (shardSystem) shardSystem.style.transform = `rotateY(${currentScroll * (isSmallMobile ? 0.018 : 0.045)}deg)`;
+
+    if (!isSmallMobile) {
+        shards.forEach((shard, i) => {
+            const offset = Math.sin(time + i) * 18;
+            const individualRot = currentScroll * (0.018 + i * 0.008);
+            const depth = 56 + i * 10;
+            shard.style.transform = `rotateY(${i * 72 + individualRot}deg) translateZ(${depth}px) translateY(${offset}px)`;
+        });
+    }
 
     if (pillarGlow && lightBeam) {
-        const intensity = 0.28 + (scrollVelocity * 0.026);
-        pillarGlow.style.opacity = Math.min(0.74, intensity);
-        lightBeam.style.opacity = Math.min(0.58, intensity);
-        lightBeam.style.width = `${10 + Math.min(24, scrollVelocity * 1.7)}px`;
+        const intensity = isSmallMobile ? 0.24 : 0.28 + (scrollVelocity * 0.026);
+        pillarGlow.style.opacity = Math.min(0.58, intensity);
+        lightBeam.style.opacity = Math.min(0.44, intensity);
+        lightBeam.style.width = `${isSmallMobile ? 8 : 10 + Math.min(24, scrollVelocity * 1.7)}px`;
     }
 
     cards.forEach((card, index) => {
         const rawRelScroll = currentScroll - (index * settings.scrollStep);
-        const video = card.querySelector('video');
+        const video = videos[index];
+
+        const farAway = Math.abs(index - estimatedIndex) > (isSmallMobile ? 3 : 6);
+        if (farAway) {
+            card.style.opacity = '0';
+            if (video && !video.paused) video.pause();
+            card.classList.remove('focused');
+            return;
+        }
 
         let relScroll = rawRelScroll;
         if (Math.abs(rawRelScroll) < settings.snapRange) {
@@ -375,35 +367,29 @@ function animate() {
         }
 
         const isClosest = Math.abs(rawRelScroll) < settings.focusRange;
-        handleVideoFocus(video, card, isClosest);
+        handleVideoFocus(video, card, isClosest, index);
 
-        const floatY = Math.sin(time + index * 0.8) * (isTouchDevice ? 9 : 14);
-        const floatX = Math.cos(time + index * 0.8) * (isTouchDevice ? 6 : 10);
-        const floatRot = Math.sin(time * 0.5 + index) * 1.6;
+        const floatY = isSmallMobile ? 0 : Math.sin(time + index * 0.8) * 14;
+        const floatX = isSmallMobile ? 0 : Math.cos(time + index * 0.8) * 10;
+        const floatRot = isSmallMobile ? 0 : Math.sin(time * 0.5 + index) * 1.6;
         const yPos = (-relScroll * settings.yFactor) + floatY;
-        const angle = (relScroll * 0.14) + (floatX * 0.1);
-        const breathing = Math.sin(time * 0.8 + index) * (isTouchDevice ? 9 : 15);
-        const speedExpand = Math.min(32, scrollVelocity * 0.48);
+        const angle = (relScroll * (isSmallMobile ? 0.075 : 0.14)) + (floatX * 0.1);
+        const breathing = isSmallMobile ? 0 : Math.sin(time * 0.8 + index) * 15;
+        const speedExpand = isSmallMobile ? 0 : Math.min(32, scrollVelocity * 0.48);
         const radius = settings.baseRadius + breathing + speedExpand;
         const scale = isClosest ? settings.scaleFocus : 1;
 
-        card.style.transform = `
-            rotateY(${angle}deg)
-            translateY(${yPos}px)
-            translateZ(${radius}px)
-            rotateX(${-yPos * 0.01 + floatRot}deg)
-            scale(${scale})
-        `;
+        card.style.transform = `rotateY(${angle}deg) translateY(${yPos}px) translateZ(${radius}px) rotateX(${-yPos * 0.006 + floatRot}deg) scale(${scale})`;
 
         const angleRad = (angle % 360) * Math.PI / 180;
         const zDepth = Math.cos(angleRad);
-        const blurAmount = Math.max(0, (1 - zDepth) * (isTouchDevice ? 7 : 9));
-        const fadeRange = isTouchDevice ? 1050 : 1500;
+        const blurAmount = isSmallMobile ? 0 : Math.max(0, (1 - zDepth) * 9);
+        const fadeRange = isSmallMobile ? 820 : 1500;
         const opacityY = 1 - Math.abs(yPos / fadeRange);
         const opacityZ = Math.pow((zDepth + 1) / 2, 2) * 0.78 + 0.22;
         const finalOpacity = Math.max(0, Math.min(1, opacityY * opacityZ));
 
-        card.style.filter = `blur(${blurAmount}px)`;
+        card.style.filter = blurAmount ? `blur(${blurAmount}px)` : 'none';
         card.style.opacity = finalOpacity;
         card.style.zIndex = Math.round((zDepth + 1) * 100);
     });
@@ -416,20 +402,18 @@ async function start() {
         initParticles();
         drawParticles();
 
-        const files = await getVideoFiles(); // BURADA yaranır
-
-        console.log("Tapılan videolar:", files);
+        const files = await getVideoFiles();
+        console.log('Tapılan videolar:', files);
 
         if (totalCountEl) totalCountEl.textContent = files.length;
 
-        mountVideos(files); // BURADA istifadə olunur
-
+        mountVideos(files);
         animate();
-
     } catch (err) {
-        console.error("START ERROR:", err);
-        if (totalCountEl) totalCountEl.textContent = "ERR";
-        closeLoader(1000);
+        console.error('START ERROR:', err);
+        if (totalCountEl) totalCountEl.textContent = 'ERR';
+        closeLoader(800);
     }
 }
+
 start();
