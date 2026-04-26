@@ -401,7 +401,6 @@ body::before {
 }
 
 .card::after {
-    content: attr(data-title);
     position: absolute;
     left: 16px;
     right: 16px;
