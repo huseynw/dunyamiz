@@ -5056,3 +5056,59 @@ function animatePlayerCollapse(complete) {
         }
     });
 }
+// Admin paneldə əl ilə bildiriş göndərmə
+const sendCustomBtn = document.getElementById('send-custom-notif-btn');
+if (sendCustomBtn) {
+    sendCustomBtn.addEventListener('click', async () => {
+        const title = document.getElementById('custom-notif-title').value.trim();
+        const message = document.getElementById('custom-notif-message').value.trim();
+        const password = document.getElementById('admin-password-custom').value.trim();
+        const statusDiv = document.getElementById('custom-notif-status');
+
+        if (!title || !message) {
+            statusDiv.textContent = '⚠️ Başlıq və mesaj boş ola bilməz!';
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'admin-status is-visible is-error';
+            setTimeout(() => { statusDiv.style.display = 'none'; }, 4000);
+            return;
+        }
+        if (!password) {
+            statusDiv.textContent = '🔐 Zəhmət olmasa admin şifrəsini daxil edin.';
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'admin-status is-visible is-error';
+            setTimeout(() => { statusDiv.style.display = 'none'; }, 4000);
+            return;
+        }
+
+        statusDiv.textContent = '⏳ Bildiriş göndərilir...';
+        statusDiv.style.display = 'block';
+        statusDiv.className = 'admin-status is-visible is-info';
+
+        try {
+            const response = await fetch('/.netlify/functions/admin-proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'send_custom_notification',
+                    password: password,
+                    payload: { title, message }
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                statusDiv.textContent = '✅ Bildiriş uğurla göndərildi!';
+                statusDiv.className = 'admin-status is-visible is-success';
+                document.getElementById('custom-notif-title').value = '';
+                document.getElementById('custom-notif-message').value = '';
+                document.getElementById('admin-password-custom').value = '';
+            } else {
+                statusDiv.textContent = '❌ Xəta: ' + (data.error || 'Bilinməyən xəta');
+                statusDiv.className = 'admin-status is-visible is-error';
+            }
+        } catch (err) {
+            statusDiv.textContent = '❌ Şəbəkə xətası: ' + err.message;
+            statusDiv.className = 'admin-status is-visible is-error';
+        }
+        setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
+    });
+}
