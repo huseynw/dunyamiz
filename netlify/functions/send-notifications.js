@@ -83,12 +83,6 @@ exports.handler = async (event) => {
             return { statusCode: 403, body: JSON.stringify({ error: 'Unauthorized' }) };
         }
 
-        // ========= TEST BİLDİRİŞİ (MÜVƏQQƏTİ) – birbaşa 2 cihaza =========
-        if (TEST_PLAYER_IDS.length) {
-            await sendOneSignalNotification('🔔 Test bildirişi', 'Bu funksiya işləyir! Cəmalə, səni sevirəm 💖', TEST_PLAYER_IDS);
-        }
-        // ===============================================================
-
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
         const now = new Date();
 
