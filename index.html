@@ -33,26 +33,41 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Dünyamız">
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+
     <script>
     window.OneSignalDeferred = window.OneSignalDeferred || [];
 
     OneSignalDeferred.push(async function(OneSignal) {
 
       await OneSignal.init({
-        appId: "c37f2c20-c8df-4e71-8d08-796506adc498",
-        notifyButton: {
-          enable: true
-        }
+        appId: "c37f2c20-c8df-4e71-8d08-796506adc498"
       });
-      document.addEventListener("click", async () => {
 
-        const permission = await OneSignal.Notifications.permission;
+      const btn = document.getElementById("enableNotifications");
 
-        if (permission !== "granted") {
-          await OneSignal.Notifications.requestPermission();
+      btn.addEventListener("click", async () => {
+
+        try {
+
+          const permission = await OneSignal.Notifications.permission;
+
+          if (permission !== "granted") {
+
+            await OneSignal.Notifications.requestPermission();
+
+          } else {
+
+            alert("Bildirişlər artıq aktivdir ✅");
+
+          }
+
+        } catch(err) {
+
+          console.log(err);
+
         }
 
-      }, { once: true });
+      });
 
     });
     </script>
@@ -115,6 +130,10 @@
                     <button id="enter-btn" class="welcome-primary-btn">
                         <span>Toxun</span>
                         <i class="fas fa-arrow-right-long"></i>
+                    </button>
+                    <button id="enableNotifications" class="welcome-secondary-btn" style="margin-top: 15px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--glass-border); width: 100%;">
+                        <i class="fas fa-bell"></i>
+                        <span>Bildirişləri Aktiv Et</span>
                     </button>
                 </div>
 
