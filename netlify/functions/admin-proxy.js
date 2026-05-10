@@ -9,8 +9,7 @@ const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY;
 const SUBSCRIPTION_IDS = [
     '5f14228d-24e3-4bd8-b219-1a317bce7a88',
     '32643469-8969-44f7-8ec7-222f2913ca44',
-    'f480d728-c8e3-415b-955a-50926861404d',
-    '747aaa0d-68c9-4121-bc66-dd2b20b1b0b2'
+    'f480d728-c8e3-415b-955a-50926861404d'
 ];
 
 async function sendOneSignalNotification(title, message, subscriptionIds = null) {
@@ -332,6 +331,22 @@ exports.handler = async (event) => {
             const migratedCount = results.filter((item) => item.status === 'migrated').length;
             const skippedCount = results.filter((item) => item.status === 'skip').length;
             return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: true, details: { migratedCount, skippedCount, results } }) };
+        }
+        if (type === "send_custom_notification") {
+            const { title, message } = payload || {};
+            if (!title || !message) {
+                return {
+                    statusCode: 400,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ success: false, error: "Başlıq və mesaj lazımdır." })
+                };
+            }
+            await sendOneSignalNotification(title, message, SUBSCRIPTION_IDS);
+            return {
+                statusCode: 200,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ success: true, message: "Bildiriş göndərildi." })
+            };
         }
 
         return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "Naməlum əməliyyat növü." }) };
