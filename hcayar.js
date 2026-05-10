@@ -60,7 +60,7 @@ async function loadSiteSettings(force = false) {
 
         if (typeof syncAdminOverview === 'function') {
             syncAdminOverview();
-        initDailyMessageAndRandomMemory();
+            initDailyMessageAndRandomMemory();
         }
     } catch (err) {
         console.error('Site settings yüklənmədi:', err);
@@ -117,7 +117,7 @@ function perfGetCached(key, ttl = PERF_GITHUB_TTL) {
 function perfSetCached(key, value) {
     try {
         localStorage.setItem(PERF_CACHE_PREFIX + key, JSON.stringify({ time: Date.now(), value }));
-    } catch (_) {}
+    } catch (_) { }
 }
 
 async function perfFetchJsonCached(key, url, ttl = PERF_GITHUB_TTL) {
@@ -156,28 +156,28 @@ if (window.gsap) {
 // Security - Disable right-click and dev tools
 //document.addEventListener('contextmenu', event => event.preventDefault());
 //document.onkeydown = function(e) {
-  //  if (e.keyCode == 123 || 
-    //    (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || 
-      //  (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
-        //return false;
-    //}
+//  if (e.keyCode == 123 || 
+//    (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || 
+//  (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
+//return false;
+//}
 //};
 
 //setInterval(function() {
-  //  checkDevTools();
+//  checkDevTools();
 //}, 1000);
 
 //function checkDevTools() {
-  //  const start = new Date();
-    //debugger; 
-    //const end = new Date();
-    //if (end - start > 100) {
-      //  document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:20%; font-family:sans-serif;'>Giriş Qadağandır! 🚱</h1>";
-    //}
+//  const start = new Date();
+//debugger; 
+//const end = new Date();
+//if (end - start > 100) {
+//  document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:20%; font-family:sans-serif;'>Giriş Qadağandır! 🚱</h1>";
+//}
 //}
 
 //setInterval(() => {
-  //  console.clear();
+//  console.clear();
 //}, 100);
 
 // Audio Elements
@@ -226,7 +226,7 @@ function initIOSVolumeFix() {
         console.error('iOS audio init xətası:', err);
     }
 }
-window.allImages = []; 
+window.allImages = [];
 let currentImgIdx = 0;
 let isPlaying = false;
 
@@ -421,7 +421,7 @@ function showRandomMemory() {
             ...memory,
             savedAt: new Date().toISOString()
         }));
-    } catch (_) {}
+    } catch (_) { }
 }
 
 function restoreLastRandomMemory() {
@@ -482,7 +482,7 @@ function initDailyMessageAndRandomMemory() {
 function resumeAudioContextSafely() {
     if (!audioContext) return;
     if (audioContext.state === 'suspended') {
-        audioContext.resume().catch(() => {});
+        audioContext.resume().catch(() => { });
     }
 }
 
@@ -503,24 +503,24 @@ document.addEventListener('touchstart', () => {
     initIOSVolumeFix();
 
     if (audioContext && audioContext.state === 'suspended') {
-        audioContext.resume().catch(() => {});
+        audioContext.resume().catch(() => { });
     }
 }, { passive: true });
 // ========== SPA NAVIGATION ==========
 function initSPANavigation() {
     const navItems = document.querySelectorAll('.nav-item');
     const pages = document.querySelectorAll('.spa-page');
-    
+
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             const targetPage = item.getAttribute('data-page');
             const targetElement = document.getElementById(`page-${targetPage}`);
-            
+
             if (targetElement.classList.contains('active')) return;
 
             // Aktiv pəncərəni tap
             const currentPage = document.querySelector('.spa-page.active');
-            
+
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
 
@@ -531,15 +531,15 @@ function initSPANavigation() {
                     onComplete: () => {
                         currentPage.classList.remove('active');
                         currentPage.style.display = 'none';
-                        
+
                         // Giriş animasiyası (GSAP)
                         targetElement.style.display = 'block';
                         targetElement.classList.add('active');
-                        gsap.fromTo(targetElement, 
-                            { y: 40, opacity: 0 }, 
+                        gsap.fromTo(targetElement,
+                            { y: 40, opacity: 0 },
                             { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }
                         );
-                        
+
                         // Elementlərin fərqli sürətlə axması (Stagger)
                         gsap.fromTo(targetElement.querySelectorAll('.page-title, .animate-item, .time-together-card, .detailed-time-card'),
                             { y: 30, opacity: 0 },
@@ -557,22 +557,33 @@ function initWelcomeAnimations() {
         return;
     }
 
-    const tl = gsap.timeline({ defaults: { duration: 0.75, ease: 'power3.out' } });
-    tl.from('.welcome-grid', { opacity: 0, y: 22, duration: 0.8 });
-    tl.from('.welcome-topline', { opacity: 0, y: 22 }, '-=0.55');
-    tl.from('.welcome-hero-icon', { opacity: 0, scale: 0.86, ease: 'back.out(1.4)' }, '-=0.52');
-    tl.from('.welcome-copy > *', { opacity: 0, y: 24, stagger: 0.1 }, '-=0.45');
-    tl.from('.welcome-stats .welcome-stat-card', { opacity: 0, y: 18, stagger: 0.08 }, '-=0.5');
-    tl.from('.welcome-actions button', { opacity: 0, y: 18, ease: 'back.out(1.3)' }, '-=0.45');
+    // Set initial states explicitly before animating to avoid CSS will-change conflicts
+    gsap.set('.welcome-grid', { opacity: 0, y: 22 });
+    gsap.set('.welcome-topline', { opacity: 0, y: 22 });
+    gsap.set('.welcome-hero-icon', { opacity: 0, scale: 0.86 });
+    gsap.set('.welcome-copy > *', { opacity: 0, y: 24 });
+    gsap.set('.welcome-stats .welcome-stat-card', { opacity: 0, y: 18 });
+    gsap.set('.welcome-actions button', { opacity: 0, y: 18 });
 
-    gsap.to('#enter-btn', {
-        y: '-=4',
-        duration: 1.4,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut',
-        delay: 1.4
-    });
+    const tl = gsap.timeline({ defaults: { duration: 0.75, ease: 'power3.out' } });
+    tl.to('.welcome-grid', { opacity: 1, y: 0, duration: 0.8 });
+    tl.to('.welcome-topline', { opacity: 1, y: 0 }, '-=0.55');
+    tl.to('.welcome-hero-icon', { opacity: 1, scale: 1, ease: 'back.out(1.4)' }, '-=0.52');
+    tl.to('.welcome-copy > *', { opacity: 1, y: 0, stagger: 0.1 }, '-=0.45');
+    tl.to('.welcome-stats .welcome-stat-card', { opacity: 1, y: 0, stagger: 0.08 }, '-=0.5');
+    tl.to('.welcome-actions button', {
+        opacity: 1, y: 0, ease: 'back.out(1.3)',
+        onComplete() {
+            // Release GSAP control so CSS hover/active transitions work normally
+            gsap.set('.welcome-actions button', { clearProps: 'transform,opacity,y' });
+        }
+    }, '-=0.45');
+
+    // Float animation — use absolute y values to avoid stacking issues
+    gsap.fromTo('#enter-btn',
+        { y: 0 },
+        { y: -4, duration: 1.4, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 1.4 }
+    );
 }
 
 function initRevealAnimations() {
@@ -604,12 +615,12 @@ function initRevealAnimations() {
             obs.unobserve(item);
         });
     }, {
-        threshold: 0.18,
-        rootMargin: '0px 0px -10% 0px'
+        threshold: 0.04,
+        rootMargin: '0px 0px 0px 0px'
     });
 
     revealItems.forEach(item => {
-        gsap.set(item, { opacity: 0, y: 24 });
+        gsap.set(item, { opacity: 0, y: 20 });
         observer.observe(item);
     });
 }
@@ -698,7 +709,7 @@ verifyBtn?.addEventListener('click', async () => {
                 document.getElementById('welcome-screen').style.display = 'none';
                 const mainContent = document.getElementById('main-content');
                 mainContent.classList.remove('hidden');
-                
+
                 // Animasiyalar
                 const startVal = new Date(config.startDate).getTime();
                 const diffVal = new Date().getTime() - startVal;
@@ -889,7 +900,7 @@ async function fetchImages() {
 
         // Klik hadisələrini bağla
         document.querySelectorAll('.gallery-item').forEach(item => {
-            item.onclick = function() {
+            item.onclick = function () {
                 const index = parseInt(this.getAttribute('data-index'));
                 window.openLightbox(index);
             };
@@ -912,8 +923,8 @@ async function fetchImages() {
                     }
                 });
             }, {
-                threshold: 0.06,
-                rootMargin: '220px 0px 220px 0px'
+                threshold: 0.02,
+                rootMargin: '120px 0px 120px 0px'
             });
 
             items.forEach(item => {
@@ -936,7 +947,7 @@ async function fetchImages() {
         stack.innerHTML = '<p class="timeline-empty">Sistem xətası!</p>';
     }
 }
-window.openLightbox = function(index) {
+window.openLightbox = function (index) {
     currentImgIdx = index;
     const lb = document.getElementById('lightbox');
     if (lb) {
@@ -967,7 +978,7 @@ async function updateLightboxContent() {
 }
 document.addEventListener('DOMContentLoaded', () => {
     const lb = document.getElementById('lightbox');
-    
+
     // Bağlamaq
     document.getElementById('close-lb-btn')?.addEventListener('click', () => {
         lb.style.display = "none";
@@ -991,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Yükləmək
     document.getElementById('download-btn')?.addEventListener('click', async () => {
         const imgData = window.allImages[currentImgIdx];
-        if(!imgData) return;
+        if (!imgData) return;
         try {
             const response = await fetch(imgData.download_url);
             const blob = await response.blob();
@@ -1043,7 +1054,7 @@ function getDynamicPath() {
     const minLen = 8;
     const maxLen = 60;
     const length = Math.floor(Math.random() * (maxLen - minLen + 1)) + minLen;
-    
+
     let result = '';
     for (let i = 0; i < length; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -1055,7 +1066,7 @@ function getDynamicPath() {
 function createHeart() {
     const heart = document.createElement('div');
     heart.classList.add('heart-particle');
-    heart.innerHTML = '❤︎⁠'; 
+    heart.innerHTML = '❤︎⁠';
     heart.style.color = 'pink';
     heart.style.left = Math.random() * 100 + "vw";
     heart.style.fontSize = Math.random() * 20 + 10 + "px";
@@ -1090,22 +1101,22 @@ const letters = {
     }
 };
 
-window.openLetter = function(type) {
+window.openLetter = function (type) {
     const modal = document.getElementById('letter-modal');
     document.getElementById('letter-title').innerText = letters[type].title;
     document.getElementById('letter-text').innerText = letters[type].text;
     modal.style.display = 'flex';
 };
 
-window.closeLetter = function() { 
-    document.getElementById('letter-modal').style.display = 'none'; 
+window.closeLetter = function () {
+    document.getElementById('letter-modal').style.display = 'none';
 };
 
 // ========== LOVE PHRASES ==========
 const lovePhrases = [
-    "Səni sevirəm", "I Love You", "Seni Seviyorum", "Je t'aime", "Ich liebe dich", "Te amo", "Ti amo", "Eu te amo", 
-    "Ik hou van jou", "Jag älskar dig", "Jeg elsker dig", "Kocham Cię", "Szeretlek", "Miluji tě", "Te iubesc", 
-    "Volim te", "Σ' αγαπώ", "Я тебя люблю", "Men seni sevaman", "S'agapo", "Ana behibek", "Mahal kita", 
+    "Səni sevirəm", "I Love You", "Seni Seviyorum", "Je t'aime", "Ich liebe dich", "Te amo", "Ti amo", "Eu te amo",
+    "Ik hou van jou", "Jag älskar dig", "Jeg elsker dig", "Kocham Cię", "Szeretlek", "Miluji tě", "Te iubesc",
+    "Volim te", "Σ' αγαπώ", "Я тебя люблю", "Men seni sevaman", "S'agapo", "Ana behibek", "Mahal kita",
     "Wo ai ni", "Aishiteru", "Saranghae", "Ami tomake bhalobashi", "Naku penda", "Mən səni sevirəm"
 ];
 
@@ -1306,9 +1317,9 @@ document.addEventListener('visibilitychange', async () => {
     }
 
     if (shouldResumeYTPlayer && ytAudio?.paused) {
-        ytAudio.play().catch(() => {});
+        ytAudio.play().catch(() => { });
     } else if (shouldResumeMainAudio && legacyAudio?.paused) {
-        legacyAudio.play().catch(() => {});
+        legacyAudio.play().catch(() => { });
     }
 
     shouldResumeMainAudio = false;
@@ -1320,7 +1331,7 @@ function updateDynamicContent() {
     const now = new Date();
     const hour = now.getHours();
     let greeting = "";
-    
+
     if (hour >= 5 && hour < 12) {
         greeting = "Sabahın xeyir";
     } else if (hour >= 12 && hour < 18) {
@@ -1330,23 +1341,23 @@ function updateDynamicContent() {
     } else {
         greeting = "Gecən xeyirə qalsın";
     }
-    
+
     const greetingElement = document.getElementById("dynamic-greeting");
     if (greetingElement) {
         perfSetHtml('dynamic-greeting', greeting + ", Cəmaləm <span style='color: #ff4d6d;'>🤍</span>");
     }
-    
+
     const minute = String(now.getMinutes()).padStart(2, '0');
     const second = String(now.getSeconds()).padStart(2, '0');
     const timeString = `${String(hour).padStart(2, '0')}:${minute}:${second}`;
-    
+
     const aylar = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
     const gunler = ["Bazar", "Bazar ertəsi", "Çərşənbə axşamı", "Çərşənbə", "Cümə axşamı", "Cümə", "Şənbə"];
     const gunAdi = gunler[now.getDay()];
     const ayGun = now.getDate();
     const ayAdi = aylar[now.getMonth()];
     const il = now.getFullYear();
-    
+
     const clockElement = document.getElementById("live-clock");
     if (clockElement) {
         perfSetText('live-clock', `${timeString} | ${gunAdi}, ${ayGun} ${ayAdi} ${il}`);
@@ -1392,7 +1403,7 @@ if (audio) {
         if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
         document.getElementById('track-art')?.classList.add('playing');
         if (audioContext?.state === 'suspended') {
-            try { await audioContext.resume(); } catch (_) {}
+            try { await audioContext.resume(); } catch (_) { }
         }
         initVisualizer(audio);
         if (typeof updateLegacyMediaSession === 'function') updateLegacyMediaSession();
@@ -1463,16 +1474,16 @@ function updatePower() {
     percentText.innerText = power + "%";
     heartBtn.style.transform = `scale(${1 + (power / 100)})`;
     loveBg.style.opacity = power / 100;
-    
+
     if (power >= 100) {
         heartBtn.style.filter = `drop-shadow(0 0 30px #ff4d6d)`;
         percentText.innerText = "Səni Çox Sevirəm 🤍";
     } else {
-        heartBtn.style.filter = `drop-shadow(0 0 ${power/3}px #ff4d6d)`;
+        heartBtn.style.filter = `drop-shadow(0 0 ${power / 3}px #ff4d6d)`;
     }
 }
 
-if(heartBtn) {
+if (heartBtn) {
     heartBtn.addEventListener('mousedown', startHolding);
     heartBtn.addEventListener('mouseup', stopHolding);
     heartBtn.addEventListener('mouseleave', stopHolding);
@@ -1489,11 +1500,11 @@ function createParticle(x, y) {
     p.className = 'trail-particle';
     p.style.left = x + 'px';
     p.style.top = y + 'px';
-    
-    const size = Math.random() * 7 + 3; 
+
+    const size = Math.random() * 7 + 3;
     p.style.width = size + 'px';
     p.style.height = size + 'px';
-    
+
     document.body.appendChild(p);
     setTimeout(() => p.remove(), 1200);
 }
@@ -1513,11 +1524,11 @@ tiltElements.forEach(el => {
         const centerY = rect.height / 2;
         const rotateX = (centerY - y) / 10;
         const rotateY = (x - centerX) / 10;
-        
+
         el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
         el.style.boxShadow = `0 20px 40px rgba(0,0,0,0.4), 0 0 25px var(--primary-glow)`;
     });
-    
+
     el.addEventListener('mouseleave', () => {
         el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
         el.style.boxShadow = '';
@@ -1537,7 +1548,7 @@ window.addEventListener('click', (e) => {
         openAdminPanel();
         clicks = 0;
     }
-    clickTimer = setTimeout(() => { clicks = 0; }, 500); 
+    clickTimer = setTimeout(() => { clicks = 0; }, 500);
 });
 function slugifyMusicName(str = "") {
     return str
@@ -2036,8 +2047,8 @@ function initWeatherParticles(type) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     cancelAnimationFrame(weatherAnimId);
-    
-    if (type === 'none') { ctx.clearRect(0,0, canvas.width, canvas.height); return; }
+
+    if (type === 'none') { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -2086,39 +2097,39 @@ function initWeatherParticles(type) {
 }
 window.addEventListener('resize', () => {
     const canvas = document.getElementById('weather-canvas');
-    if(canvas) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    if (canvas) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 });
 // ========== SCRATCH CARD ==========
 function initScratchCard() {
     const sCanvas = document.getElementById('scratch-canvas');
     if (!sCanvas) return;
-    
+
     const sCtx = sCanvas.getContext('2d', { willReadFrequently: true });
-    sCtx.fillStyle = '#444444'; 
+    sCtx.fillStyle = '#444444';
     sCtx.beginPath();
     sCtx.rect(0, 0, sCanvas.width, sCanvas.height);
     sCtx.fill();
-    
+
     function scratch(e) {
         const rect = sCanvas.getBoundingClientRect();
         const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
         const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
         sCtx.globalCompositeOperation = 'destination-out';
         sCtx.beginPath();
-        sCtx.arc(x, y, 25, 0, Math.PI * 2); 
+        sCtx.arc(x, y, 25, 0, Math.PI * 2);
         sCtx.fill();
     }
-    
+
     sCanvas.addEventListener('mousedown', () => {
         sCanvas.addEventListener('mousemove', scratch);
     });
     window.addEventListener('mouseup', () => {
         sCanvas.removeEventListener('mousemove', scratch);
     });
-    sCanvas.addEventListener('touchmove', (e) => { 
-        e.preventDefault(); 
-        scratch(e); 
-    }, {passive: false});
+    sCanvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        scratch(e);
+    }, { passive: false });
 }
 
 window.addEventListener('DOMContentLoaded', initScratchCard);
@@ -2338,7 +2349,7 @@ async function extractMusicMetadataFromFile(file) {
                 fallback.artist = fallback.artist || artist;
             }
         }
-    } catch (_) {}
+    } catch (_) { }
 
     fallback.title = sanitizeMusicPart(fallback.title);
     fallback.artist = sanitizeMusicPart(fallback.artist);
@@ -2528,17 +2539,17 @@ function animateValue(id, start, end, duration) {
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         const easeOut = 1 - Math.pow(1 - progress, 4);
         const current = Math.floor(easeOut * (end - start) + start);
-        
+
         if (id === 'total-minutes-love' || id === 'total-hours-love') {
             obj.innerText = current.toLocaleString('tr-TR');
         } else {
             obj.innerText = current;
         }
-        
+
         if (progress < 1) {
             window.requestAnimationFrame(step);
         } else {
-            obj.innerText = (id === 'total-minutes-love' || id === 'total-hours-love') 
+            obj.innerText = (id === 'total-minutes-love' || id === 'total-hours-love')
                 ? end.toLocaleString('tr-TR') : end;
         }
     };
@@ -2564,18 +2575,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 // Notlar funksiyası
 // Notlar funksiyası
-window.showNote = function(i) {
+window.showNote = function (i) {
     try {
         if (!window.currentNotes || !window.currentNotes[i]) return;
         const n = window.currentNotes[i];
-        
+
         document.getElementById('view-note-title').innerText = n.title;
         document.getElementById('view-note-author').innerText = n.author + " tərəfindən";
         document.getElementById('view-note-text').innerText = n.content;
-        
+
         // Saat ikonunu qorumaq üçün innerText əvəzinə innerHTML istifadə edirik:
         document.getElementById('view-note-date').innerHTML = `<i class="far fa-clock"></i> ${n.dateStr}`;
-        
+
         document.getElementById('view-note-modal').style.display = 'flex';
     } catch (err) {
         console.error("Not açılarkən xəta baş verdi:", err);
@@ -2585,26 +2596,26 @@ window.showNote = function(i) {
 
 async function loadNotes() {
     const container = document.getElementById('notes-container');
-    if(!container) return;
-    
+    if (!container) return;
+
     try {
         const url = `https://api.github.com/repos/${config.githubUsername}/${config.repoName}/contents/notlar`;
         const res = await fetch('/.netlify/functions/github-content?path=notlar');
-        if(!res.ok) { 
-            container.innerHTML = "<p style='opacity:0.6;'>Hələ ki, not yoxdur.</p>"; 
-            return; 
+        if (!res.ok) {
+            container.innerHTML = "<p style='opacity:0.6;'>Hələ ki, not yoxdur.</p>";
+            return;
         }
-        
+
         const files = await res.json();
         let notesData = [];
         const jsonFiles = files.filter(x => x.name.endsWith('.json'));
-        
-        for(let f of jsonFiles) {
+
+        for (let f of jsonFiles) {
             const dataRes = await fetch(f.download_url);
             notesData.push(await dataRes.json());
         }
 
-        notesData.sort((a,b) => new Date(b.dateIso) - new Date(a.dateIso));
+        notesData.sort((a, b) => new Date(b.dateIso) - new Date(a.dateIso));
         window.currentNotes = notesData;
 
         // "onclick" atributunu çıxarır və məlumatı "data-index" kimi saxlayırıq
@@ -2618,24 +2629,24 @@ async function loadNotes() {
 
         // Bütün kartlara klik (click) funksiyasını təhlükəsiz yolla bağlayırıq
         document.querySelectorAll('.note-card').forEach(card => {
-            card.addEventListener('click', function() {
+            card.addEventListener('click', function () {
                 const index = this.getAttribute('data-index');
                 window.showNote(parseInt(index));
             });
         });
 
-    } catch(e) { 
+    } catch (e) {
         console.error("Xəta:", e);
-        container.innerHTML = "<p style='opacity:0.6; color:#ff4d6d;'>Notlar yüklənərkən xəta baş verdi.</p>"; 
+        container.innerHTML = "<p style='opacity:0.6; color:#ff4d6d;'>Notlar yüklənərkən xəta baş verdi.</p>";
     }
 }
 document.addEventListener('DOMContentLoaded', () => {
     loadNotes();
-    
+
     // Modal idarəetmələri
     const addModal = document.getElementById('add-note-modal');
     const viewModal = document.getElementById('view-note-modal');
-    
+
     document.getElementById('open-add-note-btn').onclick = () => addModal.style.display = 'flex';
     document.getElementById('close-add-note-btn').onclick = () => addModal.style.display = 'none';
     document.getElementById('close-view-note-btn').onclick = () => viewModal.style.display = 'none';
@@ -2647,11 +2658,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const content = document.getElementById('note-content').value.trim();
         const pass = getAdminPassword('upload_note') || prompt("Admin şifrəsi:");
 
-        if(!content || !pass) return alert("Məzmun və şifrə mütləqdir!");
+        if (!content || !pass) return alert("Məzmun və şifrə mütləqdir!");
 
         const now = new Date();
         const dateStr = now.toLocaleString('az-AZ').replace(',', '');
-        if(!title) title = dateStr;
+        if (!title) title = dateStr;
 
         const noteObj = { author, title, content, dateStr, dateIso: now.toISOString() };
         // UTF-8 dəstəyi ilə Base64-ə çevirmə
@@ -2660,7 +2671,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.getElementById('submit-note-btn');
         btn.innerText = "Yüklənir...";
         btn.disabled = true;
-        
+
         try {
             const res = await fetch('/.netlify/functions/admin-proxy', {
                 method: 'POST',
@@ -2672,7 +2683,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
-            if(res.ok) {
+            if (res.ok) {
                 alert("Not uğurla əlavə edildi! 🤍");
                 location.reload();
             } else {
@@ -2680,7 +2691,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.innerText = "Təsdiqlə";
                 btn.disabled = false;
             }
-        } catch(e) {
+        } catch (e) {
             alert("Sistem xətası baş verdi.");
             btn.innerText = "Təsdiqlə";
             btn.disabled = false;
@@ -2716,7 +2727,7 @@ function resolveMusicAssetUrl(value, fallback = '') {
             if (url.pathname.includes('/.netlify/functions/github-raw') && fileParam) {
                 return `${GITHUB_RAW_BASE}${encodeURIComponent(fileParam.replace(/^\/+/, ''))}`;
             }
-        } catch (_) {}
+        } catch (_) { }
         return cleaned;
     }
 
@@ -2729,7 +2740,7 @@ function resolveMusicAssetUrl(value, fallback = '') {
             const fakeUrl = new URL(normalized, window.location.origin);
             const fileParam = fakeUrl.searchParams.get('file');
             if (fileParam) normalized = fileParam.replace(/^\/+/, '');
-        } catch (_) {}
+        } catch (_) { }
     }
 
     if (!normalized.includes('/')) {
@@ -2864,8 +2875,9 @@ function getMusicDom() {
 function syncFloatingPlayerState() {
     const { activePlayer } = getMusicDom();
     if (!activePlayer) return;
-
-    const isVisible = activePlayer.style.display !== 'none' && !activePlayer.hasAttribute('hidden');
+    const isVisible = activePlayer.style.display !== 'none'
+        && !activePlayer.hasAttribute('hidden')
+        && (activePlayer.offsetParent !== null || getComputedStyle(activePlayer).position === 'fixed');
     document.body.classList.toggle('player-visible', isVisible);
 }
 
@@ -2886,22 +2898,22 @@ function showActivePlayerWithAnimation() {
     activePlayer.style.transform = '';
     activePlayer.style.transition = '';
 
+    document.body.classList.add('player-visible');
+
     activePlayer.hidden = false;
     activePlayer.style.display = 'block';
-
-    // Force reflow so browser registers display:block before animating
-    void activePlayer.offsetHeight;
-
-    activePlayer.classList.add('player-appearing');
-
     window.clearTimeout(activePlayer.__appearTimer);
     activePlayer.__appearTimer = window.setTimeout(() => {
         activePlayer.classList.remove('player-appearing');
+        activePlayer.style.opacity = '1';  // zəmanətli görünürlük
+        activePlayer.style.transform = 'translate3d(-50%, 0, 0)';
     }, 700);
+
+    void activePlayer.offsetHeight;
+    activePlayer.classList.add('player-appearing');
 
     syncPlayerExpandedState();
 }
-
 function hideActivePlayerWithAnimation(options = {}) {
     const { resetTrack = true } = options;
     const { activePlayer, audio, lyricsPanel } = getMusicDom();
@@ -2920,13 +2932,16 @@ function hideActivePlayerWithAnimation(options = {}) {
     if (audio) {
         audio.pause();
         if (resetTrack) {
-            try { audio.currentTime = 0; } catch (_) {}
+            try { audio.currentTime = 0; } catch (_) { }
         }
     }
 
     updateLyricsToggleState();
     updateMusicPlayButtonState();
     updateMediaSessionPlaybackState();
+
+    // Dərhal body siniflərini çıxar
+    document.body.classList.remove('player-visible', 'player-expanded');
     syncPlayerExpandedState();
 
     window.clearTimeout(activePlayer.__hideTimer);
@@ -2938,7 +2953,7 @@ function hideActivePlayerWithAnimation(options = {}) {
         activePlayer.style.transform = '';
         activePlayer.style.transition = '';
         syncPlayerExpandedState();
-    }, 420);
+    }, 250);
 }
 
 function closeActivePlayer(options = {}) {
@@ -2963,7 +2978,7 @@ function setPlayerExpanded(expanded) {
         animatePlayerCollapse();
     }
 }
-window.togglePlayerMode = function(forceExpanded) {
+window.togglePlayerMode = function (forceExpanded) {
     const { activePlayer } = getMusicDom();
     if (!activePlayer) return;
 
@@ -3040,7 +3055,7 @@ function updateLyricsToggleState() {
     lyricsToggle.setAttribute('aria-label', activeTab === 'lyrics' ? 'Sözlər açıqdır' : 'Sözləri aç');
 }
 
-window.toggleLyricsPanel = function(forceOpen) {
+window.toggleLyricsPanel = function (forceOpen) {
     const { activePlayer } = getMusicDom();
     if (!activePlayer) return;
 
@@ -3781,7 +3796,7 @@ function setupMediaSession() {
             updatePositionState();
 
             if (targetAudio.paused) {
-                await targetAudio.play().catch(() => {});
+                await targetAudio.play().catch(() => { });
             }
         } catch (e) {
             console.error("SeekTo error:", e);
@@ -3847,7 +3862,7 @@ function updateMediaSessionPlaybackState() {
                 playbackRate: dom.audio.playbackRate || 1,
                 position: dom.audio.currentTime || 0
             });
-        } catch (_) {}
+        } catch (_) { }
     }
 }
 async function openMusicTrack(index, options = {}) {
@@ -4004,7 +4019,7 @@ function playNextMusic() {
     if (isLastTrack && window.musicRepeatMode === 'off') {
         dom.audio?.pause();
         if (dom.audio) {
-            try { dom.audio.currentTime = dom.audio.duration || dom.audio.currentTime || 0; } catch (_) {}
+            try { dom.audio.currentTime = dom.audio.duration || dom.audio.currentTime || 0; } catch (_) { }
         }
         updateMusicPlayButtonState();
         updateMediaSessionPlaybackState();
@@ -4367,7 +4382,7 @@ function initMusicPlayerEvents() {
         e.stopPropagation();
         playNextMusic();
     });
-        dom.shuffleBtn?.addEventListener('click', (e) => {
+    dom.shuffleBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
 
         window.musicShuffleEnabled = !window.musicShuffleEnabled;
@@ -4707,9 +4722,9 @@ console.log(`
 %cSite version: 3.1.5
 %c"Sən mənim ən gözəl xəyalımsan..."
 `,
-'font-size: 18px; color: #e91e63; font-family: "Dancing Script", cursive;',
-'font-size: 12px; color: #ff80ab;',
-'font-size: 14px; color: #ffffff; font-style: italic;'
+    'font-size: 18px; color: #e91e63; font-family: "Dancing Script", cursive;',
+    'font-size: 12px; color: #ff80ab;',
+    'font-size: 14px; color: #ffffff; font-style: italic;'
 );
 let visitStartTime = Date.now();
 let exitNotificationSent = false;
@@ -4753,7 +4768,7 @@ function getDeviceInfo() {
     let brand = "Naməlum marka";
     let browser = "Naməlum brauzer";
 
-    const isIOS = /iPhone|iPad|iPod/i.test(ua) || 
+    const isIOS = /iPhone|iPad|iPod/i.test(ua) ||
         (platform === "MacIntel" && touchPoints > 1);
 
     if (isIOS) {
@@ -4858,14 +4873,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             localStorage.setItem(storageKey, theme);
-        } catch (_) {}
+        } catch (_) { }
     };
 
     // əvvəlki tema
     let savedTheme = 'dark';
     try {
         savedTheme = localStorage.getItem(storageKey) || 'dark';
-    } catch (_) {}
+    } catch (_) { }
 
     applyTheme(savedTheme);
 
@@ -4891,7 +4906,7 @@ function initPlayerSwipeToClose() {
 function typeWriter(text, element, speed = 80) {
     let i = 0;
     element.innerHTML = "";
-    
+
     function typing() {
         if (i < text.length) {
             element.innerHTML += text.charAt(i);
@@ -4917,80 +4932,63 @@ function animatePlayerExpand(complete) {
     player._playerAnimating = true;
 
     const bodyEl = player.querySelector('.yt-player-body');
-    const useCssTransition = IS_TOUCH_DEVICE || window.innerWidth <= 760;
-
-    if (useCssTransition) {
-        player.classList.remove('player-mini', 'player-collapsing', 'player-hiding');
-        player.classList.add('is-transitioning');
-        player.classList.add('expanded');
-        player.style.removeProperty('top');
-        player.style.removeProperty('left');
-        player.style.removeProperty('width');
-        player.style.removeProperty('height');
-        player.style.removeProperty('margin');
-        player.style.removeProperty('borderRadius');
-        player.style.removeProperty('transform');
-
-        if (bodyEl) {
-            bodyEl.style.display = 'block';
-            gsap.set(bodyEl, { opacity: 1 });
-        }
-
-        window.clearTimeout(player.__expandTimer);
-        player.__expandTimer = window.setTimeout(() => {
-            player.classList.remove('is-transitioning');
-            player._playerAnimating = false;
-            syncPlayerExpandedState();
-            if (typeof complete === 'function') complete();
-        }, 580);
-        return;
-    }
-
     const miniRect = player.getBoundingClientRect();
     player._miniRect = miniRect;
 
-    // Anlıq görünüşü dondur
-    player.classList.remove('player-mini', 'expanded');
-    gsap.set(player, {
+    // Navbarı gizlətmək üçün klas
+    document.body.classList.add('player-expanded');
+
+    // Animasiya zamanı CSS transition-ları söndürürük
+    player.classList.remove('player-mini', 'player-collapsing', 'player-hiding');
+    player.classList.add('is-transitioning');
+
+    if (bodyEl) {
+        bodyEl.style.display = 'block';
+        bodyEl.style.opacity = '0';
+    }
+
+    // GSAP animasiyası
+    gsap.fromTo(player, {
         position: 'fixed',
         top: miniRect.top,
         left: miniRect.left,
         width: miniRect.width,
         height: miniRect.height,
+        borderRadius: window.innerWidth <= 760 ? '22px' : '24px',
         margin: 0,
-        borderRadius: '24px',
-        x: 0, y: 0, scaleX: 1, scaleY: 1,
-        clearProps: 'transform,transition'
-    });
-    // Bədəni gizlə, amma opasitini 0‑la göstər
-    if (bodyEl) {
-        bodyEl.style.display = 'block';
-        gsap.set(bodyEl, { opacity: 0 });
-    }
-
-    // Browser‑ə reflow üçün
-    player.offsetHeight;
-
-    gsap.to(player, {
+        x: 0, y: 0, scaleX: 1, scaleY: 1
+    }, {
         top: 0,
         left: 0,
         width: window.innerWidth,
         height: window.innerHeight,
-        borderRadius: 0,
-        duration: 0.65,
+        borderRadius: '0px',
+        duration: 0.55,
         ease: 'expo.inOut',
-        onUpdate: () => {
-            // Lazım gələrsə, məs. en/boy dəyişəndə yenidən hesablama
-        },
         onComplete: () => {
-            gsap.set(player, { clearProps: 'all' });
+            // 1. Öncə klası əlavə edirik ki, CSS qaydaları dövriyəyə girsin
             player.classList.add('expanded');
-            if (bodyEl) gsap.to(bodyEl, { opacity: 1, duration: 0.25, ease: 'power2.out' });
+            setTimeout(() => {
+                player.classList.remove('is-transitioning');
+            }, 450);
+
+            // 2. GSAP-ın müvəqqəti stillərini təmizləyirik
+            gsap.set(player, { clearProps: 'all' });
+
+            // 3. Əlavə sığorta: Brauzerin bir anlıq "sürüşmə" etməməsi üçün bu stilləri birbaşa veririk
+            player.style.left = '0px';
+            player.style.top = '0px';
+            player.style.transform = 'none';
+
             player._playerAnimating = false;
             syncPlayerExpandedState();
             if (typeof complete === 'function') complete();
         }
     });
+
+    if (bodyEl) {
+        gsap.to(bodyEl, { opacity: 1, duration: 0.35, delay: 0.2, ease: 'power2.out' });
+    }
 }
 
 function animatePlayerCollapse(complete) {
@@ -4999,63 +4997,60 @@ function animatePlayerCollapse(complete) {
     player._playerAnimating = true;
 
     const bodyEl = player.querySelector('.yt-player-body');
-    const useCssTransition = IS_TOUCH_DEVICE || window.innerWidth <= 760;
 
-    if (useCssTransition) {
-        if (bodyEl) {
-            gsap.to(bodyEl, { opacity: 0, duration: 0.18, ease: 'power2.in' });
-        }
-
-        player.classList.add('player-collapsing', 'is-transitioning');
-        player.classList.remove('expanded');
-        player.classList.add('player-mini');
-
-        window.clearTimeout(player.__collapseTimer);
-        player.__collapseTimer = window.setTimeout(() => {
-            player.classList.remove('player-collapsing', 'is-transitioning');
-            player._playerAnimating = false;
-            syncPlayerExpandedState();
-            if (typeof complete === 'function') complete();
-        }, 420);
-        return;
+    let targetRect = player._miniRect;
+    if (!targetRect) {
+        const w = window.innerWidth <= 760 ? window.innerWidth - 24 : 880;
+        const h = window.innerWidth <= 760 ? 70 : 84;
+        const bottomOffset = window.innerWidth <= 760 ? 90 : 96;
+        targetRect = {
+            left: (window.innerWidth - w) / 2,
+            top: window.innerHeight - bottomOffset - h,
+            width: w,
+            height: h
+        };
     }
-
-    const miniRect = player._miniRect;
 
     if (bodyEl) {
-        gsap.to(bodyEl, { opacity: 0, duration: 0.2, ease: 'power2.in' });
+        gsap.to(bodyEl, { opacity: 0, duration: 0.2, ease: 'power2.inOut' });
     }
 
+    // Navbarı geri qaytarırıq
+    document.body.classList.remove('player-expanded');
+
+    // CSS-in !important qaydalarını sındırmaq üçün bağlanan KİMİ .expanded klassını SİLİRİK
     player.classList.remove('expanded');
-    gsap.set(player, {
+    player.classList.add('is-transitioning');
+
+    // GSAP animasiyası (tam ekrandan -> mini ölçüyə)
+    gsap.fromTo(player, {
         position: 'fixed',
         top: 0,
         left: 0,
         width: window.innerWidth,
         height: window.innerHeight,
-        borderRadius: 0,
-        x: 0, y: 0, scaleX: 1, scaleY: 1,
-        clearProps: 'transform,transition'
-    });
-    player.offsetHeight;
-
-    gsap.to(player, {
-        top: miniRect.top,
-        left: miniRect.left,
-        width: miniRect.width,
-        height: miniRect.height,
-        borderRadius: '24px',
+        borderRadius: '0px',
+        margin: 0,
+        x: 0, y: 0, scaleX: 1, scaleY: 1
+    }, {
+        top: targetRect.top,
+        left: targetRect.left,
+        width: targetRect.width,
+        height: targetRect.height,
+        borderRadius: window.innerWidth <= 760 ? '22px' : '24px',
         duration: 0.55,
         ease: 'expo.inOut',
         onComplete: () => {
-            gsap.set(player, { clearProps: 'all' });
+            player.classList.remove('is-transitioning');
             player.classList.add('player-mini');
-            if (bodyEl) bodyEl.style.display = 'none';
+            gsap.set(player, { clearProps: 'all' });
+
+            if (bodyEl) {
+                bodyEl.style.display = 'none';
+                bodyEl.style.opacity = '';
+            }
+
             player._playerAnimating = false;
-            player.style.removeProperty('top');
-            player.style.removeProperty('left');
-            player.style.removeProperty('width');
-            player.style.removeProperty('height');
             syncPlayerExpandedState();
             if (typeof complete === 'function') complete();
         }
