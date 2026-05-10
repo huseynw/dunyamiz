@@ -5,7 +5,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const START_DATE = '2025-08-03T00:00:00Z';
 const REMINDER_HOURS = [3, 2, 1];
 const ONE_SIGNAL_APP_ID = process.env.ONE_SIGNAL_APP_ID;
-const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY; // os_v2_app_... açarı
+const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY;
 const CRON_SECRET = process.env.CRON_SECRET;
 
 async function sendOneSignalNotification(title, message) {
@@ -18,7 +18,7 @@ async function sendOneSignalNotification(title, message) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${ONE_SIGNAL_API_KEY}`  // DİQQƏT: Basic deyil, Bearer
+                'Authorization': `Bearer ${ONE_SIGNAL_API_KEY}`
             },
             body: JSON.stringify({
                 app_id: ONE_SIGNAL_APP_ID,
@@ -70,6 +70,10 @@ exports.handler = async (event) => {
             return { statusCode: 403, body: JSON.stringify({ error: 'Unauthorized' }) };
         }
 
+        // ========= TEST BİLDİRİŞİ (MÜVƏQQƏTİ) =========
+        await sendOneSignalNotification('🔔 Test bildirişi', 'Bu funksiya işləyir! Cəmalə, səni sevirəm 💖');
+        // ===============================================
+
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
         const now = new Date();
 
@@ -95,6 +99,7 @@ exports.handler = async (event) => {
         const start = new Date(START_DATE);
         const daysTogether = Math.floor((now - start) / (1000 * 60 * 60 * 24));
         console.log(`Birlikdə ${daysTogether} gün`);
+        
         if (await shouldSend('daily_love', null, supabase)) {
             const success = await sendOneSignalNotification(`✨ ${daysTogether}. günümüz!`, `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`);
             if (success) await logNotification('daily_love', null, supabase);
