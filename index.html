@@ -35,40 +35,38 @@
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 
     <script>
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-
-    OneSignalDeferred.push(async function(OneSignal) {
-
-      await OneSignal.init({
-        appId: "c37f2c20-c8df-4e71-8d08-796506adc498"
-      });
-
-      const btn = document.getElementById("enableNotifications");
-
-      btn.addEventListener("click", async () => {
-
+    document.addEventListener('DOMContentLoaded', () => {
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
         try {
-
-          const permission = await OneSignal.Notifications.permission;
-
-          if (permission !== "granted") {
-
-            await OneSignal.Notifications.requestPermission();
-
-          } else {
-
-            alert("Bildirişlər artıq aktivdir ✅");
-
-          }
-
-        } catch(err) {
-
-          console.log(err);
-
+          await OneSignal.init({
+            appId: "95c3f20d-f552-4abc-8a0e-6c790b87e809"
+          });
+        } catch (initError) {
+          console.error("OneSignal init xətası:", initError);
+          return;
         }
 
-      });
+        const btn = document.getElementById("enableNotifications");
+        if (!btn) {
+          console.warn("enableNotifications düyməsi tapılmadı");
+          return;
+        }
 
+        btn.addEventListener("click", async () => {
+          try {
+            const permission = await OneSignal.Notifications.permission;
+            if (permission !== "granted") {
+              await OneSignal.Notifications.requestPermission();
+            } else {
+              alert("Bildirişlər artıq aktivdir ✅");
+            }
+          } catch (err) {
+            console.error("Bildiriş istəmə xətası:", err);
+            alert("Bildiriş icazəsi alınarkən xəta baş verdi. Təkrar yoxlayın.");
+          }
+        });
+      });
     });
     </script>
     <script defer src="gsap.min.js"></script>
