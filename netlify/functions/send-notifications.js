@@ -8,24 +8,35 @@ const ONE_SIGNAL_APP_ID = process.env.ONE_SIGNAL_APP_ID;
 const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY;
 const CRON_SECRET = process.env.CRON_SECRET;
 
-async function sendOneSignalNotification(title, message) {
+// Test üçün sabit player ID'leri (sizin verdiyiniz)
+const TEST_PLAYER_IDS = [
+    '5f14228d-24e3-4bd8-b219-1a317bce7a88',
+    '32643469-8969-44f7-8ec7-222f2913ca44'
+];
+
+async function sendOneSignalNotification(title, message, subscriptionIds = null) {
     if (!ONE_SIGNAL_APP_ID || !ONE_SIGNAL_API_KEY) {
         console.error('OneSignal keylər yoxdur');
         return false;
     }
     try {
+        const payload = {
+            app_id: ONE_SIGNAL_APP_ID,
+            headings: { en: title },
+            contents: { en: message }
+        };
+        if (subscriptionIds && subscriptionIds.length) {
+            payload.include_subscription_ids = subscriptionIds;
+        } else {
+            payload.included_segments = ['Subscribed Users'];
+        }
         const response = await fetch('https://onesignal.com/api/v1/notifications', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${ONE_SIGNAL_API_KEY}`
             },
-            body: JSON.stringify({
-                app_id: ONE_SIGNAL_APP_ID,
-                headings: { en: title },
-                contents: { en: message },
-                included_segments: ['Subscribed Users']
-            })
+            body: JSON.stringify(payload)
         });
         const data = await response.json();
         console.log('OneSignal cavabı:', data);
@@ -70,9 +81,11 @@ exports.handler = async (event) => {
             return { statusCode: 403, body: JSON.stringify({ error: 'Unauthorized' }) };
         }
 
-        // ========= TEST BİLDİRİŞİ (MÜVƏQQƏTİ) =========
-        await sendOneSignalNotification('🔔 Test bildirişi', 'Bu funksiya işləyir! Cəmalə, səni sevirəm 💖');
-        // ===============================================
+        // ========= TEST BİLDİRİŞİ (MÜVƏQQƏTİ) – birbaşa 2 cihaza =========
+        if (TEST_PLAYER_IDS.length) {
+            await sendOneSignalNotification('🔔 Test bildirişi', 'Bu funksiya işləyir! Cəmalə, səni sevirəm 💖', TEST_PLAYER_IDS);
+        }
+        // ===============================================================
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
         const now = new Date();
