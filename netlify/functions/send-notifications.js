@@ -59,7 +59,6 @@ exports.handler = async (event) => {
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
         const now = new Date();
 
-        // get next meeting date
         const { data: settings } = await supabase
             .from('site_settings')
             .select('next_meeting_date')
@@ -70,7 +69,6 @@ exports.handler = async (event) => {
         const meetingDate = new Date(settings.next_meeting_date);
         const hoursUntil = Math.floor((meetingDate - now) / (1000 * 60 * 60));
 
-        // reminder for meeting
         if (hoursUntil > 0 && REMINDER_HOURS.includes(hoursUntil)) {
             if (await shouldSend('hourly_reminder', `${hoursUntil}h`, supabase)) {
                 await sendOneSignalNotification(`💖 Görüşümüzə ${hoursUntil} saat qaldı!`, `Səni görmək üçün saniyələr sayılır, Cəmaləm ❤️`);
@@ -78,7 +76,6 @@ exports.handler = async (event) => {
             }
         }
 
-        // daily love message
         const start = new Date(START_DATE);
         const daysTogether = Math.floor((now - start) / (1000 * 60 * 60 * 24));
         if (await shouldSend('daily_love', null, supabase)) {
