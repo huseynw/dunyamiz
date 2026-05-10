@@ -1,25 +1,42 @@
 // FIXED AWS date formatting for R2 presigned URLs
 const fetch = require('node-fetch');
 const crypto = require('crypto');
+
+// ========== ONE SIGNAL KONFİQURASİYASI ==========
 const ONE_SIGNAL_APP_ID = process.env.ONE_SIGNAL_APP_ID;
 const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY;
+// Sizin cihaz ID-ləriniz (OneSignal-dən götürdüyünüz)
+const SUBSCRIPTION_IDS = [
+    '5f14228d-24e3-4bd8-b219-1a317bce7a88',
+    '32643469-8969-44f7-8ec7-222f2913ca44'
+];
 
-async function sendOneSignalNotification(title, message) {
+async function sendOneSignalNotification(title, message, subscriptionIds = null) {
     if (!ONE_SIGNAL_APP_ID || !ONE_SIGNAL_API_KEY) return false;
     try {
+        const payload = {
+            app_id: ONE_SIGNAL_APP_ID,
+            headings: { en: title },
+            contents: { en: message }
+        };
+        if (subscriptionIds && subscriptionIds.length) {
+            payload.include_subscription_ids = subscriptionIds;   // Birbaşa cihazlara
+        } else {
+            payload.included_segments = ['Subscribed Users'];    // Fallback
+        }
         const response = await fetch('https://onesignal.com/api/v1/notifications', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${ONE_SIGNAL_API_KEY}` },
-            body: JSON.stringify({
-                app_id: ONE_SIGNAL_APP_ID,
-                headings: { en: title },
-                contents: { en: message },
-                included_segments: ['Subscribed Users']
-            })
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ONE_SIGNAL_API_KEY}`   // Basic -> Bearer
+            },
+            body: JSON.stringify(payload)
         });
+        const data = await response.json();
+        console.log('Admin OneSignal cavabı:', data);
         return response.ok;
     } catch (e) {
-        console.error('OneSignal xətası:', e);
+        console.error('Admin OneSignal xətası:', e);
         return false;
     }
 }
@@ -45,883 +62,277 @@ async function notifyAdminAction(actionType, details = {}) {
             break;
         default: return;
     }
-    await sendOneSignalNotification(title, message);
+    // Birbaşa SUBSCRIPTION_IDS ilə göndər
+    await sendOneSignalNotification(title, message, SUBSCRIPTION_IDS);
 }
+// ==============================================
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 function buildErrorResponse(statusCode, error, extra = {}) {
     const message = error instanceof Error ? error.message : String(error || 'Naməlum xəta');
     const stack = error instanceof Error && error.stack ? error.stack.split('\n').slice(0, 6).join('\n') : undefined;
-
     return {
         statusCode,
-        headers: {
-            "Content-Type": "application/json; charset=utf-8"
-        },
-        body: JSON.stringify({
-            success: false,
-            error: message,
-            ...(stack ? { stack } : {}),
-            ...extra
-        })
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({ success: false, error: message, ...(stack ? { stack } : {}), ...extra })
     };
 }
 
 async function getExistingFileSha({ repoOwner, repoName, token, path }) {
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
     const response = await fetch(url, {
-        headers: {
-            "Authorization": `token ${token}`,
-            "Accept": "application/vnd.github+json"
-        }
+        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github+json" }
     });
-
-    if (response.status === 404) {
-        return null;
-    }
-
+    if (response.status === 404) return null;
     const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data?.message || `GitHub faylı oxunmadı: ${path}`);
-    }
-
+    if (!response.ok) throw new Error(data?.message || `GitHub faylı oxunmadı: ${path}`);
     return data?.sha || null;
 }
 
 async function putGitHubFile({ repoOwner, repoName, token, path, content, message }) {
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
     const existingSha = await getExistingFileSha({ repoOwner, repoName, token, path });
-
     const response = await fetch(url, {
         method: 'PUT',
-        headers: {
-            "Authorization": `token ${token}`,
-            "Content-Type": "application/json",
-            "Accept": "application/vnd.github+json"
-        },
-        body: JSON.stringify({
-            message,
-            content,
-            ...(existingSha ? { sha: existingSha } : {})
-        })
+        headers: { "Authorization": `token ${token}`, "Content-Type": "application/json", "Accept": "application/vnd.github+json" },
+        body: JSON.stringify({ message, content, ...(existingSha ? { sha: existingSha } : {}) })
     });
-
     const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data?.message || `GitHub upload failed for ${path}`);
-    }
-
+    if (!response.ok) throw new Error(data?.message || `GitHub upload failed for ${path}`);
     return data;
 }
 
 function encodeKeyPath(key = '') {
-    return String(key)
-        .split('/')
-        .filter(Boolean)
-        .map(part => encodeURIComponent(part))
-        .join('/');
+    return String(key).split('/').filter(Boolean).map(part => encodeURIComponent(part)).join('/');
 }
-
-function sha256Hex(value) {
-    return crypto.createHash('sha256').update(value).digest('hex');
-}
-
-function hmac(key, value, encoding) {
-    return crypto.createHmac('sha256', key).update(value).digest(encoding);
-}
-
+function sha256Hex(value) { return crypto.createHash('sha256').update(value).digest('hex'); }
+function hmac(key, value, encoding) { return crypto.createHmac('sha256', key).update(value).digest(encoding); }
 function getAmzDates(now = new Date()) {
     const iso = now.toISOString();
     const shortDate = iso.slice(0, 10).replace(/-/g, '');
     const timePart = iso.slice(11, 19).replace(/:/g, '');
-    return {
-        amzDate: `${shortDate}T${timePart}Z`,
-        shortDate
-    };
+    return { amzDate: `${shortDate}T${timePart}Z`, shortDate };
 }
-
 function getR2Config() {
     const accountId = process.env.R2_ACCOUNT_ID;
     const accessKeyId = process.env.R2_ACCESS_KEY_ID;
     const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
     const bucket = process.env.R2_BUCKET;
     const publicBaseUrl = (process.env.R2_PUBLIC_BASE_URL || '').replace(/\/$/, '');
-
-    if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !publicBaseUrl) {
-        throw new Error('R2 env-ləri natamamdır. R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_PUBLIC_BASE_URL lazımdır.');
-    }
-
-    return {
-        accountId,
-        accessKeyId,
-        secretAccessKey,
-        bucket,
-        publicBaseUrl,
-        host: `${accountId}.r2.cloudflarestorage.com`,
-        region: 'auto',
-        service: 's3'
-    };
+    if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !publicBaseUrl)
+        throw new Error('R2 env-ləri natamamdır.');
+    return { accountId, accessKeyId, secretAccessKey, bucket, publicBaseUrl, host: `${accountId}.r2.cloudflarestorage.com`, region: 'auto', service: 's3' };
 }
-
 async function uploadBufferToR2({ key, buffer, contentType = 'application/octet-stream', cacheControl = 'public, max-age=31536000, immutable' }) {
     const cfg = getR2Config();
     const bodyBuffer = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
     const payloadHash = sha256Hex(bodyBuffer);
     const { amzDate, shortDate } = getAmzDates();
     const canonicalUri = `/${cfg.bucket}/${encodeKeyPath(key)}`;
-
-    const canonicalHeaders = [
-        `content-type:${contentType}`,
-        `host:${cfg.host}`,
-        `x-amz-content-sha256:${payloadHash}`,
-        `x-amz-date:${amzDate}`
-    ].join('\n') + '\n';
-
+    const canonicalHeaders = [`content-type:${contentType}`, `host:${cfg.host}`, `x-amz-content-sha256:${payloadHash}`, `x-amz-date:${amzDate}`].join('\n') + '\n';
     const signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date';
-    const canonicalRequest = [
-        'PUT',
-        canonicalUri,
-        '',
-        canonicalHeaders,
-        signedHeaders,
-        payloadHash
-    ].join('\n');
-
+    const canonicalRequest = ['PUT', canonicalUri, '', canonicalHeaders, signedHeaders, payloadHash].join('\n');
     const credentialScope = `${shortDate}/${cfg.region}/${cfg.service}/aws4_request`;
-    const stringToSign = [
-        'AWS4-HMAC-SHA256',
-        amzDate,
-        credentialScope,
-        sha256Hex(canonicalRequest)
-    ].join('\n');
-
+    const stringToSign = ['AWS4-HMAC-SHA256', amzDate, credentialScope, sha256Hex(canonicalRequest)].join('\n');
     const kDate = hmac(`AWS4${cfg.secretAccessKey}`, shortDate);
     const kRegion = hmac(kDate, cfg.region);
     const kService = hmac(kRegion, cfg.service);
     const kSigning = hmac(kService, 'aws4_request');
     const signature = hmac(kSigning, stringToSign, 'hex');
     const authorization = `AWS4-HMAC-SHA256 Credential=${cfg.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
-
     const response = await fetch(`https://${cfg.host}${canonicalUri}`, {
         method: 'PUT',
-        headers: {
-            'Content-Type': contentType,
-            'Cache-Control': cacheControl,
-            'x-amz-content-sha256': payloadHash,
-            'x-amz-date': amzDate,
-            'Authorization': authorization,
-            'Content-Length': String(bodyBuffer.length)
-        },
+        headers: { 'Content-Type': contentType, 'Cache-Control': cacheControl, 'x-amz-content-sha256': payloadHash, 'x-amz-date': amzDate, 'Authorization': authorization, 'Content-Length': String(bodyBuffer.length) },
         body: bodyBuffer
     });
-
-    if (!response.ok) {
-        const raw = await response.text();
-        throw new Error(`R2 upload xətası (${response.status}): ${raw || response.statusText}`);
-    }
-
-    return {
-        key,
-        url: `${cfg.publicBaseUrl}/${encodeKeyPath(key)}`,
-        bucket: cfg.bucket,
-        publicBaseUrl: cfg.publicBaseUrl,
-        contentType
-    };
+    if (!response.ok) { const raw = await response.text(); throw new Error(`R2 upload xətası (${response.status}): ${raw || response.statusText}`); }
+    return { key, url: `${cfg.publicBaseUrl}/${encodeKeyPath(key)}`, bucket: cfg.bucket, publicBaseUrl: cfg.publicBaseUrl, contentType };
 }
-
-function inferExtensionFromUrl(url = '', fallback = '') {
-    const cleaned = String(url).split('?')[0].split('#')[0];
-    const match = cleaned.match(/\.([a-z0-9]{2,5})$/i);
-    return match ? match[1].toLowerCase() : fallback;
-}
-
-function extensionFromContentType(contentType = '', fallback = '') {
-    const normalized = String(contentType).split(';')[0].trim().toLowerCase();
-    const map = {
-        'audio/mpeg': 'mp3',
-        'audio/mp3': 'mp3',
-        'image/jpeg': 'jpg',
-        'image/jpg': 'jpg',
-        'image/png': 'png',
-        'image/webp': 'webp',
-        'image/gif': 'gif'
-    };
-    return map[normalized] || fallback;
-}
-
-function isCloudinaryUrl(url = '') {
-    return /cloudinary\.com/i.test(String(url));
-}
-
-async function fetchRemoteAsset(url) {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Uzaq fayl yüklənmədi (${response.status}): ${url}`);
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    return {
-        buffer: Buffer.from(arrayBuffer),
-        contentType: response.headers.get('content-type') || 'application/octet-stream'
-    };
-}
-
-async function listGitHubFiles({ repoOwner, repoName, token, path }) {
-    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
-    const response = await fetch(url, {
-        headers: {
-            'Authorization': `token ${token}`,
-            'Accept': 'application/vnd.github+json'
-        }
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data?.message || `${path} qovluğu oxunmadı.`);
-    }
-
-    if (!Array.isArray(data)) {
-        throw new Error(`${path} qovluğu gözlənilən formatda gəlmədi.`);
-    }
-
-    return data;
-}
-
-function toBase64Json(data) {
-    return Buffer.from(JSON.stringify(data, null, 2), 'utf8').toString('base64');
-}
-
-function buildCanonicalQuery(params) {
-    return Object.keys(params)
-        .sort()
-        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-        .join('&');
-}
-
-function getSigningKey(secretAccessKey, shortDate, region, service) {
-    const kDate = hmac(`AWS4${secretAccessKey}`, shortDate);
-    const kRegion = hmac(kDate, region);
-    const kService = hmac(kRegion, service);
-    return hmac(kService, 'aws4_request');
-}
-
+function inferExtensionFromUrl(url = '', fallback = '') { const cleaned = String(url).split('?')[0].split('#')[0]; const match = cleaned.match(/\.([a-z0-9]{2,5})$/i); return match ? match[1].toLowerCase() : fallback; }
+function extensionFromContentType(contentType = '', fallback = '') { const map = { 'audio/mpeg': 'mp3', 'audio/mp3': 'mp3', 'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }; return map[contentType.split(';')[0].trim().toLowerCase()] || fallback; }
+function isCloudinaryUrl(url = '') { return /cloudinary\.com/i.test(String(url)); }
+async function fetchRemoteAsset(url) { const response = await fetch(url); if (!response.ok) throw new Error(`Uzaq fayl yüklənmədi (${response.status}): ${url}`); const arrayBuffer = await response.arrayBuffer(); return { buffer: Buffer.from(arrayBuffer), contentType: response.headers.get('content-type') || 'application/octet-stream' }; }
+async function listGitHubFiles({ repoOwner, repoName, token, path }) { const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`; const response = await fetch(url, { headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json' } }); const data = await response.json(); if (!response.ok) throw new Error(data?.message || `${path} qovluğu oxunmadı.`); if (!Array.isArray(data)) throw new Error(`${path} qovluğu gözlənilən formatda gəlmədi.`); return data; }
+function toBase64Json(data) { return Buffer.from(JSON.stringify(data, null, 2), 'utf8').toString('base64'); }
+function buildCanonicalQuery(params) { return Object.keys(params).sort().map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`).join('&'); }
+function getSigningKey(secretAccessKey, shortDate, region, service) { const kDate = hmac(`AWS4${secretAccessKey}`, shortDate); const kRegion = hmac(kDate, region); const kService = hmac(kRegion, service); return hmac(kService, 'aws4_request'); }
 function createPresignedR2PutUrl({ key, expiresIn = 900 }) {
     const cfg = getR2Config();
     const { amzDate, shortDate } = getAmzDates();
     const canonicalUri = `/${cfg.bucket}/${encodeKeyPath(key)}`;
     const credentialScope = `${shortDate}/${cfg.region}/${cfg.service}/aws4_request`;
-
-    const queryParams = {
-        'X-Amz-Algorithm': 'AWS4-HMAC-SHA256',
-        'X-Amz-Credential': `${cfg.accessKeyId}/${credentialScope}`,
-        'X-Amz-Date': amzDate,
-        'X-Amz-Expires': String(expiresIn),
-        'X-Amz-SignedHeaders': 'host'
-    };
-
+    const queryParams = { 'X-Amz-Algorithm': 'AWS4-HMAC-SHA256', 'X-Amz-Credential': `${cfg.accessKeyId}/${credentialScope}`, 'X-Amz-Date': amzDate, 'X-Amz-Expires': String(expiresIn), 'X-Amz-SignedHeaders': 'host' };
     const canonicalQuery = buildCanonicalQuery(queryParams);
     const canonicalHeaders = `host:${cfg.host}\n`;
-    const canonicalRequest = [
-        'PUT',
-        canonicalUri,
-        canonicalQuery,
-        canonicalHeaders,
-        'host',
-        'UNSIGNED-PAYLOAD'
-    ].join('\n');
-
-    const stringToSign = [
-        'AWS4-HMAC-SHA256',
-        amzDate,
-        credentialScope,
-        sha256Hex(canonicalRequest)
-    ].join('\n');
-
+    const canonicalRequest = ['PUT', canonicalUri, canonicalQuery, canonicalHeaders, 'host', 'UNSIGNED-PAYLOAD'].join('\n');
+    const stringToSign = ['AWS4-HMAC-SHA256', amzDate, credentialScope, sha256Hex(canonicalRequest)].join('\n');
     const signingKey = getSigningKey(cfg.secretAccessKey, shortDate, cfg.region, cfg.service);
     const signature = hmac(signingKey, stringToSign, 'hex');
     const finalQuery = `${canonicalQuery}&X-Amz-Signature=${signature}`;
-
-    return {
-        uploadUrl: `https://${cfg.host}${canonicalUri}?${finalQuery}`,
-        publicUrl: `${cfg.publicBaseUrl}/${encodeKeyPath(key)}`,
-        key,
-        bucket: cfg.bucket,
-        publicBaseUrl: cfg.publicBaseUrl,
-        expiresIn
-    };
+    return { uploadUrl: `https://${cfg.host}${canonicalUri}?${finalQuery}`, publicUrl: `${cfg.publicBaseUrl}/${encodeKeyPath(key)}`, key, bucket: cfg.bucket, publicBaseUrl: cfg.publicBaseUrl, expiresIn };
 }
-
 function normalizeMeetingDateTime(value) {
     if (!value) return null;
-
-    let normalized = String(value).trim();
-    if (!normalized) return null;
-
-    normalized = normalized.replace(' ', 'T');
-
-    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized)) {
-        return `${normalized}:00+04:00`;
-    }
-
-    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(normalized)) {
-        return `${normalized}+04:00`;
-    }
-
+    let normalized = String(value).trim().replace(' ', 'T');
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized)) return `${normalized}:00+04:00`;
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(normalized)) return `${normalized}+04:00`;
     return normalized;
 }
 
 exports.handler = async (event) => {
-    if (event.httpMethod !== "POST") {
-        return { statusCode: 405, body: "Method Not Allowed" };
-    }
-
+    if (event.httpMethod !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
     try {
         const { type, password, payload } = JSON.parse(event.body);
         const GH_TOKEN = process.env.GH_TOKEN;
         const repoOwner = "huseynw";
         const repoName = "dunyamiz";
         const githubNeededTypes = new Set(["upload_image", "upload_note", "upload_music_json", "upload_music", "upload_music_r2", "prepare_r2_music_upload", "finalize_r2_music_upload", "migrate_music_to_r2"]);
+        if (githubNeededTypes.has(type) && !GH_TOKEN) return { statusCode: 500, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "GH_TOKEN tapılmadı." }) };
+        if (password !== ADMIN_PASSWORD) return { statusCode: 401, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "Şifrə səhvdir!" }) };
 
-        if (githubNeededTypes.has(type) && !GH_TOKEN) {
-            return {
-                statusCode: 500,
-                headers: { "Content-Type": "application/json; charset=utf-8" },
-                body: JSON.stringify({ success: false, error: "GH_TOKEN tapılmadı." })
-            };
-        }
-
-        if (password !== ADMIN_PASSWORD) {
-            return {
-                statusCode: 401,
-                headers: { "Content-Type": "application/json; charset=utf-8" },
-                body: JSON.stringify({ success: false, error: "Şifrə səhvdir!" })
-            };
-        }
-
-        // =========================
-        // CONFIG UPDATE
-        // =========================
+        // ================= CONFIG UPDATE =================
         if (type === "verify_site") {
-            return {
-                statusCode: 200,
-                headers: { "Content-Type": "application/json; charset=utf-8" },
-                body: JSON.stringify({ success: true, message: "Giriş uğurludur" })
-            };
+            return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: true, message: "Giriş uğurludur" }) };
         }
         if (type === "update_config") {
             const SUPABASE_URL = process.env.SUPABASE_URL;
             const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
-
-            if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-                throw new Error("SUPABASE_URL və ya SUPABASE_SERVICE_ROLE_KEY tapılmadı.");
-            }
-
+            if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) throw new Error("SUPABASE_URL və ya SUPABASE_SERVICE_ROLE_KEY tapılmadı.");
             const updates = {};
-
             const normalizedDate = normalizeMeetingDateTime(payload?.newDate);
-            if (normalizedDate) {
-                updates.next_meeting_date = normalizedDate;
-                updates.updated_at = new Date().toISOString();
-            }
-
+            if (normalizedDate) { updates.next_meeting_date = normalizedDate; updates.updated_at = new Date().toISOString(); }
             if (payload?.newCount !== undefined && payload?.newCount !== null && String(payload.newCount).trim() !== '') {
                 const parsedCount = Number(payload.newCount);
-                if (Number.isNaN(parsedCount)) {
-                    throw new Error("Görüş sayı düzgün deyil.");
-                }
-                updates.meeting_count = parsedCount;
-                updates.updated_at = new Date().toISOString();
+                if (Number.isNaN(parsedCount)) throw new Error("Görüş sayı düzgün deyil.");
+                updates.meeting_count = parsedCount; updates.updated_at = new Date().toISOString();
             }
-
-            if (!Object.keys(updates).length) {
-                throw new Error("Dəyişiklik yoxdur.");
-            }
-
+            if (!Object.keys(updates).length) throw new Error("Dəyişiklik yoxdur.");
             const response = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?id=eq.1`, {
                 method: 'PATCH',
-                headers: {
-                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
-                    "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-                    "Content-Type": "application/json",
-                    "Prefer": "return=representation"
-                },
+                headers: { "apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, "Content-Type": "application/json", "Prefer": "return=representation" },
                 body: JSON.stringify(updates)
             });
-
             const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result?.message || result?.error || "Supabase update xətası baş verdi.");
-            }
-
-            // ✅ Bildiriş göndər
+            if (!response.ok) throw new Error(result?.message || result?.error || "Supabase update xətası baş verdi.");
             await notifyAdminAction('update_meeting', { newDate: normalizedDate });
-
-            return {
-                statusCode: 200,
-                headers: { "Content-Type": "application/json; charset=utf-8" },
-                body: JSON.stringify({ success: true, details: result })
-            };
+            return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: true, details: result }) };
         }
 
-        // =========================
-        // IMAGE UPLOAD
-        // =========================
+        // ================= IMAGE UPLOAD =================
         if (type === "upload_image") {
-            const result = await putGitHubFile({
-                repoOwner,
-                repoName,
-                token: GH_TOKEN,
-                path: payload.path,
-                content: payload.content,
-                message: "Admin: Yeni şəkil yükləndi"
-            });
-
-            // ✅ Bildiriş göndər
+            const result = await putGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: payload.path, content: payload.content, message: "Admin: Yeni şəkil yükləndi" });
             await notifyAdminAction('upload_image', {});
-
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ success: true, details: result })
-            };
+            return { statusCode: 200, body: JSON.stringify({ success: true, details: result }) };
         }
 
-        // =========================
-        // NOTE UPLOAD
-        // =========================
+        // ================= NOTE UPLOAD =================
         if (type === "upload_note") {
-            const result = await putGitHubFile({
-                repoOwner,
-                repoName,
-                token: GH_TOKEN,
-                path: payload.path,
-                content: payload.content,
-                message: "Admin: Not əlavə edildi"
-            });
-
-            // ✅ Bildiriş göndər (author-u tap)
+            const result = await putGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: payload.path, content: payload.content, message: "Admin: Not əlavə edildi" });
             let author = 'Kimsə';
             try {
                 const noteJson = JSON.parse(Buffer.from(payload.content, 'base64').toString());
                 author = noteJson.author || 'Kimsə';
             } catch(e) {}
             await notifyAdminAction('upload_note', { author });
-
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ success: true, details: result })
-            };
+            return { statusCode: 200, body: JSON.stringify({ success: true, details: result }) };
         }
 
         if (type === "upload_music_json") {
             const { path, content } = payload;
-
-            if (!path || !content) {
-                return {
-                    statusCode: 400,
-                    headers: { "Content-Type": "application/json; charset=utf-8" },
-                    body: JSON.stringify({
-                        success: false,
-                        error: "Musiqi məlumatları natamamdır."
-                    })
-                };
-            }
-
-            const result = await putGitHubFile({
-                repoOwner,
-                repoName,
-                token: GH_TOKEN,
-                path,
-                content,
-                message: "Admin: Storage linkli musiqi JSON faylı əlavə edildi"
-            });
-
-            // ✅ Bildiriş göndər
+            if (!path || !content) return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "Musiqi məlumatları natamamdır." }) };
+            const result = await putGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path, content, message: "Admin: Storage linkli musiqi JSON faylı əlavə edildi" });
             await notifyAdminAction('upload_music', { songTitle: path.split('/').pop().replace('.json', '') });
-
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ success: true, details: result })
-            };
+            return { statusCode: 200, body: JSON.stringify({ success: true, details: result }) };
         }
 
-        // =========================
-        // MUSIC UPLOAD (MP3 + JSON)
-        // =========================
+        // ================= MUSIC UPLOAD (MP3 + JSON) =================
         if (type === "upload_music") {
-            const {
-                slug,
-                audioPath,
-                jsonPath,
-                audioContent,
-                coverPath,
-                coverContent,
-                jsonContent
-            } = payload;
-
-            if (!slug || !audioPath || !jsonPath || !audioContent || !jsonContent) {
-                return {
-                    statusCode: 400,
-                    headers: { "Content-Type": "application/json; charset=utf-8" },
-                    body: JSON.stringify({ success: false, error: "Musiqi payload məlumatları natamamdır." })
-                };
-            }
-
-            const audioResult = await putGitHubFile({
-                repoOwner,
-                repoName,
-                token: GH_TOKEN,
-                path: audioPath,
-                content: audioContent,
-                message: `Admin: Yeni musiqi əlavə edildi (${slug}.mp3)`
-            });
-
+            const { slug, audioPath, jsonPath, audioContent, coverPath, coverContent, jsonContent } = payload;
+            if (!slug || !audioPath || !jsonPath || !audioContent || !jsonContent) return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "Musiqi payload məlumatları natamamdır." }) };
+            const audioResult = await putGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: audioPath, content: audioContent, message: `Admin: Yeni musiqi əlavə edildi (${slug}.mp3)` });
             let coverResult = null;
-            if (coverPath && coverContent) {
-                coverResult = await putGitHubFile({
-                    repoOwner,
-                    repoName,
-                    token: GH_TOKEN,
-                    path: coverPath,
-                    content: coverContent,
-                    message: `Admin: Musiqi cover şəkli əlavə edildi (${slug})`
-                });
-            }
-
-            const jsonResult = await putGitHubFile({
-                repoOwner,
-                repoName,
-                token: GH_TOKEN,
-                path: jsonPath,
-                content: jsonContent,
-                message: `Admin: Musiqi məlumat faylı əlavə edildi (${slug}.json)`
-            });
-
-            // ✅ Bildiriş göndər
+            if (coverPath && coverContent) coverResult = await putGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: coverPath, content: coverContent, message: `Admin: Musiqi cover şəkli əlavə edildi (${slug})` });
+            const jsonResult = await putGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: jsonPath, content: jsonContent, message: `Admin: Musiqi məlumat faylı əlavə edildi (${slug}.json)` });
             await notifyAdminAction('upload_music', { songTitle: slug });
-
-            return {
-                statusCode: 200,
-                body: JSON.stringify({
-                    success: true,
-                    details: {
-                        audio: audioResult,
-                        cover: coverResult,
-                        json: jsonResult
-                    }
-                })
-            };
+            return { statusCode: 200, body: JSON.stringify({ success: true, details: { audio: audioResult, cover: coverResult, json: jsonResult } }) };
         }
 
+        // ================= R2 PREPARE =================
         if (type === "prepare_r2_music_upload") {
             const { slug, hasCover, coverExt } = payload || {};
-
-            if (!slug) {
-                return {
-                    statusCode: 400,
-                    headers: { "Content-Type": "application/json; charset=utf-8" },
-                    body: JSON.stringify({ success: false, error: "Slug tapılmadı." })
-                };
-            }
-
+            if (!slug) return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "Slug tapılmadı." }) };
             const audioKey = `music/${slug}.mp3`;
             const normalizedCoverExt = String(coverExt || 'jpg').replace(/[^a-z0-9]/gi, '').toLowerCase() || 'jpg';
             const coverKey = hasCover ? `covers/${slug}.${normalizedCoverExt}` : '';
-
             const audioUpload = createPresignedR2PutUrl({ key: audioKey });
             const coverUpload = hasCover ? createPresignedR2PutUrl({ key: coverKey }) : null;
-
-            return {
-                statusCode: 200,
-                headers: { "Content-Type": "application/json; charset=utf-8" },
-                body: JSON.stringify({
-                    success: true,
-                    details: {
-                        slug,
-                        jsonPath: `musiqiler/${slug}.json`,
-                        audioKey,
-                        coverKey,
-                        audioUploadUrl: audioUpload.uploadUrl,
-                        audioPublicUrl: audioUpload.publicUrl,
-                        coverUploadUrl: coverUpload?.uploadUrl || '',
-                        coverPublicUrl: coverUpload?.publicUrl || ''
-                    }
-                })
-            };
+            return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: true, details: { slug, jsonPath: `musiqiler/${slug}.json`, audioKey, coverKey, audioUploadUrl: audioUpload.uploadUrl, audioPublicUrl: audioUpload.publicUrl, coverUploadUrl: coverUpload?.uploadUrl || '', coverPublicUrl: coverUpload?.publicUrl || '' } }) };
         }
 
+        // ================= R2 FINALIZE =================
         if (type === "finalize_r2_music_upload") {
             const { slug, jsonPath, trackMeta, r2AudioKey, r2CoverKey, audioUrl, coverUrl } = payload || {};
-
-            if (!slug || !jsonPath || !trackMeta || !r2AudioKey || !audioUrl) {
-                return {
-                    statusCode: 400,
-                    headers: { "Content-Type": "application/json; charset=utf-8" },
-                    body: JSON.stringify({ success: false, error: "R2 final payload məlumatları natamamdır." })
-                };
-            }
-
+            if (!slug || !jsonPath || !trackMeta || !r2AudioKey || !audioUrl) return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "R2 final payload məlumatları natamamdır." }) };
             const cfg = getR2Config();
-            const finalMeta = {
-                ...trackMeta,
-                audio: audioUrl,
-                cover: coverUrl || trackMeta.cover || '',
-                provider: 'r2',
-                storage: {
-                    provider: 'r2',
-                    bucket: cfg.bucket,
-                    publicBaseUrl: cfg.publicBaseUrl,
-                    audioKey: r2AudioKey,
-                    coverKey: r2CoverKey || '',
-                    mode: 'direct-browser-upload',
-                    finalizedAt: new Date().toISOString()
-                }
-            };
-
-            const jsonResult = await putGitHubFile({
-                repoOwner,
-                repoName,
-                token: GH_TOKEN,
-                path: jsonPath,
-                content: toBase64Json(finalMeta),
-                message: `Admin: R2 musiqi məlumat faylı əlavə edildi (${slug}.json)`
-            });
-
-            // ✅ Bildiriş göndər
+            const finalMeta = { ...trackMeta, audio: audioUrl, cover: coverUrl || trackMeta.cover || '', provider: 'r2', storage: { provider: 'r2', bucket: cfg.bucket, publicBaseUrl: cfg.publicBaseUrl, audioKey: r2AudioKey, coverKey: r2CoverKey || '', mode: 'direct-browser-upload', finalizedAt: new Date().toISOString() } };
+            const jsonResult = await putGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: jsonPath, content: toBase64Json(finalMeta), message: `Admin: R2 musiqi məlumat faylı əlavə edildi (${slug}.json)` });
             await notifyAdminAction('upload_music', { songTitle: slug });
-
-            return {
-                statusCode: 200,
-                headers: { "Content-Type": "application/json; charset=utf-8" },
-                body: JSON.stringify({
-                    success: true,
-                    details: {
-                        json: jsonResult,
-                        audio: { key: r2AudioKey, url: audioUrl },
-                        cover: coverUrl ? { key: r2CoverKey, url: coverUrl } : null
-                    }
-                })
-            };
+            return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: true, details: { json: jsonResult, audio: { key: r2AudioKey, url: audioUrl }, cover: coverUrl ? { key: r2CoverKey, url: coverUrl } : null } }) };
         }
 
         if (type === "upload_music_r2") {
-            const {
-                slug,
-                jsonPath,
-                trackMeta,
-                r2AudioKey,
-                audioContent,
-                remoteAudioUrl,
-                r2CoverKey,
-                coverContent,
-                remoteCoverUrl
-            } = payload || {};
-
-            if (!slug || !jsonPath || !trackMeta || !r2AudioKey || (!audioContent && !remoteAudioUrl)) {
-                return {
-                    statusCode: 400,
-                    headers: { "Content-Type": "application/json; charset=utf-8" },
-                    body: JSON.stringify({ success: false, error: "R2 musiqi payload məlumatları natamamdır." })
-                };
-            }
-
-            let audioBuffer;
-            let audioContentType = 'audio/mpeg';
-
-            if (audioContent) {
-                audioBuffer = Buffer.from(audioContent, 'base64');
-            } else {
-                const remoteAudio = await fetchRemoteAsset(remoteAudioUrl);
-                audioBuffer = remoteAudio.buffer;
-                audioContentType = remoteAudio.contentType || audioContentType;
-            }
-
-            const audioUpload = await uploadBufferToR2({
-                key: r2AudioKey,
-                buffer: audioBuffer,
-                contentType: audioContentType
-            });
-
+            const { slug, jsonPath, trackMeta, r2AudioKey, audioContent, remoteAudioUrl, r2CoverKey, coverContent, remoteCoverUrl } = payload || {};
+            if (!slug || !jsonPath || !trackMeta || !r2AudioKey || (!audioContent && !remoteAudioUrl)) return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "R2 musiqi payload məlumatları natamamdır." }) };
+            let audioBuffer; let audioContentType = 'audio/mpeg';
+            if (audioContent) audioBuffer = Buffer.from(audioContent, 'base64');
+            else { const remoteAudio = await fetchRemoteAsset(remoteAudioUrl); audioBuffer = remoteAudio.buffer; audioContentType = remoteAudio.contentType || audioContentType; }
+            const audioUpload = await uploadBufferToR2({ key: r2AudioKey, buffer: audioBuffer, contentType: audioContentType });
             let coverUpload = null;
             if (coverContent || remoteCoverUrl) {
-                let coverBuffer;
-                let coverContentType = 'image/jpeg';
-
-                if (coverContent) {
-                    coverBuffer = Buffer.from(coverContent, 'base64');
-                } else {
-                    const remoteCover = await fetchRemoteAsset(remoteCoverUrl);
-                    coverBuffer = remoteCover.buffer;
-                    coverContentType = remoteCover.contentType || coverContentType;
-                }
-
-                coverUpload = await uploadBufferToR2({
-                    key: r2CoverKey,
-                    buffer: coverBuffer,
-                    contentType: coverContentType
-                });
+                let coverBuffer; let coverContentType = 'image/jpeg';
+                if (coverContent) coverBuffer = Buffer.from(coverContent, 'base64');
+                else { const remoteCover = await fetchRemoteAsset(remoteCoverUrl); coverBuffer = remoteCover.buffer; coverContentType = remoteCover.contentType || coverContentType; }
+                coverUpload = await uploadBufferToR2({ key: r2CoverKey, buffer: coverBuffer, contentType: coverContentType });
             }
-
-            const finalMeta = {
-                ...trackMeta,
-                audio: audioUpload.url,
-                cover: coverUpload?.url || trackMeta.cover || '',
-                provider: 'r2',
-                storage: {
-                    provider: 'r2',
-                    bucket: audioUpload.bucket,
-                    publicBaseUrl: audioUpload.publicBaseUrl,
-                    audioKey: r2AudioKey,
-                    coverKey: coverUpload?.key || r2CoverKey || '',
-                    mode: remoteAudioUrl ? 'cloudinary-import' : 'direct-upload',
-                    migratedFrom: remoteAudioUrl ? {
-                        provider: 'cloudinary',
-                        audioUrl: remoteAudioUrl,
-                        coverUrl: remoteCoverUrl || ''
-                    } : undefined,
-                    migratedAt: remoteAudioUrl ? new Date().toISOString() : undefined
-                }
-            };
-
-            const jsonResult = await putGitHubFile({
-                repoOwner,
-                repoName,
-                token: GH_TOKEN,
-                path: jsonPath,
-                content: toBase64Json(finalMeta),
-                message: `Admin: R2 musiqi məlumat faylı əlavə edildi (${slug}.json)`
-            });
-
-            // ✅ Bildiriş göndər
+            const finalMeta = { ...trackMeta, audio: audioUpload.url, cover: coverUpload?.url || trackMeta.cover || '', provider: 'r2', storage: { provider: 'r2', bucket: audioUpload.bucket, publicBaseUrl: audioUpload.publicBaseUrl, audioKey: r2AudioKey, coverKey: coverUpload?.key || r2CoverKey || '', mode: remoteAudioUrl ? 'cloudinary-import' : 'direct-upload', migratedFrom: remoteAudioUrl ? { provider: 'cloudinary', audioUrl: remoteAudioUrl, coverUrl: remoteCoverUrl || '' } : undefined, migratedAt: remoteAudioUrl ? new Date().toISOString() : undefined } };
+            const jsonResult = await putGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: jsonPath, content: toBase64Json(finalMeta), message: `Admin: R2 musiqi məlumat faylı əlavə edildi (${slug}.json)` });
             await notifyAdminAction('upload_music', { songTitle: slug });
-
-            return {
-                statusCode: 200,
-                body: JSON.stringify({
-                    success: true,
-                    details: {
-                        audio: audioUpload,
-                        cover: coverUpload,
-                        json: jsonResult,
-                        migrated: Boolean(remoteAudioUrl)
-                    }
-                })
-            };
+            return { statusCode: 200, body: JSON.stringify({ success: true, details: { audio: audioUpload, cover: coverUpload, json: jsonResult, migrated: Boolean(remoteAudioUrl) } }) };
         }
 
         if (type === "migrate_music_to_r2") {
-            const files = await listGitHubFiles({
-                repoOwner,
-                repoName,
-                token: GH_TOKEN,
-                path: 'musiqiler'
-            });
-
+            const files = await listGitHubFiles({ repoOwner, repoName, token: GH_TOKEN, path: 'musiqiler' });
             const jsonFiles = files.filter((item) => item.type === 'file' && item.name.toLowerCase().endsWith('.json'));
             const results = [];
-
             for (const file of jsonFiles) {
                 const rawResponse = await fetch(file.download_url);
-                if (!rawResponse.ok) {
-                    results.push({ file: file.name, status: 'skip', reason: 'JSON oxunmadı' });
-                    continue;
-                }
-
+                if (!rawResponse.ok) { results.push({ file: file.name, status: 'skip', reason: 'JSON oxunmadı' }); continue; }
                 const data = await rawResponse.json();
                 const audioUrl = String(data?.audio || '').trim();
                 const coverUrl = String(data?.cover || '').trim();
                 const slug = String(data?.id || file.name.replace(/\.json$/i, '')).trim();
-
-                if (!isCloudinaryUrl(audioUrl) && !(coverUrl && isCloudinaryUrl(coverUrl))) {
-                    results.push({ file: file.name, status: 'skip', reason: 'Cloudinary link tapılmadı' });
-                    continue;
-                }
-
+                if (!isCloudinaryUrl(audioUrl) && !(coverUrl && isCloudinaryUrl(coverUrl))) { results.push({ file: file.name, status: 'skip', reason: 'Cloudinary link tapılmadı' }); continue; }
                 const audioRemote = await fetchRemoteAsset(audioUrl);
                 const audioExt = inferExtensionFromUrl(audioUrl, extensionFromContentType(audioRemote.contentType, 'mp3')) || 'mp3';
                 const audioKey = `music/${slug}.${audioExt}`;
-                const audioUpload = await uploadBufferToR2({
-                    key: audioKey,
-                    buffer: audioRemote.buffer,
-                    contentType: audioRemote.contentType || 'audio/mpeg'
-                });
-
-                let coverUpload = null;
-                let coverKey = '';
+                const audioUpload = await uploadBufferToR2({ key: audioKey, buffer: audioRemote.buffer, contentType: audioRemote.contentType || 'audio/mpeg' });
+                let coverUpload = null; let coverKey = '';
                 if (coverUrl && isCloudinaryUrl(coverUrl)) {
                     const coverRemote = await fetchRemoteAsset(coverUrl);
                     const coverExt = inferExtensionFromUrl(coverUrl, extensionFromContentType(coverRemote.contentType, 'jpg')) || 'jpg';
                     coverKey = `covers/${slug}.${coverExt}`;
-                    coverUpload = await uploadBufferToR2({
-                        key: coverKey,
-                        buffer: coverRemote.buffer,
-                        contentType: coverRemote.contentType || 'image/jpeg'
-                    });
+                    coverUpload = await uploadBufferToR2({ key: coverKey, buffer: coverRemote.buffer, contentType: coverRemote.contentType || 'image/jpeg' });
                 }
-
-                const updated = {
-                    ...data,
-                    audio: audioUpload.url,
-                    cover: coverUpload?.url || (isCloudinaryUrl(coverUrl) ? '' : coverUrl),
-                    provider: 'r2',
-                    storage: {
-                        ...(data?.storage || {}),
-                        provider: 'r2',
-                        bucket: audioUpload.bucket,
-                        publicBaseUrl: audioUpload.publicBaseUrl,
-                        audioKey,
-                        coverKey,
-                        mode: 'cloudinary-import',
-                        migratedFrom: {
-                            provider: 'cloudinary',
-                            audioUrl,
-                            coverUrl
-                        },
-                        migratedAt: new Date().toISOString()
-                    }
-                };
-
-                await putGitHubFile({
-                    repoOwner,
-                    repoName,
-                    token: GH_TOKEN,
-                    path: file.path,
-                    content: toBase64Json(updated),
-                    message: `Admin: Cloudinary mahnısı R2-yə köçürüldü (${slug})`
-                });
-
-                results.push({
-                    file: file.name,
-                    status: 'migrated',
-                    audio: audioUpload.url,
-                    cover: coverUpload?.url || updated.cover || ''
-                });
+                const updated = { ...data, audio: audioUpload.url, cover: coverUpload?.url || (isCloudinaryUrl(coverUrl) ? '' : coverUrl), provider: 'r2', storage: { ...(data?.storage || {}), provider: 'r2', bucket: audioUpload.bucket, publicBaseUrl: audioUpload.publicBaseUrl, audioKey, coverKey, mode: 'cloudinary-import', migratedFrom: { provider: 'cloudinary', audioUrl, coverUrl }, migratedAt: new Date().toISOString() } };
+                await putGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: file.path, content: toBase64Json(updated), message: `Admin: Cloudinary mahnısı R2-yə köçürüldü (${slug})` });
+                results.push({ file: file.name, status: 'migrated', audio: audioUpload.url, cover: coverUpload?.url || updated.cover || '' });
             }
-
             const migratedCount = results.filter((item) => item.status === 'migrated').length;
             const skippedCount = results.filter((item) => item.status === 'skip').length;
-
-            return {
-                statusCode: 200,
-                headers: { "Content-Type": "application/json; charset=utf-8" },
-                body: JSON.stringify({
-                    success: true,
-                    details: {
-                        migratedCount,
-                        skippedCount,
-                        results
-                    }
-                })
-            };
+            return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: true, details: { migratedCount, skippedCount, results } }) };
         }
 
-        return {
-            statusCode: 400,
-            headers: { "Content-Type": "application/json; charset=utf-8" },
-            body: JSON.stringify({ success: false, error: "Naməlum əməliyyat növü." })
-        };
-
+        return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "Naməlum əməliyyat növü." }) };
     } catch (error) {
         console.error('admin-proxy error:', error);
         return buildErrorResponse(500, error);
