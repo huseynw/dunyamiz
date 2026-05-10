@@ -1,6 +1,52 @@
 // FIXED AWS date formatting for R2 presigned URLs
 const fetch = require('node-fetch');
 const crypto = require('crypto');
+const ONE_SIGNAL_APP_ID = process.env.ONE_SIGNAL_APP_ID;
+const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY;
+
+async function sendOneSignalNotification(title, message) {
+    if (!ONE_SIGNAL_APP_ID || !ONE_SIGNAL_API_KEY) return false;
+    try {
+        const response = await fetch('https://onesignal.com/api/v1/notifications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${ONE_SIGNAL_API_KEY}` },
+            body: JSON.stringify({
+                app_id: ONE_SIGNAL_APP_ID,
+                headings: { en: title },
+                contents: { en: message },
+                included_segments: ['Subscribed Users']
+            })
+        });
+        return response.ok;
+    } catch (e) {
+        console.error('OneSignal xətası:', e);
+        return false;
+    }
+}
+
+async function notifyAdminAction(actionType, details = {}) {
+    let title = '', message = '';
+    switch (actionType) {
+        case 'update_meeting':
+            title = '📅 Görüş vaxtı yeniləndi!';
+            message = details.newDate ? `Növbəti görüş: ${new Date(details.newDate).toLocaleString('az-AZ')}` : 'Görüş məlumatları yeniləndi.';
+            break;
+        case 'upload_image':
+            title = '🖼️ Yeni şəkil əlavə olundu!';
+            message = 'Qalereyaya yeni xatirə şəkli əlavə edildi.';
+            break;
+        case 'upload_music':
+            title = '🎵 Yeni mahnı əlavə olundu!';
+            message = details.songTitle ? `"${details.songTitle}" mahnısı əlavə edildi.` : 'Musiqi kolleksiyasına yeni mahnı əlavə edildi.';
+            break;
+        case 'upload_note':
+            title = '📝 Yeni not yazıldı!';
+            message = details.author ? `${details.author} tərəfindən yeni not əlavə edildi.` : 'Yeni not əlavə edildi.';
+            break;
+        default: return;
+    }
+    await sendOneSignalNotification(title, message);
+}
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 function buildErrorResponse(statusCode, error, extra = {}) {
     const message = error instanceof Error ? error.message : String(error || 'Naməlum xəta');
