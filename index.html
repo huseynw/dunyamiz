@@ -1213,6 +1213,33 @@
 
                         <div class="admin-overview-grid">
                             <section class="admin-card">
+    <div class="admin-card-title">
+        <i class="fas fa-bell"></i>
+        <div>
+            <h3>Bildiriş göndər</h3>
+            <p>İstədiyin başlıq və mesajı yaz, dərhal bütün abunəçilərə getsin.</p>
+        </div>
+    </div>
+    <div class="input-group">
+        <div class="admin-field">
+            <label for="custom-notif-title">Başlıq</label>
+            <input type="text" id="custom-notif-title" placeholder="Məs: 💖 Xüsusi mesaj">
+        </div>
+        <div class="admin-field">
+            <label for="custom-notif-message">Mesaj</label>
+            <textarea id="custom-notif-message" rows="3" placeholder="Mesajınız..."></textarea>
+        </div>
+        <div class="admin-field">
+            <label for="admin-password-custom">Admin şifrəsi</label>
+            <input type="password" id="admin-password-custom" placeholder="Şifrə">
+        </div>
+        <button id="send-custom-notif-btn" class="admin-btn admin-btn--primary">
+            <i class="fas fa-paper-plane"></i> Bildirişi göndər
+        </button>
+        <div id="custom-notif-status" class="admin-status" style="display:none;"></div>
+    </div>
+</section>
+                            <section class="admin-card">
                                 <div class="admin-card-title">
                                     <i class="fas fa-note-sticky"></i>
                                     <div>
