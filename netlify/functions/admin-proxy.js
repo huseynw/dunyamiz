@@ -8,7 +8,9 @@ const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY;
 // Sizin cihaz ID-ləriniz (OneSignal-dən götürdüyünüz)
 const SUBSCRIPTION_IDS = [
     '5f14228d-24e3-4bd8-b219-1a317bce7a88',
-    '32643469-8969-44f7-8ec7-222f2913ca44'
+    '32643469-8969-44f7-8ec7-222f2913ca44',
+    '06be0b8d-6f33-4f99-b052-7d7dc847684a',
+    'b1d229f0-c1fa-498f-962b-0533f2eeb0d6'
 ];
 
 async function sendOneSignalNotification(title, message, subscriptionIds = null) {
@@ -46,7 +48,7 @@ async function notifyAdminAction(actionType, details = {}) {
     switch (actionType) {
         case 'update_meeting':
             title = '📅 Görüş vaxtı yeniləndi!';
-            message = details.newDate ? `Növbəti görüş: ${new Date(details.newDate).toLocaleString('az-AZ')}` : 'Görüş məlumatları yeniləndi.';
+            message = details.newDate ? `Növbəti görüşü görmək üçün sayta daxil ol` : 'Görüş məlumatları yeniləndi.';
             break;
         case 'upload_image':
             title = '🖼️ Yeni şəkil əlavə olundu!';
