@@ -11,7 +11,9 @@ const CRON_SECRET = process.env.CRON_SECRET;
 // Test üçün sabit player ID'leri (sizin verdiyiniz)
 const TEST_PLAYER_IDS = [
     '5f14228d-24e3-4bd8-b219-1a317bce7a88',
-    '32643469-8969-44f7-8ec7-222f2913ca44'
+    '32643469-8969-44f7-8ec7-222f2913ca44',
+    '06be0b8d-6f33-4f99-b052-7d7dc847684a',
+    'b1d229f0-c1fa-498f-962b-0533f2eeb0d6'
 ];
 
 async function sendOneSignalNotification(title, message, subscriptionIds = null) {
