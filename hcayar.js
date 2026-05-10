@@ -552,9 +552,73 @@ function initSPANavigation() {
     });
 }
 
+function initWelcomeAnimations() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    const tl = gsap.timeline({ defaults: { duration: 0.75, ease: 'power3.out' } });
+    tl.from('.welcome-grid', { opacity: 0, y: 22, duration: 0.8 });
+    tl.from('.welcome-topline', { opacity: 0, y: 22 }, '-=0.55');
+    tl.from('.welcome-hero-icon', { opacity: 0, scale: 0.86, ease: 'back.out(1.4)' }, '-=0.52');
+    tl.from('.welcome-copy > *', { opacity: 0, y: 24, stagger: 0.1 }, '-=0.45');
+    tl.from('.welcome-stats .welcome-stat-card', { opacity: 0, y: 18, stagger: 0.08 }, '-=0.5');
+    tl.from('.welcome-actions button', { opacity: 0, y: 18, ease: 'back.out(1.3)' }, '-=0.45');
+
+    gsap.to('#enter-btn', {
+        y: '-=4',
+        duration: 1.4,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+        delay: 1.4
+    });
+}
+
+function initRevealAnimations() {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+        document.body.classList.add('reduce-motion');
+        return;
+    }
+
+    const revealItems = gsap.utils.toArray('.animate-item');
+    if (!revealItems.length) return;
+
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const item = entry.target;
+            if (item.dataset.revealed) {
+                obs.unobserve(item);
+                return;
+            }
+            gsap.to(item, {
+                opacity: 1,
+                y: 0,
+                duration: 0.75,
+                ease: 'power3.out',
+                overwrite: 'auto'
+            });
+            item.dataset.revealed = 'true';
+            obs.unobserve(item);
+        });
+    }, {
+        threshold: 0.18,
+        rootMargin: '0px 0px -10% 0px'
+    });
+
+    revealItems.forEach(item => {
+        gsap.set(item, { opacity: 0, y: 24 });
+        observer.observe(item);
+    });
+}
+
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', async () => {
     initSPANavigation();
+    initWelcomeAnimations();
+    initRevealAnimations();
     initIOSVolumeFix();
 
     const volumeSlider = document.getElementById('volume-slider');
@@ -603,6 +667,12 @@ enterBtn?.addEventListener('click', () => {
         passPanel.style.display = 'flex';
         passPanel.classList.add('show');
         passPanel.setAttribute('aria-hidden', 'false');
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            gsap.fromTo(passPanel,
+                { y: 22, opacity: 0, scale: 0.98 },
+                { y: 0, opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(1.3)' }
+            );
+        }
     }
     if (errorMsg) errorMsg.style.display = 'none';
     setTimeout(() => passInput?.focus(), 120);
@@ -4847,6 +4917,35 @@ function animatePlayerExpand(complete) {
     player._playerAnimating = true;
 
     const bodyEl = player.querySelector('.yt-player-body');
+    const useCssTransition = IS_TOUCH_DEVICE || window.innerWidth <= 760;
+
+    if (useCssTransition) {
+        player.classList.remove('player-mini', 'player-collapsing', 'player-hiding');
+        player.classList.add('is-transitioning');
+        player.classList.add('expanded');
+        player.style.removeProperty('top');
+        player.style.removeProperty('left');
+        player.style.removeProperty('width');
+        player.style.removeProperty('height');
+        player.style.removeProperty('margin');
+        player.style.removeProperty('borderRadius');
+        player.style.removeProperty('transform');
+
+        if (bodyEl) {
+            bodyEl.style.display = 'block';
+            gsap.set(bodyEl, { opacity: 1 });
+        }
+
+        window.clearTimeout(player.__expandTimer);
+        player.__expandTimer = window.setTimeout(() => {
+            player.classList.remove('is-transitioning');
+            player._playerAnimating = false;
+            syncPlayerExpandedState();
+            if (typeof complete === 'function') complete();
+        }, 580);
+        return;
+    }
+
     const miniRect = player.getBoundingClientRect();
     player._miniRect = miniRect;
 
@@ -4896,18 +4995,37 @@ function animatePlayerExpand(complete) {
 
 function animatePlayerCollapse(complete) {
     const player = getMusicDom().activePlayer;
-    if (!player || player._playerAnimating || !player._miniRect) return;
+    if (!player || player._playerAnimating) return;
     player._playerAnimating = true;
 
-    const miniRect = player._miniRect;
     const bodyEl = player.querySelector('.yt-player-body');
+    const useCssTransition = IS_TOUCH_DEVICE || window.innerWidth <= 760;
 
-    // Bədəni yumşaq gizlət
+    if (useCssTransition) {
+        if (bodyEl) {
+            gsap.to(bodyEl, { opacity: 0, duration: 0.18, ease: 'power2.in' });
+        }
+
+        player.classList.add('player-collapsing', 'is-transitioning');
+        player.classList.remove('expanded');
+        player.classList.add('player-mini');
+
+        window.clearTimeout(player.__collapseTimer);
+        player.__collapseTimer = window.setTimeout(() => {
+            player.classList.remove('player-collapsing', 'is-transitioning');
+            player._playerAnimating = false;
+            syncPlayerExpandedState();
+            if (typeof complete === 'function') complete();
+        }, 420);
+        return;
+    }
+
+    const miniRect = player._miniRect;
+
     if (bodyEl) {
         gsap.to(bodyEl, { opacity: 0, duration: 0.2, ease: 'power2.in' });
     }
 
-    // Tam ekran görünüşdən başla
     player.classList.remove('expanded');
     gsap.set(player, {
         position: 'fixed',
@@ -4934,7 +5052,6 @@ function animatePlayerCollapse(complete) {
             player.classList.add('player-mini');
             if (bodyEl) bodyEl.style.display = 'none';
             player._playerAnimating = false;
-            // Köhnə mini‑pleyerin default CSS-ə qayıt
             player.style.removeProperty('top');
             player.style.removeProperty('left');
             player.style.removeProperty('width');
