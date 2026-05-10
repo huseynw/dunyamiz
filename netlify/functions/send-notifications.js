@@ -5,22 +5,35 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const START_DATE = '2025-08-03T00:00:00Z';
 const REMINDER_HOURS = [3, 2, 1];
 const ONE_SIGNAL_APP_ID = process.env.ONE_SIGNAL_APP_ID;
-const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY;
+const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY; // os_v2_app_... açarı
 const CRON_SECRET = process.env.CRON_SECRET;
 
 async function sendOneSignalNotification(title, message) {
-    if (!ONE_SIGNAL_APP_ID || !ONE_SIGNAL_API_KEY) return false;
-    const response = await fetch('https://onesignal.com/api/v1/notifications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ONE_SIGNAL_API_KEY}` },
-        body: JSON.stringify({
-            app_id: ONE_SIGNAL_APP_ID,
-            headings: { en: title },
-            contents: { en: message },
-            included_segments: ['Subscribed Users']
-        })
-    });
-    return response.ok;
+    if (!ONE_SIGNAL_APP_ID || !ONE_SIGNAL_API_KEY) {
+        console.error('OneSignal keylər yoxdur');
+        return false;
+    }
+    try {
+        const response = await fetch('https://onesignal.com/api/v1/notifications', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ONE_SIGNAL_API_KEY}`  // DİQQƏT: Basic deyil, Bearer
+            },
+            body: JSON.stringify({
+                app_id: ONE_SIGNAL_APP_ID,
+                headings: { en: title },
+                contents: { en: message },
+                included_segments: ['Subscribed Users']
+            })
+        });
+        const data = await response.json();
+        console.log('OneSignal cavabı:', data);
+        return response.ok;
+    } catch (e) {
+        console.error('OneSignal xətası:', e);
+        return false;
+    }
 }
 
 async function shouldSend(type, identifier, supabase) {
@@ -53,6 +66,7 @@ exports.handler = async (event) => {
     try {
         const body = JSON.parse(event.body || '{}');
         if (body.secret !== CRON_SECRET) {
+            console.error('CRON_SECRET uyğunsuz');
             return { statusCode: 403, body: JSON.stringify({ error: 'Unauthorized' }) };
         }
 
@@ -68,24 +82,28 @@ exports.handler = async (event) => {
 
         const meetingDate = new Date(settings.next_meeting_date);
         const hoursUntil = Math.floor((meetingDate - now) / (1000 * 60 * 60));
+        console.log(`Görüşə qalan saat: ${hoursUntil}`);
 
         if (hoursUntil > 0 && REMINDER_HOURS.includes(hoursUntil)) {
             if (await shouldSend('hourly_reminder', `${hoursUntil}h`, supabase)) {
-                await sendOneSignalNotification(`💖 Görüşümüzə ${hoursUntil} saat qaldı!`, `Səni görmək üçün saniyələr sayılır, Cəmaləm ❤️`);
-                await logNotification('hourly_reminder', `${hoursUntil}h`, supabase);
+                const success = await sendOneSignalNotification(`💖 Görüşümüzə ${hoursUntil} saat qaldı!`, `Səni görmək üçün saniyələr sayılır, Cəmaləm ❤️`);
+                if (success) await logNotification('hourly_reminder', `${hoursUntil}h`, supabase);
+                else console.error('Xatırlatma göndərilmədi');
             }
         }
 
         const start = new Date(START_DATE);
         const daysTogether = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+        console.log(`Birlikdə ${daysTogether} gün`);
         if (await shouldSend('daily_love', null, supabase)) {
-            await sendOneSignalNotification(`✨ ${daysTogether}. günümüz!`, `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`);
-            await logNotification('daily_love', null, supabase);
+            const success = await sendOneSignalNotification(`✨ ${daysTogether}. günümüz!`, `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`);
+            if (success) await logNotification('daily_love', null, supabase);
+            else console.error('Günlük sevgi mesajı göndərilmədi');
         }
 
         return { statusCode: 200, body: JSON.stringify({ success: true }) };
     } catch (err) {
-        console.error(err);
+        console.error('Funksiya xətası:', err);
         return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
     }
 };
