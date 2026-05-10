@@ -12,7 +12,7 @@ async function sendOneSignalNotification(title, message) {
     if (!ONE_SIGNAL_APP_ID || !ONE_SIGNAL_API_KEY) return false;
     const response = await fetch('https://onesignal.com/api/v1/notifications', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${ONE_SIGNAL_API_KEY}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ONE_SIGNAL_API_KEY}` },
         body: JSON.stringify({
             app_id: ONE_SIGNAL_APP_ID,
             headings: { en: title },
