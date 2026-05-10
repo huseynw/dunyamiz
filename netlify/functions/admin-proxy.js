@@ -9,8 +9,8 @@ const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY;
 const SUBSCRIPTION_IDS = [
     '5f14228d-24e3-4bd8-b219-1a317bce7a88',
     '32643469-8969-44f7-8ec7-222f2913ca44',
-    '06be0b8d-6f33-4f99-b052-7d7dc847684a',
-    'b1d229f0-c1fa-498f-962b-0533f2eeb0d6'
+    'f480d728-c8e3-415b-955a-50926861404d',
+    '747aaa0d-68c9-4121-bc66-dd2b20b1b0b2'
 ];
 
 async function sendOneSignalNotification(title, message, subscriptionIds = null) {
