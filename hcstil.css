@@ -307,6 +307,8 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 10px;
+    position: relative;
+    z-index: 2;
 }
 
 .welcome-primary-btn,
@@ -321,6 +323,8 @@ body {
     font-family: 'Poppins', sans-serif;
     font-weight: 600;
     transition: transform 0.28s ease, box-shadow 0.28s ease, background 0.28s ease, border-color 0.28s ease;
+    position: relative;
+    z-index: 2;
 }
 
 .welcome-primary-btn {
@@ -836,12 +840,14 @@ header {
 
 .nav-item:hover {
     color: white;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.14);
+    transform: translateY(-2px);
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.18);
 }
 
 
 .nav-item:hover i {
-    transform: scale(1.1);
+    transform: scale(1.12);
 }
 
 
@@ -2242,13 +2248,28 @@ header {
 .animate-item {
     opacity: 0;
     transform: translateY(20px);
-    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: all 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, opacity;
 }
 
-
+.animate-item.revealed,
 .animate-start .animate-item {
     opacity: 1;
     transform: translateY(0);
+}
+
+.welcome-actions button {
+    transition: transform 0.35s ease, box-shadow 0.35s ease, background 0.35s ease;
+}
+
+.welcome-actions button:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 18px 36px rgba(255, 77, 109, 0.24);
+}
+
+.heart-trigger:hover {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 22px rgba(255, 77, 109, 0.45));
 }
 
 
