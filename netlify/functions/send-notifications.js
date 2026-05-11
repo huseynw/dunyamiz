@@ -12,8 +12,7 @@ const CRON_SECRET = process.env.CRON_SECRET;
 const TEST_PLAYER_IDS = [
     '5f14228d-24e3-4bd8-b219-1a317bce7a88',
     '32643469-8969-44f7-8ec7-222f2913ca44',
-    'f480d728-c8e3-415b-955a-50926861404d',
-    '747aaa0d-68c9-4121-bc66-dd2b20b1b0b2'
+    'f480d728-c8e3-415b-955a-50926861404d'
 ];
 
 async function sendOneSignalNotification(title, message, subscriptionIds = null) {
