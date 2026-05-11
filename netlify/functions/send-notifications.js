@@ -1,122 +1,183 @@
-const { createClient } = require('@supabase/supabase-js');
+const fetch = require('node-fetch');
+
+// ========== ENV ==========
+const GH_TOKEN = process.env.GH_TOKEN;
+const REPO_OWNER = "huseynw";
+const REPO_NAME = "dunyamiz";
+const LOG_PATH = "notifications-log.json";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const START_DATE = '2025-08-03T00:00:00Z';
-const REMINDER_HOURS = [3, 2, 1];
 const ONE_SIGNAL_APP_ID = process.env.ONE_SIGNAL_APP_ID;
 const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY;
 const CRON_SECRET = process.env.CRON_SECRET;
 
-// Test üçün sabit player ID'leri (sizin verdiyiniz)
-const TEST_PLAYER_IDS = [
-    '5f14228d-24e3-4bd8-b219-1a317bce7a88',
-    '32643469-8969-44f7-8ec7-222f2913ca44',
-    'f480d728-c8e3-415b-955a-50926861404d'
+// ========== SUBSCRIPTION ID-LƏR (admin-proxy ilə eyni) ==========
+const SUBSCRIPTION_IDS = [
+  '5f14228d-24e3-4bd8-b219-1a317bce7a88',
+  '32643469-8969-44f7-8ec7-222f2913ca44',
+  'f480d728-c8e3-415b-955a-50926861404d'
 ];
 
-async function sendOneSignalNotification(title, message, subscriptionIds = null) {
-    if (!ONE_SIGNAL_APP_ID || !ONE_SIGNAL_API_KEY) {
-        console.error('OneSignal keylər yoxdur');
-        return false;
-    }
-    try {
-        const payload = {
-            app_id: ONE_SIGNAL_APP_ID,
-            headings: { en: title },
-            contents: { en: message }
-        };
-        if (subscriptionIds && subscriptionIds.length) {
-            payload.include_subscription_ids = subscriptionIds;
-        } else {
-            payload.included_segments = ['Subscribed Users'];
-        }
-        const response = await fetch('https://onesignal.com/api/v1/notifications', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${ONE_SIGNAL_API_KEY}`
-            },
-            body: JSON.stringify(payload)
-        });
-        const data = await response.json();
-        console.log('OneSignal cavabı:', data);
-        return response.ok;
-    } catch (e) {
-        console.error('OneSignal xətası:', e);
-        return false;
-    }
+const REMINDER_HOURS = [3, 2, 1];
+const START_DATE = '2025-08-03T00:00:00Z';
+
+// ========== GITHUB LOG YARDIMÇILARI ==========
+async function getGitHubFile(path) {
+  const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`;
+  const res = await fetch(url, {
+    headers: { Authorization: `token ${GH_TOKEN}`, Accept: 'application/vnd.github.v3+json' }
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GitHub oxuma xətası: ${res.status}`);
+  const data = await res.json();
+  const content = Buffer.from(data.content, 'base64').toString('utf8');
+  return { sha: data.sha, data: JSON.parse(content) };
 }
 
-async function shouldSend(type, identifier, supabase) {
-    const now = new Date();
-    if (type === 'hourly_reminder') {
-        const { data } = await supabase
-            .from('notification_log')
-            .select('id')
-            .eq('type', `reminder_${identifier}`)
-            .gte('sent_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-        return !data || data.length === 0;
-    } else if (type === 'daily_love') {
-        const today = now.toISOString().split('T')[0];
-        const { data } = await supabase
-            .from('notification_log')
-            .select('id')
-            .eq('type', 'daily_love')
-            .gte('sent_at', `${today}T00:00:00Z`);
-        return !data || data.length === 0;
-    }
-    return true;
+async function saveGitHubFile(path, content, sha) {
+  const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`;
+  const body = {
+    message: `Update ${path}`,
+    content: Buffer.from(JSON.stringify(content, null, 2)).toString('base64'),
+    ...(sha ? { sha } : {})
+  };
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: { Authorization: `token ${GH_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`GitHub yazma xətası: ${res.status} - ${err}`);
+  }
+  return res.json();
 }
 
-async function logNotification(type, identifier, supabase) {
-    const notificationType = type === 'hourly_reminder' ? `reminder_${identifier}` : type;
-    await supabase.from('notification_log').insert({ type: notificationType, sent_at: new Date().toISOString() });
+async function readLog() {
+  try {
+    const file = await getGitHubFile(LOG_PATH);
+    return file ? { data: file.data, sha: file.sha } : { data: { reminders: {}, daily_love: {} }, sha: null };
+  } catch (e) {
+    console.error('Log oxuma xətası:', e);
+    return { data: { reminders: {}, daily_love: {} }, sha: null };
+  }
 }
 
+async function markReminderSent(hours) {
+  const { data, sha } = await readLog();
+  data.reminders[hours] = Date.now();
+  return saveGitHubFile(LOG_PATH, data, sha);
+}
+
+async function markDailyLoveSent() {
+  const { data, sha } = await readLog();
+  data.daily_love.lastSent = Date.now();
+  return saveGitHubFile(LOG_PATH, data, sha);
+}
+
+// ========== ONESIGNAL (Subscription ID-lərə göndər) ==========
+async function sendOneSignalNotification(title, message) {
+  if (!ONE_SIGNAL_APP_ID || !ONE_SIGNAL_API_KEY) {
+    console.error('OneSignal mühit dəyişənləri yoxdur');
+    return false;
+  }
+  if (!SUBSCRIPTION_IDS.length) {
+    console.error('Subscription ID-lər boşdur');
+    return false;
+  }
+
+  try {
+    const payload = {
+      app_id: ONE_SIGNAL_APP_ID,
+      headings: { en: title },
+      contents: { en: message },
+      include_subscription_ids: SUBSCRIPTION_IDS   // <-- birbaşa cihazlara
+    };
+    const res = await fetch('https://onesignal.com/api/v1/notifications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ONE_SIGNAL_API_KEY}` },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    console.log('OneSignal cavabı:', JSON.stringify(data, null, 2));
+    return res.ok;
+  } catch (e) {
+    console.error('OneSignal xətası:', e);
+    return false;
+  }
+}
+
+// ========== ƏSAS FUNKSİYA ==========
 exports.handler = async (event) => {
-    try {
-        const body = JSON.parse(event.body || '{}');
-        if (body.secret !== CRON_SECRET) {
-            console.error('CRON_SECRET uyğunsuz');
-            return { statusCode: 403, body: JSON.stringify({ error: 'Unauthorized' }) };
-        }
-
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-        const now = new Date();
-
-        const { data: settings } = await supabase
-            .from('site_settings')
-            .select('next_meeting_date')
-            .eq('id', 1)
-            .single();
-        if (!settings) throw new Error('No site_settings');
-
-        const meetingDate = new Date(settings.next_meeting_date);
-        const hoursUntil = Math.floor((meetingDate - now) / (1000 * 60 * 60));
-        console.log(`Görüşə qalan saat: ${hoursUntil}`);
-
-        if (hoursUntil > 0 && REMINDER_HOURS.includes(hoursUntil)) {
-            if (await shouldSend('hourly_reminder', `${hoursUntil}h`, supabase)) {
-                const success = await sendOneSignalNotification(`💖 Görüşümüzə ${hoursUntil} saat qaldı!`, `Səni görmək üçün saniyələr sayılır, Cəmaləm ❤️`);
-                if (success) await logNotification('hourly_reminder', `${hoursUntil}h`, supabase);
-                else console.error('Xatırlatma göndərilmədi');
-            }
-        }
-
-        const start = new Date(START_DATE);
-        const daysTogether = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-        console.log(`Birlikdə ${daysTogether} gün`);
-        
-        if (await shouldSend('daily_love', null, supabase)) {
-            const success = await sendOneSignalNotification(`✨ ${daysTogether}. günümüz!`, `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`);
-            if (success) await logNotification('daily_love', null, supabase);
-            else console.error('Günlük sevgi mesajı göndərilmədi');
-        }
-
-        return { statusCode: 200, body: JSON.stringify({ success: true }) };
-    } catch (err) {
-        console.error('Funksiya xətası:', err);
-        return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+  try {
+    const body = JSON.parse(event.body || '{}');
+    if (body.secret !== CRON_SECRET) {
+      return { statusCode: 403, body: 'Unauthorized' };
     }
+
+    // ---- Supabase-dən görüş tarixini al ----
+    const supabaseRes = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?id=eq.1&select=next_meeting_date`, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    const settings = await supabaseRes.json();
+    if (!supabaseRes.ok || !Array.isArray(settings) || !settings[0]?.next_meeting_date) {
+      console.error('Supabase-dən görüş tarixi alına bilmədi');
+      return { statusCode: 500, body: 'Görüş tarixi tapılmadı' };
+    }
+
+    const meetingDate = new Date(settings[0].next_meeting_date);
+    const now = new Date();
+
+    if (isNaN(meetingDate.getTime())) {
+      console.error('Yanlış tarix formatı');
+      return { statusCode: 500, body: 'Tarix formatı səhvdir' };
+    }
+
+    const hoursUntil = Math.floor((meetingDate - now) / (60 * 60 * 1000));
+    console.log(`Görüşə qalan saat (UTC): ${hoursUntil}`);
+
+    // ---- Görüş xatırlatmaları ----
+    if (hoursUntil > 0 && REMINDER_HOURS.includes(hoursUntil)) {
+      const { data: logData } = await readLog();
+      const lastSent = logData.reminders[hoursUntil] || 0;
+      const canSend = Date.now() - lastSent > 24 * 60 * 60 * 1000;
+      if (canSend) {
+        const success = await sendOneSignalNotification(
+          `💖 Görüşümüzə ${hoursUntil} saat qaldı!`,
+          'Səni görmək üçün saniyələr sayılır, Cəmaləm ❤️'
+        );
+        if (success) await markReminderSent(hoursUntil);
+        else console.error('Xatırlatma göndərilmədi');
+      } else {
+        console.log(`Xatırlatma artıq göndərilib: ${hoursUntil}h`);
+      }
+    }
+
+    // ---- Günlük sevgi mesajı ----
+    const startDate = new Date(START_DATE);
+    const daysTogether = Math.floor((now - startDate) / (24 * 60 * 60 * 1000));
+    const { data: logDataDaily } = await readLog();
+    const lastDaily = logDataDaily.daily_love?.lastSent || 0;
+    const lastDate = new Date(lastDaily);
+    const todayStartUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    if (lastDate < todayStartUTC) {
+      const success = await sendOneSignalNotification(
+        `✨ ${daysTogether}. günümüz!`,
+        `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`
+      );
+      if (success) await markDailyLoveSent();
+      else console.error('Günlük mesaj göndərilmədi');
+    } else {
+      console.log('Günlük mesaj artıq göndərilib.');
+    }
+
+    return { statusCode: 200, body: JSON.stringify({ success: true }) };
+  } catch (err) {
+    console.error('Funksiya xətası:', err);
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+  }
 };
