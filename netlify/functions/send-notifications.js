@@ -27,6 +27,7 @@ async function sendOneSignalNotification(title, message, subscriptionIds = null)
             headings: { en: title },
             contents: { en: message }
         };
+        // Test üçün məcburi olaraq test ID-lərini istifadə edirik
         if (subscriptionIds && subscriptionIds.length) {
             payload.include_subscription_ids = subscriptionIds;
         } else {
@@ -114,7 +115,8 @@ exports.handler = async (event) => {
                 const { hours, minutes, seconds } = getTimeRemaining(meetingDate, now);
                 const title = `💖 Görüşə az qaldı!`;
                 const message = `Qalan vaxt: ${hours} saat, ${minutes} dəqiqə, ${seconds} saniyə. Səni görmək üçün saniyələr sayılır, Cəmaləm ❤️`;
-                const success = await sendOneSignalNotification(title, message);
+                // Test ID-ləri ilə göndər
+                const success = await sendOneSignalNotification(title, message, TEST_PLAYER_IDS);
                 if (success) await logNotification('hourly_reminder', `${hoursUntil}h`, supabase);
                 else console.error('Xatırlatma göndərilmədi');
             }
@@ -126,7 +128,11 @@ exports.handler = async (event) => {
         console.log(`Birlikdə ${daysTogether} gün`);
         
         if (await shouldSend('daily_love', null, supabase)) {
-            const success = await sendOneSignalNotification(`✨ ${daysTogether}. günümüz!`, `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`);
+            const success = await sendOneSignalNotification(
+                `✨ ${daysTogether}. günümüz!`,
+                `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`,
+                TEST_PLAYER_IDS
+            );
             if (success) await logNotification('daily_love', null, supabase);
             else console.error('Günlük sevgi mesajı göndərilmədi');
         }
