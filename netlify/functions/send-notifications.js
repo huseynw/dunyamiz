@@ -153,9 +153,8 @@ exports.handler = async (event) => {
         const m = Math.floor((diffMs % 3600000) / 60000);
         const s = Math.floor((diffMs % 60000) / 1000);
 
-        const reminderTitle = `💖 Görüşümüzə ${h} saat ${m} dəqiqə ${s} saniyə qaldı!`;
-        const reminderMsg = 'Səni görmək üçün saniyələr sayılır, Cəmaləm ❤️';
-
+        const reminderTitle = `💖 Görüşümüzə az qaldı!`;
+        const reminderMsg = `Görüşümüzə ${h} saat ${m} dəqiqə ${s} saniyə qaldı!\nSəni görmək üçün saniyələr sayılır, Cəmaləm ❤️`;
         const success = await sendOneSignalNotification(reminderTitle, reminderMsg);
         if (success) await markReminderSent(hoursUntil);
         else console.error('Xatırlatma göndərilmədi');
