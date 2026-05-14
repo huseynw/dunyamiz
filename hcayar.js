@@ -5112,3 +5112,233 @@ if (sendCustomBtn) {
         setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
     });
 }
+
+
+// ============================================================
+// HAPTIC + SƏS EFFEKTLƏRİ — dunyamiz.me
+// Bütün toxunuşlarda vibrasiya + Web Audio API ilə incə səs
+// ============================================================
+const HapticSound = (() => {
+
+    // Ayrıca sfx konteksti — musiqi player audioContext ilə qarışmasın
+    let sfxCtx = null;
+
+    function getSfxCtx() {
+        try {
+            if (!sfxCtx || sfxCtx.state === 'closed') {
+                sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (sfxCtx.state === 'suspended') sfxCtx.resume();
+            return sfxCtx;
+        } catch (_) { return null; }
+    }
+
+    // Vibrasiya — Vibration API (Android + bəzi iOS)
+    function vibrate(pattern) {
+        if (!navigator.vibrate) return;
+        if (PERF_REDUCED_MOTION) return;
+        try { navigator.vibrate(pattern); } catch (_) {}
+    }
+
+    // Əsas ton generatoru — tam prgrammatik, fayl yoxdur
+    function playTone(freq, dur, type = 'sine', vol = 0.12, attack = 0.008, release = null) {
+        const ctx = getSfxCtx();
+        if (!ctx) return;
+        const releaseTime = release ?? dur * 0.75;
+        try {
+            const osc  = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const now  = ctx.currentTime;
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, now);
+
+            // Soft attack → exponential decay
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.linearRampToValueAtTime(vol, now + attack);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+            osc.start(now);
+            osc.stop(now + dur + 0.02);
+        } catch (_) {}
+    }
+
+    // ── Səs presetləri ──────────────────────────────────────
+
+    const sounds = {
+
+        // Adi düymə tıqqıltısı — yumşaq, qısa
+        tap() {
+            playTone(880, 0.07, 'sine', 0.10, 0.004);
+        },
+
+        // Aşağı nav-bar keçidi — biraz daha ağır
+        nav() {
+            playTone(660, 0.09, 'sine', 0.11, 0.005);
+        },
+
+        // Sevgi / ürək — iki not, C5 → G5
+        heart() {
+            playTone(523, 0.09, 'sine', 0.10, 0.006);
+            setTimeout(() => playTone(784, 0.22, 'sine', 0.11, 0.008), 85);
+        },
+
+        // Uğur / təsdiq — C5 → E5 → G5 üçlüyü
+        success() {
+            playTone(523, 0.11, 'sine', 0.11, 0.006);
+            setTimeout(() => playTone(659, 0.11, 'sine', 0.10, 0.005), 95);
+            setTimeout(() => playTone(784, 0.20, 'sine', 0.12, 0.007), 185);
+        },
+
+        // Xəta — enən iki not
+        error() {
+            playTone(392, 0.14, 'sine', 0.11, 0.005);
+            setTimeout(() => playTone(294, 0.22, 'sine', 0.10, 0.005), 110);
+        },
+
+        // Aç / genişlət — yüngül iki not
+        open() {
+            playTone(698, 0.08, 'sine', 0.09, 0.005);
+            setTimeout(() => playTone(880, 0.14, 'sine', 0.09, 0.005), 75);
+        },
+
+        // Bağla / azalt
+        close() {
+            playTone(880, 0.07, 'sine', 0.09, 0.004);
+            setTimeout(() => playTone(698, 0.12, 'sine', 0.08, 0.004), 65);
+        }
+    };
+
+    // ── Vibrasiya patternləri (ms) ───────────────────────────
+
+    const vibes = {
+        tap:     [7],
+        nav:     [8],
+        heart:   [10, 30, 12],
+        success: [8, 40, 12],
+        error:   [20, 25, 20],
+        open:    [6, 18, 6],
+        close:   [6]
+    };
+
+    // ── Düymə tipini avtomatik müəyyən et ──────────────────
+
+    function detectType(el) {
+        if (!el) return 'tap';
+
+        const id  = el.id  || '';
+        const cls = (typeof el.className === 'string' ? el.className : '') || '';
+
+        // Musiqi player düymələrini atla — onların öz audio feedback-i var
+        if (
+            id === 'playPauseBtn' || id === 'muteBtn' ||
+            id === 'yt-play-btn' || id === 'yt-play-btn-mini' ||
+            id === 'yt-prev-btn' || id === 'yt-next-btn' ||
+            id === 'yt-prev-btn-mini' || id === 'yt-next-btn-mini' ||
+            cls.includes('yt-chip-btn--play')
+        ) return null;
+
+        // Bağla / xaç düymələri
+        if (
+            cls.includes('close') || cls.includes('xmark') ||
+            id.includes('close') || id.includes('minimize') ||
+            el.getAttribute('aria-label')?.toLowerCase().includes('bağla')
+        ) return 'close';
+
+        // Aç / genişlət
+        if (
+            id.includes('open') || id.includes('expand') ||
+            el.closest?.('#lightbox') ||
+            el.getAttribute('aria-label')?.toLowerCase().includes('aç')
+        ) return 'open';
+
+        // Ürək / sevgi — giriş düyməsi + zarflar
+        if (
+            id === 'enter-btn' ||
+            el.closest?.('.envelope') ||
+            el.querySelector?.('.fa-heart') ||
+            cls.includes('heart') || id.includes('heart')
+        ) return 'heart';
+
+        // Nav-bar keçidi
+        if (el.closest?.('.spa-navbar') || cls.includes('nav-item')) return 'nav';
+
+        // Uğur / göndər / yüklə
+        if (
+            id === 'verify-btn' || id === 'submit-note-btn' ||
+            id === 'upload-music-btn' || id === 'upload-photo-btn' ||
+            id === 'send-custom-notif-btn' || id === 'admin-save-btn' ||
+            cls.includes('admin-btn--primary')
+        ) return 'success';
+
+        // Hər şey qalanı — adi tap
+        return 'tap';
+    }
+
+    // ── İstifadəçinin ilk toxunuşunu gözlə (autoplay policy) ─
+
+    let _unlocked = false;
+
+    function _unlock() {
+        if (_unlocked) return;
+        _unlocked = true;
+        getSfxCtx();
+    }
+
+    // ── Ana listener ────────────────────────────────────────
+
+    function init() {
+
+        document.addEventListener('pointerdown', _unlock, { once: true, passive: true });
+
+        document.addEventListener('pointerdown', (e) => {
+            if (!_unlocked) return;
+
+            const target = e.target;
+
+            // Düymə, zarf, qalereyada kart və ya role="button" olan element
+            const btn = target.closest(
+                'button, .envelope, .gallery-item, .quote-card, ' +
+                '.nav-item, .yt-chip-btn, .welcome-primary-btn, ' +
+                '.welcome-secondary-btn, [role="button"]'
+            );
+            if (!btn) return;
+
+            const type = detectType(btn);
+            if (!type) return;           // null → musiqi player, atla
+
+            vibrate(vibes[type] || vibes.tap);
+            sounds[type]?.();
+
+        }, { passive: true });
+
+        // Xəta mesajları gəldikdə error səsi çal
+        // (error-msg elementi göründükdə)
+        const errEl = document.getElementById('error-msg');
+        if (errEl) {
+            const obs = new MutationObserver(() => {
+                if (!errEl.classList.contains('hidden') && errEl.style.display !== 'none') {
+                    vibrate(vibes.error);
+                    sounds.error();
+                }
+            });
+            obs.observe(errEl, { attributes: true, attributeFilter: ['class', 'style'] });
+        }
+
+        console.log('[HapticSound] ✅ Haptic + Səs effektləri aktiv');
+    }
+
+    // Public API — xarici koddan çağırmaq üçün
+    return { init, vibrate, sounds, vibes };
+
+})();
+
+// DOM hazır olduqdan sonra işə sal
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => HapticSound.init());
+} else {
+    HapticSound.init();
+}
