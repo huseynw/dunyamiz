@@ -1,6 +1,10 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { minify } = require("terser");
+
+// Bu fayllar minify+obfuscate ediləcək
+const jsToObfuscate = ["hcayar.js", "video.js"];
 
 const filesToHash = ["hcstil.css", "hcayar.js", "gsap.min.js"];
 const outDir = "dist";
@@ -23,6 +27,38 @@ function copyDir(src, dest) {
       copyDir(srcPath, destPath);
     } else {
       fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+async function obfuscateJsFiles() {
+  for (const jsFile of jsToObfuscate) {
+    const destPath = path.join(outDir, jsFile);
+    if (!fs.existsSync(destPath)) continue;
+
+    const code = fs.readFileSync(destPath, "utf8");
+    const result = await minify(code, {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+        passes: 3,
+      },
+      mangle: {
+        toplevel: true,
+        eval: true,
+      },
+      format: {
+        comments: false,
+        semicolons: true,
+      },
+      sourceMap: false,
+    });
+
+    if (result.code) {
+      fs.writeFileSync(destPath, result.code, "utf8");
+      const origKb = (code.length / 1024).toFixed(1);
+      const newKb = (result.code.length / 1024).toFixed(1);
+      console.log(`✓ Obfuscate: ${jsFile} (${origKb}kb → ${newKb}kb)`);
     }
   }
 }
@@ -144,30 +180,40 @@ function patchHtmlFiles() {
   }
 }
 
-fs.rmSync(outDir, { recursive: true, force: true });
-fs.mkdirSync(outDir, { recursive: true });
+async function main() {
+  fs.rmSync(outDir, { recursive: true, force: true });
+  fs.mkdirSync(outDir, { recursive: true });
 
-for (const item of fs.readdirSync(".")) {
-  if (
-    item === "dist" ||
-    item === "node_modules" ||
-    item === ".git" ||
-    item === "build.js"
-  ) {
-    continue;
+  for (const item of fs.readdirSync(".")) {
+    if (
+      item === "dist" ||
+      item === "node_modules" ||
+      item === ".git" ||
+      item === "build.js"
+    ) {
+      continue;
+    }
+
+    const srcPath = path.join(".", item);
+    const destPath = path.join(outDir, item);
+
+    if (fs.statSync(srcPath).isDirectory()) {
+      copyDir(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
   }
 
-  const srcPath = path.join(".", item);
-  const destPath = path.join(outDir, item);
+  generateVideoList();
+  patchHtmlFiles();
 
-  if (fs.statSync(srcPath).isDirectory()) {
-    copyDir(srcPath, destPath);
-  } else {
-    fs.copyFileSync(srcPath, destPath);
-  }
+  console.log("\n🔒 JS faylları obfuscate edilir...");
+  await obfuscateJsFiles();
+
+  console.log("\n✅ Build hazırdır: dist/");
 }
 
-generateVideoList();
-patchHtmlFiles();
-
-console.log("Build hazırdır: dist/");
+main().catch((err) => {
+  console.error("Build xətası:", err);
+  process.exit(1);
+});

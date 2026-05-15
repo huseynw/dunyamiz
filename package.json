@@ -4,11 +4,18 @@
   "description": "Admin paneli üçün GitHub proxy funksiyası",
   "main": "index.js",
   "scripts": {
-    "build": "node build.js",
+    "dev": "vite",
+    "build": "vite build && node postbuild.js",
+    "preview": "vite preview",
+    "build-legacy": "node build.js",
     "generate-video-manifest": "node scripts/generate-video-manifest.js"
   },
   "dependencies": {
-    "node-fetch": "^2.7.0",
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "terser": "^5.47.1",
+    "vite": "^5.4.21"
   }
 }
