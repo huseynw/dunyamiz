@@ -4,10 +4,22 @@
 
 :root {
     --primary: #ff4d6d;
+    --primary-dark: #e8394f;
+    --primary-light: #ff7c94;
     --primary-glow: rgba(255, 77, 109, 0.5);
+    --primary-glow-sm: rgba(255, 77, 109, 0.2);
     --glass: rgba(255, 255, 255, 0.1);
+    --glass-sm: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-border-sm: rgba(255, 255, 255, 0.08);
     --text: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.7);
+    --text-dim: rgba(255, 255, 255, 0.42);
+    --radius-sm: 12px;
+    --radius-md: 18px;
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+    --weather-accent: #ff4d6d;
 }
 
 *,
@@ -8068,4 +8080,174 @@ body.dark-ui .gallery-timeline .photo-frame {
     .yt-active-player iframe {
         transform: translateZ(0);
     }
+}
+
+/* ===== PREMIUM COMPONENT STYLES ===== */
+
+/* Weather Container */
+.weather-container {
+    text-align: center;
+    padding: 15px;
+    font-family: 'Poppins', sans-serif;
+    transition: all 1s ease;
+}
+
+.weather-status {
+    color: #aaa;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+/* Premium Open Note Button */
+.btn-premium {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    box-shadow: 0 5px 15px var(--primary-glow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--primary-glow);
+    background: var(--primary-light);
+}
+
+.btn-premium:active {
+    transform: translateY(1px);
+}
+
+/* Note Modal Classes */
+.note-modal-content {
+    max-width: 450px;
+    padding: 30px 25px;
+    background: white;
+    border-radius: var(--radius-lg);
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+
+.note-modal-title {
+    font-size: 2.2rem;
+    color: #333;
+    font-family: 'Great Vibes', cursive;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.note-modal-field {
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+.note-modal-label {
+    font-size: 0.9rem;
+    color: #555;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.note-modal-input, .note-modal-textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid #ccc;
+    outline: none;
+    font-family: 'Poppins', sans-serif;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.note-modal-input:focus, .note-modal-textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow-sm);
+}
+
+.note-modal-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.note-modal-submit {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    box-shadow: 0 5px 15px var(--primary-glow);
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.note-modal-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--primary-glow);
+}
+
+/* Note View Classes */
+.note-view-content {
+    max-width: 500px;
+    text-align: left;
+    background: white;
+    padding: 30px;
+    border-radius: var(--radius-lg);
+}
+
+.note-view-title {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.note-view-author {
+    font-style: italic;
+    color: var(--primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.note-view-text {
+    white-space: pre-wrap;
+    line-height: 1.6;
+    font-size: 1rem;
+    color: #333;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.note-view-footer {
+    border-top: 1px solid #eee;
+    margin-top: 20px;
+    padding-top: 10px;
+    text-align: right;
+}
+
+.note-view-date {
+    font-size: 0.8rem;
+    color: #888;
+    background: #f5f5f5;
+    padding: 5px 10px;
+    border-radius: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.hidden {
+    display: none !important;
 }

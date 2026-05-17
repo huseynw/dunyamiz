@@ -153,32 +153,7 @@ if (window.gsap) {
     gsap.defaults({ overwrite: 'auto' });
 }
 
-// Security - Disable right-click and dev tools
-//document.addEventListener('contextmenu', event => event.preventDefault());
-//document.onkeydown = function(e) {
-//  if (e.keyCode == 123 || 
-//    (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || 
-//  (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
-//return false;
-//}
-//};
-
-//setInterval(function() {
-//  checkDevTools();
-//}, 1000);
-
-//function checkDevTools() {
-//  const start = new Date();
-//debugger; 
-//const end = new Date();
-//if (end - start > 100) {
-//  document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:20%; font-family:sans-serif;'>Giriş Qadağandır! 🚱</h1>";
-//}
-//}
-
-//setInterval(() => {
-//  console.clear();
-//}, 100);
+// Security blocks removed for cleaner code
 
 // Audio Elements
 const audio = document.getElementById('audio');
@@ -498,14 +473,8 @@ window.addEventListener('pageshow', () => {
 
 document.addEventListener('touchstart', () => {
     resumeAudioContextSafely();
-}, { passive: true });
-document.addEventListener('touchstart', () => {
     initIOSVolumeFix();
-
-    if (audioContext && audioContext.state === 'suspended') {
-        audioContext.resume().catch(() => { });
-    }
-}, { passive: true });
+}, { passive: true, once: false });
 // ========== SPA NAVIGATION ==========
 function initSPANavigation() {
     const navItems = document.querySelectorAll('.nav-item');
@@ -536,14 +505,14 @@ function initSPANavigation() {
                         targetElement.style.display = 'block';
                         targetElement.classList.add('active');
                         gsap.fromTo(targetElement,
-                            { y: 40, opacity: 0 },
-                            { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }
+                            { opacity: 0, scale: 0.95, rotationX: 8, y: 25 },
+                            { opacity: 1, scale: 1, rotationX: 0, y: 0, duration: 0.8, ease: "expo.out", transformPerspective: 1000 }
                         );
 
                         // Elementlərin fərqli sürətlə axması (Stagger)
                         gsap.fromTo(targetElement.querySelectorAll('.page-title, .animate-item, .time-together-card, .detailed-time-card'),
-                            { y: 30, opacity: 0 },
-                            { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "back.out(1.2)", delay: 0.1 }
+                            { y: 40, opacity: 0, scale: 0.95 },
+                            { y: 0, opacity: 1, scale: 1, duration: 0.8, stagger: 0.08, ease: "back.out(1.4)", delay: 0.1 }
                         );
                     }
                 });
@@ -558,31 +527,30 @@ function initWelcomeAnimations() {
     }
 
     // Set initial states explicitly before animating to avoid CSS will-change conflicts
-    gsap.set('.welcome-grid', { opacity: 0, y: 22 });
-    gsap.set('.welcome-topline', { opacity: 0, y: 22 });
-    gsap.set('.welcome-hero-icon', { opacity: 0, scale: 0.86 });
-    gsap.set('.welcome-copy > *', { opacity: 0, y: 24 });
-    gsap.set('.welcome-stats .welcome-stat-card', { opacity: 0, y: 18 });
-    gsap.set('.welcome-actions button', { opacity: 0, y: 18 });
+    gsap.set('.welcome-grid', { opacity: 0, scale: 1.05 });
+    gsap.set('.welcome-topline', { opacity: 0, y: -20 });
+    gsap.set('.welcome-hero-icon', { opacity: 0, scale: 0.5, rotationY: 90 });
+    gsap.set('.welcome-copy > *', { opacity: 0, y: 30, rotationX: -15 });
+    gsap.set('.welcome-stats .welcome-stat-card', { opacity: 0, y: 30, scale: 0.8 });
+    gsap.set('.welcome-actions button', { opacity: 0, y: 25, scale: 0.9 });
 
-    const tl = gsap.timeline({ defaults: { duration: 0.75, ease: 'power3.out' } });
-    tl.to('.welcome-grid', { opacity: 1, y: 0, duration: 0.8 });
-    tl.to('.welcome-topline', { opacity: 1, y: 0 }, '-=0.55');
-    tl.to('.welcome-hero-icon', { opacity: 1, scale: 1, ease: 'back.out(1.4)' }, '-=0.52');
-    tl.to('.welcome-copy > *', { opacity: 1, y: 0, stagger: 0.1 }, '-=0.45');
-    tl.to('.welcome-stats .welcome-stat-card', { opacity: 1, y: 0, stagger: 0.08 }, '-=0.5');
-    tl.to('.welcome-actions button', {
-        opacity: 1, y: 0, ease: 'back.out(1.3)',
-        onComplete() {
-            // Release GSAP control so CSS hover/active transitions work normally
-            gsap.set('.welcome-actions button', { clearProps: 'transform,opacity,y' });
-        }
-    }, '-=0.45');
+    const tl = gsap.timeline({ defaults: { duration: 1, ease: 'expo.out', transformPerspective: 1000 } });
+    tl.to('.welcome-grid', { opacity: 1, scale: 1, duration: 1.5 })
+      .to('.welcome-topline', { opacity: 1, y: 0 }, '-=1.2')
+      .to('.welcome-hero-icon', { opacity: 1, scale: 1, rotationY: 0, ease: 'elastic.out(1, 0.5)', duration: 1.5 }, '-=1')
+      .to('.welcome-copy > *', { opacity: 1, y: 0, rotationX: 0, stagger: 0.15 }, '-=1.2')
+      .to('.welcome-stats .welcome-stat-card', { opacity: 1, y: 0, scale: 1, stagger: 0.1, ease: 'back.out(1.4)' }, '-=1')
+      .to('.welcome-actions button', {
+          opacity: 1, y: 0, scale: 1, ease: 'elastic.out(1, 0.6)', duration: 1.2,
+          onComplete() {
+              gsap.set('.welcome-actions button', { clearProps: 'all' });
+          }
+      }, '-=1.1');
 
-    // Float animation — use absolute y values to avoid stacking issues
+    // Premium Float animation with Glow Pulse
     gsap.fromTo('#enter-btn',
-        { y: 0 },
-        { y: -4, duration: 1.4, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 1.4 }
+        { y: 0, boxShadow: '0 0 0px rgba(255, 77, 109, 0)' },
+        { y: -6, boxShadow: '0 15px 30px rgba(255, 77, 109, 0.4)', duration: 1.5, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 1.5 }
     );
 }
 
@@ -752,7 +720,7 @@ verifyBtn?.addEventListener('click', async () => {
     }
 });
 
-passInput?.addEventListener('keypress', (e) => {
+passInput?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') verifyBtn?.click();
 });
 // ========== TIME TOGETHER COUNTER (ASCENDING) ==========
@@ -810,7 +778,11 @@ function startPerfMainLoop() {
             }
         }
 
-        requestAnimationFrame(loop);
+        if (document.hidden) {
+            setTimeout(() => requestAnimationFrame(loop), 1000);
+        } else {
+            requestAnimationFrame(loop);
+        }
     };
 
     requestAnimationFrame(loop);
@@ -859,6 +831,7 @@ async function fetchImages() {
 
     stack.className = 'gallery-timeline';
     stack.innerHTML = '<p class="timeline-loading"><i class="fas fa-spinner fa-spin"></i> Xatirələr yüklənir...</p>';
+    if (typeof perfDomCache !== 'undefined') perfDomCache.clear();
 
     try {
         const data = await perfFetchJsonCached('gallery-list', '/.netlify/functions/github-content?path=gallery', PERF_GITHUB_TTL);
@@ -1000,23 +973,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Yükləmək
-    document.getElementById('download-btn')?.addEventListener('click', async () => {
+    document.getElementById('download-btn')?.addEventListener('click', () => {
         const imgData = window.allImages[currentImgIdx];
         if (!imgData) return;
-        try {
-            const response = await fetch(imgData.download_url);
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = imgData.name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        } catch (e) {
-            window.open(imgData.download_url, '_blank');
-        }
+        downloadImageFile(imgData.download_url, imgData.name);
     });
 });
 document.addEventListener('keydown', (e) => {
@@ -1126,7 +1086,7 @@ function fastChangeLoveText() {
     const textElement = document.getElementById('changing-love');
     if (!textElement) return;
     phraseIndex = (phraseIndex + 1) % lovePhrases.length;
-    textElement.innerText = lovePhrases[phraseIndex];
+    textElement.textContent = lovePhrases[phraseIndex];
 }
 
 // fastChangeLoveText is driven by the shared requestAnimationFrame loop for smoother mobile performance.
@@ -1471,15 +1431,22 @@ function stopHolding() {
 }
 
 function updatePower() {
-    percentText.innerText = power + "%";
+    percentText.textContent = power + "%";
     heartBtn.style.transform = `scale(${1 + (power / 100)})`;
     loveBg.style.opacity = power / 100;
 
     if (power >= 100) {
         heartBtn.style.filter = `drop-shadow(0 0 30px #ff4d6d)`;
-        percentText.innerText = "Səni Çox Sevirəm 🤍";
+        percentText.textContent = "Səni Çox Sevirəm 🤍";
+        
+        // Premium particle burst
+        if (!heartBtn.dataset.burst) {
+            heartBtn.dataset.burst = "true";
+            for(let i=0; i<30; i++) setTimeout(() => createHeart(), i * 40);
+        }
     } else {
         heartBtn.style.filter = `drop-shadow(0 0 ${power / 3}px #ff4d6d)`;
+        heartBtn.dataset.burst = "";
     }
 }
 
@@ -2091,7 +2058,7 @@ function initWeatherParticles(type) {
                 p.x = Math.random() * canvas.width;
             }
         });
-        weatherAnimId = requestAnimationFrame(draw);
+        weatherAnimId = requestAnimationFrame(draww);
     }
     draww();
 }
