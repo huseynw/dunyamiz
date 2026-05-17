@@ -4518,6 +4518,7 @@ function formatAdminDateTimeLocal(dateLike) {
 function openAdminPanel() {
     const adminPanel = document.getElementById('admin-panel');
     if (!adminPanel) return;
+    adminPanel.classList.remove('hidden');
     adminPanel.style.display = 'flex';
     syncAdminOverview();
 }
@@ -4525,6 +4526,7 @@ function openAdminPanel() {
 function closeAdminPanel() {
     const adminPanel = document.getElementById('admin-panel');
     if (!adminPanel) return;
+    adminPanel.classList.add('hidden');
     adminPanel.style.display = 'none';
 }
 
