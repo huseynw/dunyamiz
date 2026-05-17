@@ -49,9 +49,8 @@ async function loadSiteSettings(force = false) {
 
         siteSettingsLoaded = true;
 
-        const meetEl = document.getElementById('meet-count');
         if (meetEl) {
-            meetEl.innerText = config.meetingCount;
+            meetEl.textContent = config.meetingCount;
         }
 
         if (typeof updateMeetingTimer === 'function') {
@@ -543,7 +542,8 @@ function initWelcomeAnimations() {
       .to('.welcome-actions button', {
           opacity: 1, y: 0, scale: 1, ease: 'elastic.out(1, 0.6)', duration: 1.2,
           onComplete() {
-              gsap.set('.welcome-actions button', { clearProps: 'all' });
+              // Only clear transform properties, NOT display, so that enter-btn hiding is preserved
+              gsap.set('.welcome-actions button', { clearProps: 'transform,scale,rotationX,rotationY,opacity' });
           }
       }, '-=1.1');
 
@@ -624,7 +624,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadSiteSettings();
 
     const meetEl = document.getElementById('meet-count');
-    if (meetEl) meetEl.innerText = config.meetingCount;
+    if (meetEl) meetEl.textContent = config.meetingCount;
 
     updateCounter();
     updateMeetingTimer();
@@ -641,6 +641,7 @@ const passInput = document.getElementById('pass-input');
 const errorMsg = document.getElementById('error-msg');
 
 enterBtn?.addEventListener('click', () => {
+    enterBtn.classList.add('hidden-by-js');
     enterBtn.style.display = 'none';
     if (passPanel) {
         passPanel.classList.remove('hidden');
@@ -1064,13 +1065,14 @@ const letters = {
 
 window.openLetter = function (type) {
     const modal = document.getElementById('letter-modal');
-    document.getElementById('letter-title').innerText = letters[type].title;
-    document.getElementById('letter-text').innerText = letters[type].text;
+    document.getElementById('letter-title').textContent = letters[type].title;
+    document.getElementById('letter-text').textContent = letters[type].text;
     modal.style.display = 'flex';
 };
 
 window.closeLetter = function () {
-    document.getElementById('letter-modal').style.display = 'none';
+    const m = document.getElementById('letter-modal');
+    if (m) m.style.display = 'none';
 };
 
 // ========== LOVE PHRASES ==========
@@ -2483,8 +2485,8 @@ document.addEventListener('DOMContentLoaded', () => {
             el.addEventListener('click', () => {
                 const modal = document.getElementById('letter-modal');
                 // Sizin letters obyektinizdən məlumatları çəkir
-                document.getElementById('letter-title').innerText = letters[type].title;
-                document.getElementById('letter-text').innerText = letters[type].text;
+                document.getElementById('letter-title').textContent = letters[type].title;
+                document.getElementById('letter-text').textContent = letters[type].text;
                 modal.style.display = 'flex';
             });
         }
@@ -2537,9 +2539,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Əlavə olaraq: Panelin kənarına (boz arxafona) basanda da bağlanması üçün
     window.addEventListener('click', (event) => {
         if (event.target === adminPanel) {
-            adminPanel.style.display = 'none';
+        closeAdminPanel();
         }
     });
+});
+// Fix: also fix duplicate close handler to use the proper function
+document.addEventListener('DOMContentLoaded', () => {
+    const closeAdminBtn2 = document.querySelector('.close-admin');
+    if (closeAdminBtn2 && !closeAdminBtn2.dataset.bound) {
+        closeAdminBtn2.dataset.bound = 'true';
+        closeAdminBtn2.addEventListener('click', closeAdminPanel);
+    }
 });
 // Notlar funksiyası
 // Notlar funksiyası
@@ -2548,14 +2558,18 @@ window.showNote = function (i) {
         if (!window.currentNotes || !window.currentNotes[i]) return;
         const n = window.currentNotes[i];
 
-        document.getElementById('view-note-title').innerText = n.title;
-        document.getElementById('view-note-author').innerText = n.author + " tərəfindən";
-        document.getElementById('view-note-text').innerText = n.content;
+        document.getElementById('view-note-title').textContent = n.title;
+        document.getElementById('view-note-author').textContent = n.author + " tərəfindən";
+        document.getElementById('view-note-text').textContent = n.content;
 
         // Saat ikonunu qorumaq üçün innerText əvəzinə innerHTML istifadə edirik:
         document.getElementById('view-note-date').innerHTML = `<i class="far fa-clock"></i> ${n.dateStr}`;
 
-        document.getElementById('view-note-modal').style.display = 'flex';
+        const noteModal = document.getElementById('view-note-modal');
+        if (noteModal) {
+            noteModal.classList.remove('hidden');
+            noteModal.style.display = 'flex';
+        }
     } catch (err) {
         console.error("Not açılarkən xəta baş verdi:", err);
         alert("Notu açmaq mümkün olmadı.");
@@ -2615,9 +2629,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const addModal = document.getElementById('add-note-modal');
     const viewModal = document.getElementById('view-note-modal');
 
-    document.getElementById('open-add-note-btn').onclick = () => addModal.style.display = 'flex';
-    document.getElementById('close-add-note-btn').onclick = () => addModal.style.display = 'none';
-    document.getElementById('close-view-note-btn').onclick = () => viewModal.style.display = 'none';
+    document.getElementById('open-add-note-btn').onclick = () => {
+        addModal.classList.remove('hidden');
+        addModal.style.display = 'flex';
+    };
+    document.getElementById('close-add-note-btn').onclick = () => {
+        addModal.classList.add('hidden');
+        addModal.style.display = 'none';
+    };
+    document.getElementById('close-view-note-btn').onclick = () => {
+        viewModal.classList.add('hidden');
+        viewModal.style.display = 'none';
+    };
 
     // Not əlavə etmə məntiqi
     document.getElementById('submit-note-btn').onclick = async () => {
@@ -2637,7 +2660,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(noteObj))));
 
         const btn = document.getElementById('submit-note-btn');
-        btn.innerText = "Yüklənir...";
+        btn.textContent = "Yüklənir...";
         btn.disabled = true;
 
         try {
@@ -2656,12 +2679,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 location.reload();
             } else {
                 alert("Xəta: Şifrə yanlış ola bilər.");
-                btn.innerText = "Təsdiqlə";
+                btn.textContent = "Təsdiqlə";
                 btn.disabled = false;
             }
         } catch (e) {
             alert("Sistem xətası baş verdi.");
-            btn.innerText = "Təsdiqlə";
+            btn.textContent = "Təsdiqlə";
             btn.disabled = false;
         }
     };
