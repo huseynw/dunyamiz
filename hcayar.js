@@ -1237,6 +1237,8 @@ function updateMeetingTimer() {
     const dateEl = document.getElementById('next-meeting-date');
     if (dateEl && dateEl.textContent !== 'Görüş vaxtı: ' + formatliTarix) dateEl.textContent = 'Görüş vaxtı: ' + formatliTarix;
 
+    const setValue = (id, value) => perfSetText(id, String(value).padStart(2, '0'));
+
     if (window.isLocked) return;
 
     if (diff <= 0) {
