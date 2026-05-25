@@ -89,7 +89,7 @@ function perfSetText(id, value) {
     if (perfTextCache.get(id) === text) return;
     const el = perfGetEl(id);
     if (!el) return;
-    el.textContent = text;
+    el.innerHTML = text;
     perfTextCache.set(id, text);
 }
 
