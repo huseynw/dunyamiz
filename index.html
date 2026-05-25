@@ -22,6 +22,18 @@
     
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-minimal.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
+    <script>
+      window.odometerOptions = {
+        auto: true,
+        selector: '.odometer',
+        format: '(,ddd)',
+        duration: 2000,
+        theme: 'minimal',
+        animation: 'count' 
+      };
+    </script>
     <link rel="manifest" href="/manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/512.png">
@@ -275,21 +287,21 @@
                         </div>
                         <div class="time-together-display">
                             <div class="big-time">
-                                <span id="total-days">0</span>
+                                <span id="total-days" class="odometer">0</span>
                                 <label>Gün</label>
                             </div>
                             <div class="time-divider"></div>
                             <div class="small-time-grid">
                                 <div class="small-time">
-                                    <span id="hours">00</span>
+                                    <span id="hours" class="odometer">00</span>
                                     <label>Saat</label>
                                 </div>
                                 <div class="small-time">
-                                    <span id="minutes">00</span>
+                                    <span id="minutes" class="odometer">00</span>
                                     <label>Dəqiqə</label>
                                 </div>
                                 <div class="small-time">
-                                    <span id="seconds">00</span>
+                                    <span id="seconds" class="odometer">00</span>
                                     <label>Saniyə</label>
                                 </div>
                             </div>
@@ -297,7 +309,7 @@
                         <div class="meeting-info">
                             <div class="info-item">
                                 <i class="fas fa-map-marker-alt"></i>
-                                <span>Görüş sayımız: <strong id="meet-count">0</strong></span>
+                                <span>Görüş sayımız: <strong id="meet-count" class="odometer">0</strong></span>
                             </div>
                             <div class="info-item">
                                 <i class="fas fa-calendar-check"></i>
@@ -312,19 +324,19 @@
                         <p id="next-meeting-date" class="meeting-date-text"></p> 
                         <div class="timer-grid">
                             <div class="time-box">
-                                <span id="meet-days">00</span>
+                                <span id="meet-days" class="odometer">00</span>
                                 <label>Gün</label>
                             </div>
                             <div class="time-box">
-                                <span id="meet-hours">00</span>
+                                <span id="meet-hours" class="odometer">00</span>
                                 <label>Saat</label>
                             </div>
                             <div class="time-box">
-                                <span id="meet-minutes">00</span>
+                                <span id="meet-minutes" class="odometer">00</span>
                                 <label>Dəqiqə</label>
                             </div>
                             <div class="time-box">
-                                <span id="meet-seconds">00</span>
+                                <span id="meet-seconds" class="odometer">00</span>
                                 <label>Saniyə</label>
                             </div>
                         </div>
@@ -411,31 +423,31 @@
                         </div>
                         <div class="detailed-stats">
                             <div class="stat-item">
-                                <span class="stat-value" id="detail-days">0</span>
+                                <span class="stat-value odometer" id="detail-days">0</span>
                                 <span class="stat-label">Gün</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-value" id="detail-hours">0</span>
+                                <span class="stat-value odometer" id="detail-hours">0</span>
                                 <span class="stat-label">Saat</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-value" id="detail-minutes">0</span>
+                                <span class="stat-value odometer" id="detail-minutes">0</span>
                                 <span class="stat-label">Dəqiqə</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-value" id="detail-seconds">0</span>
+                                <span class="stat-value odometer" id="detail-seconds">0</span>
                                 <span class="stat-label">Saniyə</span>
                             </div>
                         </div>
                         <div class="total-experience">
                             <div class="exp-item">
                                 <i class="fas fa-heart"></i>
-                                <span id="total-hours-love">0</span>
+                                <span id="total-hours-love" class="odometer">0</span>
                                 <label>saat sevgi</label>
                             </div>
                             <div class="exp-item">
                                 <i class="fas fa-star"></i>
-                                <span id="total-minutes-love">0</span>
+                                <span id="total-minutes-love" class="odometer">0</span>
                                 <label>dəqiqə xoşbəxtlik</label>
                             </div>
                         </div>

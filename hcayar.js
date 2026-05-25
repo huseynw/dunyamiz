@@ -1,4 +1,5 @@
 let targetDate = new Date();
+window.isLocked = true;
 let currentWaveColor = "rgb(255,255,255)";
 const config = {
     githubUsername: "huseynw",
@@ -681,45 +682,15 @@ verifyBtn?.addEventListener('click', async () => {
                 mainContent.classList.remove('hidden');
 
                 // Animasiyalar
-                const startVal = new Date(config.startDate).getTime();
-                const diffVal = new Date().getTime() - startVal;
-                const dVal = Math.floor(diffVal / (1000 * 60 * 60 * 24));
-                const hVal = Math.floor(diffVal / (1000 * 60 * 60));
-                const mVal = Math.floor(diffVal / (1000 * 60));
+                // setTimeout içində isLocked = false edirik ki, mainContent 'display: block' olduqdan sonra dəyərlər yenilənsin
+                // Odometer js bu dəyişikliyi görüb 0-dan cari saata doğru fırladacaq.
+                setTimeout(() => { 
+                    window.isLocked = false; 
+                    updateCounter();
+                    updateMeetingTimer();
+                }, 100);
 
-                const hPart = Math.floor((diffVal % 86400000) / 3600000);
-                const mPart = Math.floor((diffVal % 3600000) / 60000);
-                const sPart = Math.floor((diffVal % 60000) / 1000);
-
-                window.isAnimating = true;
-                animateValue('meet-count', 0, config.meetingCount, 2500);
-                animateValue('total-days', 0, dVal, 2500);
-                animateValue('detail-days', 0, dVal, 2500);
-                animateValue('total-hours-love', 0, hVal, 2500);
-                animateValue('total-minutes-love', 0, mVal, 2500);
-
-                animateValue('hours', 0, hPart, 2500);
-                animateValue('minutes', 0, mPart, 2500);
-                animateValue('seconds', 0, sPart, 2500);
-                animateValue('detail-hours', 0, hPart, 2500);
-                animateValue('detail-minutes', 0, mPart, 2500);
-                animateValue('detail-seconds', 0, sPart, 2500);
-
-                if (targetDate instanceof Date && !Number.isNaN(targetDate.getTime())) {
-                    const diffM = targetDate.getTime() - new Date().getTime();
-                    if (diffM > 0) {
-                        const m_d = Math.floor(diffM / (1000 * 60 * 60 * 24));
-                        const m_h = Math.floor((diffM % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                        const m_m = Math.floor((diffM % (1000 * 60 * 60)) / (1000 * 60));
-                        const m_s = Math.floor((diffM % (1000 * 60)) / 1000);
-                        animateValue('meet-days', 0, m_d, 2500);
-                        animateValue('meet-hours', 0, m_h, 2500);
-                        animateValue('meet-minutes', 0, m_m, 2500);
-                        animateValue('meet-seconds', 0, m_s, 2500);
-                    }
-                }
-
-                setTimeout(() => { window.isAnimating = false; }, 2600);
+                setTimeout(() => mainContent.classList.add('animate-start'), 100);
 
                 setTimeout(() => mainContent.classList.add('animate-start'), 100);
             }, 800);
@@ -766,19 +737,21 @@ function updateCounter() {
     const totalHours = Math.floor(diff / 3600000);
     const totalMinutes = Math.floor(diff / 60000);
 
+    if (window.isLocked) return;
+
     if (!window.isAnimating) {
         perfSetText('total-days', d);
         perfSetText('detail-days', d);
-        perfSetText('total-hours-love', totalHours.toLocaleString('tr-TR'));
-        perfSetText('total-minutes-love', totalMinutes.toLocaleString('tr-TR'));
+        perfSetText('total-hours-love', totalHours);
+        perfSetText('total-minutes-love', totalMinutes);
         perfSetText('meet-count', config.meetingCount);
 
         perfSetText('hours', h < 10 ? '0' + h : h);
         perfSetText('minutes', m < 10 ? '0' + m : m);
         perfSetText('seconds', sec < 10 ? '0' + sec : sec);
-        perfSetText('detail-hours', h);
-        perfSetText('detail-minutes', m);
-        perfSetText('detail-seconds', sec);
+        perfSetText('detail-hours', h < 10 ? '0' + h : h);
+        perfSetText('detail-minutes', m < 10 ? '0' + m : m);
+        perfSetText('detail-seconds', sec < 10 ? '0' + sec : sec);
     }
 }
 
@@ -1264,7 +1237,7 @@ function updateMeetingTimer() {
     const dateEl = document.getElementById('next-meeting-date');
     if (dateEl && dateEl.textContent !== 'Görüş vaxtı: ' + formatliTarix) dateEl.textContent = 'Görüş vaxtı: ' + formatliTarix;
 
-    const setValue = (id, value) => perfSetText(id, String(value).padStart(2, '0'));
+    if (window.isLocked) return;
 
     if (diff <= 0) {
         if (titleEl && titleEl.textContent !== 'Görüş vaxtı gəldi!') titleEl.textContent = 'Görüş vaxtı gəldi!';
@@ -2530,38 +2503,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-function animateValue(id, start, end, duration) {
-    const obj = document.getElementById(id);
-    if (!obj) return;
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const easeOut = 1 - Math.pow(1 - progress, 4);
-        const current = Math.floor(easeOut * (end - start) + start);
-
-        if (id === 'total-minutes-love' || id === 'total-hours-love') {
-            obj.innerText = current.toLocaleString('tr-TR');
-        } else if (['hours', 'minutes', 'seconds', 'meet-hours', 'meet-minutes', 'meet-seconds', 'detail-hours', 'detail-minutes', 'detail-seconds'].includes(id)) {
-            obj.innerText = String(current).padStart(2, '0');
-        } else {
-            obj.innerText = current;
-        }
-
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        } else {
-            if (id === 'total-minutes-love' || id === 'total-hours-love') {
-                obj.innerText = end.toLocaleString('tr-TR');
-            } else if (['hours', 'minutes', 'seconds', 'meet-hours', 'meet-minutes', 'meet-seconds', 'detail-hours', 'detail-minutes', 'detail-seconds'].includes(id)) {
-                obj.innerText = String(end).padStart(2, '0');
-            } else {
-                obj.innerText = end;
-            }
-        }
-    };
-    window.requestAnimationFrame(step);
-}
 document.addEventListener('DOMContentLoaded', () => {
     const closeAdminBtn = document.querySelector('.close-admin');
     const adminPanel = document.getElementById('admin-panel');
