@@ -1034,7 +1034,7 @@ header {
 }
 
 
-.big-time span {
+.big-time > span {
     font-size: 4rem;
     font-weight: 700;
     color: var(--primary);
@@ -1077,7 +1077,7 @@ header {
 }
 
 
-.small-time span {
+.small-time > span {
     font-size: 1.4rem;
     font-weight: 600;
     color: var(--primary);
@@ -1206,7 +1206,7 @@ header {
 }
 
 
-.exp-item span {
+.exp-item > span {
     font-size: 1.8rem;
     font-weight: 600;
     color: white;
@@ -1267,7 +1267,7 @@ header {
 }
 
 
-.time-box span {
+.time-box > span {
     display: block;
     font-size: 2rem;
     font-weight: 600;
@@ -3011,7 +3011,7 @@ header {
         gap: 10px;
     }
 
-    .time-box span {
+    .time-box > span {
         font-size: 1.6rem;
     }
 
@@ -3046,7 +3046,7 @@ header {
         padding: 15px 25px;
     }
 
-    .big-time span {
+    .big-time > span {
         font-size: 3rem;
     }
 
@@ -3162,7 +3162,7 @@ header {
         padding: 25px 15px;
     }
 
-    .big-time span {
+    .big-time > span {
         font-size: 2.5rem;
     }
 
@@ -6192,8 +6192,8 @@ body.dark-ui .time-box {
 }
 
 /* Meeting timer daxilindəki 4 qutu üçün də çəhrayı accent güclənsin */
-body.dark-ui .meeting-timer .time-box span,
-body.dark-ui .counter-section .time-box span {
+body.dark-ui .meeting-timer .time-box > span,
+body.dark-ui .counter-section .time-box > span {
     color: #ff4d6d !important;
     text-shadow: 0 0 10px rgba(255, 77, 109, 0.18) !important;
 }
