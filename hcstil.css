@@ -8275,13 +8275,19 @@ body.dark-ui .gallery-timeline .photo-frame {
 
 .odometer .odometer-value {
     letter-spacing: 0 !important;
+    -webkit-transform-style: preserve-3d;
     transform-style: preserve-3d;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 .odometer.odometer-animating-up .odometer-ribbon-inner,
 .odometer.odometer-animating-down .odometer-ribbon-inner {
+    -webkit-transition-property: -webkit-transform !important;
     transition-property: transform !important;
+    -webkit-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
     transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+    -webkit-transition-duration: 800ms !important;
     transition-duration: 800ms !important;
 }
 
