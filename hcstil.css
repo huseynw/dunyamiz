@@ -8258,3 +8258,34 @@ body.dark-ui .gallery-timeline .photo-frame {
 .hidden {
     display: none !important;
 }
+
+/* ========== ODOMETER FIXES ========== */
+.odometer {
+    letter-spacing: 0 !important;
+    line-height: 1.1 !important;
+    font-variant-numeric: tabular-nums;
+}
+
+.odometer .odometer-digit {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 -1.5px !important;
+    letter-spacing: 0 !important;
+}
+
+.odometer .odometer-value {
+    letter-spacing: 0 !important;
+    transform-style: preserve-3d;
+}
+
+.odometer.odometer-animating-up .odometer-ribbon-inner,
+.odometer.odometer-animating-down .odometer-ribbon-inner {
+    transition-property: transform !important;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+    transition-duration: 800ms !important;
+}
+
+.odometer-ribbon-inner {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
