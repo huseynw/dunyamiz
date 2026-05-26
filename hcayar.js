@@ -688,7 +688,7 @@ verifyBtn?.addEventListener('click', async () => {
                     window.isLocked = false; 
                     updateCounter();
                     updateMeetingTimer();
-                }, 100);
+                }, 800);
 
                 setTimeout(() => mainContent.classList.add('animate-start'), 100);
 
