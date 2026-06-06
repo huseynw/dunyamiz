@@ -8930,3 +8930,44 @@ body:not(.dark-ui) .close-admin:hover {
   background: rgba(255, 77, 109, 0.12) !important;
   color: var(--primary) !important;
 }
+
+/* Light mode xüsusi yazı/ikon düzəlişləri */
+body:not(.dark-ui) .admin-stat-card strong,
+body:not(.dark-ui) .admin-quick-btn span,
+body:not(.dark-ui) .admin-quick-btn i,
+body:not(.dark-ui) .admin-dashboard-media-head span,
+body:not(.dark-ui) .admin-dashboard-media-head strong,
+body:not(.dark-ui) .admin-chip span,
+body:not(.dark-ui) .admin-chip i,
+body:not(.dark-ui) .admin-section-kicker {
+  color: #333 !important;
+}
+
+body:not(.dark-ui) .admin-quick-btn {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+body:not(.dark-ui) .admin-quick-btn:hover {
+  background: rgba(255, 77, 109, 0.1) !important;
+  border-color: rgba(255, 77, 109, 0.3) !important;
+  color: var(--primary) !important;
+}
+
+body:not(.dark-ui) .admin-quick-btn:hover span,
+body:not(.dark-ui) .admin-quick-btn:hover i {
+  color: var(--primary) !important;
+}
+
+body:not(.dark-ui) .film-view-score,
+body:not(.dark-ui) .film-card-score {
+  color: #333 !important;
+}
+
+body:not(.dark-ui) .film-card-score span {
+  color: #666 !important;
+}
+
+body:not(.dark-ui) .film-stars .star-empty {
+  color: rgba(0, 0, 0, 0.15) !important;
+}
