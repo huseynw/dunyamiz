@@ -875,6 +875,15 @@ header {
     0 8px 32px rgba(0, 0, 0, 0.37),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   z-index: 2100;
+  max-width: calc(100vw - 30px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
+
+.spa-navbar::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 
 .nav-item {
@@ -891,6 +900,7 @@ header {
   transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   font-family: "Poppins", sans-serif;
   font-size: 0.7rem;
+  flex-shrink: 0;
 }
 
 .nav-item i {
