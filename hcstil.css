@@ -5344,12 +5344,21 @@ body.dark-ui .admin-card,
 body.dark-ui .letter-content,
 body.dark-ui .lightbox-container,
 body.dark-ui .modal-content,
+body.dark-ui .note-modal-content,
 body.dark-ui #view-note-text {
   background: rgba(20, 20, 20, 0.8) !important;
   backdrop-filter: blur(20px);
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.dark-ui .note-modal-title,
+body.dark-ui .note-modal-label,
+body.dark-ui .letter-content h2,
+body.dark-ui .letter-content p,
+body.dark-ui .close-letter {
+  color: #ffffff !important;
 }
 
 /* Yazı yazılan yerlər (Input/Textarea) */
