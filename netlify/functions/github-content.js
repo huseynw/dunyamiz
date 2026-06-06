@@ -1,6 +1,6 @@
 export async function handler(event) {
     try {
-        const allowedPaths = ["gallery", "musiqiler", "notlar"];
+        const allowedPaths = ["gallery", "musiqiler", "notlar", "filmler"];
         const path = event.queryStringParameters?.path || "";
 
         if (!allowedPaths.includes(path)) {

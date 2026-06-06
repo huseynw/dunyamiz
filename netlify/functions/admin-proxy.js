@@ -62,6 +62,10 @@ async function notifyAdminAction(actionType, details = {}) {
             title = '📝 Yeni not yazıldı!';
             message = details.author ? `${details.author} tərəfindən yeni not əlavə edildi.` : 'Yeni not əlavə edildi.';
             break;
+        case 'upload_film':
+            title = '🎬 Yeni film əlavə edildi!';
+            message = details.filmTitle ? `"${details.filmTitle}" filmi izlənmişlər siyahısına əlavə edildi.` : 'İzlənmişlər siyahısına yeni film əlavə edildi.';
+            break;
         default: return;
     }
     // Birbaşa SUBSCRIPTION_IDS ilə göndər
@@ -188,7 +192,7 @@ exports.handler = async (event) => {
         const GH_TOKEN = process.env.GH_TOKEN;
         const repoOwner = "huseynw";
         const repoName = "dunyamiz";
-        const githubNeededTypes = new Set(["upload_image", "upload_note", "upload_music_json", "upload_music", "upload_music_r2", "prepare_r2_music_upload", "finalize_r2_music_upload", "migrate_music_to_r2"]);
+        const githubNeededTypes = new Set(["upload_image", "upload_note", "upload_film", "upload_music_json", "upload_music", "upload_music_r2", "prepare_r2_music_upload", "finalize_r2_music_upload", "migrate_music_to_r2"]);
         if (githubNeededTypes.has(type) && !GH_TOKEN) return { statusCode: 500, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "GH_TOKEN tapılmadı." }) };
         if (password !== ADMIN_PASSWORD) return { statusCode: 401, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "Şifrə səhvdir!" }) };
 
@@ -236,6 +240,18 @@ exports.handler = async (event) => {
                 author = noteJson.author || 'Kimsə';
             } catch(e) {}
             await notifyAdminAction('upload_note', { author });
+            return { statusCode: 200, body: JSON.stringify({ success: true, details: result }) };
+        }
+
+        // ================= FILM UPLOAD =================
+        if (type === "upload_film") {
+            const result = await putGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: payload.path, content: payload.content, message: "Admin: Film əlavə edildi" });
+            let filmTitle = 'Film';
+            try {
+                const filmJson = JSON.parse(Buffer.from(payload.content, 'base64').toString());
+                filmTitle = filmJson.title || 'Film';
+            } catch(e) {}
+            await notifyAdminAction('upload_film', { filmTitle });
             return { statusCode: 200, body: JSON.stringify({ success: true, details: result }) };
         }
 

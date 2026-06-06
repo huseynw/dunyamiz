@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
 
 // ========== ENV ==========
 const GH_TOKEN = process.env.GH_TOKEN;
@@ -14,25 +14,28 @@ const CRON_SECRET = process.env.CRON_SECRET;
 
 // ========== SUBSCRIPTION ID-LƏR (admin-proxy ilə eyni) ==========
 const SUBSCRIPTION_IDS = [
-  '5f14228d-24e3-4bd8-b219-1a317bce7a88',
-  '32643469-8969-44f7-8ec7-222f2913ca44',
-  'f480d728-c8e3-415b-955a-50926861404d',
-  '747aaa0d-68c9-4121-bc66-dd2b20b1b0b2'
+  "5f14228d-24e3-4bd8-b219-1a317bce7a88",
+  "32643469-8969-44f7-8ec7-222f2913ca44",
+  "f480d728-c8e3-415b-955a-50926861404d",
+  "747aaa0d-68c9-4121-bc66-dd2b20b1b0b2",
 ];
 
 const REMINDER_HOURS = [3, 2, 1];
-const START_DATE = '2025-08-03T00:00:00Z';
+const START_DATE = "2025-08-03T00:00:00Z";
 
 // ========== GITHUB LOG YARDIMÇILARI ==========
 async function getGitHubFile(path) {
   const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`;
   const res = await fetch(url, {
-    headers: { Authorization: `token ${GH_TOKEN}`, Accept: 'application/vnd.github.v3+json' }
+    headers: {
+      Authorization: `token ${GH_TOKEN}`,
+      Accept: "application/vnd.github.v3+json",
+    },
   });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`GitHub oxuma xətası: ${res.status}`);
   const data = await res.json();
-  const content = Buffer.from(data.content, 'base64').toString('utf8');
+  const content = Buffer.from(data.content, "base64").toString("utf8");
   return { sha: data.sha, data: JSON.parse(content) };
 }
 
@@ -40,13 +43,16 @@ async function saveGitHubFile(path, content, sha) {
   const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`;
   const body = {
     message: `Update ${path}`,
-    content: Buffer.from(JSON.stringify(content, null, 2)).toString('base64'),
-    ...(sha ? { sha } : {})
+    content: Buffer.from(JSON.stringify(content, null, 2)).toString("base64"),
+    ...(sha ? { sha } : {}),
   };
   const res = await fetch(url, {
-    method: 'PUT',
-    headers: { Authorization: `token ${GH_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+    method: "PUT",
+    headers: {
+      Authorization: `token ${GH_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const err = await res.text();
@@ -58,9 +64,11 @@ async function saveGitHubFile(path, content, sha) {
 async function readLog() {
   try {
     const file = await getGitHubFile(LOG_PATH);
-    return file ? { data: file.data, sha: file.sha } : { data: { reminders: {}, daily_love: {} }, sha: null };
+    return file
+      ? { data: file.data, sha: file.sha }
+      : { data: { reminders: {}, daily_love: {} }, sha: null };
   } catch (e) {
-    console.error('Log oxuma xətası:', e);
+    console.error("Log oxuma xətası:", e);
     return { data: { reminders: {}, daily_love: {} }, sha: null };
   }
 }
@@ -80,11 +88,11 @@ async function markDailyLoveSent() {
 // ========== ONESIGNAL (Subscription ID-lərə göndər) ==========
 async function sendOneSignalNotification(title, message) {
   if (!ONE_SIGNAL_APP_ID || !ONE_SIGNAL_API_KEY) {
-    console.error('OneSignal mühit dəyişənləri yoxdur');
+    console.error("OneSignal mühit dəyişənləri yoxdur");
     return false;
   }
   if (!SUBSCRIPTION_IDS.length) {
-    console.error('Subscription ID-lər boşdur');
+    console.error("Subscription ID-lər boşdur");
     return false;
   }
 
@@ -93,18 +101,21 @@ async function sendOneSignalNotification(title, message) {
       app_id: ONE_SIGNAL_APP_ID,
       headings: { en: title },
       contents: { en: message },
-      include_subscription_ids: SUBSCRIPTION_IDS
+      include_subscription_ids: SUBSCRIPTION_IDS,
     };
-    const res = await fetch('https://onesignal.com/api/v1/notifications', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ONE_SIGNAL_API_KEY}` },
-      body: JSON.stringify(payload)
+    const res = await fetch("https://onesignal.com/api/v1/notifications", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${ONE_SIGNAL_API_KEY}`,
+      },
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
-    console.log('OneSignal cavabı:', JSON.stringify(data, null, 2));
+    console.log("OneSignal cavabı:", JSON.stringify(data, null, 2));
     return res.ok;
   } catch (e) {
-    console.error('OneSignal xətası:', e);
+    console.error("OneSignal xətası:", e);
     return false;
   }
 }
@@ -112,30 +123,37 @@ async function sendOneSignalNotification(title, message) {
 // ========== ƏSAS FUNKSİYA ==========
 exports.handler = async (event) => {
   try {
-    const body = JSON.parse(event.body || '{}');
+    const body = JSON.parse(event.body || "{}");
     if (body.secret !== CRON_SECRET) {
-      return { statusCode: 403, body: 'Unauthorized' };
+      return { statusCode: 403, body: "Unauthorized" };
     }
 
     // ---- Supabase-dən görüş tarixini al ----
-    const supabaseRes = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?id=eq.1&select=next_meeting_date`, {
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`
-      }
-    });
+    const supabaseRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/site_settings?id=eq.1&select=next_meeting_date`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+        },
+      },
+    );
     const settings = await supabaseRes.json();
-    if (!supabaseRes.ok || !Array.isArray(settings) || !settings[0]?.next_meeting_date) {
-      console.error('Supabase-dən görüş tarixi alına bilmədi');
-      return { statusCode: 500, body: 'Görüş tarixi tapılmadı' };
+    if (
+      !supabaseRes.ok ||
+      !Array.isArray(settings) ||
+      !settings[0]?.next_meeting_date
+    ) {
+      console.error("Supabase-dən görüş tarixi alına bilmədi");
+      return { statusCode: 500, body: "Görüş tarixi tapılmadı" };
     }
 
     const meetingDate = new Date(settings[0].next_meeting_date);
     const now = new Date();
 
     if (isNaN(meetingDate.getTime())) {
-      console.error('Yanlış tarix formatı');
-      return { statusCode: 500, body: 'Tarix formatı səhvdir' };
+      console.error("Yanlış tarix formatı");
+      return { statusCode: 500, body: "Tarix formatı səhvdir" };
     }
 
     const hoursUntil = Math.floor((meetingDate - now) / (60 * 60 * 1000));
@@ -155,35 +173,48 @@ exports.handler = async (event) => {
 
         const reminderTitle = `💖 Görüşümüzə az qaldı!`;
         const reminderMsg = `Görüşümüzə ${h} saat ${m} dəqiqə ${s} saniyə qaldı!\nSəni görmək üçün saniyələr sayılır, Cəmaləm ❤️`;
-        const success = await sendOneSignalNotification(reminderTitle, reminderMsg);
+        const success = await sendOneSignalNotification(
+          reminderTitle,
+          reminderMsg,
+        );
         if (success) await markReminderSent(hoursUntil);
-        else console.error('Xatırlatma göndərilmədi');
+        else console.error("Xatırlatma göndərilmədi");
       } else {
         console.log(`Xatırlatma artıq göndərilib: ${hoursUntil}h`);
       }
     }
 
-    // ---- Günlük sevgi mesajı ----
+    // ---- Günlük sevgi mesajı (AZT 13:00 = UTC 09:00) ----
     const startDate = new Date(START_DATE);
     const daysTogether = Math.floor((now - startDate) / (24 * 60 * 60 * 1000));
     const { data: logDataDaily } = await readLog();
     const lastDaily = logDataDaily.daily_love?.lastSent || 0;
     const lastDate = new Date(lastDaily);
-    const todayStartUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    if (lastDate < todayStartUTC) {
+    const todayStartUTC = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    );
+
+    // AZT 13:00 = UTC 09:00 olduğuna görə, cari saat UTC 9-dan böyük bərabər olduqda və bu gün göndərilməyibsə göndər.
+    if (lastDate < todayStartUTC && now.getUTCHours() >= 9) {
       const success = await sendOneSignalNotification(
         `✨ ${daysTogether}. günümüz!`,
-        `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`
+        `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`,
       );
       if (success) await markDailyLoveSent();
-      else console.error('Günlük mesaj göndərilmədi');
+      else console.error("Günlük mesaj göndərilmədi");
     } else {
-      console.log('Günlük mesaj artıq göndərilib.');
+      if (lastDate >= todayStartUTC) {
+        console.log("Günlük mesaj artıq göndərilib.");
+      } else {
+        console.log(
+          `Gündəlik mesaj üçün hələ tezdir (Hazırkı UTC saatı: ${now.getUTCHours()}, Hədəf: 9)`,
+        );
+      }
     }
 
     return { statusCode: 200, body: JSON.stringify({ success: true }) };
   } catch (err) {
-    console.error('Funksiya xətası:', err);
+    console.error("Funksiya xətası:", err);
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 };
