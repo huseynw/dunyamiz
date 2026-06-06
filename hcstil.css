@@ -1953,7 +1953,7 @@ header {
 }
 
 .letter-content {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.95);
   color: #333;
   padding: 40px 25px;
   border-radius: 25px;
@@ -1965,6 +1965,9 @@ header {
   text-align: center;
   box-shadow: 0 0 30px rgba(255, 77, 109, 0.5);
   animation: popUp 0.4s ease-out;
+  border: 1px solid rgba(255, 77, 109, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .letter-content h2 {
@@ -5345,25 +5348,58 @@ body.dark-ui .letter-content,
 body.dark-ui .lightbox-container,
 body.dark-ui .modal-content,
 body.dark-ui .note-modal-content,
+body.dark-ui .note-view-content,
+body.dark-ui .film-view-content,
 body.dark-ui #view-note-text {
-  background: rgba(20, 20, 20, 0.8) !important;
-  backdrop-filter: blur(20px);
+  background: rgba(18, 18, 22, 0.92) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
 }
 
 body.dark-ui .note-modal-title,
 body.dark-ui .note-modal-label,
+body.dark-ui .note-view-title,
+body.dark-ui .note-view-text,
 body.dark-ui .letter-content h2,
 body.dark-ui .letter-content p,
 body.dark-ui .close-letter {
   color: #ffffff !important;
 }
 
-/* Yazı yazılan yerlər (Input/Textarea) */
-body.dark-ui input,
-body.dark-ui textarea,
+body.dark-ui .note-view-date {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+body.dark-ui .note-view-footer {
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Modal içindəki input/textarea/select — dark mode */
+body.dark-ui .note-modal-input,
+body.dark-ui .note-modal-textarea {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  color: #fff !important;
+}
+
+body.dark-ui .note-modal-input::placeholder,
+body.dark-ui .note-modal-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+body.dark-ui .note-modal-input:focus,
+body.dark-ui .note-modal-textarea:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.2) !important;
+}
+
+/* Ümumi input/textarea/select — dark mode (digər sahələr) */
+body.dark-ui input:not(.note-modal-input),
+body.dark-ui textarea:not(.note-modal-textarea),
 body.dark-ui select {
   background: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -5379,6 +5415,30 @@ body.dark-ui .letter-content h2 {
 body.dark-ui .admin-btn--secondary {
   background: rgba(255, 255, 255, 0.1);
   color: white;
+}
+
+/* Film rating suffix dark modeda */
+body.dark-ui .film-rating-suffix {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* Film star selector dark modeda */
+body.dark-ui .film-star-selector span {
+  color: rgba(255, 255, 255, 0.2) !important;
+}
+
+body.dark-ui .film-star-selector span:hover,
+body.dark-ui .film-star-selector span.active {
+  color: #fbbf24 !important;
+}
+
+/* Lightbox footer dark modeda */
+body.dark-ui .lightbox-footer {
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-ui #image-date {
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 
 /* ========== DARK UI - PAGE CARDS / SECTIONS ========== */
@@ -7981,10 +8041,13 @@ body.dark-ui .gallery-timeline .photo-frame {
   max-height: 90vh;
   overflow-y: auto;
   padding: 30px 25px;
-  background: white;
+  background: rgba(255, 255, 255, 0.96);
   border-radius: var(--radius-lg);
   position: relative;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .note-modal-title {
@@ -8013,9 +8076,11 @@ body.dark-ui .gallery-timeline .photo-frame {
   width: 100%;
   padding: 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid #ccc;
+  border: 1px solid rgba(0, 0, 0, 0.15);
   outline: none;
   font-family: "Poppins", sans-serif;
+  background: rgba(255, 255, 255, 0.8);
+  color: #333;
   transition:
     border-color 0.3s,
     box-shadow 0.3s;
@@ -8056,9 +8121,12 @@ body.dark-ui .gallery-timeline .photo-frame {
 .note-view-content {
   max-width: 500px;
   text-align: left;
-  background: white;
+  background: rgba(255, 255, 255, 0.96);
   padding: 30px;
   border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .note-view-title {
@@ -8086,7 +8154,7 @@ body.dark-ui .gallery-timeline .photo-frame {
 }
 
 .note-view-footer {
-  border-top: 1px solid #eee;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   margin-top: 20px;
   padding-top: 10px;
   text-align: right;
@@ -8095,7 +8163,7 @@ body.dark-ui .gallery-timeline .photo-frame {
 .note-view-date {
   font-size: 0.8rem;
   color: #888;
-  background: #f5f5f5;
+  background: rgba(0, 0, 0, 0.05);
   padding: 5px 10px;
   border-radius: 15px;
   display: inline-flex;
@@ -8555,4 +8623,300 @@ body.dark-ui .gallery-timeline .photo-frame {
     font-size: 0.78rem;
     padding: 7px 12px;
   }
+}
+
+/* ================================================================
+   LIGHT MODE — MODAL VƏ OVERLAY STİLLƏRİ
+   body-də .dark-ui olmadıqda (yəni light mode aktivdir)
+   bütün modallar açıq, oxunaqlı görünsün
+   ================================================================ */
+
+/* Letter Modal overlay — light mode */
+body:not(.dark-ui) .letter-modal {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Letter Content — light mode */
+body:not(.dark-ui) .letter-content {
+  background: rgba(255, 255, 255, 0.97) !important;
+  color: #222 !important;
+  border: 1px solid rgba(255, 77, 109, 0.18) !important;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.8) !important;
+}
+
+body:not(.dark-ui) .letter-content h2 {
+  color: var(--primary) !important;
+}
+
+body:not(.dark-ui) .letter-content p {
+  color: #333 !important;
+}
+
+body:not(.dark-ui) .close-letter {
+  color: #999 !important;
+}
+
+body:not(.dark-ui) .close-letter:hover {
+  color: var(--primary) !important;
+}
+
+/* Note Modal Content — light mode */
+body:not(.dark-ui) .note-modal-content {
+  background: rgba(255, 255, 255, 0.98) !important;
+  color: #222 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.9) !important;
+}
+
+body:not(.dark-ui) .note-modal-title {
+  color: #222 !important;
+}
+
+body:not(.dark-ui) .note-modal-label {
+  color: #555 !important;
+}
+
+body:not(.dark-ui) .note-modal-input,
+body:not(.dark-ui) .note-modal-textarea {
+  background: #fff !important;
+  border: 1px solid rgba(0, 0, 0, 0.18) !important;
+  color: #222 !important;
+}
+
+body:not(.dark-ui) .note-modal-input::placeholder,
+body:not(.dark-ui) .note-modal-textarea::placeholder {
+  color: rgba(0, 0, 0, 0.38) !important;
+}
+
+/* Note View Content — light mode */
+body:not(.dark-ui) .note-view-content {
+  background: rgba(255, 255, 255, 0.98) !important;
+  color: #222 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.9) !important;
+}
+
+body:not(.dark-ui) .note-view-title {
+  color: #222 !important;
+}
+
+body:not(.dark-ui) .note-view-text {
+  color: #333 !important;
+}
+
+body:not(.dark-ui) .note-view-footer {
+  border-top-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+body:not(.dark-ui) .note-view-date {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #888 !important;
+}
+
+/* Film View Content — light mode */
+body:not(.dark-ui) .film-view-content {
+  background: rgba(255, 255, 255, 0.98) !important;
+  color: #222 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15) !important;
+}
+
+body:not(.dark-ui) .film-view-director {
+  color: #666 !important;
+}
+
+body:not(.dark-ui) .film-card-title {
+  color: #fff !important;
+}
+
+body:not(.dark-ui) .film-rating-suffix {
+  color: #666 !important;
+}
+
+body:not(.dark-ui) .film-star-selector span {
+  color: rgba(0, 0, 0, 0.2) !important;
+}
+
+body:not(.dark-ui) .film-star-selector span:hover,
+body:not(.dark-ui) .film-star-selector span.active {
+  color: #fbbf24 !important;
+}
+
+/* Film Modal (note-modal-content üzərindədir) — light mode */
+body:not(.dark-ui) .film-modal-content {
+  background: rgba(255, 255, 255, 0.98) !important;
+  color: #222 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Lightbox — light mode */
+body:not(.dark-ui) .lightbox {
+  background: rgba(0, 0, 0, 0.82) !important;
+}
+
+body:not(.dark-ui) .lightbox-container {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4) !important;
+}
+
+body:not(.dark-ui) .lightbox-header h3 {
+  color: var(--primary) !important;
+}
+
+body:not(.dark-ui) .close-lightbox {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+body:not(.dark-ui) .lightbox-footer {
+  border-top-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+body:not(.dark-ui) #image-date {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Admin Panel — light mode */
+body:not(.dark-ui) .admin-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #222 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+body:not(.dark-ui) .admin-card-title h3,
+body:not(.dark-ui) .admin-field label {
+  color: #222 !important;
+}
+
+/* Admin input/select — light mode */
+body:not(.dark-ui) .admin-panel input,
+body:not(.dark-ui) .admin-panel textarea,
+body:not(.dark-ui) .admin-panel select {
+  background: #fff !important;
+  border: 1px solid rgba(0, 0, 0, 0.2) !important;
+  color: #222 !important;
+}
+
+/* Select elements in modals — light mode */
+body:not(.dark-ui) select.note-modal-input {
+  background: #fff !important;
+  color: #222 !important;
+}
+
+/* Modal overlay z-index uyumu */
+body:not(.dark-ui) #add-note-modal,
+body:not(.dark-ui) #view-note-modal,
+body:not(.dark-ui) #add-film-modal,
+body:not(.dark-ui) #view-film-modal,
+body:not(.dark-ui) #letter-modal {
+  background: rgba(0, 0, 0, 0.55) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Admin Panel — light modeda açıq görünsün */
+body:not(.dark-ui) #admin-panel {
+  background: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+body:not(.dark-ui) .admin-content {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.97),
+    rgba(248, 246, 252, 0.96)
+  ) !important;
+  border: 1px solid rgba(255, 77, 109, 0.22) !important;
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset !important;
+  color: #222 !important;
+}
+
+body:not(.dark-ui) .admin-header .admin-kicker,
+body:not(.dark-ui) .admin-header h2,
+body:not(.dark-ui) .admin-header p,
+body:not(.dark-ui) .admin-section-head h3,
+body:not(.dark-ui) .admin-section-head p {
+  color: #333 !important;
+}
+
+body:not(.dark-ui) .admin-nav-btn {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #444 !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+body:not(.dark-ui) .admin-nav-btn.active {
+  background: var(--primary) !important;
+  color: #fff !important;
+}
+
+body:not(.dark-ui) .admin-card {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #222 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+}
+
+body:not(.dark-ui) .admin-card-title h3,
+body:not(.dark-ui) .admin-field label,
+body:not(.dark-ui) .admin-stat-label {
+  color: #333 !important;
+}
+
+body:not(.dark-ui) .admin-stat-value {
+  color: #111 !important;
+}
+
+/* Admin input/textarea/select — light mode */
+body:not(.dark-ui) .admin-content input,
+body:not(.dark-ui) .admin-content textarea,
+body:not(.dark-ui) .admin-content select {
+  background: #fff !important;
+  border: 1px solid rgba(0, 0, 0, 0.18) !important;
+  color: #222 !important;
+}
+
+body:not(.dark-ui) .admin-content input::placeholder,
+body:not(.dark-ui) .admin-content textarea::placeholder {
+  color: rgba(0, 0, 0, 0.35) !important;
+}
+
+body:not(.dark-ui) .admin-btn--secondary {
+  background: rgba(0, 0, 0, 0.07) !important;
+  color: #333 !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Admin status mesajları */
+body:not(.dark-ui) .admin-status {
+  color: #333;
+}
+
+/* Admin sidebar light mode */
+body:not(.dark-ui) .admin-sidebar {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-right-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Close düyməsi light modeda görünsün */
+body:not(.dark-ui) .close-admin {
+  color: #666 !important;
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+body:not(.dark-ui) .close-admin:hover {
+  background: rgba(255, 77, 109, 0.12) !important;
+  color: var(--primary) !important;
 }
