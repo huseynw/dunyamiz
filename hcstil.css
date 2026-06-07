@@ -8402,10 +8402,7 @@ body.dark-ui .gallery-timeline .photo-frame {
   color: rgba(255, 255, 255, 0.75);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  white-space: nowrap;
-  max-width: 110px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex-wrap: wrap;
 }
 
 .film-card-rating {

@@ -428,7 +428,7 @@
                   <div>
                     <p class="daily-card-kicker">BU GÜNÜN MESAJI</p>
                     <h3 id="daily-message-title">
-                      Bu gün sənə bir sözüm var 🤍
+                      Bu gün sənə bir sözüm var <i class="fas fa-heart"></i>
                     </h3>
                   </div>
                   <div class="daily-card-icon">
@@ -497,7 +497,7 @@
               <p class="scratch-hint">Aşağıdakı qutunu sil</p>
               <div class="scratch-container">
                 <div class="secret-message">
-                  <h3>Sən mənim hərşeyimsən 🤍</h3>
+                  <h3>Sən mənim hərşeyimsən <i class="fas fa-heart"></i></h3>
                   <p>Hər zaman yanımda olduğun üçün təşəkkür edirəm.</p>
                 </div>
                 <canvas id="scratch-canvas" width="300" height="150"></canvas>
@@ -552,7 +552,7 @@
             <!-- Love Switcher -->
             <div class="love-switcher">
               <span id="changing-love">Səni sevirəm</span>
-              <span style="color: #ff4d6d">🤍</span>
+              <span style="color: #ff4d6d"><i class="fas fa-heart"></i></span>
             </div>
 
             <!-- Links Section -->
@@ -616,7 +616,7 @@
                 decoding="async"
               />
               <div class="song-info">
-                <h2 id="song-title">Gözlərin dəydi gözümə 🤍</h2>
+                <h2 id="song-title">Gözlərin dəydi gözümə <i class="fas fa-heart"></i></h2>
                 <audio
                   id="audio"
                   preload="metadata"
@@ -720,7 +720,7 @@
         <!-- Page: Filmlər -->
         <section class="spa-page" id="page-films" data-nosnippet>
           <div class="page-content">
-            <h2 class="page-title">İzlədiyimiz Filmlər 🎬</h2>
+            <h2 class="page-title">İzlədiyimiz Filmlər <i class="fas fa-clapperboard"></i></h2>
 
             <!-- Film Stats Bar -->
             <div class="films-stats-bar">
@@ -1077,7 +1077,7 @@
       <span id="close-lb-btn" class="close-lightbox">&times;</span>
       <div class="lightbox-container">
         <div class="lightbox-header">
-          <h3>Qalereyamız ✨</h3>
+          <h3>Qalereyamız <i class="fas fa-sparkles"></i></h3>
         </div>
 
         <div class="lightbox-main">
@@ -1172,7 +1172,7 @@
     <div id="add-film-modal" class="letter-modal">
       <div class="note-modal-content film-modal-content">
         <span class="close-letter" id="close-add-film-btn">&times;</span>
-        <h2 class="note-modal-title">Yeni Film 🎬</h2>
+        <h2 class="note-modal-title">Yeni Film <i class="fas fa-clapperboard"></i></h2>
 
         <div class="note-modal-field">
           <label class="note-modal-label">Film adı *</label>
@@ -1194,14 +1194,18 @@
               placeholder="Məs: Christopher Nolan"
             />
           </div>
-          <div>
+          <div class="film-genre-wrapper">
             <label class="note-modal-label">Janr</label>
-            <input
-              type="text"
-              id="film-genre-input"
-              class="note-modal-input"
-              placeholder="Məs: Elmi fantastika"
-            />
+            <div style="display: flex; gap: 8px;">
+              <input
+                type="text"
+                id="film-genre-input"
+                class="note-modal-input"
+                placeholder="Məs: Elmi fantastika"
+              />
+              <button type="button" id="add-genre-btn" class="note-modal-submit" style="margin:0; width:auto; padding: 0 15px; border-radius: 8px;"><i class="fas fa-plus"></i></button>
+            </div>
+            <div id="selected-genres-container" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:8px;"></div>
           </div>
         </div>
 
@@ -1242,7 +1246,7 @@
         <div class="note-modal-field">
           <label class="note-modal-label">Kim əlavə edir?</label>
           <select id="film-added-by" class="note-modal-input">
-            <option value="Birlikdə">Birlikdə izlədik 💕</option>
+            <option value="Birlikdə">Birlikdə izlədik</option>
             <option value="Hüseyn">Hüseyn</option>
             <option value="Cəmalə">Cəmalə</option>
           </select>
@@ -1259,7 +1263,7 @@
         </div>
 
         <button id="submit-film-btn" class="note-modal-submit">
-          Təsdiqlə və Göndər 🎬
+          Təsdiqlə və Göndər <i class="fas fa-clapperboard"></i>
         </button>
       </div>
     </div>
@@ -1299,7 +1303,7 @@
         <div class="admin-header">
           <div>
             <p class="admin-kicker">DÜNYAMIZ ADMIN</p>
-            <h2>Admin Panel ⚙️</h2>
+            <h2>Admin Panel <i class="fas fa-gear"></i></h2>
           </div>
           <div class="admin-badge">
             <i class="fas fa-shield-heart"></i>

@@ -3150,8 +3150,9 @@ function renderFilms(films) {
       const rating = Number(f.rating) || 0;
       const stars = buildStarsHtml(rating);
       const dateStr = formatFilmDate(f.watchDate || f.dateIso);
-      const genre = f.genre
-        ? `<span class="film-card-badge"><i class="fas fa-tag"></i>${f.genre}</span>`
+      const genresArray = f.genre ? f.genre.split(',').map(g => g.trim()).filter(Boolean) : [];
+      const genre = genresArray.length > 0
+        ? genresArray.map(g => `<span class="film-card-badge"><i class="fas fa-tag"></i>${g}</span>`).join(' ')
         : "<span></span>";
       const director = f.director
         ? `<p class="film-card-director"><i class="fas fa-video" style="font-size:.68rem;opacity:.5;margin-right:4px;"></i>${f.director}</p>`
@@ -3160,7 +3161,7 @@ function renderFilms(films) {
         ? `<p class="film-card-review">${f.review}</p>`
         : "";
       const addedBy = f.addedBy
-        ? `<span class="film-card-addedby">${f.addedBy}</span>`
+        ? `<span class="film-card-addedby">${f.addedBy === "Birlikdə" ? "Birlikdə izlənib" : f.addedBy + " izlədi"}</span>`
         : "";
 
       return `
@@ -3203,7 +3204,7 @@ window.showFilm = function (f) {
     ? `Rejissor: ${f.director}`
     : "";
   document.getElementById("view-film-addedby").textContent = f.addedBy
-    ? `${f.addedBy} tərəfindən əlavə edilib`
+    ? (f.addedBy === "Birlikdə" ? "Birlikdə izlənib" : `${f.addedBy} izlədi`)
     : "";
   document.getElementById("view-film-review").textContent = f.review || "";
   document.getElementById("view-film-date").innerHTML =
@@ -3258,6 +3259,26 @@ async function loadFilms() {
 
 document.addEventListener("DOMContentLoaded", () => {
   loadFilms();
+
+  let selectedGenres = [];
+  function renderSelectedGenres() {
+    const container = document.getElementById("selected-genres-container");
+    if(!container) return;
+    container.innerHTML = selectedGenres.map(g => `<span class="film-card-badge" style="cursor:pointer;" onclick="removeGenre('${g.replace(/'/g, "\\'")}')">${g} &times;</span>`).join("");
+  }
+  window.removeGenre = function(g) {
+    selectedGenres = selectedGenres.filter(x => x !== g);
+    renderSelectedGenres();
+  }
+  document.getElementById("add-genre-btn")?.addEventListener("click", () => {
+    const input = document.getElementById("film-genre-input");
+    const val = input.value.trim();
+    if(val && !selectedGenres.includes(val)) {
+      selectedGenres.push(val);
+      input.value = "";
+      renderSelectedGenres();
+    }
+  });
 
   // Sort buttons
   document.querySelectorAll(".film-sort-btn").forEach((btn) => {
@@ -3349,7 +3370,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const director = document
         .getElementById("film-director-input")
         .value.trim();
-      const genre = document.getElementById("film-genre-input").value.trim();
+      const genreInputVal = document.getElementById("film-genre-input").value.trim();
+      let finalGenres = [...selectedGenres];
+      if (genreInputVal && !finalGenres.includes(genreInputVal)) {
+        finalGenres.push(genreInputVal);
+      }
+      const genre = finalGenres.join(", ");
       const watchDate = document.getElementById("film-date-input").value;
       const rating =
         parseFloat(document.getElementById("film-rating-input").value) || 0;
@@ -3403,6 +3429,10 @@ document.addEventListener("DOMContentLoaded", () => {
           document
             .querySelectorAll("#film-star-selector span")
             .forEach((s) => s.classList.remove("active"));
+          selectedGenres = [];
+          if (typeof renderSelectedGenres === "function") {
+            renderSelectedGenres();
+          }
           addModal.style.display = "none";
           addModal.classList.add("hidden");
           alert("Film uğurla əlavə edildi! 🎬");
