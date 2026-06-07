@@ -402,7 +402,7 @@ function renderDailyMessage() {
   const dateKey = getBakuDateKey();
   const message = buildDailyMessage(dateKey);
 
-  titleEl.textContent = "Bu gün sənə bir sözüm var 🤍";
+  titleEl.innerHTML = "Bu gün sənə bir sözüm var <i class='fas fa-heart' style='color:#ff4d6d;'></i>";
   textEl.textContent = message;
   dateEl.innerHTML = `<i class="fas fa-calendar-day"></i> ${formatBakuPrettyDate(new Date())}`;
   animateMemoryBlock(titleEl, textEl, dateEl);
@@ -1208,7 +1208,7 @@ function getDynamicPath() {
 function createHeart() {
   const heart = document.createElement("div");
   heart.classList.add("heart-particle");
-  heart.innerHTML = "❤︎⁠";
+  heart.innerHTML = '<i class="fas fa-heart"></i>';
   heart.style.color = "pink";
   heart.style.left = Math.random() * 100 + "vw";
   heart.style.fontSize = Math.random() * 20 + 10 + "px";
@@ -1551,7 +1551,7 @@ function updateDynamicContent() {
   if (greetingElement) {
     perfSetHtml(
       "dynamic-greeting",
-      greeting + ", Cəmaləm <span style='color: #ff4d6d;'>🤍</span>",
+      greeting + ", Cəmaləm <span style='color: #ff4d6d;'><i class=\"fas fa-heart\"></i></span>",
     );
   }
 
@@ -1716,7 +1716,7 @@ function updatePower() {
 
   if (power >= 100) {
     heartBtn.style.filter = `drop-shadow(0 0 30px #ff4d6d)`;
-    percentText.textContent = "Səni Çox Sevirəm 🤍";
+    percentText.innerHTML = "Səni Çox Sevirəm <i class='fas fa-heart'></i>";
 
     // Premium particle burst
     if (!heartBtn.dataset.burst) {
@@ -2282,37 +2282,37 @@ async function updateWeatherTheme() {
     let icon = "☁️";
 
     if ([0, 1].includes(code)) {
-      icon = "☀️";
+      icon = '<i class="fas fa-sun"></i>';
       accent = "#ffb347";
       glow = "rgba(255, 179, 71, 0.35)";
       message = `Bakıda hava tərtəmizdir (${temp}°C) — sənin kimi parlaq.`;
     } else if ([2, 3].includes(code)) {
-      icon = "⛅";
+      icon = '<i class="fas fa-cloud-sun"></i>';
       accent = "#8ec5ff";
       glow = "rgba(142, 197, 255, 0.35)";
       message = `Bakı bu gün sakit və bir az buludludur (${temp}°C).`;
     } else if ([45, 48].includes(code)) {
-      icon = "🌫️";
+      icon = '<i class="fas fa-smog"></i>';
       accent = "#b0bec5";
       glow = "rgba(176, 190, 197, 0.28)";
       message = `Hər tərəf dumanlıdır (${temp}°C), amma sevgi tərəfi aydındır.`;
     } else if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) {
-      icon = "🌧️";
+      icon = '<i class="fas fa-cloud-rain"></i>';
       accent = "#6ea8fe";
       glow = "rgba(110, 168, 254, 0.30)";
       message = `Bakıda yağış yağır (${temp}°C). Özünü isti saxla.`;
     } else if ([71, 73, 75, 77, 85, 86].includes(code)) {
-      icon = "❄️";
+      icon = '<i class="fas fa-snowflake"></i>';
       accent = "#d8f3ff";
       glow = "rgba(216, 243, 255, 0.28)";
       message = `Hava qarlıdır (${temp}°C). Bu səhnə də çox zərif görünür.`;
     } else if ([95, 96, 99].includes(code)) {
-      icon = "⚡";
+      icon = '<i class="fas fa-bolt"></i>';
       accent = "#c084fc";
       glow = "rgba(192, 132, 252, 0.30)";
       message = `Bakıda ildırım var (${temp}°C), amma burada aura yenə romantikdir.`;
     } else {
-      icon = "💫";
+      icon = '<i class="fas fa-star"></i>';
       message = `Bakıda hava dəyişkəndir (${temp}°C), amma burada hiss sabitdir.`;
     }
 
@@ -3209,8 +3209,8 @@ window.showFilm = function (f) {
   document.getElementById("view-film-review").textContent = f.review || "";
   document.getElementById("view-film-date").innerHTML =
     `<i class="far fa-clock"></i> ${formatFilmDate(f.watchDate || f.dateIso)}`;
-  document.getElementById("view-film-score").textContent = rating
-    ? `⭐ ${rating}/10`
+  document.getElementById("view-film-score").innerHTML = rating
+    ? `<i class="fas fa-star" style="color: #ffd700;"></i> ${rating}/10`
     : "";
   document.getElementById("view-film-rating-stars").innerHTML = buildStarsHtml(
     rating,
