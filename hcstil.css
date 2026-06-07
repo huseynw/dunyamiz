@@ -5985,6 +5985,8 @@ body.dark-ui .yt-active-player,
 body.dark-ui .yt-player-main,
 body.dark-ui .yt-lyrics-panel,
 body.dark-ui .scratch-container,
+body.dark-ui .film-card,
+body.dark-ui .films-stats-bar,
 body.dark-ui #weather-container {
   background: rgba(10, 10, 10, 0.58) !important;
   backdrop-filter: blur(8px) !important;
@@ -6004,6 +6006,8 @@ body.dark-ui .memory-btn,
 body.dark-ui .yt-chip-btn,
 body.dark-ui .yt-mini-btn,
 body.dark-ui .yt-control-btn,
+body.dark-ui .film-sort-btn,
+body.dark-ui .film-stat-chip,
 body.dark-ui .yt-play-btn {
   background: rgba(255, 255, 255, 0.035) !important;
   border-color: rgba(255, 255, 255, 0.09) !important;
@@ -8762,78 +8766,6 @@ body:not(.dark-ui) .film-view-director {
   color: #666 !important;
 }
 
-body:not(.dark-ui) .film-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06) !important;
-}
-
-body:not(.dark-ui) .film-card:hover {
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 77, 109, 0.2) !important;
-}
-
-body:not(.dark-ui) .film-card-badge {
-  background: rgba(0, 0, 0, 0.05) !important;
-  border-color: rgba(0, 0, 0, 0.08) !important;
-  color: #555 !important;
-}
-
-body:not(.dark-ui) .film-card-title {
-  color: #222 !important;
-}
-
-body:not(.dark-ui) .film-card-director,
-body:not(.dark-ui) .film-card-date {
-  color: #666 !important;
-}
-
-body:not(.dark-ui) .film-card-review {
-  color: #444 !important;
-}
-
-body:not(.dark-ui) .film-card-footer {
-  border-top-color: rgba(0, 0, 0, 0.08) !important;
-}
-
-body:not(.dark-ui) .film-card-addedby {
-  background: rgba(255, 77, 109, 0.08) !important;
-  color: var(--primary) !important;
-  border-color: rgba(255, 77, 109, 0.15) !important;
-}
-
-body:not(.dark-ui) .films-stats-bar {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
-}
-
-body:not(.dark-ui) .film-stat-chip {
-  background: rgba(0, 0, 0, 0.04) !important;
-  border-color: rgba(0, 0, 0, 0.08) !important;
-  color: #555 !important;
-}
-
-body:not(.dark-ui) .film-stat-chip strong {
-  color: #222 !important;
-}
-
-body:not(.dark-ui) .film-sort-btn {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
-  color: #444 !important;
-}
-
-body:not(.dark-ui) .film-sort-btn:hover {
-  background: rgba(255, 77, 109, 0.08) !important;
-  border-color: rgba(255, 77, 109, 0.25) !important;
-  color: var(--primary) !important;
-}
-
-body:not(.dark-ui) .film-sort-btn.active {
-  background: rgba(255, 77, 109, 0.15) !important;
-  border-color: rgba(255, 77, 109, 0.4) !important;
-  color: var(--primary) !important;
-}
 
 body:not(.dark-ui) .film-rating-suffix {
   color: #666 !important;
