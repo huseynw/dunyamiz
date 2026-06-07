@@ -7383,7 +7383,6 @@ nav,
 }
 
 .animate-item,
-.timeline-item,
 .photo-frame,
 .gallery-item,
 #track-art,
@@ -7395,13 +7394,23 @@ nav,
   backface-visibility: hidden;
 }
 
-.timeline-item,
+/* timeline-item üçün ayrıca (will-change yalnız, transform yox — çünki başlanğıc opacity:0 translateY lazımdır) */
+.timeline-item {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
 .note-card,
 .memory-card,
 .music-card {
   content-visibility: auto;
   contain-intrinsic-size: auto 380px;
-  transition: all 0.45s cubic-bezier(0.25, 0.8, 0.25, 1.2) !important;
+  transition: all 0.45s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+}
+
+.timeline-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 380px;
 }
 
 .yt-cover-button img,
