@@ -7408,10 +7408,7 @@ nav,
   transition: all 0.45s cubic-bezier(0.25, 0.8, 0.25, 1.2);
 }
 
-.timeline-item {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 380px;
-}
+/* content-visibility: auto .timeline-item üçün silindi — IntersectionObserver animasiyasını pozurdu */
 
 .yt-cover-button img,
 .song-image {
@@ -7468,13 +7465,13 @@ nav,
     display: none !important;
   }
 
+  /* timeline-item buradan çıxarıldı — background override animasiyanı pozurdu */
   .welcome-content,
   .welcome-password-panel,
   nav,
   .glass,
   .letter-card,
   .memory-card,
-  .timeline-item,
   .active-player,
   .yt-active-player,
   .admin-panel,
@@ -7501,7 +7498,6 @@ nav,
 
   .photo-frame,
   .gallery-item,
-  .timeline-item,
   .yt-active-player,
   .active-player {
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28) !important;
@@ -7882,23 +7878,35 @@ body.dark-ui .admin-card {
   }
 }
 
-/* ===== GALLERY FIX ===== */
+/* === GALLERY TİMELİNE SCROLL ANİMASİYASI === */
 .gallery-timeline .timeline-item {
   opacity: 0;
-  transform: translateY(42px) scale(0.96);
+  transform: translateY(50px) scale(0.96);
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   transition:
-    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) !important,
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  will-change: transform, opacity;
+}
+
+/* Sol tərəfdəkilər soldan gəlsin */
+@media (min-width: 769px) {
+  .gallery-timeline .timeline-item.left {
+    transform: translateX(-60px) translateY(20px) scale(0.96);
+  }
+
+  .gallery-timeline .timeline-item.right {
+    transform: translateX(60px) translateY(20px) scale(0.96);
+  }
 }
 
 .gallery-timeline .timeline-item.show {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+  opacity: 1 !important;
+  transform: translateX(0) translateY(0) scale(1) !important;
 }
 
 .gallery-timeline .photo-frame,
@@ -7931,11 +7939,11 @@ body.dark-ui .gallery-timeline .photo-frame {
 
 @media (max-width: 768px) {
   .gallery-timeline .timeline-item {
-    transform: translateY(34px) scale(0.97);
+    transform: translateX(0) translateY(40px) scale(0.97) !important;
   }
 
   .gallery-timeline .timeline-item.show {
-    transform: translateY(0) scale(1);
+    transform: translateX(0) translateY(0) scale(1) !important;
   }
 
   .gallery-timeline .photo-frame,

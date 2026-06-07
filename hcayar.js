@@ -1057,39 +1057,52 @@ async function fetchImages() {
       };
     });
 
-    // Animasiyalı yüklənmə üçün təkmilləşdirilmiş IntersectionObserver
+    // Animasiyalı yüklənmə — scroll etdikcə görünən animasiya
     requestAnimationFrame(() => {
       const items = stack.querySelectorAll(".timeline-item");
+      let revealCounter = 0;
+
       const observer = new IntersectionObserver(
         (entries, obs) => {
           entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              // Lazy-loaded şəkili yüklə
-              const img = entry.target.querySelector("img[data-src]");
-              if (img && !img.src) {
-                img.src = img.dataset.src;
-              }
-              // 'show' sinfini əlavə et (CSS animasiyasını tetikler)
-              entry.target.classList.add("show");
-              obs.unobserve(entry.target);
+            if (!entry.isIntersecting) return;
+            const item = entry.target;
+
+            // Lazy-loaded şəkili yüklə
+            const img = item.querySelector("img[data-src]");
+            if (img && img.dataset.src && !img.getAttribute("src")) {
+              img.src = img.dataset.src;
+              img.removeAttribute("data-src");
             }
+
+            // Stagger animasiyası — hər element ardıcıl gəlsin
+            const delay = Math.min(revealCounter * 60, 240);
+            revealCounter++;
+            setTimeout(() => {
+              item.classList.add("show");
+            }, delay);
+
+            obs.unobserve(item);
           });
         },
         {
-          threshold: 0.02,
-          rootMargin: "120px 0px 120px 0px",
+          threshold: 0,
+          rootMargin: "0px 0px -60px 0px",
         },
       );
 
       items.forEach((item) => {
-        observer.observe(item);
-        // Səhifə açılanda artıq görünən elementlərə birbaşa 'show' ver
+        // Səhifə açılanda artıq görünən elementlərə animasiyasız 'show' ver
         const rect = item.getBoundingClientRect();
         if (rect.top < window.innerHeight && rect.bottom > 0) {
-          // Şəkil yüklənməsi üçün mənbəni təyin et
           const img = item.querySelector("img[data-src]");
-          if (img && !img.src) img.src = img.dataset.src;
+          if (img && img.dataset.src && !img.getAttribute("src")) {
+            img.src = img.dataset.src;
+            img.removeAttribute("data-src");
+          }
           item.classList.add("show");
+        } else {
+          observer.observe(item);
         }
       });
     });
