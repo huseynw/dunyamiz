@@ -8405,6 +8405,12 @@ body.dark-ui .gallery-timeline .photo-frame {
   margin-bottom: 10px;
 }
 
+.film-card-genres {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .film-card-badge {
   display: inline-flex;
   align-items: center;
@@ -8418,7 +8424,7 @@ body.dark-ui .gallery-timeline .photo-frame {
   color: rgba(255, 255, 255, 0.75);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  flex-wrap: wrap;
+  white-space: nowrap;
 }
 
 .film-card-rating {
@@ -8756,8 +8762,77 @@ body:not(.dark-ui) .film-view-director {
   color: #666 !important;
 }
 
+body:not(.dark-ui) .film-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06) !important;
+}
+
+body:not(.dark-ui) .film-card:hover {
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 77, 109, 0.2) !important;
+}
+
+body:not(.dark-ui) .film-card-badge {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  color: #555 !important;
+}
+
 body:not(.dark-ui) .film-card-title {
-  color: #fff !important;
+  color: #222 !important;
+}
+
+body:not(.dark-ui) .film-card-director,
+body:not(.dark-ui) .film-card-date {
+  color: #666 !important;
+}
+
+body:not(.dark-ui) .film-card-review {
+  color: #444 !important;
+}
+
+body:not(.dark-ui) .film-card-footer {
+  border-top-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+body:not(.dark-ui) .film-card-addedby {
+  background: rgba(255, 77, 109, 0.08) !important;
+  color: var(--primary) !important;
+  border-color: rgba(255, 77, 109, 0.15) !important;
+}
+
+body:not(.dark-ui) .films-stats-bar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+body:not(.dark-ui) .film-stat-chip {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  color: #555 !important;
+}
+
+body:not(.dark-ui) .film-stat-chip strong {
+  color: #222 !important;
+}
+
+body:not(.dark-ui) .film-sort-btn {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  color: #444 !important;
+}
+
+body:not(.dark-ui) .film-sort-btn:hover {
+  background: rgba(255, 77, 109, 0.08) !important;
+  border-color: rgba(255, 77, 109, 0.25) !important;
+  color: var(--primary) !important;
+}
+
+body:not(.dark-ui) .film-sort-btn.active {
+  background: rgba(255, 77, 109, 0.15) !important;
+  border-color: rgba(255, 77, 109, 0.4) !important;
+  color: var(--primary) !important;
 }
 
 body:not(.dark-ui) .film-rating-suffix {

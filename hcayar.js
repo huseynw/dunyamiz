@@ -3165,8 +3165,8 @@ function renderFilms(films) {
       const dateStr = formatFilmDate(f.watchDate || f.dateIso);
       const genresArray = f.genre ? f.genre.split(',').map(g => g.trim()).filter(Boolean) : [];
       const genre = genresArray.length > 0
-        ? genresArray.map(g => `<span class="film-card-badge"><i class="fas fa-tag"></i>${g}</span>`).join(' ')
-        : "<span></span>";
+        ? `<div class="film-card-genres">${genresArray.map(g => `<span class="film-card-badge"><i class="fas fa-tag"></i>${g}</span>`).join('')}</div>`
+        : `<div class="film-card-genres"></div>`;
       const director = f.director
         ? `<p class="film-card-director"><i class="fas fa-video" style="font-size:.68rem;opacity:.5;margin-right:4px;"></i>${f.director}</p>`
         : "";
