@@ -52,7 +52,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 302,
       headers: {
-        Location: data.download_url,
+        Location: encodeURI(data.download_url),
         "Cache-Control": "public, max-age=300",
         "Access-Control-Allow-Origin": "*"
       },

@@ -61,6 +61,7 @@ async function loadSiteSettings(force = false) {
 
     siteSettingsLoaded = true;
 
+    const meetEl = document.getElementById("meet-count");
     if (meetEl) {
       meetEl.textContent = config.meetingCount;
     }
@@ -551,25 +552,104 @@ document.addEventListener(
   },
   { passive: true, once: false },
 );
-// ========== SPA NAVIGATION ==========
+// ========== SPA NAVIGATION (3D Pill) ==========
 function initSPANavigation() {
-  const navItems = document.querySelectorAll(".nav-item");
+  const pillNav = document.getElementById("pill-nav");
+  const pillLabel = document.getElementById("pill-active-label");
+  const pillItems = document.querySelectorAll(".pill-item");
   const pages = document.querySelectorAll(".spa-page");
 
-  navItems.forEach((item) => {
+  if (!pillNav || !pillLabel || !pillItems.length) return;
+
+  let hoverTimeout = null;
+  let isExpanded = false;
+
+  // Page label map
+  const pageLabelMap = {
+    home: "Əsas",
+    time: "Zamanımız",
+    gallery: "Qalereya",
+    letters: "Məktublar",
+    notes: "Notlar",
+    films: "Filmlər",
+    music: "Musiqi",
+  };
+
+  function expandPill() {
+    if (isExpanded) return;
+    isExpanded = true;
+    pillNav.classList.add("expanded");
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      hoverTimeout = null;
+    }
+  }
+
+  function collapsePill() {
+    hoverTimeout = setTimeout(() => {
+      isExpanded = false;
+      pillNav.classList.remove("expanded");
+    }, 600);
+  }
+
+  // Desktop hover
+  pillNav.addEventListener("mouseenter", expandPill);
+  pillNav.addEventListener("mouseleave", collapsePill);
+
+  // Mobile: tap to expand, tap outside to collapse
+  pillNav.addEventListener("touchstart", (e) => {
+    if (!isExpanded) {
+      e.preventDefault();
+      expandPill();
+    }
+  }, { passive: false });
+
+  document.addEventListener("touchstart", (e) => {
+    if (isExpanded && !pillNav.contains(e.target)) {
+      if (hoverTimeout) clearTimeout(hoverTimeout);
+      isExpanded = false;
+      pillNav.classList.remove("expanded");
+    }
+  }, { passive: true });
+
+  // Update active label with animation
+  function updateActiveLabel(pageId) {
+    const label = pageLabelMap[pageId] || pageId;
+    pillLabel.style.animation = "none";
+    void pillLabel.offsetWidth; // force reflow
+    pillLabel.textContent = label;
+    pillLabel.style.animation = "pillLabelIn 0.35s cubic-bezier(0.4, 0, 0.2, 1)";
+  }
+
+  // Click handler for navigation items
+  pillItems.forEach((item) => {
     item.addEventListener("click", () => {
       const targetPage = item.getAttribute("data-page");
       const targetElement = document.getElementById(`page-${targetPage}`);
 
-      if (targetElement.classList.contains("active")) return;
+      if (!targetElement || targetElement.classList.contains("active")) return;
 
-      // Aktiv pəncərəni tap
-      const currentPage = document.querySelector(".spa-page.active");
-
-      navItems.forEach((nav) => nav.classList.remove("active"));
+      // Update active states
+      pillItems.forEach((nav) => nav.classList.remove("active"));
       item.classList.add("active");
 
-      // Çıxış animasiyası (GSAP)
+      // Transition effect on pill
+      pillNav.classList.add("transitioning");
+      setTimeout(() => pillNav.classList.remove("transitioning"), 400);
+
+      // Update collapsed label
+      updateActiveLabel(targetPage);
+
+      // Collapse pill after selection
+      if (hoverTimeout) clearTimeout(hoverTimeout);
+      hoverTimeout = setTimeout(() => {
+        isExpanded = false;
+        pillNav.classList.remove("expanded");
+      }, 300);
+
+      // Animate page transition (GSAP)
+      const currentPage = document.querySelector(".spa-page.active");
+
       if (currentPage) {
         gsap.to(currentPage, {
           y: -30,
@@ -580,7 +660,6 @@ function initSPANavigation() {
             currentPage.classList.remove("active");
             currentPage.style.display = "none";
 
-            // Giriş animasiyası (GSAP)
             targetElement.style.display = "block";
             targetElement.classList.add("active");
             gsap.fromTo(
@@ -597,7 +676,6 @@ function initSPANavigation() {
               },
             );
 
-            // Elementlərin fərqli sürətlə axması (Stagger)
             gsap.fromTo(
               targetElement.querySelectorAll(
                 ".page-title, .animate-item, .time-together-card, .detailed-time-card",
@@ -6259,7 +6337,7 @@ const HapticSound = (() => {
       return "heart";
 
     // Nav-bar keçidi
-    if (el.closest?.(".spa-navbar") || cls.includes("nav-item")) return "nav";
+    if (el.closest?.(".pill-nav") || cls.includes("pill-item")) return "nav";
 
     // Uğur / göndər / yüklə
     if (
@@ -6305,7 +6383,7 @@ const HapticSound = (() => {
         // Düymə, zarf, qalereyada kart və ya role="button" olan element
         const btn = target.closest(
           "button, .envelope, .gallery-item, .quote-card, " +
-            ".nav-item, .yt-chip-btn, .welcome-primary-btn, " +
+            ".pill-item, .yt-chip-btn, .welcome-primary-btn, " +
             '.welcome-secondary-btn, [role="button"]',
         );
         if (!btn) return;

@@ -4,8 +4,7 @@
 // CSS import
 import '../hcstil.css';
 
-// GSAP - local fayldan
-import '../gsap.min.js';
+// GSAP is loaded globally via script tag in index.html
 
 // Ana JS məntiqi
 import '../hcayar.js';

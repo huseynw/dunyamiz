@@ -46,6 +46,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-minimal.min.css"
@@ -115,6 +116,7 @@
         });
       });
     </script>
+    <script src="/gsap.min.js"></script>
     <script type="module" src="/src/main.js"></script>
     <script>
       window.__SITE_CONFIG__ = Object.freeze({
@@ -1039,36 +1041,59 @@
         </div>
       </div>
 
-      <!-- Glassmorphism Navigation Bar -->
-      <nav class="spa-navbar">
-        <button class="nav-item active" data-page="home">
-          <i class="fas fa-home"></i>
-          <span>Əsas</span>
-        </button>
-        <button class="nav-item" data-page="time">
-          <i class="fas fa-clock"></i>
-          <span>Zamanımız</span>
-        </button>
-        <button class="nav-item" data-page="gallery">
-          <i class="fas fa-images"></i>
-          <span>Qalereya</span>
-        </button>
-        <button class="nav-item" data-page="letters">
-          <i class="fas fa-envelope"></i>
-          <span>Məktublar</span>
-        </button>
-        <button class="nav-item" data-page="notes">
-          <i class="fas fa-sticky-note"></i>
-          <span>Notlar</span>
-        </button>
-        <button class="nav-item" data-page="films">
-          <i class="fas fa-clapperboard"></i>
-          <span>Filmlər</span>
-        </button>
-        <button class="nav-item" data-page="music">
-          <i class="fas fa-music"></i>
-          <span>Musiqi</span>
-        </button>
+      <!-- 3D Adaptive Pill Navigation -->
+      <nav class="pill-nav" id="pill-nav">
+        <!-- 3D Light Effects -->
+        <div class="pill-top-edge"></div>
+        <div class="pill-top-hemi"></div>
+        <div class="pill-dir-light"></div>
+        <div class="pill-gloss-main"></div>
+        <div class="pill-gloss-secondary"></div>
+        <div class="pill-left-edge"></div>
+        <div class="pill-right-edge"></div>
+        <div class="pill-bottom-shadow"></div>
+        <div class="pill-bottom-contact"></div>
+        <div class="pill-inner-glow"></div>
+        <div class="pill-micro-edge"></div>
+
+        <!-- Navigation Content -->
+        <div class="pill-content">
+          <!-- Collapsed: active label -->
+          <div class="pill-collapsed" id="pill-collapsed">
+            <span class="pill-active-label" id="pill-active-label">Əsas</span>
+          </div>
+          <!-- Expanded: all items -->
+          <div class="pill-expanded" id="pill-expanded">
+            <button class="pill-item active" data-page="home">
+              <i class="fas fa-home"></i>
+              <span>Əsas</span>
+            </button>
+            <button class="pill-item" data-page="time">
+              <i class="fas fa-clock"></i>
+              <span>Zamanımız</span>
+            </button>
+            <button class="pill-item" data-page="gallery">
+              <i class="fas fa-images"></i>
+              <span>Qalereya</span>
+            </button>
+            <button class="pill-item" data-page="letters">
+              <i class="fas fa-envelope"></i>
+              <span>Məktublar</span>
+            </button>
+            <button class="pill-item" data-page="notes">
+              <i class="fas fa-sticky-note"></i>
+              <span>Notlar</span>
+            </button>
+            <button class="pill-item" data-page="films">
+              <i class="fas fa-clapperboard"></i>
+              <span>Filmlər</span>
+            </button>
+            <button class="pill-item" data-page="music">
+              <i class="fas fa-music"></i>
+              <span>Musiqi</span>
+            </button>
+          </div>
+        </div>
       </nav>
     </main>
 
