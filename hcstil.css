@@ -425,19 +425,36 @@ body {
 }
 
 .welcome-password-panel {
-  width: min(100%, 520px);
-  margin: 14px auto 0;
-  padding: 16px;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(7, 7, 14, 0.52);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  width: min(100%, 420px);
+  margin: 24px auto 0;
+  padding: 30px 24px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(145deg, rgba(15, 15, 25, 0.7), rgba(5, 5, 12, 0.8));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   display: none;
   flex-direction: column;
-  gap: 12px;
-  text-align: left;
+  gap: 24px;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-password-panel::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 120px;
+  background: #ff4d6d;
+  filter: blur(60px);
+  opacity: 0.25;
+  pointer-events: none;
 }
 
 .welcome-password-panel.show {
@@ -447,63 +464,71 @@ body {
 
 .password-panel-head {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 12px;
-}
-
-.password-panel-head h3 {
-  font-size: 1rem;
-  margin-bottom: 4px;
-}
-
-.password-panel-head p {
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 0.88rem;
 }
 
 .password-panel-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 77, 109, 0.26),
-    rgba(255, 255, 255, 0.1)
-  );
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #fff;
-  flex-shrink: 0;
+  background: rgba(255, 77, 109, 0.1);
+  border: 1px solid rgba(255, 77, 109, 0.3);
+  color: #ff4d6d;
+  font-size: 1.6rem;
+  box-shadow: 0 0 25px rgba(255, 77, 109, 0.15);
+}
+
+.password-panel-head h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  letter-spacing: 0.02em;
 }
 
 .welcome-input-wrap {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
   width: 100%;
-  min-height: 56px;
-  padding: 0 16px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  margin-top: 5px;
+  padding: 0 0 10px 0;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
 }
 
-.welcome-input-wrap:focus-within {
-  border-color: rgba(255, 77, 109, 0.4);
-  background: rgba(255, 255, 255, 0.09);
-  box-shadow: 0 0 20px rgba(255, 77, 109, 0.15), inset 0 0 10px rgba(255, 77, 109, 0.05);
+.welcome-input-wrap::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0%;
+  height: 2px;
+  background: linear-gradient(90deg, #ff4d6d, #ff7c94);
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.welcome-input-wrap:focus-within::after {
+  width: 100%;
 }
 
 .welcome-input-wrap i {
-  color: rgba(255, 255, 255, 0.68);
-  transition: color 0.3s ease;
+  position: absolute;
+  left: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
 }
 
 .welcome-input-wrap:focus-within i {
   color: #ff4d6d;
+  transform: scale(1.1);
 }
 
 #pass-input {
@@ -513,40 +538,53 @@ body {
   outline: none;
   background: transparent;
   color: white;
-  padding: 16px 0;
-  text-align: left;
-  font-size: 1rem;
+  padding: 10px 40px;
+  text-align: center;
+  font-size: 1.4rem;
+  letter-spacing: 4px;
 }
 
 #pass-input::placeholder {
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: normal;
+  font-size: 1.1rem;
 }
 
-/* Autofill düzəlişi - Ağ arxa planı gizlədir */
+/* 100% Autofill Fix for Text Clip */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus, 
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0px 1000px #16161f inset !important;
+  -webkit-background-clip: text !important;
   -webkit-text-fill-color: white !important;
-  border-radius: 4px;
+  transition: background-color 5000s ease-in-out 0s !important;
+  caret-color: white !important;
 }
 
 .welcome-error-msg {
   display: none;
-  color: #ff7a90;
-  font-size: 0.84rem;
-  margin-top: -2px;
+  color: #ff4d6d;
+  font-size: 0.88rem;
+  margin-top: -10px;
+  font-weight: 500;
 }
 
 .welcome-secondary-btn {
   width: 100%;
   min-height: 54px;
-  border-radius: 18px;
-  background: rgba(255, 77, 109, 0.16);
-  border: 1px solid rgba(255, 77, 109, 0.36);
-  box-shadow: 0 12px 28px rgba(255, 77, 109, 0.1);
-  font-size: 0.96rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 77, 109, 0.15), rgba(255, 77, 109, 0.05));
+  border: 1px solid rgba(255, 77, 109, 0.4);
+  box-shadow: 0 10px 25px rgba(255, 77, 109, 0.15);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: all 0.3s ease;
+}
+
+.welcome-secondary-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 77, 109, 0.25), rgba(255, 77, 109, 0.1));
+  box-shadow: 0 15px 35px rgba(255, 77, 109, 0.25);
 }
 
 @keyframes welcomePulse {
