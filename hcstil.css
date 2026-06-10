@@ -9505,6 +9505,23 @@ body:not(.dark-ui) .pill-item.active span {
   .pill-content {
     padding: 0 12px;
   }
+
+  /* Light mode mobile navbar */
+  body:not(.dark-ui) .pill-nav {
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body:not(.dark-ui) .pill-item {
+    color: rgba(20, 20, 40, 0.8);
+  }
+
+  body:not(.dark-ui) .pill-item.active {
+    color: #ff4d6d;
+  }
+
+  body:not(.dark-ui) .pill-active-label {
+    color: #1a1a2e;
+  }
 }
 
 @media (max-width: 400px) {
