@@ -531,10 +531,11 @@ body {
   outline: none;
   background: transparent;
   color: white;
-  padding: 10px 0;
+  padding: 12px 16px;
   text-align: left;
   font-size: 1.2rem;
   letter-spacing: 2px;
+  border-radius: 999px; /* Inputun özünü də tam dairəvi edirik */
 }
 
 #pass-input::placeholder {
@@ -543,15 +544,15 @@ body {
   font-size: 1rem;
 }
 
-/* 100% Autofill Fix for Text Clip */
+/* 100% Autofill Fix: Qəti həll */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus, 
 input:-webkit-autofill:active {
-  -webkit-background-clip: text !important;
+  -webkit-box-shadow: 0 0 0px 1000px #232331 inset !important; /* Tamamilə qaranlıq rəng (ağ qutunu məhv edir) */
   -webkit-text-fill-color: white !important;
-  transition: background-color 5000s ease-in-out 0s !important;
   caret-color: white !important;
+  border-radius: 999px !important; /* Avtomatik doldurmanın kənarlarını yumşaldır */
 }
 
 .welcome-error-msg {
