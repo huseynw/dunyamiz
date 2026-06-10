@@ -488,10 +488,22 @@ body {
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.welcome-input-wrap:focus-within {
+  border-color: rgba(255, 77, 109, 0.4);
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 0 20px rgba(255, 77, 109, 0.15), inset 0 0 10px rgba(255, 77, 109, 0.05);
 }
 
 .welcome-input-wrap i {
   color: rgba(255, 255, 255, 0.68);
+  transition: color 0.3s ease;
+}
+
+.welcome-input-wrap:focus-within i {
+  color: #ff4d6d;
 }
 
 #pass-input {
@@ -508,6 +520,16 @@ body {
 
 #pass-input::placeholder {
   color: rgba(255, 255, 255, 0.42);
+}
+
+/* Autofill düzəlişi - Ağ arxa planı gizlədir */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  transition: background-color 5000s ease-in-out 0s;
+  -webkit-text-fill-color: white !important;
+  caret-color: white;
 }
 
 .welcome-error-msg {
