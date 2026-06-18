@@ -4325,15 +4325,25 @@ function updateSyncedLyricsByTime(currentTime) {
 
     const wordEls = lineEl.querySelectorAll(".yt-lyrics-word");
     wordEls.forEach((wordEl, wordIndex) => {
-      wordEl.classList.toggle(
-        "passed",
-        index < activeIndex ||
-          (index === activeIndex && wordIndex < activeWordIndex),
-      );
-      wordEl.classList.toggle(
-        "active",
-        index === activeIndex && wordIndex === activeWordIndex,
-      );
+      const isPassed = index < activeIndex || (index === activeIndex && wordIndex < activeWordIndex);
+      const isActive = index === activeIndex && wordIndex === activeWordIndex;
+      
+      wordEl.classList.toggle("passed", isPassed);
+      wordEl.classList.toggle("active", isActive);
+      
+      if (isActive && activeLine && activeLine.words) {
+        let duration = 0.5;
+        const lineWords = activeLine.words;
+        if (wordIndex + 1 < lineWords.length) {
+           duration = lineWords[wordIndex + 1].time - lineWords[wordIndex].time;
+        } else if (activeIndex + 1 < window.currentMusicLyricsParsed.length) {
+           duration = window.currentMusicLyricsParsed[activeIndex + 1].time - lineWords[wordIndex].time;
+        }
+        duration = Math.max(0.1, Math.min(3, duration));
+        wordEl.style.setProperty('--word-duration', `${duration}s`);
+      } else {
+        wordEl.style.removeProperty('--word-duration');
+      }
     });
   });
 
