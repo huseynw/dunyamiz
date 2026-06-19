@@ -3472,10 +3472,14 @@ document.addEventListener("DOMContentLoaded", () => {
         parseFloat(document.getElementById("film-rating-input").value) || 0;
       const addedBy = document.getElementById("film-added-by").value;
       const review = document.getElementById("film-review-input").value.trim();
-      const pass = getAdminPassword("upload_note") || prompt("Admin şifrəsi:");
 
-      if (!title) return alert("Film adı mütləqdir!");
-      if (!pass) return;
+      // Read password from the dedicated modal field (works on mobile too)
+      const modalPassEl = document.getElementById("film-admin-password");
+      const pass = (modalPassEl && modalPassEl.value.trim())
+        || getAdminPassword("upload_note");
+
+      if (!title) { alert("Film adı mütləqdir!"); return; }
+      if (!pass) { alert("Admin şifrəsini daxil edin!"); if (modalPassEl) modalPassEl.focus(); return; }
 
       const filmObj = {
         title,
@@ -3490,8 +3494,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(filmObj))));
 
       const btn = document.getElementById("submit-film-btn");
-      const origText = btn.textContent;
-      btn.textContent = "Yüklənir...";
+      const origText = btn.innerHTML;
+      btn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Yüklənir...";
       btn.disabled = true;
 
       try {
@@ -3513,6 +3517,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "film-genre-input",
             "film-rating-input",
             "film-review-input",
+            "film-admin-password",
           ].forEach((id) => {
             const el = document.getElementById(id);
             if (el) el.value = "";
@@ -3531,12 +3536,13 @@ document.addEventListener("DOMContentLoaded", () => {
           await loadFilms();
         } else {
           alert("Xəta: Şifrə yanlış ola bilər.");
-          btn.textContent = origText;
+          btn.innerHTML = origText;
           btn.disabled = false;
         }
       } catch (e) {
-        alert("Sistem xətası baş verdi.");
-        btn.textContent = origText;
+        console.error("Film submit xətası:", e);
+        alert("Sistem xətası baş verdi. İnternet bağlantınızı yoxlayın.");
+        btn.innerHTML = origText;
         btn.disabled = false;
       }
     });
