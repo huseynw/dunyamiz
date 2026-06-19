@@ -3156,6 +3156,30 @@ document.addEventListener("DOMContentLoaded", () => {
 window.currentFilms = [];
 let filmSortMode = "date";
 
+// Toast helper - alert() əvəzinə mobil uyğun bildiriş
+function showFilmToast(message, type = "success") {
+  let toast = document.getElementById("film-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "film-toast";
+    toast.style.cssText = [
+      "position:fixed", "bottom:90px", "left:50%", "transform:translateX(-50%)",
+      "background:" + (type === "error" ? "#c0392b" : "#27ae60"),
+      "color:#fff", "padding:12px 22px", "border-radius:12px",
+      "font-size:15px", "font-weight:600", "z-index:99999",
+      "box-shadow:0 4px 20px rgba(0,0,0,0.35)", "opacity:0",
+      "transition:opacity .3s ease", "pointer-events:none",
+      "max-width:90vw", "text-align:center"
+    ].join(";");
+    document.body.appendChild(toast);
+  }
+  toast.style.background = type === "error" ? "#c0392b" : "#27ae60";
+  toast.textContent = message;
+  toast.style.opacity = "1";
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(() => { toast.style.opacity = "0"; }, 3000);
+}
+
 function buildStarsHtml(rating, size = "small") {
   const full = Math.floor(rating / 2);
   const half = rating % 2 >= 1 ? 1 : 0;
@@ -3531,9 +3555,13 @@ document.addEventListener("DOMContentLoaded", () => {
           }
           addModal.style.display = "none";
           addModal.classList.add("hidden");
-          alert("Film uğurla əlavə edildi! 🎬");
-          // Reload
-          await loadFilms();
+          // Restore button before any async work
+          btn.innerHTML = "Təsdiqlə və Göndər <i class='fas fa-clapperboard'></i>";
+          btn.disabled = false;
+          // Show toast instead of alert (alert blocks on mobile PWA)
+          showFilmToast("🎬 Film uğurla əlavə edildi!");
+          // Reload films list
+          try { await loadFilms(); } catch (_) {}
         } else {
           alert("Xəta: Şifrə yanlış ola bilər.");
           btn.innerHTML = origText;
