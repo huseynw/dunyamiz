@@ -1,0 +1,22 @@
+{
+  "id": "dilerim-ki-dolu-kadehi-ters-tut-1782153545001",
+  "title": "Dilerim Ki",
+  "artist": "Dolu Kadehi Ters Tut",
+  "lyrics": {
+    "type": "synced",
+    "text": "[00:16.17] Umudumsun\n[00:19.54] Simsiyahken her yanım\n[00:21.06] Huzurumsun\n[00:23.43] \n[00:26.27] Uçurumsun\n[00:29.01] Atlasam karanlığına\n[00:30.99] Adım unutulsun\n[00:33.78] \n[00:36.83] Evim ol\n[00:38.62] Kurtar beni\n[00:42.08] Sonum ol\n[00:46.73] Dilerim ki\n[00:49.34] Dilerim ki asla caymazsın benim olmaktan\n[00:56.54] Dursun zaman\n[00:59.73] Kalsın yerim derinlerinde saklanan\n[01:06.39] \n[01:22.60] Sönemezsin\n[01:25.69] İçimi yakan delip geçen\n[01:28.29] Ateş sensin\n[01:30.34] \n[01:32.46] Onlar ne bilsin?\n[01:35.56] Sana çıksa keşke her yolum\n[01:37.63] Hayalimsin\n[01:39.91] \n[01:43.34] Evim ol\n[01:45.15] Kurtar beni\n[01:48.22] Sonum ol\n[01:52.97] Dilerim ki\n[01:55.88] Dilerim ki asla caymazsın benim olmaktan\n[02:03.00] Dursun zaman\n[02:06.15] Kalsın yerim derinlerinde saklanan\n[02:13.41] Kaybolan bir ruh gibi\n[02:18.38] Kayıp gidersem de bul beni\n[02:23.87] Mahvolur da bitersem\n[02:28.78] Tut elimi\n[02:33.98] Dilerim ki\n[02:36.53] Dilerim ki asla caymazsın benim olmaktan\n[02:43.80] Dursun zaman\n[02:47.23] Kalsın yerim derinlerinde saklanan\n[02:54.71] Dilerim ki\n[02:57.12] Dilerim ki asla caymazsın benim olmaktan\n[03:03.74] Dursun zaman\n[03:07.14] Kalsın yerim derinlerinde saklanan\n[03:10.03]"
+  },
+  "uploadedAt": "2026-06-22T18:39:05.001Z",
+  "provider": "r2",
+  "audio": "https://cdn.dunyamiz.me/music/dilerim-ki-dolu-kadehi-ters-tut-1782153545001.mp3",
+  "cover": "https://cdn.dunyamiz.me/covers/dilerim-ki-dolu-kadehi-ters-tut-1782153545001.jpg",
+  "storage": {
+    "provider": "r2",
+    "bucket": "dunyamiz",
+    "publicBaseUrl": "https://cdn.dunyamiz.me",
+    "audioKey": "music/dilerim-ki-dolu-kadehi-ters-tut-1782153545001.mp3",
+    "coverKey": "covers/dilerim-ki-dolu-kadehi-ters-tut-1782153545001.jpg",
+    "mode": "direct-browser-upload",
+    "finalizedAt": "2026-06-22T18:39:07.917Z"
+  }
+}
