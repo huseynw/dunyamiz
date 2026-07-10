@@ -24,19 +24,29 @@ const REMINDER_HOURS = [3, 2, 1];
 const START_DATE = "2025-08-03T00:00:00Z";
 
 // ========== GITHUB LOG YARDIMÇILARI ==========
-async function getGitHubFile(path) {
+async function getGitHubFile(path, retries = 3) {
   const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `token ${GH_TOKEN}`,
-      Accept: "application/vnd.github.v3+json",
-    },
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`GitHub oxuma xətası: ${res.status}`);
-  const data = await res.json();
-  const content = Buffer.from(data.content, "base64").toString("utf8");
-  return { sha: data.sha, data: JSON.parse(content) };
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `token ${GH_TOKEN}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+    });
+    if (res.status === 404) return null;
+    if (res.ok) {
+      const data = await res.json();
+      const content = Buffer.from(data.content, "base64").toString("utf8");
+      return { sha: data.sha, data: JSON.parse(content) };
+    }
+    // 502/503 kimi keçici xətalarda yenidən cəhd et
+    if ((res.status === 502 || res.status === 503) && attempt < retries) {
+      console.warn(`GitHub ${res.status} xətası, ${attempt}. cəhd. Yenidən sınayır...`);
+      await new Promise((r) => setTimeout(r, 1000 * attempt));
+      continue;
+    }
+    throw new Error(`GitHub oxuma xətası: ${res.status}`);
+  }
 }
 
 async function saveGitHubFile(path, content, sha) {
@@ -62,15 +72,12 @@ async function saveGitHubFile(path, content, sha) {
 }
 
 async function readLog() {
-  try {
-    const file = await getGitHubFile(LOG_PATH);
-    return file
-      ? { data: file.data, sha: file.sha }
-      : { data: { reminders: {}, daily_love: {} }, sha: null };
-  } catch (e) {
-    console.error("Log oxuma xətası:", e);
-    return { data: { reminders: {}, daily_love: {} }, sha: null };
-  }
+  // Xəta olduqda boş data qaytarma - bu dublikat göndərişə səbəb olur!
+  // Əvəzinə xətanı yuxarı ötür ki, handler dayansın.
+  const file = await getGitHubFile(LOG_PATH);
+  return file
+    ? { data: file.data, sha: file.sha }
+    : { data: { reminders: {}, daily_love: {} }, sha: null };
 }
 
 async function markReminderSent(hours) {
