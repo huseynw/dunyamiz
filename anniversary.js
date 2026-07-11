@@ -622,6 +622,10 @@
         var mainArr = document.getElementById("main-anni-arrived-msg");
         if (mainDisp) mainDisp.style.display = "none";
         if (mainArr) mainArr.classList.remove("anni-hidden");
+        
+        if (typeof patchNavbarForAnniversary === 'function') {
+          patchNavbarForAnniversary();
+        }
         return;
       }
       var r = getDaysUntilAnniversary();
@@ -1072,7 +1076,7 @@
       // Qısayolla (Ctrl+Shift+Y) açıla biləcək.
       navBtn.style.display = "none";
     } else {
-      navBtn.style.display = "flex";
+      navBtn.style.display = "";
       navBtn.style.animation = "anniSparkle 2s infinite";
     }
   }

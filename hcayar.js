@@ -573,6 +573,7 @@ function initSPANavigation() {
     notes: "Notlar",
     films: "Filmlər",
     music: "Musiqi",
+    anniversary: "İl Dönümü",
   };
 
   function expandPill() {
