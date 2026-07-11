@@ -738,6 +738,17 @@
     // Gizli qısayol: 'Ctrl+Shift+Y' basanda test üçün açılsın
     document.addEventListener("keydown", function(e) {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "y") {
+        // Əsas səhifəyə keç
+        var homeBtn = document.querySelector('button[data-page="home"]');
+        if (homeBtn) homeBtn.click();
+
+        // Geri sayım widget-ini 1 il tamam oldu vəziyyətinə gətir
+        var disp = document.getElementById("anni-display");
+        var arr = document.getElementById("anni-arrived-msg");
+        if (disp) disp.style.display = "none";
+        if (arr) arr.classList.remove("anni-hidden");
+
+        // Tam ekran partlayışı göstər
         showAnniversaryScreen();
         setTimeout(launchConfetti, 1000);
       }
