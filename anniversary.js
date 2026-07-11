@@ -469,9 +469,9 @@
           '<div class="anni-orb anni-orb-3"></div>' +
         '</div>' +
         '<div class="anni-hero-inner">' +
-          '<div class="anni-hero-badge"><span class="anni-badge-sparkle">✨</span><span>HƏR İL 3 AVQUST</span><span class="anni-badge-sparkle">✨</span></div>' +
+          '<div class="anni-hero-badge"><span class="anni-badge-sparkle"><i class="fa-solid fa-sparkles"></i></span><span>HƏR İL 3 AVQUST</span><span class="anni-badge-sparkle"><i class="fa-solid fa-sparkles"></i></span></div>' +
           '<h2 class="anni-hero-title">Hüseyn <span class="anni-hero-amp">&</span> Cəmalə</h2>' +
-          '<p class="anni-hero-sub">' + yearsOrd + ' Dönümünə Geri Sayım 💍</p>' +
+          '<p class="anni-hero-sub">' + yearsOrd + ' Dönümünə Geri Sayım <i class="fa-solid fa-ring"></i></p>' +
           '<div id="anni-display" class="anni-display">' +
             '<div class="anni-time-block"><span class="anni-num" id="anni-days">--</span><label>Gün</label></div>' +
             '<div class="anni-sep">:</div>' +
@@ -481,11 +481,11 @@
             '<div class="anni-sep">:</div>' +
             '<div class="anni-time-block"><span class="anni-num" id="anni-secs">--</span><label>Saniyə</label></div>' +
           '</div>' +
-          '<p id="anni-arrived-msg" class="anni-arrived-msg anni-hidden">🎉 ' + yearsOrd + ' İL TAMAM OLDU! 🎊</p>' +
+          '<p id="anni-arrived-msg" class="anni-arrived-msg anni-hidden"><i class="fa-solid fa-party-horn"></i> ' + yearsOrd + ' İL TAMAM OLDU! <i class="fa-solid fa-champagne-glasses"></i></p>' +
           '<div class="anni-hero-hearts">' +
-            '<span class="anni-h1">❤️</span>' +
-            '<span class="anni-h2">💕</span>' +
-            '<span class="anni-h3">💖</span>' +
+            '<span class="anni-h1"><i class="fa-solid fa-heart" style="color:#ff4d6d"></i></span>' +
+            '<span class="anni-h2"><i class="fa-solid fa-heart" style="color:#ff4d6d"></i></span>' +
+            '<span class="anni-h3"><i class="fa-solid fa-heart" style="color:#ff4d6d"></i></span>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -493,23 +493,23 @@
       /* ── STATS ── */
       '<div class="anni-love-stats">' +
         '<div class="anni-love-stat">' +
-          '<div class="anni-love-stat-icon">📅</div>' +
+          '<div class="anni-love-stat-icon"><i class="fa-solid fa-calendar-days"></i></div>' +
           '<div class="anni-love-stat-val" id="anni-stat-days">...</div>' +
           '<div class="anni-love-stat-lbl">Gün Birlikdə</div>' +
         '</div>' +
         '<div class="anni-love-stat">' +
-          '<div class="anni-love-stat-icon">❤️</div>' +
+          '<div class="anni-love-stat-icon"><i class="fa-solid fa-heart"></i></div>' +
           '<div class="anni-love-stat-val" id="anni-stat-hrs">...</div>' +
           '<div class="anni-love-stat-lbl">Saat Sevgi</div>' +
         '</div>' +
         '<div class="anni-love-stat">' +
-          '<div class="anni-love-stat-icon">⭐</div>' +
+          '<div class="anni-love-stat-icon"><i class="fa-solid fa-star"></i></div>' +
           '<div class="anni-love-stat-val">' + (completed > 0 ? completed : '~1') + '</div>' +
           '<div class="anni-love-stat-lbl">İl Dönümü</div>' +
         '</div>' +
         '<div class="anni-love-stat">' +
-          '<div class="anni-love-stat-icon anni-inf">∞</div>' +
-          '<div class="anni-love-stat-val">∞</div>' +
+          '<div class="anni-love-stat-icon anni-inf"><i class="fa-solid fa-infinity"></i></div>' +
+          '<div class="anni-love-stat-val"><i class="fa-solid fa-infinity"></i></div>' +
           '<div class="anni-love-stat-lbl">Sevgi</div>' +
         '</div>' +
       '</div>' +
@@ -517,39 +517,39 @@
       /* ── DAILY MSG ── */
       '<div class="anni-daily-card">' +
         '<div class="anni-daily-header">' +
-          '<span class="anni-daily-badge">✉️ BU GÜNÜN MESAJI</span>' +
+          '<span class="anni-daily-badge"><i class="fa-solid fa-envelope"></i> BU GÜNÜN MESAJI</span>' +
           '<div class="anni-daily-date" id="anni-daily-date"></div>' +
         '</div>' +
         '<p class="anni-daily-label" id="anni-day-label">Yüklənir...</p>' +
-        '<blockquote class="anni-daily-msg" id="anni-daily-msg">Hər gün sənlə daha gözəldir... ❤️</blockquote>' +
+        '<blockquote class="anni-daily-msg" id="anni-daily-msg">Hər gün sənlə daha gözəldir... <i class="fa-solid fa-heart"></i></blockquote>' +
       '</div>' +
 
       /* ── TIMELINE ── */
       '<div class="anni-timeline-section">' +
-        '<h3 class="anni-section-title"><span class="anni-title-gem">💎</span> Sevgimizin Yolu</h3>' +
+        '<h3 class="anni-section-title"><span class="anni-title-gem"><i class="fa-regular fa-gem"></i></span> Sevgimizin Yolu</h3>' +
         '<div class="anni-timeline">' +
-          mkTL("💘", "3 Avqust 2025", "İlk addım — birlikdəyik 🌹", true) +
-          mkTL("🌸", "3 Noyabr 2025", "3 ay — hər gün daha çox sevgi 💕", true) +
-          mkTL("🥂", "3 Fevral 2026", "6 ay — yarım il birlikdə! 🎊", true) +
-          mkTL("🌙", "3 May 2026", "9 ay — demək olar ki bir il! ✨", false, "anni-tl-9m") +
-          mkTL("🎊", "3 Avqust 2026", "1 İL! — bu günü gözləyirəm 🏆", false, "anni-tl-1y", true) +
+          mkTL('<i class="fa-solid fa-heart"></i>', "3 Avqust 2025", "İlk addım — birlikdəyik <i class=\"fa-solid fa-rose\"></i>", true) +
+          mkTL('<i class="fa-solid fa-seedling"></i>', "3 Noyabr 2025", "3 ay — hər gün daha çox sevgi <i class=\"fa-solid fa-heart\"></i>", true) +
+          mkTL('<i class="fa-solid fa-champagne-glasses"></i>', "3 Fevral 2026", "6 ay — yarım il birlikdə! <i class=\"fa-solid fa-party-horn\"></i>", true) +
+          mkTL('<i class="fa-solid fa-moon"></i>', "3 May 2026", "9 ay — demək olar ki bir il! <i class=\"fa-solid fa-sparkles\"></i>", false, "anni-tl-9m") +
+          mkTL('<i class="fa-solid fa-gift"></i>', "3 Avqust 2026", "1 İL! — bu günü gözləyirəm <i class=\"fa-solid fa-trophy\"></i>", false, "anni-tl-1y", true) +
         '</div>' +
       '</div>' +
 
       /* ── STORY ── */
       '<div class="anni-story-section">' +
-        '<h3 class="anni-section-title"><span class="anni-title-gem">💌</span> Bizim Hekayəmiz</h3>' +
+        '<h3 class="anni-section-title"><span class="anni-title-gem"><i class="fa-solid fa-envelope-open-heart"></i></span> Bizim Hekayəmiz</h3>' +
         '<div class="anni-story-cards">' +
-          mkStory("🌅", "İlk Addım", "3 Avqust 2025-ci ildə başladı. O gün hər şey dəyişdi. Bir baxış, bir gülüş — və ömür boyu sürecek bir sevgi.") +
-          mkStory("💫", "Hər Gün Yeni Kəşf", "Hər səhər sənlə yeni bir şey öyrənirəm. Gülüşün, baxışın, sözlərin — hamısı qəlbimə hakmişdir.") +
-          mkStory("🛡️", "Hər Çətinlikdə Birlikdə", "Dünya nə qədər çətin olursa olsun, sən varsan — hər şey asanlaşır. Sən mənim ən böyük gücümsən.") +
+          mkStory('<i class="fa-solid fa-sun"></i>', "İlk Addım", "3 Avqust 2025-ci ildə başladı. O gün hər şey dəyişdi. Bir baxış, bir gülüş — və ömür boyu sürecek bir sevgi.") +
+          mkStory('<i class="fa-solid fa-star"></i>', "Hər Gün Yeni Kəşf", "Hər səhər sənlə yeni bir şey öyrənirəm. Gülüşün, baxışın, sözlərin — hamısı qəlbimə hakmişdir.") +
+          mkStory('<i class="fa-solid fa-shield-heart"></i>', "Hər Çətinlikdə Birlikdə", "Dünya nə qədər çətin olursa olsun, sən varsan — hər şey asanlaşır. Sən mənim ən böyük gücümsən.") +
         '</div>' +
       '</div>' +
 
       /* ── CTA ── */
       '<div class="anni-cta-section">' +
         '<button id="anni-celebrate-btn" class="anni-celebrate-btn">' +
-          '<span>🎉</span><span>İl Dönümünü Keçir!</span><span>🎊</span>' +
+          '<span><i class="fa-solid fa-party-horn"></i></span><span>İl Dönümünü Keçir!</span><span><i class="fa-solid fa-champagne-glasses"></i></span>' +
         '</button>' +
         '<p class="anni-cta-hint">Ctrl + Shift + Y ilə test et</p>' +
       '</div>';
@@ -617,6 +617,9 @@
         var arr = document.getElementById("anni-arrived-msg");
         if (disp) disp.style.display = "none";
         if (arr) arr.classList.remove("anni-hidden");
+        // Main screen
+        var mainDispText = document.getElementById("main-anni-date-text");
+        if (mainDispText) mainDispText.innerHTML = "<i class='fa-solid fa-party-horn'></i> İL DÖNÜMÜ TAMAM OLDU! <i class='fa-solid fa-champagne-glasses'></i>";
         return;
       }
       var r = getDaysUntilAnniversary();
@@ -629,6 +632,18 @@
       sv("anni-hours", r.hours);
       sv("anni-mins", r.minutes);
       sv("anni-secs", r.seconds);
+
+      // Main screen
+      sv("main-anni-days", r.total);
+      sv("main-anni-hours", r.hours);
+      sv("main-anni-minutes", r.minutes);
+      sv("main-anni-seconds", r.seconds);
+      
+      var mainDateText = document.getElementById("main-anni-date-text");
+      if (mainDateText) {
+        var fmt = ANNIVERSARY_DATE.toLocaleDateString("az-AZ", { day: "numeric", month: "long", year: "numeric" });
+        mainDateText.innerHTML = fmt + " <i class='fas fa-calendar-day'></i>";
+      }
     }
     tick();
     setInterval(tick, 1000);
@@ -670,17 +685,17 @@
     screen.innerHTML =
       '<canvas id="anni-canvas" class="anni-canvas"></canvas>' +
       '<div class="anni-content"><div class="anni-content-inner">' +
-        '<div class="anni-badge-top">Hüseyn &amp; Cəmalə ❤️</div>' +
+        '<div class="anni-badge-top">Hüseyn &amp; Cəmalə <i class="fa-solid fa-heart"></i></div>' +
         '<div class="anni-year-display"><div class="anni-year-ring"><div class="anni-year-core">' +
           '<span class="anni-year-num">' + yrs + '</span><span class="anni-year-text">İL</span>' +
         '</div></div></div>' +
         '<h2 class="anni-headline">' + (yrs === 1 ? 'Bir il əvvəl iki ayrı dünya vardı —' : yrs + ' il birlikdə —') + '<br><span class="anni-headline-gold">İndi bir dünyamız var.</span></h2>' +
-        '<p class="anni-sub-quote">"' + days.toLocaleString() + ' gün, ' + hrs + ' saat — hər saniyəni sənlə yaşadım ki, bu günü yaşaya bilim. <strong>Sənin il dönümündür, Cəmalə. ❤️</strong>"</p>' +
+        '<p class="anni-sub-quote">"' + days.toLocaleString() + ' gün, ' + hrs + ' saat — hər saniyəni sənlə yaşadım ki, bu günü yaşaya bilim. <strong>Sənin il dönümündür, Cəmalə. <i class="fa-solid fa-heart"></i></strong>"</p>' +
         '<div class="anni-stats-row">' +
           '<div class="anni-stat"><strong>' + days.toLocaleString() + '</strong><span>Gün</span></div>' +
-          '<div class="anni-stat-div">💕</div>' +
+          '<div class="anni-stat-div"><i class="fa-solid fa-heart"></i></div>' +
           '<div class="anni-stat"><strong>' + hrs + '</strong><span>Saat</span></div>' +
-          '<div class="anni-stat-div">💕</div>' +
+          '<div class="anni-stat-div"><i class="fa-solid fa-heart"></i></div>' +
           '<div class="anni-stat"><strong>∞</strong><span>Sevgi</span></div>' +
         '</div>' +
         '<button id="anni-enter-btn" class="anni-enter-btn"><span>Dünyamıza Gir</span> <i class="fas fa-heart"></i></button>' +
