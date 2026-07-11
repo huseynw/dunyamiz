@@ -1069,19 +1069,11 @@
     var navBtn = document.querySelector('button[data-page="anniversary"]');
     if (!navBtn) return;
 
-    // Ana ekrandakı countdown ilə eyni şərt:
-    // 30 gün və ya daha az qalıbsa, ya da il dönümü günüdürsə göstər
-    var diff = ANNIVERSARY_DATE - new Date();
-    var daysLeft = Math.floor(diff / 86400000);
-    var shouldShow = isAnniversaryDay() || daysLeft <= 30;
-
-    if (!shouldShow) {
-      navBtn.style.display = "none";
-    } else {
+    if (isAnniversaryDay()) {
       navBtn.style.display = "";
-      if (isAnniversaryDay()) {
-        navBtn.style.animation = "anniSparkle 2s infinite";
-      }
+      navBtn.style.animation = "anniSparkle 2s infinite";
+    } else {
+      navBtn.style.display = "none";
     }
   }
 
