@@ -8,3 +8,6 @@ import '../hcstil.css';
 
 // Ana JS məntiqi
 import '../hcayar.js';
+
+// İl dönümü JS məntiqi
+import '../anniversary.js';
