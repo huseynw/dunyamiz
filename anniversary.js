@@ -618,8 +618,10 @@
         if (disp) disp.style.display = "none";
         if (arr) arr.classList.remove("anni-hidden");
         // Main screen
-        var mainDispText = document.getElementById("main-anni-date-text");
-        if (mainDispText) mainDispText.innerHTML = "<i class='fa-solid fa-party-horn'></i> İL DÖNÜMÜ TAMAM OLDU! <i class='fa-solid fa-champagne-glasses'></i>";
+        var mainDisp = document.getElementById("main-anni-display");
+        var mainArr = document.getElementById("main-anni-arrived-msg");
+        if (mainDisp) mainDisp.style.display = "none";
+        if (mainArr) mainArr.classList.remove("anni-hidden");
         return;
       }
       var r = getDaysUntilAnniversary();
@@ -636,14 +638,8 @@
       // Main screen
       sv("main-anni-days", r.total);
       sv("main-anni-hours", r.hours);
-      sv("main-anni-minutes", r.minutes);
-      sv("main-anni-seconds", r.seconds);
-      
-      var mainDateText = document.getElementById("main-anni-date-text");
-      if (mainDateText) {
-        var fmt = ANNIVERSARY_DATE.toLocaleDateString("az-AZ", { day: "numeric", month: "long", year: "numeric" });
-        mainDateText.innerHTML = fmt + " <i class='fas fa-calendar-day'></i>";
-      }
+      sv("main-anni-mins", r.minutes);
+      sv("main-anni-secs", r.seconds);
     }
     tick();
     setInterval(tick, 1000);
@@ -982,10 +978,58 @@
     document.head.appendChild(style);
   }
 
+  /* ─── ƏSAS EKRANA GERİ SAYIM (YALNIZ 1 AY QALMIŞ) ──────── */
+  function injectMainScreenCountdown() {
+    var placeholder = document.getElementById("main-screen-anni-placeholder");
+    if (!placeholder) return;
+
+    var diff = ANNIVERSARY_DATE - new Date();
+    var daysLeft = Math.floor(diff / 86400000);
+    
+    // Yalnız 30 gün və ya daha az qalıbsa, və ya İl Dönümü günüdürsə göstər
+    if (daysLeft > 30 && !isAnniversaryDay()) {
+      return; 
+    }
+
+    var nextY = ANNIVERSARY_DATE.getFullYear();
+    var yearsNum = nextY - RELATIONSHIP_START.getFullYear();
+    var yearsOrd = yearsNum + ". İl";
+
+    placeholder.innerHTML =
+      '<div class="anni-hero-section" style="margin-bottom:24px;">' +
+        '<div class="anni-hero-orbs">' +
+          '<div class="anni-orb anni-orb-1"></div>' +
+          '<div class="anni-orb anni-orb-2"></div>' +
+          '<div class="anni-orb anni-orb-3"></div>' +
+        '</div>' +
+        '<div class="anni-hero-inner">' +
+          '<div class="anni-hero-badge"><span class="anni-badge-sparkle"><i class="fa-solid fa-sparkles"></i></span><span>HƏR İL 3 AVQUST</span><span class="anni-badge-sparkle"><i class="fa-solid fa-sparkles"></i></span></div>' +
+          '<h2 class="anni-hero-title">Hüseyn <span class="anni-hero-amp">&amp;</span> Cəmalə</h2>' +
+          '<p class="anni-hero-sub">' + yearsOrd + ' Dönümünə Geri Sayım <i class="fa-solid fa-ring"></i></p>' +
+          '<div id="main-anni-display" class="anni-display">' +
+            '<div class="anni-time-block"><span class="anni-num" id="main-anni-days">--</span><label>Gün</label></div>' +
+            '<div class="anni-sep">:</div>' +
+            '<div class="anni-time-block"><span class="anni-num" id="main-anni-hours">--</span><label>Saat</label></div>' +
+            '<div class="anni-sep">:</div>' +
+            '<div class="anni-time-block"><span class="anni-num" id="main-anni-mins">--</span><label>Dəqiqə</label></div>' +
+            '<div class="anni-sep">:</div>' +
+            '<div class="anni-time-block"><span class="anni-num" id="main-anni-secs">--</span><label>Saniyə</label></div>' +
+          '</div>' +
+          '<p id="main-anni-arrived-msg" class="anni-arrived-msg anni-hidden"><i class="fa-solid fa-party-horn"></i> ' + yearsOrd + ' İL TAMAM OLDU! <i class="fa-solid fa-champagne-glasses"></i></p>' +
+          '<div class="anni-hero-hearts">' +
+            '<span class="anni-h1"><i class="fa-solid fa-heart" style="color:#ff4d6d"></i></span>' +
+            '<span class="anni-h2"><i class="fa-solid fa-heart" style="color:#ff4d6d"></i></span>' +
+            '<span class="anni-h3"><i class="fa-solid fa-heart" style="color:#ff4d6d"></i></span>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
   /* ─── ANA BAŞLATMA ──────────────────────────────────────── */
   function init() {
     injectStyles();
     injectCountdownWidget();
+    injectMainScreenCountdown();
     patchDailyMessage();
 
     /* Ctrl+Shift+Y — test qısayolu */
