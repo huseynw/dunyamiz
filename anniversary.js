@@ -1,13 +1,37 @@
 /* ============================================================
-   anniversary.js — Hüseyn & Cəmalə | 3 Avqust 2026 | 1 İL
+   anniversary.js — Hüseyn & Cəmalə | 3 Avqust | HƏR İL 💍
    ============================================================ */
 
 (function () {
   "use strict";
 
   /* ─── KONFIQURASIYA ─────────────────────────────────────── */
-  var ANNIVERSARY_DATE = new Date("2026-08-03T00:00:00");
   var RELATIONSHIP_START = new Date("2025-08-03T00:00:00");
+
+  /* Hər il avtomatik: bu ilin 3 Avqustu keçibsə gələn ili al */
+  function getNextAnniversaryDate() {
+    var now = new Date();
+    var yr = now.getFullYear();
+    var candidate = new Date(yr, 7, 3, 0, 0, 0);
+    if (candidate <= now) candidate = new Date(yr + 1, 7, 3, 0, 0, 0);
+    return candidate;
+  }
+
+  function isAnniversaryDay() {
+    var n = new Date();
+    return n.getMonth() === 7 && n.getDate() === 3 &&
+      n.getFullYear() >= RELATIONSHIP_START.getFullYear() + 1;
+  }
+
+  function getAnniversaryYearsCompleted() {
+    var now = new Date();
+    var years = now.getFullYear() - RELATIONSHIP_START.getFullYear();
+    var thisYearAnniv = new Date(now.getFullYear(), 7, 3, 0, 0, 0);
+    if (now < thisYearAnniv) years--;
+    return Math.max(0, years);
+  }
+
+  var ANNIVERSARY_DATE = getNextAnniversaryDate();
 
   /* ─── 365 GÜNLÜK MESAJLAR ───────────────────────────────── */
   var DAILY_MESSAGES = [
@@ -408,11 +432,6 @@
     };
   }
 
-  function isAnniversaryDay() {
-    var n = new Date();
-    return n.getFullYear() === 2026 && n.getMonth() === 7 && n.getDate() === 3;
-  }
-
   function getTodayMessage() {
     var day = getDaysSinceStart();
     if (day <= 0) return null;
@@ -423,48 +442,174 @@
   function getDayLabel() {
     var day = getDaysSinceStart();
     if (day <= 0) return "";
-    if (day >= 365) return "365-ci Gün — 1 İl! 🎉";
+    var yrs = getAnniversaryYearsCompleted();
+    if (isAnniversaryDay()) return yrs + ". İl Dönümü! 🎉";
+    if (day >= 365) return day + "-ci Gün — " + yrs + " İl! 🎉";
     return day + "-ci Gün Birlikdə";
   }
 
-  /* ─── GERİ SAYIM WİDGETİ ────────────────────────────────── */
+  /* ─── İL DÖNÜMÜ SƏHİFƏSİNİ QURUR ───────────────────────── */
   function injectCountdownWidget() {
-    var homePage = document.getElementById("page-anniversary");
-    if (!homePage) return;
-    var pageContent = homePage.querySelector(".page-content");
-    if (!pageContent) return;
+    var page = document.getElementById("page-anniversary");
+    if (!page) return;
+    var pc = page.querySelector(".page-content");
+    if (!pc) return;
 
-    var widget = document.createElement("div");
-    widget.id = "anni-countdown-widget";
-    widget.className = "anni-countdown-widget";
-    widget.innerHTML = '<div class="anni-widget-inner">' +
-      '<div class="anni-widget-header">' +
-        '<div class="anni-widget-badge"><span class="anni-badge-sparkle">✨</span><span>3 AVQUST 2026</span></div>' +
-        '<h3 class="anni-widget-title">1 İllik İl Dönümümüz</h3>' +
-        '<p class="anni-widget-sub">Hüseyn &amp; Cəmalə</p>' +
-      '</div>' +
-      '<div id="anni-display" class="anni-display">' +
-        '<div class="anni-time-block"><span class="anni-num" id="anni-days">--</span><label>Gün</label></div>' +
-        '<div class="anni-sep">:</div>' +
-        '<div class="anni-time-block"><span class="anni-num" id="anni-hours">--</span><label>Saat</label></div>' +
-        '<div class="anni-sep">:</div>' +
-        '<div class="anni-time-block"><span class="anni-num" id="anni-mins">--</span><label>Dəqiqə</label></div>' +
-        '<div class="anni-sep">:</div>' +
-        '<div class="anni-time-block"><span class="anni-num" id="anni-secs">--</span><label>Saniyə</label></div>' +
-      '</div>' +
-      '<p id="anni-arrived-msg" class="anni-arrived-msg anni-hidden">🎉 1 İL TAMAM OLDU! 🎉</p>' +
-      '<div class="anni-widget-footer"><div class="anni-heart-dots"><span>❤️</span><span>🥂</span><span>❤️</span></div></div>' +
-    '</div>';
+    var nextY = ANNIVERSARY_DATE.getFullYear();
+    var yearsNum = nextY - RELATIONSHIP_START.getFullYear();
+    var yearsOrd = yearsNum + ". İl";
+    var completed = getAnniversaryYearsCompleted();
 
-    var firstCard = pageContent.querySelector(".time-together-card");
-    if (firstCard) {
-      pageContent.insertBefore(widget, firstCard);
-    } else {
-      pageContent.prepend(widget);
-    }
+    pc.innerHTML =
+      /* ── HERO ── */
+      '<div class="anni-hero-section">' +
+        '<div class="anni-hero-orbs">' +
+          '<div class="anni-orb anni-orb-1"></div>' +
+          '<div class="anni-orb anni-orb-2"></div>' +
+          '<div class="anni-orb anni-orb-3"></div>' +
+        '</div>' +
+        '<div class="anni-hero-inner">' +
+          '<div class="anni-hero-badge"><span class="anni-badge-sparkle">✨</span><span>HƏR İL 3 AVQUST</span><span class="anni-badge-sparkle">✨</span></div>' +
+          '<h2 class="anni-hero-title">Hüseyn <span class="anni-hero-amp">&</span> Cəmalə</h2>' +
+          '<p class="anni-hero-sub">' + yearsOrd + ' Dönümünə Geri Sayım 💍</p>' +
+          '<div id="anni-display" class="anni-display">' +
+            '<div class="anni-time-block"><span class="anni-num" id="anni-days">--</span><label>Gün</label></div>' +
+            '<div class="anni-sep">:</div>' +
+            '<div class="anni-time-block"><span class="anni-num" id="anni-hours">--</span><label>Saat</label></div>' +
+            '<div class="anni-sep">:</div>' +
+            '<div class="anni-time-block"><span class="anni-num" id="anni-mins">--</span><label>Dəqiqə</label></div>' +
+            '<div class="anni-sep">:</div>' +
+            '<div class="anni-time-block"><span class="anni-num" id="anni-secs">--</span><label>Saniyə</label></div>' +
+          '</div>' +
+          '<p id="anni-arrived-msg" class="anni-arrived-msg anni-hidden">🎉 ' + yearsOrd + ' İL TAMAM OLDU! 🎊</p>' +
+          '<div class="anni-hero-hearts">' +
+            '<span class="anni-h1">❤️</span>' +
+            '<span class="anni-h2">💕</span>' +
+            '<span class="anni-h3">💖</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      /* ── STATS ── */
+      '<div class="anni-love-stats">' +
+        '<div class="anni-love-stat">' +
+          '<div class="anni-love-stat-icon">📅</div>' +
+          '<div class="anni-love-stat-val" id="anni-stat-days">...</div>' +
+          '<div class="anni-love-stat-lbl">Gün Birlikdə</div>' +
+        '</div>' +
+        '<div class="anni-love-stat">' +
+          '<div class="anni-love-stat-icon">❤️</div>' +
+          '<div class="anni-love-stat-val" id="anni-stat-hrs">...</div>' +
+          '<div class="anni-love-stat-lbl">Saat Sevgi</div>' +
+        '</div>' +
+        '<div class="anni-love-stat">' +
+          '<div class="anni-love-stat-icon">⭐</div>' +
+          '<div class="anni-love-stat-val">' + (completed > 0 ? completed : '~1') + '</div>' +
+          '<div class="anni-love-stat-lbl">İl Dönümü</div>' +
+        '</div>' +
+        '<div class="anni-love-stat">' +
+          '<div class="anni-love-stat-icon anni-inf">∞</div>' +
+          '<div class="anni-love-stat-val">∞</div>' +
+          '<div class="anni-love-stat-lbl">Sevgi</div>' +
+        '</div>' +
+      '</div>' +
+
+      /* ── DAILY MSG ── */
+      '<div class="anni-daily-card">' +
+        '<div class="anni-daily-header">' +
+          '<span class="anni-daily-badge">✉️ BU GÜNÜN MESAJI</span>' +
+          '<div class="anni-daily-date" id="anni-daily-date"></div>' +
+        '</div>' +
+        '<p class="anni-daily-label" id="anni-day-label">Yüklənir...</p>' +
+        '<blockquote class="anni-daily-msg" id="anni-daily-msg">Hər gün sənlə daha gözəldir... ❤️</blockquote>' +
+      '</div>' +
+
+      /* ── TIMELINE ── */
+      '<div class="anni-timeline-section">' +
+        '<h3 class="anni-section-title"><span class="anni-title-gem">💎</span> Sevgimizin Yolu</h3>' +
+        '<div class="anni-timeline">' +
+          mkTL("💘", "3 Avqust 2025", "İlk addım — birlikdəyik 🌹", true) +
+          mkTL("🌸", "3 Noyabr 2025", "3 ay — hər gün daha çox sevgi 💕", true) +
+          mkTL("🥂", "3 Fevral 2026", "6 ay — yarım il birlikdə! 🎊", true) +
+          mkTL("🌙", "3 May 2026", "9 ay — demək olar ki bir il! ✨", false, "anni-tl-9m") +
+          mkTL("🎊", "3 Avqust 2026", "1 İL! — bu günü gözləyirəm 🏆", false, "anni-tl-1y", true) +
+        '</div>' +
+      '</div>' +
+
+      /* ── STORY ── */
+      '<div class="anni-story-section">' +
+        '<h3 class="anni-section-title"><span class="anni-title-gem">💌</span> Bizim Hekayəmiz</h3>' +
+        '<div class="anni-story-cards">' +
+          mkStory("🌅", "İlk Addım", "3 Avqust 2025-ci ildə başladı. O gün hər şey dəyişdi. Bir baxış, bir gülüş — və ömür boyu sürecek bir sevgi.") +
+          mkStory("💫", "Hər Gün Yeni Kəşf", "Hər səhər sənlə yeni bir şey öyrənirəm. Gülüşün, baxışın, sözlərin — hamısı qəlbimə hakmişdir.") +
+          mkStory("🛡️", "Hər Çətinlikdə Birlikdə", "Dünya nə qədər çətin olursa olsun, sən varsan — hər şey asanlaşır. Sən mənim ən böyük gücümsən.") +
+        '</div>' +
+      '</div>' +
+
+      /* ── CTA ── */
+      '<div class="anni-cta-section">' +
+        '<button id="anni-celebrate-btn" class="anni-celebrate-btn">' +
+          '<span>🎉</span><span>İl Dönümünü Keçir!</span><span>🎊</span>' +
+        '</button>' +
+        '<p class="anni-cta-hint">Ctrl + Shift + Y ilə test et</p>' +
+      '</div>';
+
+    updateLoveStats();
     runCountdown();
+    markTimelineProgress();
+    patchDailyMessage();
+
+    /* CTA button */
+    setTimeout(function () {
+      var btn = document.getElementById("anni-celebrate-btn");
+      if (btn) {
+        btn.addEventListener("click", function () {
+          showAnniversaryScreen();
+          setTimeout(launchConfetti, 1000);
+        });
+      }
+    }, 100);
   }
 
+  function mkTL(icon, date, text, done, id, future) {
+    var cls = "anni-tl-item" + (done ? " anni-tl-done" : "") + (future ? " anni-tl-future" : "");
+    var idAttr = id ? ' id="' + id + '"' : "";
+    return '<div class="' + cls + '"' + idAttr + '>' +
+      '<div class="anni-tl-dot' + (future ? " anni-tl-dot-star" : "") + '"><span>' + icon + '</span></div>' +
+      '<div class="anni-tl-body"><strong>' + date + '</strong><p>' + text + '</p></div>' +
+    '</div>';
+  }
+
+  function mkStory(icon, title, text) {
+    return '<div class="anni-story-card">' +
+      '<div class="anni-story-icon">' + icon + '</div>' +
+      '<h4>' + title + '</h4>' +
+      '<p>' + text + '</p>' +
+    '</div>';
+  }
+
+  function updateLoveStats() {
+    var days = Math.max(0, getDaysSinceStart());
+    var dEl = document.getElementById("anni-stat-days");
+    var hEl = document.getElementById("anni-stat-hrs");
+    if (dEl) dEl.textContent = days.toLocaleString();
+    if (hEl) hEl.textContent = (days * 24).toLocaleString();
+  }
+
+  function markTimelineProgress() {
+    var now = new Date();
+    var may2026 = new Date(2026, 4, 3);
+    var aug2026 = new Date(2026, 7, 3);
+    var tl9m = document.getElementById("anni-tl-9m");
+    var tl1y = document.getElementById("anni-tl-1y");
+    if (tl9m && now >= may2026) tl9m.classList.add("anni-tl-done");
+    if (tl1y && now >= aug2026) {
+      tl1y.classList.remove("anni-tl-future");
+      tl1y.classList.add("anni-tl-done");
+    }
+  }
+
+  /* ─── GERİ SAYIM ────────────────────────────────────────── */
   function runCountdown() {
     function tick() {
       if (isAnniversaryDay()) {
@@ -489,19 +634,28 @@
     setInterval(tick, 1000);
   }
 
-  /* ─── GÜN MESAJINI YENILƏ ──────────────────────────────── */
+  /* ─── GÜN MESAJINI YENİLƏ ───────────────────────────────── */
   function patchDailyMessage() {
     var msg = getTodayMessage();
     if (!msg) return;
+    var lbl = getDayLabel();
+    var fmt = new Date().toLocaleDateString("az-AZ", { day: "numeric", month: "long", year: "numeric" });
+
+    /* Ana səhifə */
     var t = document.getElementById("daily-message-text");
     var ti = document.getElementById("daily-message-title");
     var d = document.getElementById("daily-message-date");
     if (t) t.textContent = msg;
-    if (ti) ti.innerHTML = getDayLabel() + ' <i class="fas fa-heart"></i>';
-    if (d) {
-      var fmt = new Date().toLocaleDateString("az-AZ", { day: "numeric", month: "long", year: "numeric" });
-      d.innerHTML = '<i class="fas fa-calendar-day"></i> ' + fmt;
-    }
+    if (ti) ti.innerHTML = lbl + ' <i class="fas fa-heart"></i>';
+    if (d) d.innerHTML = '<i class="fas fa-calendar-day"></i> ' + fmt;
+
+    /* İl dönümü səhifəsi */
+    var amsg = document.getElementById("anni-daily-msg");
+    var albl = document.getElementById("anni-day-label");
+    var adate = document.getElementById("anni-daily-date");
+    if (amsg) amsg.textContent = msg;
+    if (albl) albl.textContent = lbl;
+    if (adate) adate.textContent = fmt;
   }
 
   /* ─── TAM EKRAN İL DÖNÜMÜ ───────────────────────────────── */
@@ -509,19 +663,23 @@
     var screen = document.getElementById("anniversary-screen");
     if (!screen) return;
 
+    var yrs = Math.max(1, getAnniversaryYearsCompleted() || 1);
+    var days = Math.max(365, getDaysSinceStart());
+    var hrs = (days * 24).toLocaleString();
+
     screen.innerHTML =
       '<canvas id="anni-canvas" class="anni-canvas"></canvas>' +
       '<div class="anni-content"><div class="anni-content-inner">' +
         '<div class="anni-badge-top">Hüseyn &amp; Cəmalə ❤️</div>' +
         '<div class="anni-year-display"><div class="anni-year-ring"><div class="anni-year-core">' +
-          '<span class="anni-year-num">1</span><span class="anni-year-text">İL</span>' +
+          '<span class="anni-year-num">' + yrs + '</span><span class="anni-year-text">İL</span>' +
         '</div></div></div>' +
-        '<h2 class="anni-headline">Bir il əvvəl iki ayrı dünya vardı —<br><span class="anni-headline-gold">İndi bir dünyamız var.</span></h2>' +
-        '<p class="anni-sub-quote">"365 gün, 8760 saat, 525,600 dəqiqə — hər saniyəni sənlə yaşadım ki, bu günü yaşaya bilim. <strong>Sənin il dönümündür, Cəmalə. ❤️</strong>"</p>' +
+        '<h2 class="anni-headline">' + (yrs === 1 ? 'Bir il əvvəl iki ayrı dünya vardı —' : yrs + ' il birlikdə —') + '<br><span class="anni-headline-gold">İndi bir dünyamız var.</span></h2>' +
+        '<p class="anni-sub-quote">"' + days.toLocaleString() + ' gün, ' + hrs + ' saat — hər saniyəni sənlə yaşadım ki, bu günü yaşaya bilim. <strong>Sənin il dönümündür, Cəmalə. ❤️</strong>"</p>' +
         '<div class="anni-stats-row">' +
-          '<div class="anni-stat"><strong>365</strong><span>Gün</span></div>' +
+          '<div class="anni-stat"><strong>' + days.toLocaleString() + '</strong><span>Gün</span></div>' +
           '<div class="anni-stat-div">💕</div>' +
-          '<div class="anni-stat"><strong>8,760</strong><span>Saat</span></div>' +
+          '<div class="anni-stat"><strong>' + hrs + '</strong><span>Saat</span></div>' +
           '<div class="anni-stat-div">💕</div>' +
           '<div class="anni-stat"><strong>∞</strong><span>Sevgi</span></div>' +
         '</div>' +
@@ -529,14 +687,14 @@
       '</div></div>';
 
     screen.style.display = "flex";
-    requestAnimationFrame(function() { initFireworks(); initHearts(); });
+    requestAnimationFrame(function () { initFireworks(); initHearts(); });
 
-    setTimeout(function() {
+    setTimeout(function () {
       var btn = document.getElementById("anni-enter-btn");
       if (btn) {
-        btn.addEventListener("click", function() {
+        btn.addEventListener("click", function () {
           screen.style.animation = "anniFadeOut 0.8s ease forwards";
-          setTimeout(function() { screen.style.display = "none"; }, 800);
+          setTimeout(function () { screen.style.display = "none"; screen.style.animation = ""; }, 800);
         });
       }
     }, 100);
@@ -548,10 +706,10 @@
     if (!canvas) return;
     var ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    window.addEventListener("resize", function() {
+    window.addEventListener("resize", function () {
       canvas.width = window.innerWidth; canvas.height = window.innerHeight;
     });
-    var COLORS = ["#FFD700","#FF6B6B","#FF1493","#FF69B4","#FFA500","#FFFFFF","#FFE4E1","#FFB6C1"];
+    var COLORS = ["#FFD700", "#FF6B6B", "#FF1493", "#FF69B4", "#FFA500", "#FFFFFF", "#FFE4E1", "#FFB6C1"];
     var particles = [];
 
     function Particle(x, y, color) {
@@ -561,17 +719,17 @@
       this.alpha = 1; this.decay = 0.012 + Math.random() * 0.015;
       this.size = 2 + Math.random() * 3; this.gravity = 0.08;
     }
-    Particle.prototype.update = function() {
+    Particle.prototype.update = function () {
       this.x += this.vx; this.y += this.vy; this.vy += this.gravity;
       this.vx *= 0.98; this.alpha -= this.decay;
     };
-    Particle.prototype.draw = function(c) {
+    Particle.prototype.draw = function (c) {
       c.save(); c.globalAlpha = Math.max(0, this.alpha);
       c.fillStyle = this.color; c.shadowColor = this.color; c.shadowBlur = 8;
       c.beginPath(); c.arc(this.x, this.y, this.size, 0, Math.PI * 2);
       c.fill(); c.restore();
     };
-    Particle.prototype.isDead = function() { return this.alpha <= 0; };
+    Particle.prototype.isDead = function () { return this.alpha <= 0; };
 
     function burst(x, y) {
       var c = COLORS[Math.floor(Math.random() * COLORS.length)];
@@ -591,9 +749,9 @@
       }
       requestAnimationFrame(loop);
     }
-    setTimeout(function(){ burst(canvas.width*0.3, canvas.height*0.3); }, 200);
-    setTimeout(function(){ burst(canvas.width*0.7, canvas.height*0.25); }, 500);
-    setTimeout(function(){ burst(canvas.width*0.5, canvas.height*0.4); }, 900);
+    setTimeout(function () { burst(canvas.width * 0.3, canvas.height * 0.3); }, 200);
+    setTimeout(function () { burst(canvas.width * 0.7, canvas.height * 0.25); }, 500);
+    setTimeout(function () { burst(canvas.width * 0.5, canvas.height * 0.4); }, 900);
     requestAnimationFrame(loop);
   }
 
@@ -601,38 +759,38 @@
   function initHearts() {
     var container = document.getElementById("anniversary-screen");
     if (!container) return;
-    var hearts = ["❤️","🧡","💛","💕","💖","💗","💓"];
+    var hearts = ["❤️", "🧡", "💛", "💕", "💖", "💗", "💓"];
     function spawnHeart() {
       var span = document.createElement("span");
       span.className = "anni-floating-heart";
       span.textContent = hearts[Math.floor(Math.random() * hearts.length)];
       var dir = (Math.random() > 0.5 ? 1 : -1) * (20 + Math.random() * 30);
       var rot = Math.floor(Math.random() * 60 - 30);
-      span.style.cssText = "left:" + (Math.random()*100) + "%;font-size:" + (14+Math.random()*20) + "px;" +
-        "animation-duration:" + (4+Math.random()*5) + "s;animation-delay:" + (Math.random()*1.5) + "s;" +
+      span.style.cssText = "left:" + (Math.random() * 100) + "%;font-size:" + (14 + Math.random() * 20) + "px;" +
+        "animation-duration:" + (4 + Math.random() * 5) + "s;animation-delay:" + (Math.random() * 1.5) + "s;" +
         "--anni-heart-dir:" + dir + "px;--anni-heart-rot:" + rot + "deg;";
       container.appendChild(span);
-      setTimeout(function(){ span.remove(); }, 11000);
+      setTimeout(function () { span.remove(); }, 11000);
     }
-    for (var i = 0; i < 10; i++) (function(d){ setTimeout(spawnHeart, d*250); })(i);
+    for (var i = 0; i < 10; i++) (function (d) { setTimeout(spawnHeart, d * 250); })(i);
     var iv = setInterval(spawnHeart, 600);
-    setTimeout(function(){ clearInterval(iv); }, 30000);
+    setTimeout(function () { clearInterval(iv); }, 30000);
   }
 
   /* ─── KONFETTİ ──────────────────────────────────────────── */
   function launchConfetti() {
-    var colors = ["#FFD700","#FF6B6B","#FF1493","#00FF7F","#1E90FF","#FFFFFF"];
+    var colors = ["#FFD700", "#FF6B6B", "#FF1493", "#00FF7F", "#1E90FF", "#FFFFFF"];
     var container = document.getElementById("anniversary-screen");
     if (!container) return;
     for (var i = 0; i < 100; i++) {
       var p = document.createElement("div");
       p.className = "anni-confetti";
-      p.style.cssText = "left:" + (Math.random()*100) + "%;background:" + colors[Math.floor(Math.random()*colors.length)] + ";" +
-        "width:" + (5+Math.random()*8) + "px;height:" + (8+Math.random()*10) + "px;" +
-        "animation-duration:" + (2+Math.random()*3) + "s;animation-delay:" + (Math.random()*2) + "s;" +
-        "transform:rotate(" + (Math.random()*360) + "deg);border-radius:" + (Math.random()>0.5?"50%":"2px") + ";";
+      p.style.cssText = "left:" + (Math.random() * 100) + "%;background:" + colors[Math.floor(Math.random() * colors.length)] + ";" +
+        "width:" + (5 + Math.random() * 8) + "px;height:" + (8 + Math.random() * 10) + "px;" +
+        "animation-duration:" + (2 + Math.random() * 3) + "s;animation-delay:" + (Math.random() * 2) + "s;" +
+        "transform:rotate(" + (Math.random() * 360) + "deg);border-radius:" + (Math.random() > 0.5 ? "50%" : "2px") + ";";
       container.appendChild(p);
-      setTimeout(function(){ p.remove(); }, 6000);
+      setTimeout(function () { p.remove(); }, 6000);
     }
   }
 
@@ -640,35 +798,117 @@
   function injectStyles() {
     var style = document.createElement("style");
     style.textContent = [
-      ".anni-countdown-widget{margin-bottom:24px;border-radius:24px;",
-      "background:linear-gradient(135deg,rgba(139,0,0,.35) 0%,rgba(180,20,60,.28) 40%,rgba(255,165,0,.15) 100%);",
-      "border:1px solid rgba(255,215,0,.3);overflow:hidden;position:relative;",
-      "box-shadow:0 8px 32px rgba(139,0,0,.3),inset 0 1px 0 rgba(255,215,0,.15)}",
-      ".anni-countdown-widget::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;",
-      "background:linear-gradient(90deg,transparent,#FFD700,transparent)}",
-      ".anni-widget-inner{padding:24px 20px 20px;text-align:center}",
-      ".anni-widget-header{margin-bottom:20px}",
-      ".anni-widget-badge{display:inline-flex;align-items:center;gap:6px;font-size:.68rem;font-weight:700;",
-      "letter-spacing:.12em;color:#FFD700;text-transform:uppercase;background:rgba(255,215,0,.1);",
-      "border:1px solid rgba(255,215,0,.25);border-radius:100px;padding:4px 12px;margin-bottom:10px}",
+      /* ── Hero ── */
+      ".anni-hero-section{position:relative;border-radius:28px;overflow:hidden;",
+      "background:linear-gradient(135deg,rgba(80,0,30,.55) 0%,rgba(30,0,60,.6) 50%,rgba(10,0,20,.7) 100%);",
+      "border:1px solid rgba(255,215,0,.18);padding:40px 24px 32px;text-align:center;margin-bottom:20px;",
+      "box-shadow:0 12px 48px rgba(139,0,0,.35),inset 0 1px 0 rgba(255,215,0,.12)}",
+      ".anni-hero-orbs{position:absolute;inset:0;pointer-events:none;overflow:hidden}",
+      ".anni-orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.35}",
+      ".anni-orb-1{width:220px;height:220px;background:#FFD700;top:-60px;left:-60px;animation:anniOrbPulse 6s ease-in-out infinite}",
+      ".anni-orb-2{width:180px;height:180px;background:#FF1493;bottom:-40px;right:-40px;animation:anniOrbPulse 8s ease-in-out infinite reverse}",
+      ".anni-orb-3{width:140px;height:140px;background:#FF6B6B;top:50%;left:50%;transform:translate(-50%,-50%);animation:anniOrbPulse 5s ease-in-out infinite 1s}",
+      "@keyframes anniOrbPulse{0%,100%{transform:scale(1);opacity:.35}50%{transform:scale(1.2);opacity:.5}}",
+      ".anni-hero-inner{position:relative;z-index:1}",
+      ".anni-hero-badge{display:inline-flex;align-items:center;gap:8px;font-size:.7rem;font-weight:700;letter-spacing:.15em;",
+      "color:#FFD700;text-transform:uppercase;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);",
+      "border-radius:100px;padding:5px 16px;margin-bottom:18px}",
       ".anni-badge-sparkle{animation:anniSparkle 2s ease-in-out infinite}",
-      "@keyframes anniSparkle{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}",
-      ".anni-widget-title{font-size:1.15rem;font-weight:700;color:#fff;margin:0 0 4px}",
-      ".anni-widget-sub{font-size:.8rem;color:rgba(255,215,0,.7);margin:0}",
-      ".anni-display{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:16px}",
-      ".anni-time-block{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px;",
-      "background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:14px;padding:10px 8px}",
-      ".anni-num{font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#FFD700,#FF6B6B);",
+      "@keyframes anniSparkle{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}",
+      ".anni-hero-title{font-size:clamp(1.8rem,5vw,2.6rem);font-weight:900;",
+      "background:linear-gradient(135deg,#FFD700 0%,#FF6B6B 50%,#FF1493 100%);",
       "-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;",
-      "line-height:1;font-variant-numeric:tabular-nums;min-width:2ch;text-align:center}",
-      ".anni-time-block label{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.5);font-weight:600}",
-      ".anni-sep{font-size:1.4rem;font-weight:800;color:rgba(255,215,0,.5);margin-top:-8px}",
-      ".anni-arrived-msg{font-size:1.3rem;font-weight:800;color:#FFD700;text-align:center;padding:12px;",
+      "margin:0 0 8px;letter-spacing:-.02em;text-shadow:none}",
+      ".anni-hero-amp{font-size:.8em;opacity:.8}",
+      ".anni-hero-sub{font-size:.95rem;color:rgba(255,255,255,.75);margin:0 0 28px;font-weight:500}",
+      ".anni-hero-hearts{display:flex;justify-content:center;gap:16px;margin-top:20px;font-size:1.4rem}",
+      ".anni-h1{animation:anniHeartBeat 1.2s ease-in-out infinite}",
+      ".anni-h2{animation:anniHeartBeat 1.2s ease-in-out infinite .2s}",
+      ".anni-h3{animation:anniHeartBeat 1.2s ease-in-out infinite .4s}",
+      "@keyframes anniHeartBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}",
+      /* ── Countdown ── */
+      ".anni-display{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:0}",
+      ".anni-time-block{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:68px;",
+      "background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:16px;padding:12px 8px}",
+      ".anni-num{font-size:clamp(1.6rem,5vw,2rem);font-weight:800;",
+      "background:linear-gradient(135deg,#FFD700,#FF6B6B);-webkit-background-clip:text;",
+      "-webkit-text-fill-color:transparent;background-clip:text;line-height:1;",
+      "font-variant-numeric:tabular-nums;min-width:2ch;text-align:center}",
+      ".anni-time-block label{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);font-weight:600}",
+      ".anni-sep{font-size:1.6rem;font-weight:800;color:rgba(255,215,0,.5);margin-top:-10px;animation:anniBlink 1s step-end infinite}",
+      "@keyframes anniBlink{0%,100%{opacity:1}50%{opacity:.3}}",
+      ".anni-arrived-msg{font-size:1.2rem;font-weight:800;color:#FFD700;text-align:center;padding:12px;",
       "animation:anniBounce 1s ease-in-out infinite}",
-      "@keyframes anniBounce{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}",
-      ".anni-widget-footer{margin-top:8px}",
-      ".anni-heart-dots{display:flex;justify-content:center;gap:8px;font-size:1rem;opacity:.7}",
+      "@keyframes anniBounce{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}",
       ".anni-hidden{display:none!important}",
+      /* ── Love Stats ── */
+      ".anni-love-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}",
+      "@media(max-width:480px){.anni-love-stats{grid-template-columns:repeat(2,1fr)}}",
+      ".anni-love-stat{background:linear-gradient(135deg,rgba(255,215,0,.07),rgba(255,100,100,.07));",
+      "border:1px solid rgba(255,215,0,.15);border-radius:18px;padding:16px 8px;text-align:center;",
+      "transition:transform .2s,box-shadow .2s}",
+      ".anni-love-stat:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(255,215,0,.15)}",
+      ".anni-love-stat-icon{font-size:1.4rem;margin-bottom:6px}",
+      ".anni-inf{font-size:1.8rem;font-weight:900;color:#FFD700;line-height:1}",
+      ".anni-love-stat-val{font-size:1.1rem;font-weight:800;",
+      "background:linear-gradient(135deg,#FFD700,#FF6B6B);-webkit-background-clip:text;",
+      "-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}",
+      ".anni-love-stat-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.45);margin-top:4px}",
+      /* ── Daily Card ── */
+      ".anni-daily-card{background:linear-gradient(135deg,rgba(30,0,60,.5),rgba(80,0,30,.4));",
+      "border:1px solid rgba(255,215,0,.15);border-radius:24px;padding:24px 22px;margin-bottom:20px;",
+      "box-shadow:0 4px 24px rgba(139,0,0,.2)}",
+      ".anni-daily-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}",
+      ".anni-daily-badge{font-size:.68rem;font-weight:700;letter-spacing:.1em;color:#FFD700;",
+      "background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);border-radius:100px;padding:4px 12px}",
+      ".anni-daily-date{font-size:.72rem;color:rgba(255,255,255,.45)}",
+      ".anni-daily-label{font-size:.9rem;font-weight:600;color:rgba(255,215,0,.8);margin:0 0 10px}",
+      ".anni-daily-msg{font-size:1rem;color:rgba(255,255,255,.85);line-height:1.75;font-style:italic;",
+      "margin:0;padding-left:14px;border-left:3px solid rgba(255,215,0,.4)}",
+      /* ── Timeline ── */
+      ".anni-timeline-section{margin-bottom:24px}",
+      ".anni-section-title{font-size:1rem;font-weight:700;color:#FFD700;",
+      "display:flex;align-items:center;gap:8px;margin:0 0 18px;letter-spacing:.03em}",
+      ".anni-title-gem{font-size:1.2rem}",
+      ".anni-timeline{position:relative;padding-left:36px}",
+      ".anni-timeline::before{content:'';position:absolute;left:14px;top:8px;bottom:8px;width:2px;",
+      "background:linear-gradient(to bottom,rgba(255,215,0,.4),rgba(255,100,100,.2),rgba(255,215,0,.1))}",
+      ".anni-tl-item{position:relative;margin-bottom:20px;opacity:.45;transition:opacity .4s}",
+      ".anni-tl-item.anni-tl-done{opacity:1}",
+      ".anni-tl-item.anni-tl-future{opacity:.3}",
+      ".anni-tl-dot{position:absolute;left:-36px;width:30px;height:30px;border-radius:50%;",
+      "background:rgba(255,215,0,.1);border:2px solid rgba(255,215,0,.3);",
+      "display:flex;align-items:center;justify-content:center;font-size:.95rem;top:0;",
+      "transition:border-color .4s,background .4s}",
+      ".anni-tl-done .anni-tl-dot{background:rgba(255,215,0,.2);border-color:rgba(255,215,0,.6)}",
+      ".anni-tl-dot-star{background:linear-gradient(135deg,rgba(255,215,0,.25),rgba(255,100,100,.2))!important;",
+      "border-color:rgba(255,215,0,.7)!important;",
+      "box-shadow:0 0 12px rgba(255,215,0,.35)}",
+      ".anni-tl-body strong{font-size:.88rem;color:rgba(255,255,255,.9);font-weight:700;display:block;margin-bottom:2px}",
+      ".anni-tl-body p{font-size:.8rem;color:rgba(255,255,255,.55);margin:0;line-height:1.5}",
+      /* ── Story ── */
+      ".anni-story-section{margin-bottom:24px}",
+      ".anni-story-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}",
+      "@media(max-width:580px){.anni-story-cards{grid-template-columns:1fr}}",
+      ".anni-story-card{background:linear-gradient(135deg,rgba(255,215,0,.06),rgba(255,100,100,.06));",
+      "border:1px solid rgba(255,215,0,.12);border-radius:20px;padding:20px 16px;text-align:center;",
+      "transition:transform .25s,box-shadow .25s}",
+      ".anni-story-card:hover{transform:translateY(-4px);box-shadow:0 10px 32px rgba(255,215,0,.12)}",
+      ".anni-story-icon{font-size:2rem;margin-bottom:10px}",
+      ".anni-story-card h4{font-size:.9rem;font-weight:700;color:#FFD700;margin:0 0 8px}",
+      ".anni-story-card p{font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.6;margin:0}",
+      /* ── CTA ── */
+      ".anni-cta-section{text-align:center;padding:8px 0 32px}",
+      ".anni-celebrate-btn{display:inline-flex;align-items:center;gap:12px;padding:16px 40px;border:none;",
+      "border-radius:100px;background:linear-gradient(135deg,#FFD700 0%,#FF6B6B 60%,#FF1493 100%);",
+      "color:#000;font-size:1rem;font-weight:800;cursor:pointer;letter-spacing:.02em;font-family:inherit;",
+      "box-shadow:0 6px 28px rgba(255,215,0,.45),0 12px 50px rgba(255,100,100,.25);",
+      "transition:transform .2s,box-shadow .2s;animation:anniBtnPulse 2.5s ease-in-out infinite}",
+      "@keyframes anniBtnPulse{0%,100%{box-shadow:0 6px 28px rgba(255,215,0,.45),0 12px 50px rgba(255,100,100,.25)}",
+      "50%{box-shadow:0 8px 40px rgba(255,215,0,.7),0 16px 70px rgba(255,100,100,.4)}}",
+      ".anni-celebrate-btn:hover{transform:scale(1.05)}.anni-celebrate-btn:active{transform:scale(.97)}",
+      ".anni-cta-hint{font-size:.72rem;color:rgba(255,255,255,.35);margin-top:10px;letter-spacing:.04em}",
+      /* ── Full Screen Overlay ── */
       "#anniversary-screen{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;",
       "overflow:hidden;background:radial-gradient(ellipse at center,#1a0005 0%,#0d0010 40%,#000 100%)}",
       ".anni-canvas{position:absolute;inset:0;z-index:0;pointer-events:none}",
@@ -708,8 +948,6 @@
       "font-size:.95rem;font-weight:700;cursor:pointer;letter-spacing:.02em;font-family:inherit;",
       "box-shadow:0 4px 20px rgba(255,215,0,.4),0 8px 40px rgba(255,100,100,.2);",
       "transition:transform .2s ease;animation:anniBtnPulse 2s ease-in-out infinite}",
-      "@keyframes anniBtnPulse{0%,100%{box-shadow:0 4px 20px rgba(255,215,0,.4),0 8px 40px rgba(255,100,100,.2)}",
-      "50%{box-shadow:0 4px 30px rgba(255,215,0,.7),0 8px 60px rgba(255,100,100,.4)}}",
       ".anni-enter-btn:hover{transform:scale(1.04)}.anni-enter-btn:active{transform:scale(.98)}",
       ".anni-floating-heart{position:absolute;bottom:-50px;pointer-events:none;z-index:5;",
       "animation:anniHeartFloat linear forwards}",
@@ -719,12 +957,12 @@
       "@keyframes anniConfettiFall{0%{top:-20px;opacity:1;transform:rotate(0) translateX(0)}",
       "100%{top:110vh;opacity:0;transform:rotate(720deg) translateX(60px)}}",
       "@media(max-width:480px){.anni-time-block{min-width:52px;padding:8px 6px}",
-      ".anni-num{font-size:1.5rem}.anni-headline{font-size:.95rem}",
+      ".anni-num{font-size:1.4rem}.anni-headline{font-size:.95rem}",
       ".anni-content-inner{padding:28px 18px 24px}",
       ".anni-year-display,.anni-year-ring{width:110px;height:110px}",
       ".anni-year-core{width:90px;height:90px}.anni-year-num{font-size:2.5rem}",
       ".anni-stats-row{gap:10px}.anni-stat strong{font-size:1.1rem}",
-      ".anni-enter-btn{padding:13px 28px;font-size:.88rem}}"
+      ".anni-enter-btn{padding:13px 28px;font-size:.88rem}}",
     ].join("");
     document.head.appendChild(style);
   }
@@ -735,34 +973,58 @@
     injectCountdownWidget();
     patchDailyMessage();
 
-    // Gizli qısayol: 'Ctrl+Shift+Y' basanda test üçün açılsın
-    document.addEventListener("keydown", function(e) {
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "y") {
-        // İl Dönümü səhifəsinə keç
-        var homeBtn = document.querySelector('button[data-page="anniversary"]');
-        if (homeBtn) homeBtn.click();
-
-        // Geri sayım widget-ini 1 il tamam oldu vəziyyətinə gətir
-        var disp = document.getElementById("anni-display");
-        var arr = document.getElementById("anni-arrived-msg");
-        if (disp) disp.style.display = "none";
-        if (arr) arr.classList.remove("anni-hidden");
-
-        // Tam ekran partlayışı göstər
-        showAnniversaryScreen();
-        setTimeout(launchConfetti, 1000);
+    /* Ctrl+Shift+Y — test qısayolu */
+    document.addEventListener("keydown", function (e) {
+      if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === "y" || e.key === "Y")) {
+        e.preventDefault();
+        /* İl dönümü navbara keç */
+        var navBtn = document.querySelector('button[data-page="anniversary"]');
+        if (navBtn) navBtn.click();
+        /* Geri sayım tamam vəziyyəti */
+        setTimeout(function () {
+          var disp = document.getElementById("anni-display");
+          var arr = document.getElementById("anni-arrived-msg");
+          if (disp) disp.style.display = "none";
+          if (arr) arr.classList.remove("anni-hidden");
+          showAnniversaryScreen();
+          setTimeout(launchConfetti, 1000);
+        }, 300);
       }
     });
 
+    /* Real il dönümündə avtomatik göstər */
     if (isAnniversaryDay()) {
       showAnniversaryScreen();
       setTimeout(launchConfetti, 1000);
     }
   }
 
+  /* Ana səhifəyə / İl dönümü nav düyməsinə müdaxilə etmək (istifadəçi istəyi):
+     "navbarda o yer sadece il donumu gunleri acilsin"
+  */
+  function patchNavbarForAnniversary() {
+    var navBtn = document.querySelector('button[data-page="anniversary"]');
+    if (!navBtn) return;
+    
+    // Yalnız il dönümü günündə görünməsini istəyirsə:
+    if (!isAnniversaryDay()) {
+      // test üçün görünməsi üçün display none etmirəm tam
+      // amma istifadəçi istədiyi üçün, onu gizlədirik.
+      // Qısayolla (Ctrl+Shift+Y) açıla biləcək.
+      navBtn.style.display = "none";
+    } else {
+      navBtn.style.display = "flex";
+      navBtn.style.animation = "anniSparkle 2s infinite";
+    }
+  }
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
+    document.addEventListener("DOMContentLoaded", function() {
+      init();
+      patchNavbarForAnniversary();
+    });
   } else {
     init();
+    patchNavbarForAnniversary();
   }
 })();
