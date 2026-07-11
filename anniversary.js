@@ -1001,7 +1001,7 @@
       "box-shadow:0 16px 56px rgba(0,0,0,.55),0 0 0 1px rgba(255,215,0,.12)}",
       ".anni-slide-viewport{position:relative;width:100%;height:320px;background:#0a0010;overflow:hidden;border-radius:24px 24px 0 0}",
       "@media(max-width:480px){.anni-slide-viewport{height:240px}}",
-      ".anni-layer{position:absolute;inset:0;background-size:cover;background-position:center;",
+      ".anni-layer{position:absolute;inset:0;background-size:contain;background-repeat:no-repeat;background-position:center;",
       "transition:opacity 1.2s ease;opacity:1}",
       ".anni-layer-hidden{opacity:0}",
       /* Ken Burns keyframes */
