@@ -546,6 +546,23 @@
         '</div>' +
       '</div>' +
 
+      /* ── SLIDESHOW ── */
+      '<div class="anni-slideshow-section">' +
+        '<h3 class="anni-section-title"><span class="anni-title-gem"><i class="fa-solid fa-film"></i></span> Xatirələrimiz</h3>' +
+        '<div class="anni-slideshow" id="anni-slideshow">' +
+          '<div class="anni-slide-viewport" id="anni-slide-viewport">' +
+            '<div class="anni-slide-loading"><i class="fa-solid fa-spinner fa-spin"></i><span>Şəkillər yüklənir...</span></div>' +
+          '</div>' +
+          '<div class="anni-slide-progress-bar"><div class="anni-slide-progress-fill" id="anni-progress-fill"></div></div>' +
+          '<div class="anni-slide-controls">' +
+            '<button class="anni-slide-btn" id="anni-slide-prev" aria-label="Əvvəlki"><i class="fa-solid fa-chevron-left"></i></button>' +
+            '<button class="anni-slide-play-btn" id="anni-slide-play" aria-label="Oxut/Dayan"><i class="fa-solid fa-pause"></i></button>' +
+            '<button class="anni-slide-btn" id="anni-slide-next" aria-label="Sonrakı"><i class="fa-solid fa-chevron-right"></i></button>' +
+          '</div>' +
+          '<div class="anni-slide-counter" id="anni-slide-counter">1 / 1</div>' +
+        '</div>' +
+      '</div>' +
+
       /* ── CTA ── */
       '<div class="anni-cta-section">' +
         '<button id="anni-celebrate-btn" class="anni-celebrate-btn">' +
@@ -978,6 +995,44 @@
       ".anni-year-core{width:90px;height:90px}.anni-year-num{font-size:2.5rem}",
       ".anni-stats-row{gap:10px}.anni-stat strong{font-size:1.1rem}",
       ".anni-enter-btn{padding:13px 28px;font-size:.88rem}}",
+      /* ── Slideshow ── */
+      ".anni-slideshow-section{margin-bottom:28px}",
+      ".anni-slideshow{position:relative;border-radius:24px;overflow:hidden;",
+      "box-shadow:0 16px 56px rgba(0,0,0,.55),0 0 0 1px rgba(255,215,0,.12)}",
+      ".anni-slide-viewport{position:relative;width:100%;height:320px;background:#0a0010;overflow:hidden;border-radius:24px 24px 0 0}",
+      "@media(max-width:480px){.anni-slide-viewport{height:240px}}",
+      ".anni-layer{position:absolute;inset:0;background-size:cover;background-position:center;",
+      "transition:opacity 1.2s ease;opacity:1}",
+      ".anni-layer-hidden{opacity:0}",
+      /* Ken Burns keyframes */
+      "@keyframes anniKB1{0%{transform:scale(1) translate(0,0)}100%{transform:scale(1.18) translate(-3%,-2%)}}",
+      "@keyframes anniKB2{0%{transform:scale(1) translate(0,0)}100%{transform:scale(1.18) translate(3%,-2%)}}",
+      "@keyframes anniKB3{0%{transform:scale(1.1) translate(-2%,1%)}100%{transform:scale(1) translate(2%,-1%)}}",
+      "@keyframes anniKB4{0%{transform:scale(1.05) translate(2%,0)}100%{transform:scale(1.15) translate(-2%,2%)}}",
+      ".anni-kb-1{animation:anniKB1 4s ease-out forwards}",
+      ".anni-kb-2{animation:anniKB2 4s ease-out forwards}",
+      ".anni-kb-3{animation:anniKB3 4s ease-in-out forwards}",
+      ".anni-kb-4{animation:anniKB4 4s ease-in forwards}",
+      /* Loading inside viewport */
+      ".anni-slide-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;",
+      "justify-content:center;gap:10px;color:rgba(255,255,255,.5);font-size:.9rem}",
+      ".anni-slide-loading i{font-size:1.6rem;color:rgba(255,215,0,.5)}",
+      /* Progress bar */
+      ".anni-slide-progress-bar{height:3px;background:rgba(255,255,255,.12);border-radius:0}",
+      ".anni-slide-progress-fill{height:100%;background:linear-gradient(90deg,#FFD700,#FF6B6B);border-radius:0;width:0}",
+      /* Controls */
+      ".anni-slide-controls{display:flex;align-items:center;justify-content:center;gap:12px;",
+      "padding:14px 16px;background:rgba(0,0,0,.35);backdrop-filter:blur(8px)}",
+      ".anni-slide-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);",
+      "border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;",
+      "color:rgba(255,255,255,.8);cursor:pointer;font-size:.85rem;transition:all .2s}",
+      ".anni-slide-btn:hover{background:rgba(255,215,0,.2);border-color:rgba(255,215,0,.4);color:#FFD700}",
+      ".anni-slide-play-btn{background:linear-gradient(135deg,#FFD700,#FF6B6B);border:none;",
+      "border-radius:50%;width:46px;height:46px;display:flex;align-items:center;justify-content:center;",
+      "color:#000;cursor:pointer;font-size:1rem;transition:transform .2s;box-shadow:0 4px 16px rgba(255,215,0,.35)}",
+      ".anni-slide-play-btn:hover{transform:scale(1.1)}",
+      ".anni-slide-counter{text-align:center;font-size:.7rem;color:rgba(255,255,255,.35);",
+      "padding:0 16px 12px;letter-spacing:.06em;font-weight:600}",
     ].join("");
     document.head.appendChild(style);
   }
@@ -1035,6 +1090,7 @@
     injectCountdownWidget();
     injectMainScreenCountdown();
     patchDailyMessage();
+    setTimeout(initAnniSlideshow, 300);
 
     /* Ctrl+Shift+Y — test qısayolu */
     document.addEventListener("keydown", function (e) {
@@ -1059,6 +1115,157 @@
     if (isAnniversaryDay()) {
       showAnniversaryScreen();
       setTimeout(launchConfetti, 1000);
+    }
+  }
+
+  /* ─── XATİRƏ SLAYDŞOu ───────────────────────────────────── */
+  function initAnniSlideshow() {
+    var viewport = document.getElementById("anni-slide-viewport");
+    if (!viewport) return;
+
+    // Şəkilləri window.allImages-dan götür (qalereya ilə eyni mənbə)
+    // Yüklənməmişsə, GitHub API-dən özümüz çəkirik
+    function startSlideshow(images) {
+      if (!images || images.length === 0) {
+        viewport.innerHTML = '<div class="anni-slide-loading"><i class="fa-solid fa-heart-crack"></i><span>Şəkil tapılmadı</span></div>';
+        return;
+      }
+
+      var slides = images.map(function(img) {
+        return typeof img === "string" ? img : (img.download_url || img.url || img);
+      }).filter(Boolean);
+
+      var current = 0;
+      var total = slides.length;
+      var isPlaying = true;
+      var progressTimer = null;
+      var progressStart = null;
+      var DURATION = 4000; // hər şəkil 4 saniyə
+      var preloaded = {};
+
+      var counter = document.getElementById("anni-slide-counter");
+      var fill = document.getElementById("anni-progress-fill");
+      var playBtn = document.getElementById("anni-slide-play");
+      var prevBtn = document.getElementById("anni-slide-prev");
+      var nextBtn = document.getElementById("anni-slide-next");
+
+      // Viewport-u təmizlə, 2 layer yaradaq (crossfade üçün)
+      viewport.innerHTML = '<div class="anni-layer anni-layer-a"></div><div class="anni-layer anni-layer-b anni-layer-hidden"></div>';
+      var layerA = viewport.querySelector(".anni-layer-a");
+      var layerB = viewport.querySelector(".anni-layer-b");
+      var activeLayer = layerA;
+      var inactiveLayer = layerB;
+
+      function preload(idx) {
+        if (preloaded[idx]) return;
+        preloaded[idx] = true;
+        var img = new Image();
+        img.src = slides[idx];
+      }
+
+      function setSlide(idx, dir) {
+        current = ((idx % total) + total) % total;
+        var url = slides[current];
+
+        // Növbəti + əvvəlkini preload et
+        preload((current + 1) % total);
+        preload((current - 1 + total) % total);
+
+        // Ken Burns effekti üçün random istiqamət
+        var kbVariants = [
+          "anni-kb-1", "anni-kb-2", "anni-kb-3", "anni-kb-4"
+        ];
+        var kb = kbVariants[Math.floor(Math.random() * kbVariants.length)];
+
+        // Yeni layer-i hazırla
+        inactiveLayer.style.backgroundImage = "url('" + url + "')";
+        inactiveLayer.className = "anni-layer " + kb;
+        // Crossfade
+        inactiveLayer.classList.remove("anni-layer-hidden");
+        activeLayer.classList.add("anni-layer-hidden");
+
+        // Layer-ları dəyişdir
+        var tmp = activeLayer;
+        activeLayer = inactiveLayer;
+        inactiveLayer = tmp;
+
+        // Counter
+        if (counter) counter.textContent = (current + 1) + " / " + total;
+
+        // Progress sıfırla
+        resetProgress();
+      }
+
+      function resetProgress() {
+        if (fill) {
+          fill.style.transition = "none";
+          fill.style.width = "0%";
+          void fill.offsetWidth;
+        }
+        if (progressTimer) { clearTimeout(progressTimer); progressTimer = null; }
+        if (isPlaying) startProgress();
+      }
+
+      function startProgress() {
+        if (!isPlaying) return;
+        progressStart = Date.now();
+        if (fill) {
+          fill.style.transition = "width " + DURATION + "ms linear";
+          fill.style.width = "100%";
+        }
+        progressTimer = setTimeout(function() {
+          setSlide(current + 1);
+        }, DURATION);
+      }
+
+      function pauseProgress() {
+        if (progressTimer) { clearTimeout(progressTimer); progressTimer = null; }
+        if (fill) {
+          var elapsed = Date.now() - (progressStart || Date.now());
+          var pct = Math.min(elapsed / DURATION * 100, 100);
+          fill.style.transition = "none";
+          fill.style.width = pct + "%";
+        }
+      }
+
+      if (playBtn) {
+        playBtn.addEventListener("click", function() {
+          isPlaying = !isPlaying;
+          var icon = playBtn.querySelector("i");
+          if (isPlaying) {
+            icon.className = "fa-solid fa-pause";
+            startProgress();
+          } else {
+            icon.className = "fa-solid fa-play";
+            pauseProgress();
+          }
+        });
+      }
+      if (prevBtn) prevBtn.addEventListener("click", function() { setSlide(current - 1); });
+      if (nextBtn) nextBtn.addEventListener("click", function() { setSlide(current + 1); });
+
+      // İlk şəkili göstər
+      preload(0);
+      preload(1);
+      setSlide(0);
+    }
+
+    // window.allImages artıq varsa istifadə et, yoxdursa API-dən çək
+    if (window.allImages && window.allImages.length > 0) {
+      startSlideshow(window.allImages);
+    } else {
+      // Qalereya hələ yüklənməyibsə — GitHub API-dən çək
+      var apiUrl = "/.netlify/functions/github-content?path=gallery";
+      fetch(apiUrl)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!Array.isArray(data)) { startSlideshow([]); return; }
+          var imgs = data
+            .filter(function(f) { return /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name); })
+            .sort(function(a, b) { return new Date(a.git_date || 0) - new Date(b.git_date || 0); });
+          startSlideshow(imgs);
+        })
+        .catch(function() { startSlideshow([]); });
     }
   }
 
