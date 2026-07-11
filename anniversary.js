@@ -429,7 +429,7 @@
 
   /* ─── GERİ SAYIM WİDGETİ ────────────────────────────────── */
   function injectCountdownWidget() {
-    var homePage = document.getElementById("page-home");
+    var homePage = document.getElementById("page-anniversary");
     if (!homePage) return;
     var pageContent = homePage.querySelector(".page-content");
     if (!pageContent) return;
@@ -738,8 +738,8 @@
     // Gizli qısayol: 'Ctrl+Shift+Y' basanda test üçün açılsın
     document.addEventListener("keydown", function(e) {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "y") {
-        // Əsas səhifəyə keç
-        var homeBtn = document.querySelector('button[data-page="home"]');
+        // İl Dönümü səhifəsinə keç
+        var homeBtn = document.querySelector('button[data-page="anniversary"]');
         if (homeBtn) homeBtn.click();
 
         // Geri sayım widget-ini 1 il tamam oldu vəziyyətinə gətir
