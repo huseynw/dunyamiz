@@ -1068,16 +1068,20 @@
   function patchNavbarForAnniversary() {
     var navBtn = document.querySelector('button[data-page="anniversary"]');
     if (!navBtn) return;
-    
-    // Yalnız il dönümü günündə görünməsini istəyirsə:
-    if (!isAnniversaryDay()) {
-      // test üçün görünməsi üçün display none etmirəm tam
-      // amma istifadəçi istədiyi üçün, onu gizlədirik.
-      // Qısayolla (Ctrl+Shift+Y) açıla biləcək.
+
+    // Ana ekrandakı countdown ilə eyni şərt:
+    // 30 gün və ya daha az qalıbsa, ya da il dönümü günüdürsə göstər
+    var diff = ANNIVERSARY_DATE - new Date();
+    var daysLeft = Math.floor(diff / 86400000);
+    var shouldShow = isAnniversaryDay() || daysLeft <= 30;
+
+    if (!shouldShow) {
       navBtn.style.display = "none";
     } else {
       navBtn.style.display = "";
-      navBtn.style.animation = "anniSparkle 2s infinite";
+      if (isAnniversaryDay()) {
+        navBtn.style.animation = "anniSparkle 2s infinite";
+      }
     }
   }
 
