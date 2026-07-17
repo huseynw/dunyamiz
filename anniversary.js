@@ -1706,40 +1706,81 @@
     var noteEl = document.getElementById("anni-capsule-note");
     if (!notesEl || !filmsEl || !photosEl) return;
 
-    var year = RELATIONSHIP_START.getFullYear();
-    var completedYears = getAnniversaryYearsCompleted();
-    if (completedYears > 0) year = year + completedYears - 1;
-    if (!yearEl) {}
-    var yr = RELATIONSHIP_START.getFullYear() + Math.max(1, completedYears);
-    if (yearEl) yearEl.textContent = yr - 1 + " → " + yr;
+    var photos = Array.isArray(window.allImages) ? window.allImages.length : 0;
+    var notes = Array.isArray(window.currentNotes) ? window.currentNotes.length : 0;
+    var films = Array.isArray(window.currentFilms) ? window.currentFilms.length : 0;
 
-    var sampleNotes = Math.floor(Math.random() * 30 + 5);
-    var sampleFilms = Math.floor(Math.random() * 15 + 2);
-    var samplePhotos = Math.floor(Math.random() * 50 + 10);
+    if (notes === 0 || films === 0) {
+      setTimeout(initTimeCapsule, 1500);
+      return;
+    }
 
-    if (notesEl) animateCount(notesEl, 0, sampleNotes, 1500);
-    if (filmsEl) animateCount(filmsEl, 0, sampleFilms, 1500);
-    if (photosEl) animateCount(photosEl, 0, samplePhotos, 1500);
+    var yr = RELATIONSHIP_START.getFullYear() + Math.max(1, getAnniversaryYearsCompleted());
+    if (yearEl) yearEl.textContent = (yr - 1) + " → " + yr;
+
+    if (photosEl) animateCount(photosEl, 0, photos, 1500);
+    if (notesEl) animateCount(notesEl, 0, notes, 1500);
+    if (filmsEl) animateCount(filmsEl, 0, films, 1500);
 
     if (monthsEl) {
       var aylar = ["Yanvar","Fevral","Mart","Aprel","May","İyun","İyul","Avqust","Sentyabr","Oktyabr","Noyabr","Dekabr"];
+      var monthBuckets = {};
+      for (var i = 0; i < 12; i++) monthBuckets[i] = { notes: 0, films: 0, photos: 0 };
+
+      window.currentNotes.forEach(function (n) {
+        var d = new Date(n.dateIso);
+        if (!isNaN(d.getTime()) && d.getFullYear() >= RELATIONSHIP_START.getFullYear()) {
+          var m = d.getMonth();
+          monthBuckets[m].notes++;
+        }
+      });
+
+      window.currentFilms.forEach(function (f) {
+        var d = new Date(f.watchDate || f.dateIso);
+        if (!isNaN(d.getTime()) && d.getFullYear() >= RELATIONSHIP_START.getFullYear()) {
+          var m = d.getMonth();
+          monthBuckets[m].films++;
+        }
+      });
+
+      if (Array.isArray(window.allImages)) {
+        window.allImages.forEach(function (img) {
+          if (img.git_date) {
+            var d = new Date(img.git_date);
+            if (!isNaN(d.getTime()) && d.getFullYear() >= RELATIONSHIP_START.getFullYear()) {
+              var m = d.getMonth();
+              monthBuckets[m].photos++;
+            }
+          }
+        });
+      }
+
       var html = "";
+      var totalActivity = 0;
+      for (var i = 0; i < 12; i++) totalActivity += monthBuckets[i].notes + monthBuckets[i].films + monthBuckets[i].photos;
+      var maxAct = 1;
       for (var i = 0; i < 12; i++) {
-        var intensity = Math.random();
-        var dotColor = intensity > 0.7 ? "#FFD700" : intensity > 0.4 ? "#FF6B6B" : "rgba(255,255,255,.15)";
-        var count = Math.floor(intensity * 12 + 1);
-        html += '<div class="anni-capsule-month"><span class="anni-capsule-month-dot" style="background:' + dotColor + '"></span><div class="anni-capsule-month-name">' + aylar[i] + '</div><div class="anni-capsule-month-count">' + count + '✨</div></div>';
+        var act = monthBuckets[i].notes + monthBuckets[i].films + monthBuckets[i].photos;
+        if (act > maxAct) maxAct = act;
+      }
+
+      for (var i = 0; i < 12; i++) {
+        var act = monthBuckets[i].notes + monthBuckets[i].films + monthBuckets[i].photos;
+        var intensity = act / maxAct;
+        var dotColor = intensity > 0.5 ? "#FFD700" : intensity > 0.2 ? "#FF6B6B" : "rgba(255,255,255,.12)";
+        var barH = Math.max(4, Math.round(intensity * 20));
+        html += '<div class="anni-capsule-month"><span class="anni-capsule-month-dot" style="background:' + dotColor + ';width:' + barH + 'px;height:' + barH + 'px"></span><div class="anni-capsule-month-name">' + aylar[i] + '</div><div class="anni-capsule-month-count">' + (act > 0 ? act + ' ✨' : '-') + '</div></div>';
       }
       monthsEl.innerHTML = html;
     }
 
-    var notes = [
-      "İl ərzində hər an səninlə xatirələr yığdıq. Hər şəkil, hər not, hər film — bir parça sən.",
-      "Bir ilə nələr sığdı... Gülüşlər, sözlər, baxışlar. Hər biri qəlbimdə ən qiymətli xəzinə.",
-      "Zaman necə də sürətli keçir. Sanki dünən idi ilk görüşümüz. Bu il boyu səninlə hər anı yaşamaq ən böyük arzum idi.",
-      "Birgə izlədiyimiz filmlər, yazdığımız notlar, çəkdiyimiz şəkillər... Hamısı bir ilin hekayəsidir. Bizim hekayəmiz."
+    var capsuleNotes = [
+      "İl ərzində hər an səninlə xatirələr yığdıq. " + notes + " not, " + films + " film, " + photos + " şəkil — hər biri bir parça sən.",
+      "Bir ilə nələr sığdı... " + notes + " not, " + films + " film, " + photos + " şəkil. Gülüşlər, sözlər, baxışlar. Hamısı qəlbimdə ən qiymətli xəzinə.",
+      "Zaman necə də sürətli keçir. " + photos + " şəkil, " + films + " film, " + notes + " not — hər biri bir xatirə. Sanki dünən idi ilk görüşümüz.",
+      "Birgə izlədiyimiz " + films + " film, yazdığımız " + notes + " not, çəkdiyimiz " + photos + " şəkil... Hamısı bir ilin hekayəsidir. Bizim hekayəmiz."
     ];
-    if (noteEl) noteEl.textContent = notes[Math.floor(Math.random() * notes.length)];
+    if (noteEl) noteEl.textContent = capsuleNotes[Math.floor(Math.random() * capsuleNotes.length)];
   }
 
   function animateCount(el, start, end, duration) {
