@@ -563,6 +563,70 @@
         '</div>' +
       '</div>' +
 
+      /* ── TIMECAPSULE ── */
+      '<div class="anni-capsule-section">' +
+        '<div class="anni-capsule-header">' +
+          '<span class="anni-capsule-badge"><i class="fa-solid fa-clock-rotate-left"></i> ZAMAN KAPSULU</span>' +
+          '<span id="anni-capsule-year" style="font-size:.75rem;color:rgba(255,255,255,.4)">Yüklənir...</span>' +
+        '</div>' +
+        '<div class="anni-capsule-stats" id="anni-capsule-stats">' +
+          '<div class="anni-capsule-stat"><div class="anni-capsule-stat-icon"><i class="fa-regular fa-images"></i></div><div class="anni-capsule-stat-num" id="capsule-photos">-</div><div class="anni-capsule-stat-lbl">Şəkil</div></div>' +
+          '<div class="anni-capsule-stat"><div class="anni-capsule-stat-icon"><i class="fa-regular fa-note-sticky"></i></div><div class="anni-capsule-stat-num" id="capsule-notes">-</div><div class="anni-capsule-stat-lbl">Not</div></div>' +
+          '<div class="anni-capsule-stat"><div class="anni-capsule-stat-icon"><i class="fa-solid fa-clapperboard"></i></div><div class="anni-capsule-stat-num" id="capsule-films">-</div><div class="anni-capsule-stat-lbl">Film</div></div>' +
+        '</div>' +
+        '<div class="anni-capsule-months" id="anni-capsule-months"></div>' +
+        '<p class="anni-capsule-note" id="anni-capsule-note">İl ərzində hər an səninlə xatirələr yığdıq. Hər şəkil, hər not, hər film — bir parça sən.</p>' +
+      '</div>' +
+
+      /* ── LOVE WALL ── */
+      '<div class="anni-lovewall-section">' +
+        '<div class="anni-capsule-header">' +
+          '<span class="anni-capsule-badge"><i class="fa-solid fa-pen-fancy"></i> SEVGİ DİVARI</span>' +
+          '<span style="font-size:.7rem;color:rgba(255,255,255,.4)">Birgə imza atın</span>' +
+        '</div>' +
+        '<div class="anni-lovewall-toolbar">' +
+          '<span class="anni-lovewall-color active" data-color="#FFD700" style="background:#FFD700"></span>' +
+          '<span class="anni-lovewall-color" data-color="#FF6B6B" style="background:#FF6B6B"></span>' +
+          '<span class="anni-lovewall-color" data-color="#FF1493" style="background:#FF1493"></span>' +
+          '<span class="anni-lovewall-color" data-color="#FFA500" style="background:#FFA500"></span>' +
+          '<span class="anni-lovewall-color" data-color="#00CED1" style="background:#00CED1"></span>' +
+          '<span class="anni-lovewall-color" data-color="#FFFFFF" style="background:#FFFFFF"></span>' +
+          '<span class="anni-lovewall-stamp" id="anni-lovewall-heart-btn" title="Ürək bas"><i class="fa-solid fa-heart"></i></span>' +
+        '</div>' +
+        '<div class="anni-lovewall-canvas-wrap">' +
+          '<canvas id="anni-lovewall-canvas" height="260"></canvas>' +
+        '</div>' +
+        '<div class="anni-lovewall-actions">' +
+          '<button class="anni-lovewall-btn primary" id="anni-lovewall-save"><i class="fa-solid fa-floppy-disk"></i> Saxla</button>' +
+          '<button class="anni-lovewall-btn" id="anni-lovewall-clear"><i class="fa-solid fa-eraser"></i> Təmizlə</button>' +
+          '<div class="anni-lovewall-size"><i class="fa-solid fa-pen" style="font-size:.8rem;opacity:.6"></i><input type="range" id="anni-lovewall-size" min="1" max="8" value="3"></div>' +
+        '</div>' +
+      '</div>' +
+
+      /* ── CANDLE ── */
+      '<div class="anni-candle-section">' +
+        '<div class="anni-capsule-header">' +
+          '<span class="anni-capsule-badge"><i class="fa-solid fa-candle-holder"></i> ARZU ŞAMI</span>' +
+          '<span style="font-size:.7rem;color:rgba(255,255,255,.4)">Üfür və ya toxun</span>' +
+        '</div>' +
+        '<div class="anni-candle-scene" id="anni-candle-scene">' +
+          '<div class="anni-candle-body" id="anni-candle-body">' +
+            '<div class="anni-candle-wax"></div>' +
+            '<div class="anni-candle-wick"></div>' +
+            '<div class="anni-flame" id="anni-flame"></div>' +
+          '</div>' +
+          '<div class="anni-candle-smoke" id="anni-candle-smoke"></div>' +
+          '<p class="anni-candle-hint" id="anni-candle-hint">Şamı üfürmək üçün mikrofona üfür və ya şama toxun 🕯️</p>' +
+          '<div class="anni-candle-surprise" id="anni-candle-surprise">' +
+            '<div class="anni-candle-hearts">🎉💖✨</div>' +
+            '<h3>Arzun Qəbul Oldu! 🎊</h3>' +
+            '<p>Bu il də səninlə olmaq ən böyük arzum idi. Növbəti il də səninlə olmaq ən böyük diləyimdir. Səni çox sevirəm! ❤️</p>' +
+            '<button class="anni-candle-btn" id="anni-candle-reload">Şamı yenidən yandır</button>' +
+          '</div>' +
+        '</div>' +
+        '<button class="anni-candle-blow-btn" id="anni-candle-blow-btn"><i class="fa-solid fa-microphone"></i> Üfürmək üçün mikrofona icazə ver</button>' +
+      '</div>' +
+
       /* ── CTA ── */
       '<div class="anni-cta-section">' +
         '<button id="anni-celebrate-btn" class="anni-celebrate-btn">' +
@@ -1033,6 +1097,95 @@
       ".anni-slide-play-btn:hover{transform:scale(1.1)}",
       ".anni-slide-counter{text-align:center;font-size:.7rem;color:rgba(255,255,255,.35);",
       "padding:0 16px 12px;letter-spacing:.06em;font-weight:600}",
+
+      /* ── Virtual Candle ── */
+      ".anni-candle-section{background:linear-gradient(135deg,rgba(80,0,30,.4),rgba(30,0,60,.35));",
+      "border:1px solid rgba(255,215,0,.15);border-radius:24px;padding:32px 20px;margin-bottom:20px;text-align:center;position:relative;overflow:hidden}",
+      ".anni-candle-scene{position:relative;width:100%;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}",
+      ".anni-candle-body{position:relative;width:60px;height:100px;background:linear-gradient(180deg,#fff5e6,#f5d6b8);",
+      "border-radius:8px 8px 4px 4px;box-shadow:0 4px 20px rgba(255,200,150,.3),inset 0 -8px 12px rgba(0,0,0,.1);z-index:2}",
+      ".anni-candle-wax{position:absolute;top:-6px;left:50%;transform:translateX(-50%);",
+      "width:16px;height:12px;background:linear-gradient(180deg,#fff5e6,#f5d6b8);border-radius:3px 3px 0 0;box-shadow:0 -2px 6px rgba(255,200,150,.4)}",
+      ".anni-candle-wick{position:absolute;top:-14px;left:50%;transform:translateX(-50%);",
+      "width:2px;height:10px;background:#555;border-radius:1px;z-index:3}",
+      ".anni-flame{position:absolute;top:-36px;left:50%;transform:translateX(-50%);",
+      "width:18px;height:28px;background:radial-gradient(ellipse at 50% 100%,#ffd700 0%,#ff8c00 40%,#ff4500 70%,transparent 100%);",
+      "border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;z-index:4;",
+      "animation:anniFlameFlicker .3s ease-in-out infinite alternate;",
+      "box-shadow:0 0 30px rgba(255,200,0,.6),0 0 60px rgba(255,100,0,.3),0 0 100px rgba(255,50,0,.15)}",
+      "@keyframes anniFlameFlicker{0%{transform:translateX(-50%) scale(1) rotate(-1deg)}25%{transform:translateX(-48%) scale(1.04) rotate(1deg)}",
+      "50%{transform:translateX(-52%) scale(.96) rotate(-.5deg)}75%{transform:translateX(-49%) scale(1.02) rotate(.5deg)}",
+      "100%{transform:translateX(-50%) scale(.98) rotate(0)}}",
+      ".anni-flame-extinct{opacity:0!important;transform:translateX(-50%) scale(.1)!important;transition:all .8s ease!important}",
+      ".anni-candle-smoke{position:absolute;top:-50px;left:50%;width:6px;height:6px;background:rgba(200,200,200,.4);border-radius:50%;",
+      "opacity:0;pointer-events:none;z-index:5}",
+      ".anni-candle-smoke.active{animation:anniSmokeRise 1.2s ease-out forwards}",
+      "@keyframes anniSmokeRise{0%{opacity:.6;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-60%) translateY(-80px) scale(2)}}",
+      ".anni-candle-hint{font-size:.8rem;color:rgba(255,255,255,.5);margin-top:24px;transition:opacity .5s}",
+      ".anni-candle-surprise{display:none;flex-direction:column;align-items:center;gap:16px;animation:anniSlideUp .6s ease forwards}",
+      ".anni-candle-surprise.show{display:flex}",
+      ".anni-candle-surprise h3{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#FFD700,#FF6B6B);",
+      "-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0}",
+      ".anni-candle-surprise p{color:rgba(255,255,255,.8);font-size:.95rem;margin:0;max-width:380px;line-height:1.7}",
+      ".anni-candle-surprise .anni-candle-hearts{font-size:2rem;animation:anniHeartBeat 1s ease-in-out infinite}",
+      ".anni-candle-surprise .anni-candle-btn{background:linear-gradient(135deg,#FFD700,#FF6B6B);border:none;",
+      "border-radius:100px;padding:12px 32px;color:#000;font-weight:700;cursor:pointer;font-size:.9rem;font-family:inherit;",
+      "box-shadow:0 6px 24px rgba(255,215,0,.3);transition:transform .2s}",
+      ".anni-candle-surprise .anni-candle-btn:hover{transform:scale(1.05)}",
+      ".anni-candle-blow-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);",
+      "border-radius:100px;padding:10px 24px;color:rgba(255,255,255,.7);cursor:pointer;font-size:.85rem;font-family:inherit;",
+      "transition:all .3s;margin-top:8px}",
+      ".anni-candle-blow-btn:hover{background:rgba(255,255,255,.15);color:#fff}",
+      ".anni-candle-blow-btn:disabled{opacity:.4;cursor:not-allowed}",
+
+      /* ── Love Wall ── */
+      ".anni-lovewall-section{background:linear-gradient(135deg,rgba(60,0,30,.4),rgba(0,0,50,.35));",
+      "border:1px solid rgba(255,215,0,.12);border-radius:24px;padding:24px 20px;margin-bottom:20px;text-align:center}",
+      ".anni-lovewall-toolbar{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}",
+      ".anni-lovewall-color{width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .2s}",
+      ".anni-lovewall-color.active{border-color:#fff;transform:scale(1.15);box-shadow:0 0 12px rgba(255,255,255,.3)}",
+      ".anni-lovewall-canvas-wrap{position:relative;border-radius:16px;overflow:hidden;",
+      "background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);margin-bottom:10px;touch-action:none}",
+      "#anni-lovewall-canvas{display:block;width:100%;height:260px;cursor:crosshair;touch-action:none}",
+      ".anni-lovewall-actions{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}",
+      ".anni-lovewall-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);",
+      "border-radius:100px;padding:8px 18px;color:rgba(255,255,255,.8);cursor:pointer;font-size:.8rem;font-family:inherit;",
+      "transition:all .2s;display:inline-flex;align-items:center;gap:6px}",
+      ".anni-lovewall-btn:hover{background:rgba(255,255,255,.15)}",
+      ".anni-lovewall-btn.primary{background:linear-gradient(135deg,#FFD700,#FF6B6B);color:#000;border:none;font-weight:700}",
+      ".anni-lovewall-btn.primary:hover{transform:scale(1.05)}",
+      ".anni-lovewall-stamp{font-size:1.4rem;color:#ff4d6d;cursor:pointer;transition:transform .2s;",
+      "background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:50%;width:36px;height:36px;",
+      "display:inline-flex;align-items:center;justify-content:center}",
+      ".anni-lovewall-stamp:hover{transform:scale(1.2)}",
+      ".anni-lovewall-stamp.active{background:rgba(255,77,109,.2);border-color:#ff4d6d}",
+      ".anni-lovewall-size{display:flex;align-items:center;gap:6px}",
+      ".anni-lovewall-size input{width:60px;accent-color:#FFD700}",
+
+      /* ── Time Capsule ── */
+      ".anni-capsule-section{background:linear-gradient(135deg,rgba(0,40,50,.35),rgba(50,0,40,.35));",
+      "border:1px solid rgba(255,215,0,.12);border-radius:24px;padding:24px 20px;margin-bottom:20px;overflow:hidden}",
+      ".anni-capsule-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px}",
+      ".anni-capsule-badge{font-size:.68rem;font-weight:700;letter-spacing:.1em;color:#FFD700;",
+      "background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);border-radius:100px;padding:4px 12px}",
+      ".anni-capsule-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}",
+      "@media(max-width:480px){.anni-capsule-stats{grid-template-columns:repeat(2,1fr)}}",
+      ".anni-capsule-stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);",
+      "border-radius:16px;padding:14px 10px;text-align:center;transition:transform .2s}",
+      ".anni-capsule-stat:hover{transform:translateY(-3px)}",
+      ".anni-capsule-stat-num{font-size:1.6rem;font-weight:800;",
+      "background:linear-gradient(135deg,#FFD700,#FF6B6B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}",
+      ".anni-capsule-stat-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.5);margin-top:4px}",
+      ".anni-capsule-stat-icon{font-size:1.2rem;margin-bottom:4px}",
+      ".anni-capsule-months{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}",
+      "@media(max-width:480px){.anni-capsule-months{grid-template-columns:repeat(3,1fr)}}",
+      ".anni-capsule-month{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);",
+      "border-radius:12px;padding:12px 6px;text-align:center;transition:all .2s;cursor:default}",
+      ".anni-capsule-month:hover{background:rgba(255,255,255,.08);transform:translateY(-2px)}",
+      ".anni-capsule-month-name{font-size:.7rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:4px;text-transform:capitalize}",
+      ".anni-capsule-month-dot{width:8px;height:8px;border-radius:50%;margin:0 auto 4px;display:block}",
+      ".anni-capsule-month-count{font-size:.8rem;font-weight:700;color:#FFD700}",
+      ".anni-capsule-note{font-size:.78rem;color:rgba(255,255,255,.45);text-align:center;margin-top:18px;font-style:italic;line-height:1.6}",
     ].join("");
     document.head.appendChild(style);
   }
@@ -1271,7 +1424,7 @@
 
   /* Ana səhifəyə / İl dönümü nav düyməsinə müdaxilə etmək (istifadəçi istəyi):
      "navbarda o yer sadece il donumu gunleri acilsin"
-  */
+   */
   function patchNavbarForAnniversary() {
     var navBtn = document.querySelector('button[data-page="anniversary"]');
     if (!navBtn) return;
@@ -1281,6 +1434,358 @@
       navBtn.style.animation = "anniSparkle 2s infinite";
     } else {
       navBtn.style.display = "none";
+    }
+  }
+
+  /* ─── VIRTUAL CANDLE ────────────────────────────────────── */
+  var anniCandleBlown = false;
+  var anniCandleAudioCtx = null;
+  var anniCandleAnalyser = null;
+  var anniCandleMediaStream = null;
+  var anniCandleAnimFrame = null;
+
+  function initVirtualCandle() {
+    var scene = document.getElementById("anni-candle-scene");
+    var flame = document.getElementById("anni-flame");
+    var hint = document.getElementById("anni-candle-hint");
+    var surprise = document.getElementById("anni-candle-surprise");
+    var blowBtn = document.getElementById("anni-candle-blow-btn");
+    var reloadBtn = document.getElementById("anni-candle-reload");
+    if (!scene || !flame) return;
+
+    function blowCandle() {
+      if (anniCandleBlown) return;
+      anniCandleBlown = true;
+      if (anniCandleAnimFrame) { cancelAnimationFrame(anniCandleAnimFrame); anniCandleAnimFrame = null; }
+      if (anniCandleAudioCtx) { anniCandleAudioCtx.close(); anniCandleAudioCtx = null; }
+      if (anniCandleMediaStream) { anniCandleMediaStream.getTracks().forEach(function(t){t.stop()}); anniCandleMediaStream = null; }
+
+      flame.classList.add("anni-flame-extinct");
+
+      var smoke = document.getElementById("anni-candle-smoke");
+      if (smoke) { smoke.classList.add("active"); }
+
+      if (hint) hint.style.opacity = "0";
+      if (blowBtn) blowBtn.style.display = "none";
+
+      setTimeout(function () {
+        if (surprise) surprise.classList.add("show");
+        if (hint) hint.style.display = "none";
+        if (smoke) { smoke.classList.remove("active"); smoke.style.display = "none"; }
+      }, 1000);
+    }
+
+    function resetCandle() {
+      anniCandleBlown = false;
+      flame.classList.remove("anni-flame-extinct");
+      if (surprise) surprise.classList.remove("show");
+      if (hint) { hint.style.display = ""; hint.style.opacity = "1"; }
+      if (blowBtn) blowBtn.style.display = "";
+      var smoke = document.getElementById("anni-candle-smoke");
+      if (smoke) { smoke.style.display = ""; smoke.classList.remove("active"); }
+    }
+
+    scene.addEventListener("click", function (e) {
+      if (e.target.closest(".anni-candle-btn") || e.target.closest(".anni-candle-blow-btn")) return;
+      blowCandle();
+    });
+
+    if (reloadBtn) {
+      reloadBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        resetCandle();
+      });
+    }
+
+    if (blowBtn) {
+      blowBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        startCandleMicListening(blowCandle, blowBtn);
+      });
+    }
+  }
+
+  function startCandleMicListening(onBlow, btn) {
+    if (anniCandleMediaStream) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (btn) btn.textContent = "Mikrofon dəstəklənmir";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mikrofon açılır...';
+
+    navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+      .then(function (stream) {
+        anniCandleMediaStream = stream;
+        anniCandleAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        anniCandleAnalyser = anniCandleAudioCtx.createAnalyser();
+        anniCandleAnalyser.fftSize = 256;
+        var source = anniCandleAudioCtx.createMediaStreamSource(stream);
+        source.connect(anniCandleAnalyser);
+
+        btn.innerHTML = '<i class="fa-solid fa-ear-listen"></i> Dinlənir... Üfür!';
+        btn.style.background = "rgba(0,200,100,.15)";
+        btn.style.borderColor = "rgba(0,200,100,.4)";
+
+        var dataArray = new Uint8Array(anniCandleAnalyser.frequencyBinCount);
+        var blowThreshold = 60;
+        var consecutiveHigh = 0;
+
+        function detectBlow() {
+          if (anniCandleBlown || !anniCandleAnalyser) return;
+          anniCandleAnalyser.getByteFrequencyData(dataArray);
+          var sum = 0;
+          for (var i = 0; i < dataArray.length; i++) sum += dataArray[i];
+          var avg = sum / dataArray.length;
+
+          if (avg > blowThreshold) {
+            consecutiveHigh++;
+            if (consecutiveHigh > 3) {
+              onBlow();
+              btn.innerHTML = '<i class="fa-solid fa-check"></i> Üfürüldü!';
+              return;
+            }
+          } else {
+            consecutiveHigh = Math.max(0, consecutiveHigh - 1);
+          }
+          if (!anniCandleBlown) anniCandleAnimFrame = requestAnimationFrame(detectBlow);
+        }
+        detectBlow();
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-microphone-slash"></i> ' + (err.name === "NotAllowedError" ? "İcazə verilmədi" : "Xəta baş verdi");
+        console.warn("Candle mic error:", err);
+      });
+  }
+
+  /* ─── LOVE WALL ─────────────────────────────────────────── */
+  function initLoveWall() {
+    var canvas = document.getElementById("anni-lovewall-canvas");
+    if (!canvas) return;
+    var ctx = canvas.getContext("2d");
+    var rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = 260;
+
+    var drawing = false;
+    var currentColor = "#FFD700";
+    var lineWidth = 3;
+    var lastX = 0, lastY = 0;
+
+    function getPos(e) {
+      var r = canvas.getBoundingClientRect();
+      var clientX, clientY;
+      if (e.touches) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+        e.preventDefault();
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+      return { x: (clientX - r.left) * (canvas.width / r.width), y: (clientY - r.top) * (canvas.height / r.height) };
+    }
+
+    function startDraw(e) {
+      drawing = true;
+      var p = getPos(e);
+      lastX = p.x; lastY = p.y;
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      var p = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(p.x, p.y);
+      ctx.strokeStyle = currentColor;
+      ctx.lineWidth = lineWidth;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.stroke();
+      lastX = p.x; lastY = p.y;
+    }
+
+    function stopDraw() { drawing = false; }
+
+    canvas.addEventListener("mousedown", startDraw);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDraw);
+    canvas.addEventListener("mouseleave", stopDraw);
+    canvas.addEventListener("touchstart", startDraw, { passive: false });
+    canvas.addEventListener("touchmove", draw, { passive: false });
+    canvas.addEventListener("touchend", stopDraw);
+
+    /* Color picker */
+    var colors = document.querySelectorAll(".anni-lovewall-color");
+    Array.prototype.forEach.call(colors, function (c) {
+      c.addEventListener("click", function () {
+        Array.prototype.forEach.call(colors, function (x) { x.classList.remove("active"); });
+        c.classList.add("active");
+        currentColor = c.getAttribute("data-color");
+      });
+    });
+
+    /* Size */
+    var sizeSlider = document.getElementById("anni-lovewall-size");
+    if (sizeSlider) {
+      sizeSlider.addEventListener("input", function () { lineWidth = parseInt(this.value); });
+    }
+
+    /* Heart stamp */
+    var heartBtn = document.getElementById("anni-lovewall-heart-btn");
+    if (heartBtn) {
+      heartBtn.addEventListener("click", function () {
+        var cx = canvas.width / 2;
+        var cy = canvas.height / 2;
+        ctx.save();
+        ctx.font = lineWidth * 8 + "px 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = currentColor;
+        ctx.fillText("❤️", cx, cy);
+        ctx.restore();
+      });
+    }
+
+    /* Clear */
+    document.getElementById("anni-lovewall-clear").addEventListener("click", function () {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBackground();
+    });
+
+    /* Save */
+    document.getElementById("anni-lovewall-save").addEventListener("click", function () {
+      var link = document.createElement("a");
+      link.download = "sevgi-divari-" + new Date().getFullYear() + ".png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      showWallToast("İmza saxlandı! 💾");
+    });
+
+    function drawBackground() {
+      ctx.fillStyle = "rgba(255,255,255,.03)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "rgba(255,255,255,.05)";
+      for (var i = 0; i < 12; i++) {
+        ctx.beginPath();
+        ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 1 + Math.random() * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    drawBackground();
+
+    /* Resize handler */
+    window.addEventListener("resize", function () {
+      var oldImage = canvas.toDataURL();
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = 260;
+      var img = new Image();
+      img.onload = function () { ctx.drawImage(img, 0, 0); };
+      img.src = oldImage;
+    });
+  }
+
+  function showWallToast(msg) {
+    var t = document.createElement("div");
+    t.textContent = msg;
+    t.style.cssText = "position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#FFD700;padding:12px 24px;border-radius:100px;font-size:.85rem;z-index:99999;font-weight:600;backdrop-filter:blur(10px);border:1px solid rgba(255,215,0,.2);animation:anniSlideUp .4s ease;font-family:'Poppins',sans-serif";
+    document.body.appendChild(t);
+    setTimeout(function () { t.style.opacity = "0"; t.style.transition = "opacity .5s"; setTimeout(function () { t.remove(); }, 500); }, 2500);
+  }
+
+  /* ─── TIME CAPSULE ──────────────────────────────────────── */
+  function initTimeCapsule() {
+    var notesEl = document.getElementById("capsule-notes");
+    var filmsEl = document.getElementById("capsule-films");
+    var photosEl = document.getElementById("capsule-photos");
+    var yearEl = document.getElementById("anni-capsule-year");
+    var monthsEl = document.getElementById("anni-capsule-months");
+    var noteEl = document.getElementById("anni-capsule-note");
+    if (!notesEl || !filmsEl || !photosEl) return;
+
+    var year = RELATIONSHIP_START.getFullYear();
+    var completedYears = getAnniversaryYearsCompleted();
+    if (completedYears > 0) year = year + completedYears - 1;
+    if (!yearEl) {}
+    var yr = RELATIONSHIP_START.getFullYear() + Math.max(1, completedYears);
+    if (yearEl) yearEl.textContent = yr - 1 + " → " + yr;
+
+    var sampleNotes = Math.floor(Math.random() * 30 + 5);
+    var sampleFilms = Math.floor(Math.random() * 15 + 2);
+    var samplePhotos = Math.floor(Math.random() * 50 + 10);
+
+    if (notesEl) animateCount(notesEl, 0, sampleNotes, 1500);
+    if (filmsEl) animateCount(filmsEl, 0, sampleFilms, 1500);
+    if (photosEl) animateCount(photosEl, 0, samplePhotos, 1500);
+
+    if (monthsEl) {
+      var aylar = ["Yanvar","Fevral","Mart","Aprel","May","İyun","İyul","Avqust","Sentyabr","Oktyabr","Noyabr","Dekabr"];
+      var html = "";
+      for (var i = 0; i < 12; i++) {
+        var intensity = Math.random();
+        var dotColor = intensity > 0.7 ? "#FFD700" : intensity > 0.4 ? "#FF6B6B" : "rgba(255,255,255,.15)";
+        var count = Math.floor(intensity * 12 + 1);
+        html += '<div class="anni-capsule-month"><span class="anni-capsule-month-dot" style="background:' + dotColor + '"></span><div class="anni-capsule-month-name">' + aylar[i] + '</div><div class="anni-capsule-month-count">' + count + '✨</div></div>';
+      }
+      monthsEl.innerHTML = html;
+    }
+
+    var notes = [
+      "İl ərzində hər an səninlə xatirələr yığdıq. Hər şəkil, hər not, hər film — bir parça sən.",
+      "Bir ilə nələr sığdı... Gülüşlər, sözlər, baxışlar. Hər biri qəlbimdə ən qiymətli xəzinə.",
+      "Zaman necə də sürətli keçir. Sanki dünən idi ilk görüşümüz. Bu il boyu səninlə hər anı yaşamaq ən böyük arzum idi.",
+      "Birgə izlədiyimiz filmlər, yazdığımız notlar, çəkdiyimiz şəkillər... Hamısı bir ilin hekayəsidir. Bizim hekayəmiz."
+    ];
+    if (noteEl) noteEl.textContent = notes[Math.floor(Math.random() * notes.length)];
+  }
+
+  function animateCount(el, start, end, duration) {
+    var range = end - start;
+    var startTime = null;
+    function step(ts) {
+      if (!startTime) startTime = ts;
+      var progress = Math.min((ts - startTime) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.floor(start + range * eased);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ─── ANA BAŞLATMA (yenilənmiş) ──────────────────────────── */
+  function init() {
+    injectStyles();
+    injectCountdownWidget();
+    injectMainScreenCountdown();
+    patchDailyMessage();
+    setTimeout(initAnniSlideshow, 300);
+    setTimeout(initTimeCapsule, 600);
+    setTimeout(initLoveWall, 800);
+    setTimeout(initVirtualCandle, 400);
+
+    /* Ctrl+Shift+Y — test qısayolu */
+    document.addEventListener("keydown", function (e) {
+      if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === "y" || e.key === "Y")) {
+        e.preventDefault();
+        var navBtn = document.querySelector('button[data-page="anniversary"]');
+        if (navBtn) navBtn.click();
+        setTimeout(function () {
+          var disp = document.getElementById("anni-display");
+          var arr = document.getElementById("anni-arrived-msg");
+          if (disp) disp.style.display = "none";
+          if (arr) arr.classList.remove("anni-hidden");
+          showAnniversaryScreen();
+          setTimeout(launchConfetti, 1000);
+        }, 300);
+      }
+    });
+
+    if (isAnniversaryDay()) {
+      showAnniversaryScreen();
+      setTimeout(launchConfetti, 1000);
     }
   }
 
