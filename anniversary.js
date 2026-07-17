@@ -1755,6 +1755,57 @@
     requestAnimationFrame(step);
   }
 
+  /* ─── TEST REJİMİ (telefon üçün) ────────────────────────── */
+  function isTestMode() {
+    return window.location.search.indexOf("il_donumu=test") > -1 ||
+           window.location.search.indexOf("anni=test") > -1;
+  }
+
+  function triggerAnniversaryTest() {
+    var navBtn = document.querySelector('button[data-page="anniversary"]');
+    if (navBtn) navBtn.click();
+    setTimeout(function () {
+      var disp = document.getElementById("anni-display");
+      var arr = document.getElementById("anni-arrived-msg");
+      if (disp) disp.style.display = "none";
+      if (arr) arr.classList.remove("anni-hidden");
+      showAnniversaryScreen();
+      setTimeout(launchConfetti, 1000);
+    }, 300);
+  }
+
+  function setupMobileTestTrigger() {
+    /* Hero badge-a 5 dəfə sürətli toxunma */
+    var tapCount = 0;
+    var tapTimer = null;
+    document.addEventListener("click", function (e) {
+      var badge = e.target.closest(".anni-hero-badge, .welcome-badge, .anni-hero-title");
+      if (!badge) return;
+      tapCount++;
+      if (tapTimer) clearTimeout(tapTimer);
+      tapTimer = setTimeout(function () { tapCount = 0; }, 800);
+      if (tapCount >= 5) {
+        tapCount = 0;
+        triggerAnniversaryTest();
+      }
+    });
+
+    /* Alt küncdə gizli test düyməsi */
+    var testBtn = document.createElement("button");
+    testBtn.textContent = "🧪";
+    testBtn.setAttribute("aria-label", "Test rejimi");
+    testBtn.style.cssText = "position:fixed;bottom:80px;right:10px;z-index:9999;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.3);color:#fff;font-size:16px;cursor:pointer;backdrop-filter:blur(6px);opacity:.25;transition:opacity .3s";
+    testBtn.onmouseenter = function () { testBtn.style.opacity = "1"; };
+    testBtn.onmouseleave = function () { if (!isTestMode()) testBtn.style.opacity = ".25"; };
+    testBtn.onclick = function () { triggerAnniversaryTest(); };
+    if (isTestMode()) {
+      testBtn.style.opacity = "1";
+      testBtn.style.borderColor = "rgba(255,215,0,.5)";
+      testBtn.style.background = "rgba(255,215,0,.15)";
+    }
+    document.body.appendChild(testBtn);
+  }
+
   /* ─── ANA BAŞLATMA (yenilənmiş) ──────────────────────────── */
   function init() {
     injectStyles();
@@ -1766,22 +1817,21 @@
     setTimeout(initLoveWall, 800);
     setTimeout(initVirtualCandle, 400);
 
-    /* Ctrl+Shift+Y — test qısayolu */
+    /* Ctrl+Shift+Y — test qısayolu (desktop) */
     document.addEventListener("keydown", function (e) {
       if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === "y" || e.key === "Y")) {
         e.preventDefault();
-        var navBtn = document.querySelector('button[data-page="anniversary"]');
-        if (navBtn) navBtn.click();
-        setTimeout(function () {
-          var disp = document.getElementById("anni-display");
-          var arr = document.getElementById("anni-arrived-msg");
-          if (disp) disp.style.display = "none";
-          if (arr) arr.classList.remove("anni-hidden");
-          showAnniversaryScreen();
-          setTimeout(launchConfetti, 1000);
-        }, 300);
+        triggerAnniversaryTest();
       }
     });
+
+    /* URL parametri: ?il_donumu=test və ya ?anni=test (telefon) */
+    if (isTestMode()) {
+      setTimeout(triggerAnniversaryTest, 500);
+    }
+
+    /* Mobil üçün gizli test: hero badge-a 5 toxunma */
+    setTimeout(setupMobileTestTrigger, 1000);
 
     if (isAnniversaryDay()) {
       showAnniversaryScreen();
