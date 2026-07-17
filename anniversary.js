@@ -1697,7 +1697,10 @@
   }
 
   /* ─── TIME CAPSULE ──────────────────────────────────────── */
-  function initTimeCapsule() {
+  function initTimeCapsule(retries) {
+    if (retries === undefined) retries = 0;
+    if (retries > 15) return;
+
     var notesEl = document.getElementById("capsule-notes");
     var filmsEl = document.getElementById("capsule-films");
     var photosEl = document.getElementById("capsule-photos");
@@ -1711,7 +1714,14 @@
     var films = Array.isArray(window.currentFilms) ? window.currentFilms.length : 0;
 
     if (notes === 0 || films === 0) {
-      setTimeout(initTimeCapsule, 1500);
+      setTimeout(function () { initTimeCapsule(retries + 1); }, 1500);
+      return;
+    }
+
+    /* Real şəkil sayını əldə etmək üçün slideshow-un yüklənməsini gözlə */
+    if (photos === 0 && window.allImages) {
+      /* Əgər allImages boş arraydirsə, slideshow-un fetch etdiyi məlumatı istifadə et */
+      setTimeout(function () { initTimeCapsule(retries + 1); }, 1500);
       return;
     }
 
@@ -1745,14 +1755,28 @@
 
       if (Array.isArray(window.allImages)) {
         window.allImages.forEach(function (img) {
-          if (img.git_date) {
-            var d = new Date(img.git_date);
+          var dateStr = img.git_date || img.name || img.download_url;
+          if (dateStr) {
+            var d = new Date(dateStr);
             if (!isNaN(d.getTime()) && d.getFullYear() >= RELATIONSHIP_START.getFullYear()) {
               var m = d.getMonth();
               monthBuckets[m].photos++;
+            } else if (typeof dateStr === "string") {
+              var parts = dateStr.match(/(\d{4})-(\d{2})/);
+              if (parts) {
+                var m = parseInt(parts[2], 10) - 1;
+                if (m >= 0 && m < 12) monthBuckets[m].photos++;
+              }
             }
           }
         });
+        /* Əgər heç bir şəkilə tarix ata bilmədiksə, hamısını cari aya yığ */
+        var totalWithDate = 0;
+        for (var mi = 0; mi < 12; mi++) totalWithDate += monthBuckets[mi].photos;
+        if (totalWithDate === 0 && window.allImages.length > 0) {
+          var now = new Date();
+          monthBuckets[now.getMonth()].photos = window.allImages.length;
+        }
       }
 
       var html = "";
@@ -1831,20 +1855,6 @@
       }
     });
 
-    /* Alt küncdə gizli test düyməsi */
-    var testBtn = document.createElement("button");
-    testBtn.textContent = "🧪";
-    testBtn.setAttribute("aria-label", "Test rejimi");
-    testBtn.style.cssText = "position:fixed;bottom:80px;right:10px;z-index:9999;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.3);color:#fff;font-size:16px;cursor:pointer;backdrop-filter:blur(6px);opacity:.25;transition:opacity .3s";
-    testBtn.onmouseenter = function () { testBtn.style.opacity = "1"; };
-    testBtn.onmouseleave = function () { if (!isTestMode()) testBtn.style.opacity = ".25"; };
-    testBtn.onclick = function () { triggerAnniversaryTest(); };
-    if (isTestMode()) {
-      testBtn.style.opacity = "1";
-      testBtn.style.borderColor = "rgba(255,215,0,.5)";
-      testBtn.style.background = "rgba(255,215,0,.15)";
-    }
-    document.body.appendChild(testBtn);
   }
 
   /* ─── ANA BAŞLATMA (yenilənmiş) ──────────────────────────── */
