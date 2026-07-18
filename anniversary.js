@@ -1720,7 +1720,6 @@
 
     /* Real şəkil sayını əldə etmək üçün slideshow-un yüklənməsini gözlə */
     if (photos === 0 && window.allImages) {
-      /* Əgər allImages boş arraydirsə, slideshow-un fetch etdiyi məlumatı istifadə et */
       setTimeout(function () { initTimeCapsule(retries + 1); }, 1500);
       return;
     }
@@ -1735,13 +1734,18 @@
     if (monthsEl) {
       var aylar = ["Yanvar","Fevral","Mart","Aprel","May","İyun","İyul","Avqust","Sentyabr","Oktyabr","Noyabr","Dekabr"];
       var monthBuckets = {};
-      for (var i = 0; i < 12; i++) monthBuckets[i] = { notes: 0, films: 0, photos: 0 };
+      window._anniMonthItems = {};
+      for (var i = 0; i < 12; i++) {
+        monthBuckets[i] = { notes: 0, films: 0, photos: 0 };
+        window._anniMonthItems[i] = [];
+      }
 
       window.currentNotes.forEach(function (n) {
         var d = new Date(n.dateIso);
         if (!isNaN(d.getTime()) && d.getFullYear() >= RELATIONSHIP_START.getFullYear()) {
           var m = d.getMonth();
           monthBuckets[m].notes++;
+          window._anniMonthItems[m].push({ type: 'note', data: n });
         }
       });
 
@@ -1750,6 +1754,7 @@
         if (!isNaN(d.getTime()) && d.getFullYear() >= RELATIONSHIP_START.getFullYear()) {
           var m = d.getMonth();
           monthBuckets[m].films++;
+          window._anniMonthItems[m].push({ type: 'film', data: f });
         }
       });
 
@@ -1761,21 +1766,27 @@
             if (!isNaN(d.getTime()) && d.getFullYear() >= RELATIONSHIP_START.getFullYear()) {
               var m = d.getMonth();
               monthBuckets[m].photos++;
+              window._anniMonthItems[m].push({ type: 'photo', data: img });
             } else if (typeof dateStr === "string") {
               var parts = dateStr.match(/(\d{4})-(\d{2})/);
               if (parts) {
                 var m = parseInt(parts[2], 10) - 1;
-                if (m >= 0 && m < 12) monthBuckets[m].photos++;
+                if (m >= 0 && m < 12) {
+                  monthBuckets[m].photos++;
+                  window._anniMonthItems[m].push({ type: 'photo', data: img });
+                }
               }
             }
           }
         });
-        /* Əgər heç bir şəkilə tarix ata bilmədiksə, hamısını cari aya yığ */
         var totalWithDate = 0;
         for (var mi = 0; mi < 12; mi++) totalWithDate += monthBuckets[mi].photos;
         if (totalWithDate === 0 && window.allImages.length > 0) {
           var now = new Date();
           monthBuckets[now.getMonth()].photos = window.allImages.length;
+          window.allImages.forEach(function (img) {
+            window._anniMonthItems[now.getMonth()].push({ type: 'photo', data: img });
+          });
         }
       }
 
@@ -1793,9 +1804,17 @@
         var intensity = act / maxAct;
         var dotColor = intensity > 0.5 ? "#FFD700" : intensity > 0.2 ? "#FF6B6B" : "rgba(255,255,255,.12)";
         var barH = Math.max(4, Math.round(intensity * 20));
-        html += '<div class="anni-capsule-month"><span class="anni-capsule-month-dot" style="background:' + dotColor + ';width:' + barH + 'px;height:' + barH + 'px"></span><div class="anni-capsule-month-name">' + aylar[i] + '</div><div class="anni-capsule-month-count">' + (act > 0 ? act + ' ✨' : '-') + '</div></div>';
+        html += '<div class="anni-capsule-month" data-ay="'+i+'"><span class="anni-capsule-month-dot" style="background:' + dotColor + ';width:' + barH + 'px;height:' + barH + 'px"></span><div class="anni-capsule-month-name">' + aylar[i] + '</div><div class="anni-capsule-month-count">' + (act > 0 ? act + ' ✨' : '-') + '</div></div>';
       }
       monthsEl.innerHTML = html;
+
+      monthsEl.querySelectorAll('.anni-capsule-month').forEach(function (card) {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function () {
+          var ay = parseInt(this.getAttribute('data-ay'));
+          window.openAnniCapsuleModal(ay);
+        });
+      });
     }
 
     var capsuleNotes = [
@@ -1806,6 +1825,59 @@
     ];
     if (noteEl) noteEl.textContent = capsuleNotes[Math.floor(Math.random() * capsuleNotes.length)];
   }
+
+  window.openAnniCapsuleModal = function (monthIndex) {
+    var items = window._anniMonthItems && window._anniMonthItems[monthIndex];
+    if (!items || !items.length) return;
+
+    var aylar = ["Yanvar","Fevral","Mart","Aprel","May","İyun","İyul","Avqust","Sentyabr","Oktyabr","Noyabr","Dekabr"];
+    var modal = document.getElementById('timecapsule-modal');
+    if (!modal) return;
+
+    document.getElementById('capsule-modal-title').textContent = aylar[monthIndex];
+
+    var sorted = items.slice().sort(function (a, b) {
+      var da = a.data.git_date || a.data.dateIso || a.data.watchDate || 0;
+      var db = b.data.git_date || b.data.dateIso || b.data.watchDate || 0;
+      return new Date(da) - new Date(db);
+    });
+
+    var body = document.getElementById('capsule-modal-body');
+    window._capsuleItems = sorted;
+    var html = '';
+
+    sorted.forEach(function (item, idx) {
+      if (item.type === 'photo') {
+        var d = typeof parseImageDate === 'function' ? parseImageDate(item.data) : null;
+        html += '<div class="capsule-item capsule-photo-item" data-ci="'+idx+'" onclick="window.openLightbox(window.allImages.indexOf(window._capsuleItems[this.dataset.ci].data))">' +
+          '<img src="'+item.data.download_url+'" loading="lazy" alt="Şəkil" />' +
+          '<div class="capsule-item-info">' +
+          '<span class="capsule-item-date"><i class="far fa-clock"></i> '+(d && typeof formatAzDate === 'function' ? formatAzDate(d) : '')+'</span>' +
+          '<span class="capsule-item-tag"><i class="fas fa-image"></i> Şəkil</span>' +
+          '</div></div>';
+      } else if (item.type === 'note') {
+        html += '<div class="capsule-item capsule-note-item" data-ci="'+idx+'" onclick="window.showNote(window.currentNotes.indexOf(window._capsuleItems[this.dataset.ci].data))">' +
+          '<div class="capsule-item-icon"><i class="fas fa-sticky-note"></i></div>' +
+          '<div class="capsule-item-info">' +
+          '<strong class="capsule-item-title">'+item.data.title+'</strong>' +
+          '<span class="capsule-item-date"><i class="far fa-clock"></i> '+item.data.dateStr+'</span>' +
+          '<p class="capsule-item-desc">'+(item.data.content || '').substring(0, 80)+((item.data.content || '').length > 80 ? '...' : '')+'</p>' +
+          '</div></div>';
+      } else if (item.type === 'film') {
+        html += '<div class="capsule-item capsule-film-item" data-ci="'+idx+'" onclick="window.showFilm(window._capsuleItems[this.dataset.ci].data)">' +
+          '<div class="capsule-item-icon"><i class="fas fa-clapperboard"></i></div>' +
+          '<div class="capsule-item-info">' +
+          '<strong class="capsule-item-title">'+item.data.title+'</strong>' +
+          '<span class="capsule-item-date"><i class="far fa-clock"></i> '+(typeof formatFilmDate === 'function' ? formatFilmDate(item.data.watchDate || item.data.dateIso) : '')+'</span>' +
+          '<span class="capsule-film-rating"><i class="fas fa-star"></i> '+(item.data.rating || '-')+'/10</span>' +
+          '</div></div>';
+      }
+    });
+
+    body.innerHTML = html;
+    modal.classList.remove('hidden');
+    modal.style.display = "flex";
+  };
 
   function animateCount(el, start, end, duration) {
     var range = end - start;
@@ -1867,6 +1939,14 @@
     setTimeout(initTimeCapsule, 600);
     setTimeout(initLoveWall, 800);
     setTimeout(initVirtualCandle, 400);
+
+    document.getElementById('close-capsule-btn')?.addEventListener('click', function () {
+      var modal = document.getElementById('timecapsule-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+    });
 
     /* Ctrl+Shift+Y — test qısayolu (desktop) */
     document.addEventListener("keydown", function (e) {
