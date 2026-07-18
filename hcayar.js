@@ -6475,4 +6475,155 @@ if (document.readyState === "loading") {
   HapticSound.init();
 }
 
+// ========== ZAMAN KAPSÜLÜ (Zamanımız səhifəsi) ==========
+const capsuleMonthNames = [
+  "Yanvar","Fevral","Mart","Aprel","May","İyun",
+  "İyul","Avqust","Sentyabr","Oktyabr","Noyabr","Dekabr"
+];
+
+function getCapsuleMonths() {
+  const byMonth = {};
+
+  function addItem(date, item) {
+    if (!date || isNaN(date)) return;
+    const key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+    if (!byMonth[key]) byMonth[key] = { year: date.getFullYear(), month: date.getMonth(), items: [] };
+    byMonth[key].items.push(item);
+  }
+
+  (window.allImages || []).forEach(img => {
+    addItem(parseImageDate(img), { type: 'photo', data: img });
+  });
+
+  (window.currentNotes || []).forEach(n => {
+    const d = new Date(n.dateIso);
+    if (!isNaN(d)) addItem(d, { type: 'note', data: n });
+  });
+
+  (window.currentFilms || []).forEach(f => {
+    const d = new Date(f.watchDate || f.dateIso);
+    if (!isNaN(d)) addItem(d, { type: 'film', data: f });
+  });
+
+  return Object.keys(byMonth).sort().reverse().map(k => byMonth[k]);
+}
+
+function renderTimePageCapsule() {
+  const container = document.getElementById('time-capsule-months');
+  if (!container) return;
+
+  const months = getCapsuleMonths();
+  if (!months.length) {
+    container.innerHTML = '<p style="text-align:center;opacity:0.7">Hələ ki, məlumat yoxdur.</p>';
+    return;
+  }
+
+  let html = '';
+  months.forEach((m, idx) => {
+    const photos = m.items.filter(i => i.type === 'photo').length;
+    const notes = m.items.filter(i => i.type === 'note').length;
+    const films = m.items.filter(i => i.type === 'film').length;
+    html += `
+      <div class="capsule-month-card" data-index="${idx}">
+        <div class="capsule-month-icon"><i class="fas fa-clock"></i></div>
+        <div class="capsule-month-name">${capsuleMonthNames[m.month]}</div>
+        <div class="capsule-month-year">${m.year}</div>
+        <div class="capsule-stats">
+          ${photos ? `<span><i class="fas fa-image"></i> ${photos}</span>` : ''}
+          ${notes ? `<span><i class="fas fa-sticky-note"></i> ${notes}</span>` : ''}
+          ${films ? `<span><i class="fas fa-clapperboard"></i> ${films}</span>` : ''}
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  container.querySelectorAll('.capsule-month-card').forEach(card => {
+    card.addEventListener('click', function() {
+      const idx = parseInt(this.dataset.index);
+      openCapsuleModal(months[idx]);
+    });
+  });
+}
+
+function openCapsuleModal(monthData) {
+  const modal = document.getElementById('timecapsule-modal');
+  if (!modal) return;
+
+  document.getElementById('capsule-modal-title').textContent =
+    `${capsuleMonthNames[monthData.month]} ${monthData.year}`;
+
+  const sorted = [...monthData.items].sort((a, b) => {
+    const da = a.data.git_date || a.data.dateIso || a.data.watchDate || 0;
+    const db = b.data.git_date || b.data.dateIso || b.data.watchDate || 0;
+    return new Date(da) - new Date(db);
+  });
+
+  const body = document.getElementById('capsule-modal-body');
+  window._capsuleItems = sorted;
+  let html = '';
+
+  sorted.forEach((item, idx) => {
+    if (item.type === 'photo') {
+      const d = parseImageDate(item.data);
+      html += `
+        <div class="capsule-item capsule-photo-item" data-ci="${idx}" onclick="window.openLightbox(window.allImages.indexOf(window._capsuleItems[this.dataset.ci].data))">
+          <img src="${item.data.download_url}" loading="lazy" alt="Şəkil" />
+          <div class="capsule-item-info">
+            <span class="capsule-item-date"><i class="far fa-clock"></i> ${d ? formatAzDate(d) : ''}</span>
+            <span class="capsule-item-tag"><i class="fas fa-image"></i> Şəkil</span>
+          </div>
+        </div>
+      `;
+    } else if (item.type === 'note') {
+      html += `
+        <div class="capsule-item capsule-note-item" data-ci="${idx}" onclick="window.showNote(window.currentNotes.indexOf(window._capsuleItems[this.dataset.ci].data))">
+          <div class="capsule-item-icon"><i class="fas fa-sticky-note"></i></div>
+          <div class="capsule-item-info">
+            <strong class="capsule-item-title">${item.data.title}</strong>
+            <span class="capsule-item-date"><i class="far fa-clock"></i> ${item.data.dateStr}</span>
+            <p class="capsule-item-desc">${(item.data.content || '').substring(0, 80)}${(item.data.content || '').length > 80 ? '...' : ''}</p>
+          </div>
+        </div>
+      `;
+    } else if (item.type === 'film') {
+      html += `
+        <div class="capsule-item capsule-film-item" data-ci="${idx}" onclick="window.showFilm(window._capsuleItems[this.dataset.ci].data)">
+          <div class="capsule-item-icon"><i class="fas fa-clapperboard"></i></div>
+          <div class="capsule-item-info">
+            <strong class="capsule-item-title">${item.data.title}</strong>
+            <span class="capsule-item-date"><i class="far fa-clock"></i> ${formatFilmDate(item.data.watchDate || item.data.dateIso)}</span>
+            <span class="capsule-film-rating"><i class="fas fa-star"></i> ${item.data.rating || '-'}/10</span>
+          </div>
+        </div>
+      `;
+    }
+  });
+
+  body.innerHTML = html;
+  modal.classList.remove('hidden');
+  modal.style.display = "flex";
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const timePage = document.getElementById('page-time');
+  if (timePage) {
+    new MutationObserver(() => {
+      if (timePage.classList.contains('active')) renderTimePageCapsule();
+    }).observe(timePage, { attributes: true, attributeFilter: ['class'] });
+
+    if (timePage.classList.contains('active')) renderTimePageCapsule();
+  }
+
+  let retries = 0;
+  const iv = setInterval(() => {
+    if (window.allImages && window.currentNotes && window.currentFilms) {
+      clearInterval(iv);
+      renderTimePageCapsule();
+    }
+    if (++retries > 40) clearInterval(iv);
+  }, 500);
+});
+
 

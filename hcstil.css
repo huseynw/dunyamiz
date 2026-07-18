@@ -9696,6 +9696,118 @@ body:not(.dark-ui) .pill-item.active span {
   }
 }
 
+/* ========== ZAMAN KAPSÜLÜ AY GRID ========== */
+.capsule-months {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.capsule-month-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+}
+
+.capsule-month-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--primary);
+  box-shadow: 0 8px 24px var(--primary-glow);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.capsule-month-icon {
+  font-size: 1.4rem;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.capsule-month-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.capsule-month-year {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 8px;
+}
+
+.capsule-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+}
+
+.capsule-stats span {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.capsule-stats span i {
+  color: var(--primary);
+}
+
+.time-capsule-section {
+  margin-top: 30px;
+  padding-top: 10px;
+}
+
+.time-capsule-heading {
+  font-size: 1.1rem;
+  color: var(--primary);
+  font-family: "Great Vibes", cursive;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+body:not(.dark-ui) .capsule-month-card {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+body:not(.dark-ui) .capsule-month-card:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--primary);
+}
+
+body:not(.dark-ui) .capsule-month-name {
+  color: #333;
+}
+
+body:not(.dark-ui) .capsule-month-year {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+body:not(.dark-ui) .capsule-stats span {
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 480px) {
+  .capsule-months {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .capsule-month-card {
+    padding: 12px 8px;
+  }
+}
+
 /* ========== ZAMAN KAPSÜLÜ MODAL ========== */
 .capsule-modal-content {
   max-width: 520px;
@@ -9754,6 +9866,8 @@ body:not(.dark-ui) .pill-item.active span {
 .capsule-item-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .capsule-item-title {
