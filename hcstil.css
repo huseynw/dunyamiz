@@ -9695,3 +9695,233 @@ body:not(.dark-ui) .pill-item.active span {
     letter-spacing: 0;
   }
 }
+
+/* ========== ZAMAN KAPSÜLÜ ========== */
+.capsule-months {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  padding: 10px 0 30px;
+}
+
+.capsule-month-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 20px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+
+.capsule-month-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: var(--primary);
+  box-shadow: 0 12px 30px var(--primary-glow);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.capsule-month-icon {
+  font-size: 1.6rem;
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+
+.capsule-month-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.capsule-month-year {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 10px;
+}
+
+.capsule-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.capsule-stats span {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.capsule-stats span i {
+  color: var(--primary);
+}
+
+.capsule-modal-content {
+  max-width: 520px;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.capsule-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 5px;
+}
+
+.capsule-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.capsule-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateX(4px);
+}
+
+.capsule-photo-item img {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.capsule-item-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--primary);
+}
+
+.capsule-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.capsule-item-title {
+  display: block;
+  font-size: 0.95rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.capsule-item-date {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.45);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.capsule-item-tag {
+  font-size: 0.7rem;
+  color: var(--primary);
+  opacity: 0.7;
+}
+
+.capsule-item-desc {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 2px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.capsule-film-rating {
+  font-size: 0.72rem;
+  color: #ffd700;
+  margin-left: 8px;
+}
+
+body:not(.dark-ui) .capsule-month-card {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+body:not(.dark-ui) .capsule-month-card:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--primary);
+}
+
+body:not(.dark-ui) .capsule-month-name {
+  color: #333;
+}
+
+body:not(.dark-ui) .capsule-month-year {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+body:not(.dark-ui) .capsule-stats span {
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+body:not(.dark-ui) .capsule-item {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+body:not(.dark-ui) .capsule-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body:not(.dark-ui) .capsule-item-title {
+  color: #333;
+}
+
+body:not(.dark-ui) .capsule-item-date {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+body:not(.dark-ui) .capsule-item-desc {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body:not(.dark-ui) .capsule-item-icon {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+@media (max-width: 480px) {
+  .capsule-months {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .capsule-month-card {
+    padding: 14px 10px;
+  }
+
+  .capsule-modal-content {
+    max-width: 100%;
+    margin: 10px;
+  }
+}

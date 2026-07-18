@@ -780,6 +780,16 @@
             </div>
           </div>
         </section>
+
+        <!-- Page: Zaman Kapsulü -->
+        <section class="spa-page" id="page-timecapsule" data-nosnippet>
+          <div class="page-content">
+            <h2 class="page-title">Zaman Kapsulümüz <i class="fas fa-clock"></i></h2>
+            <div class="capsule-months" id="capsule-months-container">
+              <p style="text-align:center;opacity:0.7">Yüklənir...</p>
+            </div>
+          </div>
+        </section>
       </div>
 
       <div
@@ -1109,6 +1119,10 @@
               <i class="fas fa-clapperboard"></i>
               <span>Filmlər</span>
             </button>
+            <button class="pill-item" data-page="timecapsule">
+              <i class="fas fa-clock"></i>
+              <span>Zaman Kapsulü</span>
+            </button>
             <button class="pill-item" data-page="music">
               <i class="fas fa-music"></i>
               <span>Musiqi</span>
@@ -1343,6 +1357,15 @@
           >
           <span id="view-film-score" class="film-view-score"></span>
         </div>
+      </div>
+    </div>
+
+    <!-- Time Capsule Modal -->
+    <div id="timecapsule-modal" class="letter-modal">
+      <div class="capsule-modal-content note-view-content">
+        <span class="close-letter" id="close-capsule-btn">&times;</span>
+        <h2 id="capsule-modal-title" class="note-modal-title">Ay</h2>
+        <div id="capsule-modal-body" class="capsule-modal-body"></div>
       </div>
     </div>
 
