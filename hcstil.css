@@ -9810,17 +9810,18 @@ body:not(.dark-ui) .capsule-stats span {
 
 /* ========== ZAMAN KAPSÜLÜ MODAL ========== */
 .capsule-modal-content {
-  max-width: 520px;
+  max-width: 600px;
   max-height: 85vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  padding: 20px;
 }
 
 .capsule-modal-body {
   flex: 1;
   overflow-y: auto;
-  padding: 0 5px;
+  padding: 0 2px;
 }
 
 .capsule-item {
@@ -9937,5 +9938,6 @@ body:not(.dark-ui) .capsule-item-icon {
   .capsule-modal-content {
     max-width: 100%;
     margin: 10px;
+    padding: 16px;
   }
 }
