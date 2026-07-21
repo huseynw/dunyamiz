@@ -1848,10 +1848,11 @@
     sorted.forEach(function (item, idx) {
       if (item.type === 'photo') {
         var d = typeof parseImageDate === 'function' ? parseImageDate(item.data) : null;
+        var dateStr = (d && typeof formatAzDate === 'function') ? formatAzDate(d) : (item.data.git_date || '');
         html += '<div class="capsule-item capsule-photo-item" data-ci="'+idx+'" onclick="window.openLightbox(window.allImages.indexOf(window._capsuleItems[this.dataset.ci].data))">' +
           '<img src="'+item.data.download_url+'" loading="lazy" alt="Şəkil" />' +
           '<div class="capsule-item-info">' +
-          '<span class="capsule-item-date"><i class="far fa-clock"></i> '+(d && typeof formatAzDate === 'function' ? formatAzDate(d) : '')+'</span>' +
+          '<span class="capsule-item-date"><i class="far fa-clock"></i> '+dateStr+'</span>' +
           '<span class="capsule-item-tag"><i class="fas fa-image"></i> Şəkil</span>' +
           '</div></div>';
       } else if (item.type === 'note') {

@@ -1684,7 +1684,7 @@ header {
 .lightbox {
   display: none;
   position: fixed;
-  z-index: 10000;
+  z-index: 10002;
   top: 0;
   left: 0;
   width: 100%;
@@ -9943,4 +9943,21 @@ body:not(.dark-ui) .capsule-item-icon {
     padding: 14px;
     max-height: 92vh;
   }
+}
+
+/* Ensure sub-modals opened from time capsule appear on top */
+#view-note-modal.letter-modal {
+  z-index: 10003;
+}
+#view-film-modal.letter-modal {
+  z-index: 10003;
+}
+#letter-modal.letter-modal {
+  z-index: 10003;
+}
+#add-note-modal.letter-modal {
+  z-index: 10003;
+}
+#add-film-modal.letter-modal {
+  z-index: 10003;
 }
