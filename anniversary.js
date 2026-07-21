@@ -542,7 +542,7 @@
         '<div class="anni-story-cards">' +
           mkStory('<i class="fa-solid fa-sun"></i>', "İlk Addım", "3 Avqust 2025-ci ildə başladı. O gün hər şey dəyişdi. Bir baxış, bir gülüş — və ömür boyu sürecek bir sevgi.") +
           mkStory('<i class="fa-solid fa-star"></i>', "Hər Gün Yeni Kəşf", "Hər səhər sənlə yeni bir şey öyrənirəm. Gülüşün, baxışın, sözlərin — hamısı qəlbimə hakmişdir.") +
-          mkStory('<i class="fa-solid fa-shield-heart"></i>', "Hər Çətinlikdə Birlikdə", "Dünya nə qədər çətin olursa olsun, sən varsan — hər şey asanlaşır. Sən mənim ən böyük gücümsən.") +
+          mkStory('<i class="fa-solid fa-sheard-pulse"></i>', "Hər Çətinlikdə Birlikdə", "Dünya nə qədər çətin olursa olsun, sən varsan — hər şey asanlaşır. Sən mənim ən böyük gücümsən.") +
         '</div>' +
       '</div>' +
 
@@ -632,7 +632,6 @@
         '<button id="anni-celebrate-btn" class="anni-celebrate-btn">' +
           '<span><i class="fa-solid fa-party-horn"></i></span><span>İl Dönümünü Keçir!</span><span><i class="fa-solid fa-champagne-glasses"></i></span>' +
         '</button>' +
-        '<p class="anni-cta-hint">Ctrl + Shift + Y ilə test et</p>' +
       '</div>';
 
     updateLoveStats();
@@ -771,7 +770,7 @@
           '<span class="anni-year-num">' + yrs + '</span><span class="anni-year-text">İL</span>' +
         '</div></div></div>' +
         '<h2 class="anni-headline">' + (yrs === 1 ? 'Bir il əvvəl iki ayrı dünya vardı —' : yrs + ' il birlikdə —') + '<br><span class="anni-headline-gold">İndi bir dünyamız var.</span></h2>' +
-        '<p class="anni-sub-quote">"' + days.toLocaleString() + ' gün, ' + hrs + ' saat — hər saniyəni sənlə yaşadım ki, bu günü yaşaya bilim. <strong>Sənin il dönümündür, Cəmalə. <i class="fa-solid fa-heart"></i></strong>"</p>' +
+        '<p class="anni-sub-quote">"' + days.toLocaleString() + ' gün, ' + hrs + ' saat — hər saniyəni sənlə yaşadım ki, bu günü yaşaya bilim. <strong>Bizim il dönümümüzdür, Sevgilim. <i class="fa-solid fa-heart"></i></strong>"</p>' +
         '<div class="anni-stats-row">' +
           '<div class="anni-stat"><strong>' + days.toLocaleString() + '</strong><span>Gün</span></div>' +
           '<div class="anni-stat-div"><i class="fa-solid fa-heart"></i></div>' +
