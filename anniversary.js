@@ -578,30 +578,7 @@
         '<p class="anni-capsule-note" id="anni-capsule-note">İl ərzində hər an səninlə xatirələr yığdıq. Hər şəkil, hər not, hər film — bir parça sən.</p>' +
       '</div>' +
 
-      /* ── LOVE WALL ── */
-      '<div class="anni-lovewall-section">' +
-        '<div class="anni-capsule-header">' +
-          '<span class="anni-capsule-badge"><i class="fa-solid fa-pen-fancy"></i> SEVGİ DİVARI</span>' +
-          '<span style="font-size:.7rem;color:rgba(255,255,255,.4)">Birgə imza atın</span>' +
-        '</div>' +
-        '<div class="anni-lovewall-toolbar">' +
-          '<span class="anni-lovewall-color active" data-color="#FFD700" style="background:#FFD700"></span>' +
-          '<span class="anni-lovewall-color" data-color="#FF6B6B" style="background:#FF6B6B"></span>' +
-          '<span class="anni-lovewall-color" data-color="#FF1493" style="background:#FF1493"></span>' +
-          '<span class="anni-lovewall-color" data-color="#FFA500" style="background:#FFA500"></span>' +
-          '<span class="anni-lovewall-color" data-color="#00CED1" style="background:#00CED1"></span>' +
-          '<span class="anni-lovewall-color" data-color="#FFFFFF" style="background:#FFFFFF"></span>' +
-          '<span class="anni-lovewall-stamp" id="anni-lovewall-heart-btn" title="Ürək bas"><i class="fa-solid fa-heart"></i></span>' +
-        '</div>' +
-        '<div class="anni-lovewall-canvas-wrap">' +
-          '<canvas id="anni-lovewall-canvas" height="260"></canvas>' +
-        '</div>' +
-        '<div class="anni-lovewall-actions">' +
-          '<button class="anni-lovewall-btn primary" id="anni-lovewall-save"><i class="fa-solid fa-floppy-disk"></i> Saxla</button>' +
-          '<button class="anni-lovewall-btn" id="anni-lovewall-clear"><i class="fa-solid fa-eraser"></i> Təmizlə</button>' +
-          '<div class="anni-lovewall-size"><i class="fa-solid fa-pen" style="font-size:.8rem;opacity:.6"></i><input type="range" id="anni-lovewall-size" min="1" max="8" value="3"></div>' +
-        '</div>' +
-      '</div>' +
+
 
       /* ── CANDLE ── */
       '<div class="anni-candle-section">' +
@@ -1137,29 +1114,7 @@
       ".anni-candle-blow-btn:hover{background:rgba(255,255,255,.15);color:#fff}",
       ".anni-candle-blow-btn:disabled{opacity:.4;cursor:not-allowed}",
 
-      /* ── Love Wall ── */
-      ".anni-lovewall-section{background:linear-gradient(135deg,rgba(60,0,30,.4),rgba(0,0,50,.35));",
-      "border:1px solid rgba(255,215,0,.12);border-radius:24px;padding:24px 20px;margin-bottom:20px;text-align:center}",
-      ".anni-lovewall-toolbar{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}",
-      ".anni-lovewall-color{width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .2s}",
-      ".anni-lovewall-color.active{border-color:#fff;transform:scale(1.15);box-shadow:0 0 12px rgba(255,255,255,.3)}",
-      ".anni-lovewall-canvas-wrap{position:relative;border-radius:16px;overflow:hidden;",
-      "background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);margin-bottom:10px;touch-action:none}",
-      "#anni-lovewall-canvas{display:block;width:100%;height:260px;cursor:crosshair;touch-action:none}",
-      ".anni-lovewall-actions{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}",
-      ".anni-lovewall-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);",
-      "border-radius:100px;padding:8px 18px;color:rgba(255,255,255,.8);cursor:pointer;font-size:.8rem;font-family:inherit;",
-      "transition:all .2s;display:inline-flex;align-items:center;gap:6px}",
-      ".anni-lovewall-btn:hover{background:rgba(255,255,255,.15)}",
-      ".anni-lovewall-btn.primary{background:linear-gradient(135deg,#FFD700,#FF6B6B);color:#000;border:none;font-weight:700}",
-      ".anni-lovewall-btn.primary:hover{transform:scale(1.05)}",
-      ".anni-lovewall-stamp{font-size:1.4rem;color:#ff4d6d;cursor:pointer;transition:transform .2s;",
-      "background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:50%;width:36px;height:36px;",
-      "display:inline-flex;align-items:center;justify-content:center}",
-      ".anni-lovewall-stamp:hover{transform:scale(1.2)}",
-      ".anni-lovewall-stamp.active{background:rgba(255,77,109,.2);border-color:#ff4d6d}",
-      ".anni-lovewall-size{display:flex;align-items:center;gap:6px}",
-      ".anni-lovewall-size input{width:60px;accent-color:#FFD700}",
+
 
       /* ── Time Capsule ── */
       ".anni-capsule-section{background:linear-gradient(135deg,rgba(0,40,50,.35),rgba(50,0,40,.35));",
@@ -1559,141 +1514,7 @@
       });
   }
 
-  /* ─── LOVE WALL ─────────────────────────────────────────── */
-  function initLoveWall() {
-    var canvas = document.getElementById("anni-lovewall-canvas");
-    if (!canvas) return;
-    var ctx = canvas.getContext("2d");
-    var rect = canvas.parentElement.getBoundingClientRect();
-    canvas.width = canvas.parentElement.clientWidth;
-    canvas.height = 260;
 
-    var drawing = false;
-    var currentColor = "#FFD700";
-    var lineWidth = 3;
-    var lastX = 0, lastY = 0;
-
-    function getPos(e) {
-      var r = canvas.getBoundingClientRect();
-      var clientX, clientY;
-      if (e.touches) {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
-        e.preventDefault();
-      } else {
-        clientX = e.clientX;
-        clientY = e.clientY;
-      }
-      return { x: (clientX - r.left) * (canvas.width / r.width), y: (clientY - r.top) * (canvas.height / r.height) };
-    }
-
-    function startDraw(e) {
-      drawing = true;
-      var p = getPos(e);
-      lastX = p.x; lastY = p.y;
-    }
-
-    function draw(e) {
-      if (!drawing) return;
-      var p = getPos(e);
-      ctx.beginPath();
-      ctx.moveTo(lastX, lastY);
-      ctx.lineTo(p.x, p.y);
-      ctx.strokeStyle = currentColor;
-      ctx.lineWidth = lineWidth;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.stroke();
-      lastX = p.x; lastY = p.y;
-    }
-
-    function stopDraw() { drawing = false; }
-
-    canvas.addEventListener("mousedown", startDraw);
-    canvas.addEventListener("mousemove", draw);
-    canvas.addEventListener("mouseup", stopDraw);
-    canvas.addEventListener("mouseleave", stopDraw);
-    canvas.addEventListener("touchstart", startDraw, { passive: false });
-    canvas.addEventListener("touchmove", draw, { passive: false });
-    canvas.addEventListener("touchend", stopDraw);
-
-    /* Color picker */
-    var colors = document.querySelectorAll(".anni-lovewall-color");
-    Array.prototype.forEach.call(colors, function (c) {
-      c.addEventListener("click", function () {
-        Array.prototype.forEach.call(colors, function (x) { x.classList.remove("active"); });
-        c.classList.add("active");
-        currentColor = c.getAttribute("data-color");
-      });
-    });
-
-    /* Size */
-    var sizeSlider = document.getElementById("anni-lovewall-size");
-    if (sizeSlider) {
-      sizeSlider.addEventListener("input", function () { lineWidth = parseInt(this.value); });
-    }
-
-    /* Heart stamp */
-    var heartBtn = document.getElementById("anni-lovewall-heart-btn");
-    if (heartBtn) {
-      heartBtn.addEventListener("click", function () {
-        var cx = canvas.width / 2;
-        var cy = canvas.height / 2;
-        ctx.save();
-        ctx.font = lineWidth * 8 + "px 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = currentColor;
-        ctx.fillText("❤️", cx, cy);
-        ctx.restore();
-      });
-    }
-
-    /* Clear */
-    document.getElementById("anni-lovewall-clear").addEventListener("click", function () {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawBackground();
-    });
-
-    /* Save */
-    document.getElementById("anni-lovewall-save").addEventListener("click", function () {
-      var link = document.createElement("a");
-      link.download = "sevgi-divari-" + new Date().getFullYear() + ".png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-      showWallToast("İmza saxlandı! 💾");
-    });
-
-    function drawBackground() {
-      ctx.fillStyle = "rgba(255,255,255,.03)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "rgba(255,255,255,.05)";
-      for (var i = 0; i < 12; i++) {
-        ctx.beginPath();
-        ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 1 + Math.random() * 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    drawBackground();
-
-    /* Resize handler */
-    window.addEventListener("resize", function () {
-      var oldImage = canvas.toDataURL();
-      canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = 260;
-      var img = new Image();
-      img.onload = function () { ctx.drawImage(img, 0, 0); };
-      img.src = oldImage;
-    });
-  }
-
-  function showWallToast(msg) {
-    var t = document.createElement("div");
-    t.textContent = msg;
-    t.style.cssText = "position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#FFD700;padding:12px 24px;border-radius:100px;font-size:.85rem;z-index:99999;font-weight:600;backdrop-filter:blur(10px);border:1px solid rgba(255,215,0,.2);animation:anniSlideUp .4s ease;font-family:'Poppins',sans-serif";
-    document.body.appendChild(t);
-    setTimeout(function () { t.style.opacity = "0"; t.style.transition = "opacity .5s"; setTimeout(function () { t.remove(); }, 500); }, 2500);
-  }
 
   /* ─── TIME CAPSULE ──────────────────────────────────────── */
   function initTimeCapsule(retries) {
@@ -1937,7 +1758,6 @@
     patchDailyMessage();
     setTimeout(initAnniSlideshow, 300);
     setTimeout(initTimeCapsule, 600);
-    setTimeout(initLoveWall, 800);
     setTimeout(initVirtualCandle, 400);
 
     document.getElementById('close-capsule-btn')?.addEventListener('click', function () {
