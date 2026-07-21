@@ -542,7 +542,7 @@
         '<div class="anni-story-cards">' +
           mkStory('<i class="fa-solid fa-sun"></i>', "İlk Addım", "3 Avqust 2025-ci ildə başladı. O gün hər şey dəyişdi. Bir baxış, bir gülüş — və ömür boyu sürecek bir sevgi.") +
           mkStory('<i class="fa-solid fa-star"></i>', "Hər Gün Yeni Kəşf", "Hər səhər sənlə yeni bir şey öyrənirəm. Gülüşün, baxışın, sözlərin — hamısı qəlbimə hakmişdir.") +
-          mkStory('<i class="fa-solid fa-sheard-pulse"></i>', "Hər Çətinlikdə Birlikdə", "Dünya nə qədər çətin olursa olsun, sən varsan — hər şey asanlaşır. Sən mənim ən böyük gücümsən.") +
+          mkStory('<i class="fa-solid fa-heart-pulse"></i>', "Hər Çətinlikdə Birlikdə", "Dünya nə qədər çətin olursa olsun, sən varsan — hər şey asanlaşır. Sən mənim ən böyük gücümsən.") +
         '</div>' +
       '</div>' +
 
