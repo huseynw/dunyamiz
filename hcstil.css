@@ -9945,19 +9945,11 @@ body:not(.dark-ui) .capsule-item-icon {
   }
 }
 
-/* Ensure sub-modals opened from time capsule appear on top */
-#view-note-modal.letter-modal {
-  z-index: 10003;
-}
-#view-film-modal.letter-modal {
-  z-index: 10003;
-}
-#letter-modal.letter-modal {
-  z-index: 10003;
-}
-#add-note-modal.letter-modal {
-  z-index: 10003;
-}
+/* Sub-modals stack above admin panel (100000) and time-capsule (10001) */
+#view-note-modal.letter-modal,
+#view-film-modal.letter-modal,
+#letter-modal.letter-modal,
+#add-note-modal.letter-modal,
 #add-film-modal.letter-modal {
-  z-index: 10003;
+  z-index: 100001;
 }
