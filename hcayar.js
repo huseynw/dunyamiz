@@ -2992,6 +2992,11 @@ function showActivePlayerWithAnimation() {
   activePlayer.style.opacity = "";
   activePlayer.style.transform = "";
   activePlayer.style.transition = "";
+  activePlayer.style.left = "";
+  activePlayer.style.top = "";
+  activePlayer.style.width = "";
+  activePlayer.style.height = "";
+  activePlayer.style.borderRadius = "";
 
   document.body.classList.add("player-visible");
 
@@ -3051,6 +3056,13 @@ function hideActivePlayerWithAnimation(options = {}) {
   // Dərhal body siniflərini çıxar
   document.body.classList.remove("player-visible", "player-expanded");
   syncPlayerExpandedState();
+
+  // Genişlənmədən qalan left/top inline stilləri təmizlə
+  activePlayer.style.left = "";
+  activePlayer.style.top = "";
+  activePlayer.style.width = "";
+  activePlayer.style.height = "";
+  activePlayer.style.borderRadius = "";
 
   window.clearTimeout(activePlayer.__hideTimer);
   activePlayer.__hideTimer = window.setTimeout(() => {
