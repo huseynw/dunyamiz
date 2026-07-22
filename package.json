@@ -7,7 +7,6 @@
     "dev": "vite",
     "build": "vite build && node postbuild.js",
     "preview": "vite preview",
-    "build-legacy": "node build.js",
     "generate-video-manifest": "node scripts/generate-video-manifest.js"
   },
   "dependencies": {

@@ -1,5 +1,30 @@
+const rateLimitMap = new Map();
+function checkRateLimit(ip, maxRequests = 10, windowMs = 60000) {
+  const now = Date.now();
+  const key = `${ip}`;
+  const entry = rateLimitMap.get(key);
+  if (!entry || now - entry.windowStart > windowMs) {
+    rateLimitMap.set(key, { windowStart: now, count: 1 });
+    return { allowed: true };
+  }
+  entry.count++;
+  if (entry.count > maxRequests) {
+    return { allowed: false, retryAfter: Math.ceil((windowMs - (now - entry.windowStart)) / 1000) };
+  }
+  return { allowed: true };
+}
+
 exports.handler = async (event) => {
   try {
+    const clientIp = event.headers['client-ip'] || event.headers['x-forwarded-for']?.split(',')[0]?.trim() || event.headers['x-nf-client-connection-ip'] || 'unknown';
+    const rateLimit = checkRateLimit(clientIp, 10, 60000);
+    if (!rateLimit.allowed) {
+      return {
+        statusCode: 429,
+        headers: { "Content-Type": "application/json", "Retry-After": String(rateLimit.retryAfter) },
+        body: JSON.stringify({ success: false, error: "Çox sayda sorğu.", retryAfter: rateLimit.retryAfter })
+      };
+    }
     const { text } = JSON.parse(event.body || "{}");
     const temizMetn = String(text || "").trim();
 

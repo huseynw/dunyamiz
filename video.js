@@ -86,9 +86,12 @@ async function getVideoFiles() {
         VIDEO_CONFIG.localManifest
     ];
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
     for (const url of urls) {
         try {
-            const res = await fetch(url + '?v=' + Date.now(), { cache: 'no-store' });
+            const res = await fetch(url + '?v=' + Date.now(), { cache: 'no-store', signal: controller.signal });
             if (!res.ok) continue;
 
             const data = await res.json();
@@ -96,6 +99,7 @@ async function getVideoFiles() {
 
             if (!Array.isArray(list)) continue;
 
+            clearTimeout(timeout);
             return list
                 .map((item) => {
                     if (typeof item === 'string') {
@@ -109,9 +113,14 @@ async function getVideoFiles() {
                 })
                 .filter((item) => item.url && isSupportedVideoFile(item.name || item.url));
         } catch (e) {
+            if (e.name === 'AbortError') {
+                console.warn('Manifest vaxtı keçdi');
+                break;
+            }
             console.warn('Manifest oxunmadı:', url, e);
         }
     }
+    clearTimeout(timeout);
 
     return [];
 }
@@ -482,6 +491,13 @@ function animate() {
 }
 
 async function start() {
+    const safetyTimer = setTimeout(() => {
+        if (!loaderDone) {
+            console.warn('Preloader timeout — məcburi bağlanır');
+            closeLoader(0);
+        }
+    }, 15000);
+
     try {
         initParticles();
         drawParticles();
@@ -497,6 +513,8 @@ async function start() {
         console.error('START ERROR:', err);
         if (totalCountEl) totalCountEl.textContent = 'ERR';
         closeLoader(800);
+    } finally {
+        clearTimeout(safetyTimer);
     }
 }
 

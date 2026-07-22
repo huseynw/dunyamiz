@@ -6,35 +6,35 @@
   "use strict";
 
   /* ─── KONFIQURASIYA ─────────────────────────────────────── */
-  var RELATIONSHIP_START = new Date("2025-08-03T00:00:00");
+  let RELATIONSHIP_START = new Date("2025-08-03T00:00:00");
 
   /* Hər il avtomatik: bu ilin 3 Avqustu keçibsə gələn ili al */
   function getNextAnniversaryDate() {
-    var now = new Date();
-    var yr = now.getFullYear();
-    var candidate = new Date(yr, 7, 3, 0, 0, 0);
+    let now = new Date();
+    let yr = now.getFullYear();
+    let candidate = new Date(yr, 7, 3, 0, 0, 0);
     if (candidate <= now) candidate = new Date(yr + 1, 7, 3, 0, 0, 0);
     return candidate;
   }
 
   function isAnniversaryDay() {
-    var n = new Date();
+    let n = new Date();
     return n.getMonth() === 7 && n.getDate() === 3 &&
       n.getFullYear() >= RELATIONSHIP_START.getFullYear() + 1;
   }
 
   function getAnniversaryYearsCompleted() {
-    var now = new Date();
-    var years = now.getFullYear() - RELATIONSHIP_START.getFullYear();
-    var thisYearAnniv = new Date(now.getFullYear(), 7, 3, 0, 0, 0);
+    let now = new Date();
+    let years = now.getFullYear() - RELATIONSHIP_START.getFullYear();
+    let thisYearAnniv = new Date(now.getFullYear(), 7, 3, 0, 0, 0);
     if (now < thisYearAnniv) years--;
     return Math.max(0, years);
   }
 
-  var ANNIVERSARY_DATE = getNextAnniversaryDate();
+  let ANNIVERSARY_DATE = getNextAnniversaryDate();
 
   /* ─── 365 GÜNLÜK MESAJLAR ───────────────────────────────── */
-  var DAILY_MESSAGES = [
+  let DAILY_MESSAGES = [
     // 1-30: İlk ay
     "Sənin gözlərini ilk dəfə gördüyüm günü həmişə xatırlayacam. 🌟",
     "Hər günün səninlə keçməsi mənə güc verir. 💪",
@@ -413,7 +413,7 @@
     "Sabah il dönümümüzdür! Sənə ömrümü bağışlayıram! 💍",
   ];
 
-  var ANNIVERSARY_MESSAGE_365 =
+  let ANNIVERSARY_MESSAGE_365 =
     "Bu gün... bir il tamam oldu. Hüseyn & Cəmalə — 365 gün, 8760 saat, 525,600 dəqiqə sevgi. Hər günü sənlə yaşadım, hər saniyəni sənə bağışladım. Sən mənim ən gözəl xatirəm, ən böyük sevincim, ən qiymətli insanımsan. Bir il keçdi — amma bu yolun sonu yoxdur. Sənlə ömrümün qalan hissəsini də keçirmək istəyirəm. ❤️🎉✨";
 
   /* ─── YARDIMÇI FUNKSİYALAR ─────────────────────────────── */
@@ -422,7 +422,7 @@
   }
 
   function getDaysUntilAnniversary() {
-    var diff = ANNIVERSARY_DATE - new Date();
+    let diff = ANNIVERSARY_DATE - new Date();
     if (diff <= 0) return 0;
     return {
       total: Math.floor(diff / 86400000),
@@ -433,16 +433,16 @@
   }
 
   function getTodayMessage() {
-    var day = getDaysSinceStart();
+    let day = getDaysSinceStart();
     if (day <= 0) return null;
     if (day >= 365) return ANNIVERSARY_MESSAGE_365;
     return DAILY_MESSAGES[Math.min(day - 1, DAILY_MESSAGES.length - 1)];
   }
 
   function getDayLabel() {
-    var day = getDaysSinceStart();
+    let day = getDaysSinceStart();
     if (day <= 0) return "";
-    var yrs = getAnniversaryYearsCompleted();
+    let yrs = getAnniversaryYearsCompleted();
     if (isAnniversaryDay()) return yrs + ". İl Dönümü! 🎉";
     if (day >= 365) return day + "-ci Gün — " + yrs + " İl! 🎉";
     return day + "-ci Gün Birlikdə";
@@ -450,15 +450,15 @@
 
   /* ─── İL DÖNÜMÜ SƏHİFƏSİNİ QURUR ───────────────────────── */
   function injectCountdownWidget() {
-    var page = document.getElementById("page-anniversary");
+    let page = document.getElementById("page-anniversary");
     if (!page) return;
-    var pc = page.querySelector(".page-content");
+    let pc = page.querySelector(".page-content");
     if (!pc) return;
 
-    var nextY = ANNIVERSARY_DATE.getFullYear();
-    var yearsNum = nextY - RELATIONSHIP_START.getFullYear();
-    var yearsOrd = yearsNum + ". İl";
-    var completed = getAnniversaryYearsCompleted();
+    let nextY = ANNIVERSARY_DATE.getFullYear();
+    let yearsNum = nextY - RELATIONSHIP_START.getFullYear();
+    let yearsOrd = yearsNum + ". İl";
+    let completed = getAnniversaryYearsCompleted();
 
     pc.innerHTML =
       /* ── HERO ── */
@@ -618,7 +618,7 @@
 
     /* CTA button */
     setTimeout(function () {
-      var btn = document.getElementById("anni-celebrate-btn");
+      let btn = document.getElementById("anni-celebrate-btn");
       if (btn) {
         btn.addEventListener("click", function () {
           showAnniversaryScreen();
@@ -629,8 +629,8 @@
   }
 
   function mkTL(icon, date, text, done, id, future) {
-    var cls = "anni-tl-item" + (done ? " anni-tl-done" : "") + (future ? " anni-tl-future" : "");
-    var idAttr = id ? ' id="' + id + '"' : "";
+    let cls = "anni-tl-item" + (done ? " anni-tl-done" : "") + (future ? " anni-tl-future" : "");
+    let idAttr = id ? ' id="' + id + '"' : "";
     return '<div class="' + cls + '"' + idAttr + '>' +
       '<div class="anni-tl-dot' + (future ? " anni-tl-dot-star" : "") + '"><span>' + icon + '</span></div>' +
       '<div class="anni-tl-body"><strong>' + date + '</strong><p>' + text + '</p></div>' +
@@ -646,19 +646,19 @@
   }
 
   function updateLoveStats() {
-    var days = Math.max(0, getDaysSinceStart());
-    var dEl = document.getElementById("anni-stat-days");
-    var hEl = document.getElementById("anni-stat-hrs");
+    let days = Math.max(0, getDaysSinceStart());
+    let dEl = document.getElementById("anni-stat-days");
+    let hEl = document.getElementById("anni-stat-hrs");
     if (dEl) dEl.textContent = days.toLocaleString();
     if (hEl) hEl.textContent = (days * 24).toLocaleString();
   }
 
   function markTimelineProgress() {
-    var now = new Date();
-    var may2026 = new Date(2026, 4, 3);
-    var aug2026 = new Date(2026, 7, 3);
-    var tl9m = document.getElementById("anni-tl-9m");
-    var tl1y = document.getElementById("anni-tl-1y");
+    let now = new Date();
+    let may2026 = new Date(2026, 4, 3);
+    let aug2026 = new Date(2026, 7, 3);
+    let tl9m = document.getElementById("anni-tl-9m");
+    let tl1y = document.getElementById("anni-tl-1y");
     if (tl9m && now >= may2026) tl9m.classList.add("anni-tl-done");
     if (tl1y && now >= aug2026) {
       tl1y.classList.remove("anni-tl-future");
@@ -670,13 +670,13 @@
   function runCountdown() {
     function tick() {
       if (isAnniversaryDay()) {
-        var disp = document.getElementById("anni-display");
-        var arr = document.getElementById("anni-arrived-msg");
+        let disp = document.getElementById("anni-display");
+        let arr = document.getElementById("anni-arrived-msg");
         if (disp) disp.style.display = "none";
         if (arr) arr.classList.remove("anni-hidden");
         // Main screen
-        var mainDisp = document.getElementById("main-anni-display");
-        var mainArr = document.getElementById("main-anni-arrived-msg");
+        let mainDisp = document.getElementById("main-anni-display");
+        let mainArr = document.getElementById("main-anni-arrived-msg");
         if (mainDisp) mainDisp.style.display = "none";
         if (mainArr) mainArr.classList.remove("anni-hidden");
         
@@ -685,10 +685,10 @@
         }
         return;
       }
-      var r = getDaysUntilAnniversary();
+      let r = getDaysUntilAnniversary();
       if (!r) return;
       function sv(id, val) {
-        var el = document.getElementById(id);
+        let el = document.getElementById(id);
         if (el) el.textContent = String(val).padStart(2, "0");
       }
       sv("anni-days", r.total);
@@ -708,23 +708,23 @@
 
   /* ─── GÜN MESAJINI YENİLƏ ───────────────────────────────── */
   function patchDailyMessage() {
-    var msg = getTodayMessage();
+    let msg = getTodayMessage();
     if (!msg) return;
-    var lbl = getDayLabel();
-    var fmt = new Date().toLocaleDateString("az-AZ", { day: "numeric", month: "long", year: "numeric" });
+    let lbl = getDayLabel();
+    let fmt = new Date().toLocaleDateString("az-AZ", { day: "numeric", month: "long", year: "numeric" });
 
     /* Ana səhifə */
-    var t = document.getElementById("daily-message-text");
-    var ti = document.getElementById("daily-message-title");
-    var d = document.getElementById("daily-message-date");
+    let t = document.getElementById("daily-message-text");
+    let ti = document.getElementById("daily-message-title");
+    let d = document.getElementById("daily-message-date");
     if (t) t.textContent = msg;
     if (ti) ti.innerHTML = lbl + ' <i class="fas fa-heart"></i>';
     if (d) d.innerHTML = '<i class="fas fa-calendar-day"></i> ' + fmt;
 
     /* İl dönümü səhifəsi */
-    var amsg = document.getElementById("anni-daily-msg");
-    var albl = document.getElementById("anni-day-label");
-    var adate = document.getElementById("anni-daily-date");
+    let amsg = document.getElementById("anni-daily-msg");
+    let albl = document.getElementById("anni-day-label");
+    let adate = document.getElementById("anni-daily-date");
     if (amsg) amsg.textContent = msg;
     if (albl) albl.textContent = lbl;
     if (adate) adate.textContent = fmt;
@@ -732,12 +732,12 @@
 
   /* ─── TAM EKRAN İL DÖNÜMÜ ───────────────────────────────── */
   function showAnniversaryScreen() {
-    var screen = document.getElementById("anniversary-screen");
+    let screen = document.getElementById("anniversary-screen");
     if (!screen) return;
 
-    var yrs = Math.max(1, getAnniversaryYearsCompleted() || 1);
-    var days = Math.max(365, getDaysSinceStart());
-    var hrs = (days * 24).toLocaleString();
+    let yrs = Math.max(1, getAnniversaryYearsCompleted() || 1);
+    let days = Math.max(365, getDaysSinceStart());
+    let hrs = (days * 24).toLocaleString();
 
     screen.innerHTML =
       '<canvas id="anni-canvas" class="anni-canvas"></canvas>' +
@@ -762,7 +762,7 @@
     requestAnimationFrame(function () { initFireworks(); initHearts(); });
 
     setTimeout(function () {
-      var btn = document.getElementById("anni-enter-btn");
+      let btn = document.getElementById("anni-enter-btn");
       if (btn) {
         btn.addEventListener("click", function () {
           screen.style.animation = "anniFadeOut 0.8s ease forwards";
@@ -774,19 +774,19 @@
 
   /* ─── FIREWORKS ─────────────────────────────────────────── */
   function initFireworks() {
-    var canvas = document.getElementById("anni-canvas");
+    let canvas = document.getElementById("anni-canvas");
     if (!canvas) return;
-    var ctx = canvas.getContext("2d");
+    let ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
     window.addEventListener("resize", function () {
       canvas.width = window.innerWidth; canvas.height = window.innerHeight;
     });
-    var COLORS = ["#FFD700", "#FF6B6B", "#FF1493", "#FF69B4", "#FFA500", "#FFFFFF", "#FFE4E1", "#FFB6C1"];
-    var particles = [];
+    let COLORS = ["#FFD700", "#FF6B6B", "#FF1493", "#FF69B4", "#FFA500", "#FFFFFF", "#FFE4E1", "#FFB6C1"];
+    let particles = [];
 
     function Particle(x, y, color) {
       this.x = x; this.y = y; this.color = color;
-      var angle = Math.random() * Math.PI * 2, speed = 2 + Math.random() * 6;
+      let angle = Math.random() * Math.PI * 2, speed = 2 + Math.random() * 6;
       this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
       this.alpha = 1; this.decay = 0.012 + Math.random() * 0.015;
       this.size = 2 + Math.random() * 3; this.gravity = 0.08;
@@ -804,10 +804,10 @@
     Particle.prototype.isDead = function () { return this.alpha <= 0; };
 
     function burst(x, y) {
-      var c = COLORS[Math.floor(Math.random() * COLORS.length)];
-      for (var i = 0; i < 70; i++) particles.push(new Particle(x, y, c));
+      let c = COLORS[Math.floor(Math.random() * COLORS.length)];
+      for (let i = 0; i < 70; i++) particles.push(new Particle(x, y, c));
     }
-    var lastBurst = 0;
+    let lastBurst = 0;
     function loop(ts) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (ts - lastBurst > 700 + Math.random() * 400) {
@@ -815,7 +815,7 @@
         if (Math.random() > 0.5) burst(canvas.width * (0.15 + Math.random() * 0.7), canvas.height * (0.1 + Math.random() * 0.5));
         lastBurst = ts;
       }
-      for (var i = particles.length - 1; i >= 0; i--) {
+      for (let i = particles.length - 1; i >= 0; i--) {
         particles[i].update(); particles[i].draw(ctx);
         if (particles[i].isDead()) particles.splice(i, 1);
       }
@@ -829,33 +829,33 @@
 
   /* ─── UÇAN ÜRƏKLƏR ─────────────────────────────────────── */
   function initHearts() {
-    var container = document.getElementById("anniversary-screen");
+    let container = document.getElementById("anniversary-screen");
     if (!container) return;
-    var hearts = ["❤️", "🧡", "💛", "💕", "💖", "💗", "💓"];
+    let hearts = ["❤️", "🧡", "💛", "💕", "💖", "💗", "💓"];
     function spawnHeart() {
-      var span = document.createElement("span");
+      let span = document.createElement("span");
       span.className = "anni-floating-heart";
       span.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-      var dir = (Math.random() > 0.5 ? 1 : -1) * (20 + Math.random() * 30);
-      var rot = Math.floor(Math.random() * 60 - 30);
+      let dir = (Math.random() > 0.5 ? 1 : -1) * (20 + Math.random() * 30);
+      let rot = Math.floor(Math.random() * 60 - 30);
       span.style.cssText = "left:" + (Math.random() * 100) + "%;font-size:" + (14 + Math.random() * 20) + "px;" +
         "animation-duration:" + (4 + Math.random() * 5) + "s;animation-delay:" + (Math.random() * 1.5) + "s;" +
         "--anni-heart-dir:" + dir + "px;--anni-heart-rot:" + rot + "deg;";
       container.appendChild(span);
       setTimeout(function () { span.remove(); }, 11000);
     }
-    for (var i = 0; i < 10; i++) (function (d) { setTimeout(spawnHeart, d * 250); })(i);
-    var iv = setInterval(spawnHeart, 600);
+    for (let i = 0; i < 10; i++) (function (d) { setTimeout(spawnHeart, d * 250); })(i);
+    let iv = setInterval(spawnHeart, 600);
     setTimeout(function () { clearInterval(iv); }, 30000);
   }
 
   /* ─── KONFETTİ ──────────────────────────────────────────── */
   function launchConfetti() {
-    var colors = ["#FFD700", "#FF6B6B", "#FF1493", "#00FF7F", "#1E90FF", "#FFFFFF"];
-    var container = document.getElementById("anniversary-screen");
+    let colors = ["#FFD700", "#FF6B6B", "#FF1493", "#00FF7F", "#1E90FF", "#FFFFFF"];
+    let container = document.getElementById("anniversary-screen");
     if (!container) return;
-    for (var i = 0; i < 100; i++) {
-      var p = document.createElement("div");
+    for (let i = 0; i < 100; i++) {
+      let p = document.createElement("div");
       p.className = "anni-confetti";
       p.style.cssText = "left:" + (Math.random() * 100) + "%;background:" + colors[Math.floor(Math.random() * colors.length)] + ";" +
         "width:" + (5 + Math.random() * 8) + "px;height:" + (8 + Math.random() * 10) + "px;" +
@@ -868,7 +868,7 @@
 
   /* ─── CSS İNJEKT ────────────────────────────────────────── */
   function injectStyles() {
-    var style = document.createElement("style");
+    let style = document.createElement("style");
     style.textContent = [
       /* ── Hero ── */
       ".anni-hero-section{position:relative;border-radius:28px;overflow:hidden;",
@@ -1146,20 +1146,20 @@
 
   /* ─── ƏSAS EKRANA GERİ SAYIM (YALNIZ 1 AY QALMIŞ) ──────── */
   function injectMainScreenCountdown() {
-    var placeholder = document.getElementById("main-screen-anni-placeholder");
+    let placeholder = document.getElementById("main-screen-anni-placeholder");
     if (!placeholder) return;
 
-    var diff = ANNIVERSARY_DATE - new Date();
-    var daysLeft = Math.floor(diff / 86400000);
+    let diff = ANNIVERSARY_DATE - new Date();
+    let daysLeft = Math.floor(diff / 86400000);
     
     // Yalnız 30 gün və ya daha az qalıbsa, və ya İl Dönümü günüdürsə göstər
     if (daysLeft > 30 && !isAnniversaryDay()) {
       return; 
     }
 
-    var nextY = ANNIVERSARY_DATE.getFullYear();
-    var yearsNum = nextY - RELATIONSHIP_START.getFullYear();
-    var yearsOrd = yearsNum + ". İl";
+    let nextY = ANNIVERSARY_DATE.getFullYear();
+    let yearsNum = nextY - RELATIONSHIP_START.getFullYear();
+    let yearsOrd = yearsNum + ". İl";
 
     placeholder.innerHTML =
       '<div class="anni-hero-section" style="margin-bottom:24px;">' +
@@ -1191,43 +1191,9 @@
       '</div>';
   }
 
-  /* ─── ANA BAŞLATMA ──────────────────────────────────────── */
-  function init() {
-    injectStyles();
-    injectCountdownWidget();
-    injectMainScreenCountdown();
-    patchDailyMessage();
-    setTimeout(initAnniSlideshow, 300);
-
-    /* Ctrl+Shift+Y — test qısayolu */
-    document.addEventListener("keydown", function (e) {
-      if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === "y" || e.key === "Y")) {
-        e.preventDefault();
-        /* İl dönümü navbara keç */
-        var navBtn = document.querySelector('button[data-page="anniversary"]');
-        if (navBtn) navBtn.click();
-        /* Geri sayım tamam vəziyyəti */
-        setTimeout(function () {
-          var disp = document.getElementById("anni-display");
-          var arr = document.getElementById("anni-arrived-msg");
-          if (disp) disp.style.display = "none";
-          if (arr) arr.classList.remove("anni-hidden");
-          showAnniversaryScreen();
-          setTimeout(launchConfetti, 1000);
-        }, 300);
-      }
-    });
-
-    /* Real il dönümündə avtomatik göstər */
-    if (isAnniversaryDay()) {
-      showAnniversaryScreen();
-      setTimeout(launchConfetti, 1000);
-    }
-  }
-
   /* ─── XATİRƏ SLAYDŞOu ───────────────────────────────────── */
   function initAnniSlideshow() {
-    var viewport = document.getElementById("anni-slide-viewport");
+    let viewport = document.getElementById("anni-slide-viewport");
     if (!viewport) return;
 
     // Şəkilləri window.allImages-dan götür (qalereya ilə eyni mənbə)
@@ -1238,51 +1204,51 @@
         return;
       }
 
-      var slides = images.map(function(img) {
+      let slides = images.map(function(img) {
         return typeof img === "string" ? img : (img.download_url || img.url || img);
       }).filter(Boolean);
 
-      var current = 0;
-      var total = slides.length;
-      var isPlaying = true;
-      var progressTimer = null;
-      var progressStart = null;
-      var DURATION = 4000; // hər şəkil 4 saniyə
-      var preloaded = {};
+      let current = 0;
+      let total = slides.length;
+      let isPlaying = true;
+      let progressTimer = null;
+      let progressStart = null;
+      let DURATION = 4000; // hər şəkil 4 saniyə
+      let preloaded = {};
 
-      var counter = document.getElementById("anni-slide-counter");
-      var fill = document.getElementById("anni-progress-fill");
-      var playBtn = document.getElementById("anni-slide-play");
-      var prevBtn = document.getElementById("anni-slide-prev");
-      var nextBtn = document.getElementById("anni-slide-next");
+      let counter = document.getElementById("anni-slide-counter");
+      let fill = document.getElementById("anni-progress-fill");
+      let playBtn = document.getElementById("anni-slide-play");
+      let prevBtn = document.getElementById("anni-slide-prev");
+      let nextBtn = document.getElementById("anni-slide-next");
 
       // Viewport-u təmizlə, 2 layer yaradaq (crossfade üçün)
       viewport.innerHTML = '<div class="anni-layer anni-layer-a"></div><div class="anni-layer anni-layer-b anni-layer-hidden"></div>';
-      var layerA = viewport.querySelector(".anni-layer-a");
-      var layerB = viewport.querySelector(".anni-layer-b");
-      var activeLayer = layerA;
-      var inactiveLayer = layerB;
+      let layerA = viewport.querySelector(".anni-layer-a");
+      let layerB = viewport.querySelector(".anni-layer-b");
+      let activeLayer = layerA;
+      let inactiveLayer = layerB;
 
       function preload(idx) {
         if (preloaded[idx]) return;
         preloaded[idx] = true;
-        var img = new Image();
+        let img = new Image();
         img.src = slides[idx];
       }
 
       function setSlide(idx, dir) {
         current = ((idx % total) + total) % total;
-        var url = slides[current];
+        let url = slides[current];
 
         // Növbəti + əvvəlkini preload et
         preload((current + 1) % total);
         preload((current - 1 + total) % total);
 
         // Ken Burns effekti üçün random istiqamət
-        var kbVariants = [
+        let kbVariants = [
           "anni-kb-1", "anni-kb-2", "anni-kb-3", "anni-kb-4"
         ];
-        var kb = kbVariants[Math.floor(Math.random() * kbVariants.length)];
+        let kb = kbVariants[Math.floor(Math.random() * kbVariants.length)];
 
         // Yeni layer-i hazırla
         inactiveLayer.style.backgroundImage = "url('" + url + "')";
@@ -1292,7 +1258,7 @@
         activeLayer.classList.add("anni-layer-hidden");
 
         // Layer-ları dəyişdir
-        var tmp = activeLayer;
+        let tmp = activeLayer;
         activeLayer = inactiveLayer;
         inactiveLayer = tmp;
 
@@ -1328,8 +1294,8 @@
       function pauseProgress() {
         if (progressTimer) { clearTimeout(progressTimer); progressTimer = null; }
         if (fill) {
-          var elapsed = Date.now() - (progressStart || Date.now());
-          var pct = Math.min(elapsed / DURATION * 100, 100);
+          let elapsed = Date.now() - (progressStart || Date.now());
+          let pct = Math.min(elapsed / DURATION * 100, 100);
           fill.style.transition = "none";
           fill.style.width = pct + "%";
         }
@@ -1338,7 +1304,7 @@
       if (playBtn) {
         playBtn.addEventListener("click", function() {
           isPlaying = !isPlaying;
-          var icon = playBtn.querySelector("i");
+          let icon = playBtn.querySelector("i");
           if (isPlaying) {
             icon.className = "fa-solid fa-pause";
             startProgress();
@@ -1362,12 +1328,12 @@
       startSlideshow(window.allImages);
     } else {
       // Qalereya hələ yüklənməyibsə — GitHub API-dən çək
-      var apiUrl = "/.netlify/functions/github-content?path=gallery";
+      let apiUrl = "/.netlify/functions/github-content?path=gallery";
       fetch(apiUrl)
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (!Array.isArray(data)) { startSlideshow([]); return; }
-          var imgs = data
+          let imgs = data
             .filter(function(f) { return /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name); })
             .sort(function(a, b) { return new Date(a.git_date || 0) - new Date(b.git_date || 0); });
           startSlideshow(imgs);
@@ -1380,7 +1346,7 @@
      "navbarda o yer sadece il donumu gunleri acilsin"
    */
   function patchNavbarForAnniversary() {
-    var navBtn = document.querySelector('button[data-page="anniversary"]');
+    let navBtn = document.querySelector('button[data-page="anniversary"]');
     if (!navBtn) return;
 
     if (isAnniversaryDay()) {
@@ -1392,19 +1358,19 @@
   }
 
   /* ─── VIRTUAL CANDLE ────────────────────────────────────── */
-  var anniCandleBlown = false;
-  var anniCandleAudioCtx = null;
-  var anniCandleAnalyser = null;
-  var anniCandleMediaStream = null;
-  var anniCandleAnimFrame = null;
+  let anniCandleBlown = false;
+  let anniCandleAudioCtx = null;
+  let anniCandleAnalyser = null;
+  let anniCandleMediaStream = null;
+  let anniCandleAnimFrame = null;
 
   function initVirtualCandle() {
-    var scene = document.getElementById("anni-candle-scene");
-    var flame = document.getElementById("anni-flame");
-    var hint = document.getElementById("anni-candle-hint");
-    var surprise = document.getElementById("anni-candle-surprise");
-    var blowBtn = document.getElementById("anni-candle-blow-btn");
-    var reloadBtn = document.getElementById("anni-candle-reload");
+    let scene = document.getElementById("anni-candle-scene");
+    let flame = document.getElementById("anni-flame");
+    let hint = document.getElementById("anni-candle-hint");
+    let surprise = document.getElementById("anni-candle-surprise");
+    let blowBtn = document.getElementById("anni-candle-blow-btn");
+    let reloadBtn = document.getElementById("anni-candle-reload");
     if (!scene || !flame) return;
 
     function blowCandle() {
@@ -1416,7 +1382,7 @@
 
       flame.classList.add("anni-flame-extinct");
 
-      var smoke = document.getElementById("anni-candle-smoke");
+      let smoke = document.getElementById("anni-candle-smoke");
       if (smoke) { smoke.classList.add("active"); }
 
       if (hint) hint.style.opacity = "0";
@@ -1435,7 +1401,7 @@
       if (surprise) surprise.classList.remove("show");
       if (hint) { hint.style.display = ""; hint.style.opacity = "1"; }
       if (blowBtn) blowBtn.style.display = "";
-      var smoke = document.getElementById("anni-candle-smoke");
+      let smoke = document.getElementById("anni-candle-smoke");
       if (smoke) { smoke.style.display = ""; smoke.classList.remove("active"); }
     }
 
@@ -1475,23 +1441,23 @@
         anniCandleAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
         anniCandleAnalyser = anniCandleAudioCtx.createAnalyser();
         anniCandleAnalyser.fftSize = 256;
-        var source = anniCandleAudioCtx.createMediaStreamSource(stream);
+        let source = anniCandleAudioCtx.createMediaStreamSource(stream);
         source.connect(anniCandleAnalyser);
 
         btn.innerHTML = '<i class="fa-solid fa-ear-listen"></i> Dinlənir... Üfür!';
         btn.style.background = "rgba(0,200,100,.15)";
         btn.style.borderColor = "rgba(0,200,100,.4)";
 
-        var dataArray = new Uint8Array(anniCandleAnalyser.frequencyBinCount);
-        var blowThreshold = 60;
-        var consecutiveHigh = 0;
+        let dataArray = new Uint8Array(anniCandleAnalyser.frequencyBinCount);
+        let blowThreshold = 60;
+        let consecutiveHigh = 0;
 
         function detectBlow() {
           if (anniCandleBlown || !anniCandleAnalyser) return;
           anniCandleAnalyser.getByteFrequencyData(dataArray);
-          var sum = 0;
-          for (var i = 0; i < dataArray.length; i++) sum += dataArray[i];
-          var avg = sum / dataArray.length;
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+          let avg = sum / dataArray.length;
 
           if (avg > blowThreshold) {
             consecutiveHigh++;
@@ -1521,17 +1487,17 @@
     if (retries === undefined) retries = 0;
     if (retries > 15) return;
 
-    var notesEl = document.getElementById("capsule-notes");
-    var filmsEl = document.getElementById("capsule-films");
-    var photosEl = document.getElementById("capsule-photos");
-    var yearEl = document.getElementById("anni-capsule-year");
-    var monthsEl = document.getElementById("anni-capsule-months");
-    var noteEl = document.getElementById("anni-capsule-note");
+    let notesEl = document.getElementById("capsule-notes");
+    let filmsEl = document.getElementById("capsule-films");
+    let photosEl = document.getElementById("capsule-photos");
+    let yearEl = document.getElementById("anni-capsule-year");
+    let monthsEl = document.getElementById("anni-capsule-months");
+    let noteEl = document.getElementById("anni-capsule-note");
     if (!notesEl || !filmsEl || !photosEl) return;
 
-    var photos = Array.isArray(window.allImages) ? window.allImages.length : 0;
-    var notes = Array.isArray(window.currentNotes) ? window.currentNotes.length : 0;
-    var films = Array.isArray(window.currentFilms) ? window.currentFilms.length : 0;
+    let photos = Array.isArray(window.allImages) ? window.allImages.length : 0;
+    let notes = Array.isArray(window.currentNotes) ? window.currentNotes.length : 0;
+    let films = Array.isArray(window.currentFilms) ? window.currentFilms.length : 0;
 
     if (notes === 0 || films === 0) {
       setTimeout(function () { initTimeCapsule(retries + 1); }, 1500);
@@ -1544,7 +1510,7 @@
       return;
     }
 
-    var yr = RELATIONSHIP_START.getFullYear() + Math.max(1, getAnniversaryYearsCompleted());
+    let yr = RELATIONSHIP_START.getFullYear() + Math.max(1, getAnniversaryYearsCompleted());
     if (yearEl) yearEl.textContent = (yr - 1) + " → " + yr;
 
     if (photosEl) animateCount(photosEl, 0, photos, 1500);
@@ -1552,27 +1518,27 @@
     if (filmsEl) animateCount(filmsEl, 0, films, 1500);
 
     if (monthsEl) {
-      var aylar = ["Yanvar","Fevral","Mart","Aprel","May","İyun","İyul","Avqust","Sentyabr","Oktyabr","Noyabr","Dekabr"];
-      var monthBuckets = {};
+      let aylar = ["Yanvar","Fevral","Mart","Aprel","May","İyun","İyul","Avqust","Sentyabr","Oktyabr","Noyabr","Dekabr"];
+      let monthBuckets = {};
       window._anniMonthItems = {};
-      for (var i = 0; i < 12; i++) {
+      for (let i = 0; i < 12; i++) {
         monthBuckets[i] = { notes: 0, films: 0, photos: 0 };
         window._anniMonthItems[i] = [];
       }
 
       window.currentNotes.forEach(function (n) {
-        var d = new Date(n.dateIso);
+        let d = new Date(n.dateIso);
         if (!isNaN(d.getTime()) && d.getFullYear() >= RELATIONSHIP_START.getFullYear()) {
-          var m = d.getMonth();
+          let m = d.getMonth();
           monthBuckets[m].notes++;
           window._anniMonthItems[m].push({ type: 'note', data: n });
         }
       });
 
       window.currentFilms.forEach(function (f) {
-        var d = new Date(f.watchDate || f.dateIso);
+        let d = new Date(f.watchDate || f.dateIso);
         if (!isNaN(d.getTime()) && d.getFullYear() >= RELATIONSHIP_START.getFullYear()) {
-          var m = d.getMonth();
+          let m = d.getMonth();
           monthBuckets[m].films++;
           window._anniMonthItems[m].push({ type: 'film', data: f });
         }
@@ -1580,17 +1546,17 @@
 
       if (Array.isArray(window.allImages)) {
         window.allImages.forEach(function (img) {
-          var dateStr = img.git_date || img.name || img.download_url;
+          let dateStr = img.git_date || img.name || img.download_url;
           if (dateStr) {
-            var d = new Date(dateStr);
+            let d = new Date(dateStr);
             if (!isNaN(d.getTime()) && d.getFullYear() >= RELATIONSHIP_START.getFullYear()) {
-              var m = d.getMonth();
+              let m = d.getMonth();
               monthBuckets[m].photos++;
               window._anniMonthItems[m].push({ type: 'photo', data: img });
             } else if (typeof dateStr === "string") {
-              var parts = dateStr.match(/(\d{4})-(\d{2})/);
+              let parts = dateStr.match(/(\d{4})-(\d{2})/);
               if (parts) {
-                var m = parseInt(parts[2], 10) - 1;
+                let m = parseInt(parts[2], 10) - 1;
                 if (m >= 0 && m < 12) {
                   monthBuckets[m].photos++;
                   window._anniMonthItems[m].push({ type: 'photo', data: img });
@@ -1599,10 +1565,10 @@
             }
           }
         });
-        var totalWithDate = 0;
-        for (var mi = 0; mi < 12; mi++) totalWithDate += monthBuckets[mi].photos;
+        let totalWithDate = 0;
+        for (let mi = 0; mi < 12; mi++) totalWithDate += monthBuckets[mi].photos;
         if (totalWithDate === 0 && window.allImages.length > 0) {
-          var now = new Date();
+          let now = new Date();
           monthBuckets[now.getMonth()].photos = window.allImages.length;
           window.allImages.forEach(function (img) {
             window._anniMonthItems[now.getMonth()].push({ type: 'photo', data: img });
@@ -1610,20 +1576,20 @@
         }
       }
 
-      var html = "";
-      var totalActivity = 0;
-      for (var i = 0; i < 12; i++) totalActivity += monthBuckets[i].notes + monthBuckets[i].films + monthBuckets[i].photos;
-      var maxAct = 1;
-      for (var i = 0; i < 12; i++) {
-        var act = monthBuckets[i].notes + monthBuckets[i].films + monthBuckets[i].photos;
+      let html = "";
+      let totalActivity = 0;
+      for (let i = 0; i < 12; i++) totalActivity += monthBuckets[i].notes + monthBuckets[i].films + monthBuckets[i].photos;
+      let maxAct = 1;
+      for (let i = 0; i < 12; i++) {
+        let act = monthBuckets[i].notes + monthBuckets[i].films + monthBuckets[i].photos;
         if (act > maxAct) maxAct = act;
       }
 
-      for (var i = 0; i < 12; i++) {
-        var act = monthBuckets[i].notes + monthBuckets[i].films + monthBuckets[i].photos;
-        var intensity = act / maxAct;
-        var dotColor = intensity > 0.5 ? "#FFD700" : intensity > 0.2 ? "#FF6B6B" : "rgba(255,255,255,.12)";
-        var barH = Math.max(4, Math.round(intensity * 20));
+      for (let i = 0; i < 12; i++) {
+        let act = monthBuckets[i].notes + monthBuckets[i].films + monthBuckets[i].photos;
+        let intensity = act / maxAct;
+        let dotColor = intensity > 0.5 ? "#FFD700" : intensity > 0.2 ? "#FF6B6B" : "rgba(255,255,255,.12)";
+        let barH = Math.max(4, Math.round(intensity * 20));
         html += '<div class="anni-capsule-month" data-ay="'+i+'"><span class="anni-capsule-month-dot" style="background:' + dotColor + ';width:' + barH + 'px;height:' + barH + 'px"></span><div class="anni-capsule-month-name">' + aylar[i] + '</div><div class="anni-capsule-month-count">' + (act > 0 ? act + ' ✨' : '-') + '</div></div>';
       }
       monthsEl.innerHTML = html;
@@ -1631,13 +1597,13 @@
       monthsEl.querySelectorAll('.anni-capsule-month').forEach(function (card) {
         card.style.cursor = 'pointer';
         card.addEventListener('click', function () {
-          var ay = parseInt(this.getAttribute('data-ay'));
+          let ay = parseInt(this.getAttribute('data-ay'));
           window.openAnniCapsuleModal(ay);
         });
       });
     }
 
-    var capsuleNotes = [
+    let capsuleNotes = [
       "İl ərzində hər an səninlə xatirələr yığdıq. " + notes + " not, " + films + " film, " + photos + " şəkil — hər biri bir parça sən.",
       "Bir ilə nələr sığdı... " + notes + " not, " + films + " film, " + photos + " şəkil. Gülüşlər, sözlər, baxışlar. Hamısı qəlbimdə ən qiymətli xəzinə.",
       "Zaman necə də sürətli keçir. " + photos + " şəkil, " + films + " film, " + notes + " not — hər biri bir xatirə. Sanki dünən idi ilk görüşümüz.",
@@ -1647,29 +1613,29 @@
   }
 
   window.openAnniCapsuleModal = function (monthIndex) {
-    var items = window._anniMonthItems && window._anniMonthItems[monthIndex];
+    let items = window._anniMonthItems && window._anniMonthItems[monthIndex];
     if (!items || !items.length) return;
 
-    var aylar = ["Yanvar","Fevral","Mart","Aprel","May","İyun","İyul","Avqust","Sentyabr","Oktyabr","Noyabr","Dekabr"];
-    var modal = document.getElementById('timecapsule-modal');
+    let aylar = ["Yanvar","Fevral","Mart","Aprel","May","İyun","İyul","Avqust","Sentyabr","Oktyabr","Noyabr","Dekabr"];
+    let modal = document.getElementById('timecapsule-modal');
     if (!modal) return;
 
     document.getElementById('capsule-modal-title').textContent = aylar[monthIndex];
 
-    var sorted = items.slice().sort(function (a, b) {
-      var da = a.data.git_date || a.data.dateIso || a.data.watchDate || 0;
-      var db = b.data.git_date || b.data.dateIso || b.data.watchDate || 0;
+    let sorted = items.slice().sort(function (a, b) {
+      let da = a.data.git_date || a.data.dateIso || a.data.watchDate || 0;
+      let db = b.data.git_date || b.data.dateIso || b.data.watchDate || 0;
       return new Date(da) - new Date(db);
     });
 
-    var body = document.getElementById('capsule-modal-body');
+    let body = document.getElementById('capsule-modal-body');
     window._capsuleItems = sorted;
-    var html = '';
+    let html = '';
 
     sorted.forEach(function (item, idx) {
       if (item.type === 'photo') {
-        var d = typeof parseImageDate === 'function' ? parseImageDate(item.data) : null;
-        var dateStr = (d && typeof formatAzDate === 'function') ? formatAzDate(d) : (item.data.git_date || '');
+        let d = typeof parseImageDate === 'function' ? parseImageDate(item.data) : null;
+        let dateStr = (d && typeof formatAzDate === 'function') ? formatAzDate(d) : (item.data.git_date || '');
         html += '<div class="capsule-item capsule-photo-item" data-ci="'+idx+'" onclick="window.openLightbox(window.allImages.indexOf(window._capsuleItems[this.dataset.ci].data))">' +
           '<img src="'+item.data.download_url+'" loading="lazy" alt="Şəkil" />' +
           '<div class="capsule-item-info">' +
@@ -1701,12 +1667,12 @@
   };
 
   function animateCount(el, start, end, duration) {
-    var range = end - start;
-    var startTime = null;
+    let range = end - start;
+    let startTime = null;
     function step(ts) {
       if (!startTime) startTime = ts;
-      var progress = Math.min((ts - startTime) / duration, 1);
-      var eased = 1 - Math.pow(1 - progress, 3);
+      let progress = Math.min((ts - startTime) / duration, 1);
+      let eased = 1 - Math.pow(1 - progress, 3);
       el.textContent = Math.floor(start + range * eased);
       if (progress < 1) requestAnimationFrame(step);
     }
@@ -1720,11 +1686,11 @@
   }
 
   function triggerAnniversaryTest() {
-    var navBtn = document.querySelector('button[data-page="anniversary"]');
+    let navBtn = document.querySelector('button[data-page="anniversary"]');
     if (navBtn) navBtn.click();
     setTimeout(function () {
-      var disp = document.getElementById("anni-display");
-      var arr = document.getElementById("anni-arrived-msg");
+      let disp = document.getElementById("anni-display");
+      let arr = document.getElementById("anni-arrived-msg");
       if (disp) disp.style.display = "none";
       if (arr) arr.classList.remove("anni-hidden");
       showAnniversaryScreen();
@@ -1734,10 +1700,10 @@
 
   function setupMobileTestTrigger() {
     /* Hero badge-a 5 dəfə sürətli toxunma */
-    var tapCount = 0;
-    var tapTimer = null;
+    let tapCount = 0;
+    let tapTimer = null;
     document.addEventListener("click", function (e) {
-      var badge = e.target.closest(".anni-hero-badge, .welcome-badge, .anni-hero-title");
+      let badge = e.target.closest(".anni-hero-badge, .welcome-badge, .anni-hero-title");
       if (!badge) return;
       tapCount++;
       if (tapTimer) clearTimeout(tapTimer);
@@ -1750,7 +1716,7 @@
 
   }
 
-  /* ─── ANA BAŞLATMA (yenilənmiş) ──────────────────────────── */
+  /* ─── ANA BAŞLATMA ──────────────────────────────────────── */
   function init() {
     injectStyles();
     injectCountdownWidget();
@@ -1761,7 +1727,7 @@
     setTimeout(initVirtualCandle, 400);
 
     document.getElementById('close-capsule-btn')?.addEventListener('click', function () {
-      var modal = document.getElementById('timecapsule-modal');
+      let modal = document.getElementById('timecapsule-modal');
       if (modal) {
         modal.classList.add('hidden');
         modal.style.display = 'none';

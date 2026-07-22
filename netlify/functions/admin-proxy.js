@@ -2,6 +2,23 @@
 const fetch = require('node-fetch');
 const crypto = require('crypto');
 
+// In-memory rate limiter
+const rateLimitMap = new Map();
+function checkRateLimit(ip, maxRequests = 10, windowMs = 60000) {
+  const now = Date.now();
+  const key = `${ip}`;
+  const entry = rateLimitMap.get(key);
+  if (!entry || now - entry.windowStart > windowMs) {
+    rateLimitMap.set(key, { windowStart: now, count: 1 });
+    return { allowed: true };
+  }
+  entry.count++;
+  if (entry.count > maxRequests) {
+    return { allowed: false, retryAfter: Math.ceil((windowMs - (now - entry.windowStart)) / 1000) };
+  }
+  return { allowed: true };
+}
+
 // ========== ONE SIGNAL KONFİQURASİYASI ==========
 const ONE_SIGNAL_APP_ID = process.env.ONE_SIGNAL_APP_ID;
 const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY;
@@ -188,11 +205,24 @@ function normalizeMeetingDateTime(value) {
 exports.handler = async (event) => {
     if (event.httpMethod !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
     try {
+        const clientIp = event.headers['client-ip'] || event.headers['x-forwarded-for']?.split(',')[0]?.trim() || event.headers['x-nf-client-connection-ip'] || 'unknown';
         const { type, password, payload } = JSON.parse(event.body);
         const GH_TOKEN = process.env.GH_TOKEN;
         const repoOwner = "huseynw";
         const repoName = "dunyamiz";
         const githubNeededTypes = new Set(["upload_image", "upload_note", "upload_film", "upload_music_json", "upload_music", "upload_music_r2", "prepare_r2_music_upload", "finalize_r2_music_upload", "migrate_music_to_r2"]);
+
+        // Rate limiting: password attempts stricter, general ops more lenient
+        const isVerifyType = type === "verify_site";
+        const rateLimit = checkRateLimit(clientIp, isVerifyType ? 5 : 30, 60000);
+        if (!rateLimit.allowed) {
+            return {
+                statusCode: 429,
+                headers: { "Content-Type": "application/json", "Retry-After": String(rateLimit.retryAfter) },
+                body: JSON.stringify({ success: false, error: "Çox sayda sorğu. Bir az gözləyin.", retryAfter: rateLimit.retryAfter })
+            };
+        }
+
         if (githubNeededTypes.has(type) && !GH_TOKEN) return { statusCode: 500, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "GH_TOKEN tapılmadı." }) };
         if (password !== ADMIN_PASSWORD) return { statusCode: 401, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "Şifrə səhvdir!" }) };
 
