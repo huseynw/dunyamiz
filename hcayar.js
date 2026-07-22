@@ -3027,9 +3027,20 @@ function hideActivePlayerWithAnimation(options = {}) {
   const { activePlayer, audio, lyricsPanel } = getMusicDom();
   if (!activePlayer) return;
 
-  activePlayer.classList.remove("expanded", "lyrics-open", "is-transitioning");
-  activePlayer.classList.add("player-mini");
-  activePlayer.classList.remove("player-appearing", "player-hiding");
+  // X basanda player tam yox olur, kicilmir
+  activePlayer.classList.remove("expanded", "lyrics-open", "is-transitioning", "player-appearing", "player-hiding");
+  activePlayer.classList.remove("player-mini");
+
+  // inline stilləri təmizlə
+  activePlayer.style.left = "";
+  activePlayer.style.top = "";
+  activePlayer.style.width = "";
+  activePlayer.style.height = "";
+  activePlayer.style.borderRadius = "";
+  activePlayer.style.opacity = "";
+  activePlayer.style.transform = "";
+  activePlayer.style.filter = "";
+  activePlayer.style.transition = "";
 
   if (lyricsPanel) {
     lyricsPanel.classList.add("lyrics-hidden");
@@ -3040,9 +3051,7 @@ function hideActivePlayerWithAnimation(options = {}) {
   if (audio) {
     audio.pause();
     if (resetTrack) {
-      try {
-        audio.currentTime = 0;
-      } catch (_) {}
+      try { audio.currentTime = 0; } catch (_) {}
     }
   }
 
@@ -3050,44 +3059,25 @@ function hideActivePlayerWithAnimation(options = {}) {
   updateMusicPlayButtonState();
   updateMediaSessionPlaybackState();
 
-  // Backdrop'u təmizlə
-  const backdrop = document.getElementById("yt-player-backdrop");
-  if (backdrop) {
-    gsap.to(backdrop, {
-      opacity: 0,
-      duration: 0.15,
-      ease: "power2.in",
-      onComplete: () => { backdrop.style.display = "none"; },
-    });
-  }
+  // player-i birbasha gizlet
+  activePlayer.style.display = "none";
+  activePlayer.hidden = true;
 
   // Body content inline stilləri təmizlə
-  const bodyEl = player.querySelector(".yt-player-body");
+  const bodyEl = activePlayer.querySelector(".yt-player-body");
   if (bodyEl) {
     bodyEl.style.display = "";
     bodyEl.style.opacity = "";
   }
 
-  // Genişlənmədən qalan left/top inline stilləri təmizlə
-  activePlayer.style.left = "";
-  activePlayer.style.top = "";
-  activePlayer.style.width = "";
-  activePlayer.style.height = "";
-  activePlayer.style.borderRadius = "";
+  // Backdrop'u təmizlə
+  const backdrop = document.getElementById("yt-player-backdrop");
+  if (backdrop) {
+    backdrop.style.display = "none";
+  }
 
-  // body siniflərini çıxar (syncPlayerExpandedState cagirma, timer callbackinde cagirilacaq)
   document.body.classList.remove("player-visible", "player-expanded");
-
-  window.clearTimeout(activePlayer.__hideTimer);
-  activePlayer.__hideTimer = window.setTimeout(() => {
-    activePlayer.style.display = "none";
-    activePlayer.hidden = true;
-    activePlayer.style.opacity = "";
-    activePlayer.style.transform = "";
-    activePlayer.style.filter = "";
-    activePlayer.style.transition = "";
-    syncPlayerExpandedState();
-  }, 200);
+  syncPlayerExpandedState();
 }
 
 function closeActivePlayer(options = {}) {
