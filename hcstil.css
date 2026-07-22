@@ -4490,6 +4490,15 @@ header {
   z-index: 2;
 }
 
+.kawarp-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
 #visualizer {
   width: 100%;
   height: 40px;

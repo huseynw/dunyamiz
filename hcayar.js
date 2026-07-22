@@ -1,3 +1,5 @@
+import { initKawarp, updateKawarpCover, stopKawarp, startKawarp, resizeKawarp, destroyKawarp } from "./src/modules/kawarp.js";
+
 let targetDate = new Date();
 window.isLocked = true;
 let currentWaveColor = "rgb(255,255,255)";
@@ -2988,6 +2990,9 @@ function showActivePlayerWithAnimation() {
   const { activePlayer } = getMusicDom();
   if (!activePlayer) return;
 
+  initKawarp();
+  startKawarp();
+
   activePlayer.classList.remove("player-hiding", "player-appearing");
   activePlayer.style.opacity = "";
   activePlayer.style.transform = "";
@@ -3062,6 +3067,8 @@ function hideActivePlayerWithAnimation(options = {}) {
   // player-i birbasha gizlet
   activePlayer.style.display = "none";
   activePlayer.hidden = true;
+
+  stopKawarp();
 
   // Body content inline stilləri təmizlə
   const bodyEl = activePlayer.querySelector(".yt-player-body");
@@ -3722,6 +3729,7 @@ async function updateMusicCover(track) {
     if (coverFull) coverFull.src = src;
     if (coverMini) coverMini.src = src;
     if (playerBg) playerBg.style.backgroundImage = `url("${src}")`;
+    updateKawarpCover(src);
     getDominantColorFromImage(src).then((color) => {
       currentWaveColor = color;
     });
@@ -4511,6 +4519,7 @@ function initMusicPlayerEvents() {
   setPlayerTab(window.currentPlayerTab || "lyrics");
   drawYTWaveform();
   window.addEventListener("resize", resizeYTWaveform);
+  window.addEventListener("resize", resizeKawarp);
   const togglePlay = async () => {
     if (!dom.audio.src && window.musicLibrary.length) {
       await openMusicTrack(0);
