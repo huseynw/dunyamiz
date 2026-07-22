@@ -2998,11 +2998,19 @@ function showActivePlayerWithAnimation() {
   activePlayer.style.height = "";
   activePlayer.style.borderRadius = "";
 
+  // Body content inline stilləri təmizlə (CSS qaydası bassın)
+  const bodyEl = activePlayer.querySelector(".yt-player-body");
+  if (bodyEl) {
+    bodyEl.style.display = "";
+    bodyEl.style.opacity = "";
+  }
+
   document.body.classList.add("player-visible");
 
   activePlayer.hidden = false;
   activePlayer.style.display = "block";
   window.clearTimeout(activePlayer.__appearTimer);
+  window.clearTimeout(activePlayer.__hideTimer);
   activePlayer.__appearTimer = window.setTimeout(() => {
     activePlayer.classList.remove("player-appearing");
     activePlayer.style.opacity = "1"; // zəmanətli görünürlük
@@ -3056,6 +3064,13 @@ function hideActivePlayerWithAnimation(options = {}) {
   // Dərhal body siniflərini çıxar
   document.body.classList.remove("player-visible", "player-expanded");
   syncPlayerExpandedState();
+
+  // Body content inline stilləri təmizlə (CSS display:none bassın)
+  const bodyEl = player.querySelector(".yt-player-body");
+  if (bodyEl) {
+    bodyEl.style.display = "";
+    bodyEl.style.opacity = "";
+  }
 
   // Genişlənmədən qalan left/top inline stilləri təmizlə
   activePlayer.style.left = "";
@@ -5175,9 +5190,9 @@ function animatePlayerExpand(complete) {
   gsap.set(backdrop, { opacity: 0 });
   gsap.to(backdrop, { opacity: 1, duration: 0.25, ease: "power2.out" });
 
-  // Body content ancaq fullscreen olandan sonra gorsenir
+  // Body content CSS .expanded .yt-player-body qaydasi ile gorsenir
   if (bodyEl) {
-    bodyEl.style.display = "block";
+    bodyEl.style.display = "";
     bodyEl.style.opacity = "1";
   }
 
@@ -5230,13 +5245,14 @@ function animatePlayerCollapse(complete) {
       onComplete: () => {
         // Content gizlendi, indi player-i mini veziyyete kecir
         if (bodyEl) {
-          bodyEl.style.display = "none";
+          bodyEl.style.display = "";
           bodyEl.style.opacity = "";
         }
 
         document.body.classList.remove("player-expanded");
         player.classList.remove("expanded");
         player.classList.add("player-mini");
+        gsap.set(player, { clearProps: "all" });
 
         // Backdrop fade out
         const backdrop = document.getElementById("yt-player-backdrop");
@@ -5256,13 +5272,14 @@ function animatePlayerCollapse(complete) {
     });
   } else {
     if (bodyEl) {
-      bodyEl.style.display = "none";
+      bodyEl.style.display = "";
       bodyEl.style.opacity = "";
     }
 
     document.body.classList.remove("player-expanded");
     player.classList.remove("expanded");
     player.classList.add("player-mini");
+    gsap.set(player, { clearProps: "all" });
 
     const backdrop = document.getElementById("yt-player-backdrop");
     if (backdrop) {
