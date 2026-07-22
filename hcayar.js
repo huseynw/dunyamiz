@@ -3028,8 +3028,8 @@ function hideActivePlayerWithAnimation(options = {}) {
   if (!activePlayer) return;
 
   activePlayer.classList.remove("expanded", "lyrics-open", "is-transitioning");
-  activePlayer.classList.add("player-mini", "player-hiding");
-  activePlayer.classList.remove("player-appearing");
+  activePlayer.classList.add("player-mini");
+  activePlayer.classList.remove("player-appearing", "player-hiding");
 
   if (lyricsPanel) {
     lyricsPanel.classList.add("lyrics-hidden");
@@ -3055,17 +3055,13 @@ function hideActivePlayerWithAnimation(options = {}) {
   if (backdrop) {
     gsap.to(backdrop, {
       opacity: 0,
-      duration: 0.2,
+      duration: 0.15,
       ease: "power2.in",
       onComplete: () => { backdrop.style.display = "none"; },
     });
   }
 
-  // Dərhal body siniflərini çıxar
-  document.body.classList.remove("player-visible", "player-expanded");
-  syncPlayerExpandedState();
-
-  // Body content inline stilləri təmizlə (CSS display:none bassın)
+  // Body content inline stilləri təmizlə
   const bodyEl = player.querySelector(".yt-player-body");
   if (bodyEl) {
     bodyEl.style.display = "";
@@ -3079,16 +3075,19 @@ function hideActivePlayerWithAnimation(options = {}) {
   activePlayer.style.height = "";
   activePlayer.style.borderRadius = "";
 
+  // body siniflərini çıxar (syncPlayerExpandedState cagirma, timer callbackinde cagirilacaq)
+  document.body.classList.remove("player-visible", "player-expanded");
+
   window.clearTimeout(activePlayer.__hideTimer);
   activePlayer.__hideTimer = window.setTimeout(() => {
     activePlayer.style.display = "none";
     activePlayer.hidden = true;
-    activePlayer.classList.remove("player-hiding");
     activePlayer.style.opacity = "";
     activePlayer.style.transform = "";
+    activePlayer.style.filter = "";
     activePlayer.style.transition = "";
     syncPlayerExpandedState();
-  }, 250);
+  }, 200);
 }
 
 function closeActivePlayer(options = {}) {
