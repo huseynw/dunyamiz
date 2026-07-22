@@ -5161,82 +5161,52 @@ function animatePlayerExpand(complete) {
 
   const bodyEl = player.querySelector(".yt-player-body");
   const mainEl = player.querySelector(".yt-player-main");
-  const miniRect = player.getBoundingClientRect();
-  player._miniRect = miniRect;
   const isMobile = window.innerWidth <= 760;
 
   document.body.classList.add("player-expanded");
 
+  // Player-i fullscreen CLASS ile birbasa kecir (CSS !important GSAP-i bloklayir)
   player.classList.remove("player-mini", "player-collapsing", "player-hiding");
-  player.classList.add("is-transitioning");
-
-  if (bodyEl) {
-    bodyEl.style.display = "block";
-    bodyEl.style.opacity = "1";
-  }
+  player.classList.add("expanded", "is-transitioning");
 
   // Backdrop
   const backdrop = getBackdrop();
   backdrop.style.display = "block";
   gsap.set(backdrop, { opacity: 0 });
-  gsap.to(backdrop, { opacity: 1, duration: 0.3, ease: "power2.out" });
+  gsap.to(backdrop, { opacity: 1, duration: 0.25, ease: "power2.out" });
 
-  // Prepare body children for stagger
+  // Body content ancaq fullscreen olandan sonra gorsenir
+  if (bodyEl) {
+    bodyEl.style.display = "block";
+    bodyEl.style.opacity = "1";
+  }
+
   const children = mainEl ? [...mainEl.children].filter(c => c.tagName !== "STYLE") : [];
-  gsap.set(children, { opacity: 0, y: 30 });
+  gsap.set(children, { opacity: 0, y: 24 });
 
-  // GSAP expand: mini → fullscreen
-  gsap.fromTo(
-    player,
-    {
-      position: "fixed",
-      top: miniRect.top,
-      left: miniRect.left,
-      width: miniRect.width,
-      height: miniRect.height,
-      borderRadius: isMobile ? "22px" : "24px",
-      margin: 0,
-      x: 0,
-      y: 0,
-      scaleX: 1,
-      scaleY: 1,
-    },
-    {
-      top: 0,
-      left: 0,
-      width: window.innerWidth,
-      height: window.innerHeight,
-      borderRadius: "0px",
-      duration: isMobile ? 0.4 : 0.5,
-      ease: "expo.inOut",
-      onComplete: () => {
-        player.classList.add("expanded");
-        setTimeout(() => {
-          player.classList.remove("is-transitioning");
-        }, 450);
-
-        gsap.set(player, { clearProps: "all" });
-        player.style.left = "0px";
-        player.style.top = "0px";
-        player.style.transform = "none";
-
-        player._playerAnimating = false;
-        syncPlayerExpandedState();
-        if (typeof complete === "function") complete();
-      },
-    },
-  );
-
-  // Stagger body content in
+  // Content-i stag ile goster (fullscreen snap-dan sonra)
   if (children.length) {
     gsap.to(children, {
       opacity: 1,
       y: 0,
-      duration: 0.4,
-      stagger: 0.07,
-      delay: isMobile ? 0.15 : 0.2,
+      duration: 0.35,
+      stagger: 0.06,
+      delay: isMobile ? 0.08 : 0.12,
       ease: "power3.out",
+      onComplete: () => {
+        player.classList.remove("is-transitioning");
+        player._playerAnimating = false;
+        syncPlayerExpandedState();
+        if (typeof complete === "function") complete();
+      },
     });
+  } else {
+    setTimeout(() => {
+      player.classList.remove("is-transitioning");
+      player._playerAnimating = false;
+      syncPlayerExpandedState();
+      if (typeof complete === "function") complete();
+    }, 300);
   }
 }
 
@@ -5249,87 +5219,65 @@ function animatePlayerCollapse(complete) {
   const mainEl = player.querySelector(".yt-player-main");
   const isMobile = window.innerWidth <= 760;
 
-  let targetRect = player._miniRect;
-  if (!targetRect) {
-    const w = isMobile ? window.innerWidth - 24 : 880;
-    const h = isMobile ? 70 : 84;
-    const bottomOffset = isMobile ? 90 : 96;
-    targetRect = {
-      left: (window.innerWidth - w) / 2,
-      top: window.innerHeight - bottomOffset - h,
-      width: w,
-      height: h,
-    };
-  }
-
-  // Fade out body content first
+  // 1. Body content-i gizlet (opacity 0)
   const children = mainEl ? [...mainEl.children].filter(c => c.tagName !== "STYLE") : [];
   if (children.length) {
     gsap.to(children, {
       opacity: 0,
       y: 20,
-      duration: 0.15,
+      duration: 0.12,
       ease: "power2.in",
-    });
-  }
-
-  document.body.classList.remove("player-expanded");
-  player.classList.remove("expanded");
-  player.classList.add("is-transitioning");
-
-  // Backdrop fade out
-  const backdrop = document.getElementById("yt-player-backdrop");
-  if (backdrop) {
-    gsap.to(backdrop, {
-      opacity: 0,
-      duration: 0.25,
-      delay: isMobile ? 0.1 : 0.15,
-      ease: "power2.in",
-      onComplete: () => { backdrop.style.display = "none"; },
-    });
-  }
-
-  // GSAP collapse: fullscreen → mini
-  gsap.fromTo(
-    player,
-    {
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: window.innerWidth,
-      height: window.innerHeight,
-      borderRadius: "0px",
-      margin: 0,
-      x: 0,
-      y: 0,
-      scaleX: 1,
-      scaleY: 1,
-    },
-    {
-      top: targetRect.top,
-      left: targetRect.left,
-      width: targetRect.width,
-      height: targetRect.height,
-      borderRadius: isMobile ? "22px" : "24px",
-      duration: isMobile ? 0.35 : 0.45,
-      delay: isMobile ? 0.08 : 0.12,
-      ease: "expo.inOut",
       onComplete: () => {
-        player.classList.remove("is-transitioning");
-        player.classList.add("player-mini");
-        gsap.set(player, { clearProps: "all" });
-
+        // Content gizlendi, indi player-i mini veziyyete kecir
         if (bodyEl) {
           bodyEl.style.display = "none";
           bodyEl.style.opacity = "";
+        }
+
+        document.body.classList.remove("player-expanded");
+        player.classList.remove("expanded");
+        player.classList.add("player-mini");
+
+        // Backdrop fade out
+        const backdrop = document.getElementById("yt-player-backdrop");
+        if (backdrop) {
+          gsap.to(backdrop, {
+            opacity: 0,
+            duration: 0.2,
+            ease: "power2.in",
+            onComplete: () => { backdrop.style.display = "none"; },
+          });
         }
 
         player._playerAnimating = false;
         syncPlayerExpandedState();
         if (typeof complete === "function") complete();
       },
-    },
-  );
+    });
+  } else {
+    if (bodyEl) {
+      bodyEl.style.display = "none";
+      bodyEl.style.opacity = "";
+    }
+
+    document.body.classList.remove("player-expanded");
+    player.classList.remove("expanded");
+    player.classList.add("player-mini");
+
+    const backdrop = document.getElementById("yt-player-backdrop");
+    if (backdrop) {
+      gsap.to(backdrop, {
+        opacity: 0,
+        duration: 0.2,
+        ease: "power2.in",
+        onComplete: () => { backdrop.style.display = "none"; },
+      });
+    }
+
+    player._playerAnimating = false;
+    syncPlayerExpandedState();
+    if (typeof complete === "function") complete();
+  }
 }
 // Admin paneldə əl ilə bildiriş göndərmə
 const sendCustomBtn = document.getElementById("send-custom-notif-btn");
