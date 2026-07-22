@@ -3037,6 +3037,17 @@ function hideActivePlayerWithAnimation(options = {}) {
   updateMusicPlayButtonState();
   updateMediaSessionPlaybackState();
 
+  // Backdrop'u təmizlə
+  const backdrop = document.getElementById("yt-player-backdrop");
+  if (backdrop) {
+    gsap.to(backdrop, {
+      opacity: 0,
+      duration: 0.2,
+      ease: "power2.in",
+      onComplete: () => { backdrop.style.display = "none"; },
+    });
+  }
+
   // Dərhal body siniflərini çıxar
   document.body.classList.remove("player-visible", "player-expanded");
   syncPlayerExpandedState();
