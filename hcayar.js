@@ -5121,28 +5121,48 @@ function initPlayerSwipeToClose() {
   return;
 }
 // ========== ULTRA PREMIUM PLAYER EXPAND / COLLAPSE ==========
+function getBackdrop() {
+  let el = document.getElementById("yt-player-backdrop");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "yt-player-backdrop";
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
 function animatePlayerExpand(complete) {
   const player = getMusicDom().activePlayer;
   if (!player || player._playerAnimating) return;
   player._playerAnimating = true;
 
   const bodyEl = player.querySelector(".yt-player-body");
+  const mainEl = player.querySelector(".yt-player-main");
   const miniRect = player.getBoundingClientRect();
   player._miniRect = miniRect;
+  const isMobile = window.innerWidth <= 760;
 
-  // Navbarı gizlətmək üçün klas
   document.body.classList.add("player-expanded");
 
-  // Animasiya zamanı CSS transition-ları söndürürük
   player.classList.remove("player-mini", "player-collapsing", "player-hiding");
   player.classList.add("is-transitioning");
 
   if (bodyEl) {
     bodyEl.style.display = "block";
-    bodyEl.style.opacity = "0";
+    bodyEl.style.opacity = "1";
   }
 
-  // GSAP animasiyası
+  // Backdrop
+  const backdrop = getBackdrop();
+  backdrop.style.display = "block";
+  gsap.set(backdrop, { opacity: 0 });
+  gsap.to(backdrop, { opacity: 1, duration: 0.3, ease: "power2.out" });
+
+  // Prepare body children for stagger
+  const children = mainEl ? [...mainEl.children].filter(c => c.tagName !== "STYLE") : [];
+  gsap.set(children, { opacity: 0, y: 30 });
+
+  // GSAP expand: mini → fullscreen
   gsap.fromTo(
     player,
     {
@@ -5151,7 +5171,7 @@ function animatePlayerExpand(complete) {
       left: miniRect.left,
       width: miniRect.width,
       height: miniRect.height,
-      borderRadius: window.innerWidth <= 760 ? "22px" : "24px",
+      borderRadius: isMobile ? "22px" : "24px",
       margin: 0,
       x: 0,
       y: 0,
@@ -5164,19 +5184,15 @@ function animatePlayerExpand(complete) {
       width: window.innerWidth,
       height: window.innerHeight,
       borderRadius: "0px",
-      duration: 0.55,
+      duration: isMobile ? 0.4 : 0.5,
       ease: "expo.inOut",
       onComplete: () => {
-        // 1. Öncə klası əlavə edirik ki, CSS qaydaları dövriyəyə girsin
         player.classList.add("expanded");
         setTimeout(() => {
           player.classList.remove("is-transitioning");
         }, 450);
 
-        // 2. GSAP-ın müvəqqəti stillərini təmizləyirik
         gsap.set(player, { clearProps: "all" });
-
-        // 3. Əlavə sığorta: Brauzerin bir anlıq "sürüşmə" etməməsi üçün bu stilləri birbaşa veririk
         player.style.left = "0px";
         player.style.top = "0px";
         player.style.transform = "none";
@@ -5188,12 +5204,15 @@ function animatePlayerExpand(complete) {
     },
   );
 
-  if (bodyEl) {
-    gsap.to(bodyEl, {
+  // Stagger body content in
+  if (children.length) {
+    gsap.to(children, {
       opacity: 1,
-      duration: 0.35,
-      delay: 0.2,
-      ease: "power2.out",
+      y: 0,
+      duration: 0.4,
+      stagger: 0.07,
+      delay: isMobile ? 0.15 : 0.2,
+      ease: "power3.out",
     });
   }
 }
@@ -5204,12 +5223,14 @@ function animatePlayerCollapse(complete) {
   player._playerAnimating = true;
 
   const bodyEl = player.querySelector(".yt-player-body");
+  const mainEl = player.querySelector(".yt-player-main");
+  const isMobile = window.innerWidth <= 760;
 
   let targetRect = player._miniRect;
   if (!targetRect) {
-    const w = window.innerWidth <= 760 ? window.innerWidth - 24 : 880;
-    const h = window.innerWidth <= 760 ? 70 : 84;
-    const bottomOffset = window.innerWidth <= 760 ? 90 : 96;
+    const w = isMobile ? window.innerWidth - 24 : 880;
+    const h = isMobile ? 70 : 84;
+    const bottomOffset = isMobile ? 90 : 96;
     targetRect = {
       left: (window.innerWidth - w) / 2,
       top: window.innerHeight - bottomOffset - h,
@@ -5218,18 +5239,34 @@ function animatePlayerCollapse(complete) {
     };
   }
 
-  if (bodyEl) {
-    gsap.to(bodyEl, { opacity: 0, duration: 0.2, ease: "power2.inOut" });
+  // Fade out body content first
+  const children = mainEl ? [...mainEl.children].filter(c => c.tagName !== "STYLE") : [];
+  if (children.length) {
+    gsap.to(children, {
+      opacity: 0,
+      y: 20,
+      duration: 0.15,
+      ease: "power2.in",
+    });
   }
 
-  // Navbarı geri qaytarırıq
   document.body.classList.remove("player-expanded");
-
-  // CSS-in !important qaydalarını sındırmaq üçün bağlanan KİMİ .expanded klassını SİLİRİK
   player.classList.remove("expanded");
   player.classList.add("is-transitioning");
 
-  // GSAP animasiyası (tam ekrandan -> mini ölçüyə)
+  // Backdrop fade out
+  const backdrop = document.getElementById("yt-player-backdrop");
+  if (backdrop) {
+    gsap.to(backdrop, {
+      opacity: 0,
+      duration: 0.25,
+      delay: isMobile ? 0.1 : 0.15,
+      ease: "power2.in",
+      onComplete: () => { backdrop.style.display = "none"; },
+    });
+  }
+
+  // GSAP collapse: fullscreen → mini
   gsap.fromTo(
     player,
     {
@@ -5250,8 +5287,9 @@ function animatePlayerCollapse(complete) {
       left: targetRect.left,
       width: targetRect.width,
       height: targetRect.height,
-      borderRadius: window.innerWidth <= 760 ? "22px" : "24px",
-      duration: 0.55,
+      borderRadius: isMobile ? "22px" : "24px",
+      duration: isMobile ? 0.35 : 0.45,
+      delay: isMobile ? 0.08 : 0.12,
       ease: "expo.inOut",
       onComplete: () => {
         player.classList.remove("is-transitioning");

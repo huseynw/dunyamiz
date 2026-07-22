@@ -6745,6 +6745,18 @@ body.player-expanded {
   }
 }
 
+#yt-player-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  z-index: 3499;
+  display: none;
+  pointer-events: none;
+  will-change: opacity;
+}
+
 /* ========================================================
    ✨ PREMIUM OVERHAUL v2 — YT MUSIC PLAYER + ANIMATIONS
    ======================================================== */
