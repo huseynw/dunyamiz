@@ -469,7 +469,7 @@
           '<div class="anni-orb anni-orb-3"></div>' +
         '</div>' +
         '<div class="anni-hero-inner">' +
-          '<div class="anni-hero-badge"><span class="anni-badge-sparkle"><i class="fa-solid fa-sparkles"></i></span><span>HƏR İL 3 AVQUST</span><span class="anni-badge-sparkle"><i class="fa-solid fa-sparkles"></i></span></div>' +
+          '<div class="anni-hero-badge"><span class="anni-badge-sparkle"><i class="fa-solid fa-sparkles"></i></span><span>İL DÖNÜMÜ</span><span class="anni-badge-sparkle"><i class="fa-solid fa-sparkles"></i></span></div>' +
           '<h2 class="anni-hero-title">Hüseyn <span class="anni-hero-amp">&</span> Cəmalə</h2>' +
           '<p class="anni-hero-sub">' + yearsOrd + ' Dönümünə Geri Sayım <i class="fa-solid fa-ring"></i></p>' +
           '<div id="anni-display" class="anni-display">' +
@@ -1223,7 +1223,7 @@
           '<div class="anni-orb anni-orb-3"></div>' +
         '</div>' +
         '<div class="anni-hero-inner">' +
-          '<div class="anni-hero-badge"><span class="anni-badge-sparkle"><i class="fa-solid fa-sparkles"></i></span><span>HƏR İL 3 AVQUST</span><span class="anni-badge-sparkle"><i class="fa-solid fa-sparkles"></i></span></div>' +
+          '<div class="anni-hero-badge"><span class="anni-badge-sparkle"><i class="fa-solid fa-sparkles"></i></span><span>İL DÖNÜMÜ</span><span class="anni-badge-sparkle"><i class="fa-solid fa-sparkles"></i></span></div>' +
           '<h2 class="anni-hero-title">Hüseyn <span class="anni-hero-amp">&amp;</span> Cəmalə</h2>' +
           '<p class="anni-hero-sub">' + yearsOrd + ' Dönümünə Geri Sayım <i class="fa-solid fa-ring"></i></p>' +
           '<div id="main-anni-display" class="anni-display">' +
@@ -1265,7 +1265,7 @@
     ov.innerHTML =
       '<div class="anni-modal-card">' +
         '<div class="anni-modal-icon">' + (daysLeft === 1 ? '🥂' : '🎉') + '</div>' +
-        '<div class="anni-modal-badge">HƏR İL 3 AVQUST</div>' +
+        '<div class="anni-modal-badge">İL DÖNÜMÜ</div>' +
         '<h3 class="anni-modal-title">' +
           (daysLeft === 1
             ? 'Sabah <strong>İl Dönümümüzdür</strong>!'
