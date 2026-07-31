@@ -77,7 +77,7 @@ async function readLog() {
   const file = await getGitHubFile(LOG_PATH);
   return file
     ? { data: file.data, sha: file.sha }
-    : { data: { reminders: {}, daily_love: {} }, sha: null };
+    : { data: { reminders: {}, daily_love: {}, anniversary_countdown: {} }, sha: null };
 }
 
 async function markReminderSent(hours) {
@@ -89,6 +89,13 @@ async function markReminderSent(hours) {
 async function markDailyLoveSent() {
   const { data, sha } = await readLog();
   data.daily_love.lastSent = Date.now();
+  return saveGitHubFile(LOG_PATH, data, sha);
+}
+
+async function markAnniversaryCountdownSent() {
+  const { data, sha } = await readLog();
+  data.anniversary_countdown = data.anniversary_countdown || {};
+  data.anniversary_countdown.lastSent = Date.now();
   return saveGitHubFile(LOG_PATH, data, sha);
 }
 
@@ -235,6 +242,35 @@ exports.handler = async (event) => {
         console.log(
           `Gündəlik mesaj üçün hələ tezdir (Hazırkı UTC saatı: ${now.getUTCHours()}, Hədəf: 9)`,
         );
+      }
+    }
+
+    // ---- İl dönümünə geri sayım bildirişi (son 7 gün) ----
+    const bakuNowC = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+    const annivThisYearC = new Date(Date.UTC(bakuNowC.getUTCFullYear(), 7, 3));
+    const annivEndThisYearC = new Date(Date.UTC(bakuNowC.getUTCFullYear(), 7, 4));
+    let nextAnnivC = annivThisYearC;
+    if (bakuNowC.getTime() >= annivEndThisYearC.getTime()) {
+      nextAnnivC = new Date(Date.UTC(bakuNowC.getUTCFullYear() + 1, 7, 3));
+    }
+    const daysUntilC = Math.ceil((nextAnnivC - bakuNowC) / (24 * 60 * 60 * 1000));
+
+    if (daysUntilC >= 1 && daysUntilC <= 7) {
+      const { data: logDataC } = await readLog();
+      const lastC = logDataC.anniversary_countdown?.lastSent || 0;
+      const lastCDate = new Date(lastC);
+      if (lastCDate < todayStartUTC) {
+        const cdTitle =
+          daysUntilC === 1
+            ? `🎉 Sabah il dönümümüzdür!`
+            : `🎉 İl dönümümüzə ${daysUntilC} gün qaldı!`;
+        const cdMsg =
+          daysUntilC === 1
+            ? `Sabah bizim üçün ən xüsusi gündür! Səni görmək üçün saniyələr sayıram, Cəmaləm ❤️`
+            : `İl dönümümüzə ${daysUntilC} gün qaldı! Səni görmək üçün saniyələr sayıram, Cəmaləm ❤️`;
+        const successC = await sendOneSignalNotification(cdTitle, cdMsg);
+        if (successC) await markAnniversaryCountdownSent();
+        else console.error("İl dönümü sayacı bildirişi göndərilmədi");
       }
     }
 

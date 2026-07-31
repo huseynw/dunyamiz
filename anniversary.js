@@ -524,6 +524,15 @@
         '<blockquote class="anni-daily-msg" id="anni-daily-msg">Hər gün sənlə daha gözəldir... <i class="fa-solid fa-heart"></i></blockquote>' +
       '</div>' +
 
+      /* ── WORD CLOUD ── */
+      '<div class="anni-cloud-section">' +
+        '<h3 class="anni-section-title"><span class="anni-title-gem"><i class="fa-solid fa-cloud"></i></span> Söz Buludu</h3>' +
+        '<div class="anni-cloud-card">' +
+          '<div class="anni-cloud" id="anni-wordcloud"><div class="anni-cloud-empty"><i class="fa-solid fa-spinner fa-spin"></i> Notlar yüklənir...</div></div>' +
+          '<p class="anni-cloud-note">Notlarımızdakı ən çox işlənən sözlərdən bir ürək düzəltdim — hamısı səninlə bağlıdır.</p>' +
+        '</div>' +
+      '</div>' +
+
       /* ── TIMELINE ── */
       '<div class="anni-timeline-section">' +
         '<h3 class="anni-section-title"><span class="anni-title-gem"><i class="fa-regular fa-gem"></i></span> Sevgimizin Yolu</h3>' +
@@ -898,6 +907,20 @@
       ".anni-h2{animation:anniHeartBeat 1.2s ease-in-out infinite .2s}",
       ".anni-h3{animation:anniHeartBeat 1.2s ease-in-out infinite .4s}",
       "@keyframes anniHeartBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}",
+      /* ── In-page Notification Banner ── */
+      ".anni-notif-banner{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:18px;",
+      "margin-bottom:20px;background:linear-gradient(135deg,rgba(255,215,0,.16),rgba(255,100,100,.12));",
+      "border:1px solid rgba(255,215,0,.35);color:rgba(255,255,255,.9);font-size:.9rem;line-height:1.5;",
+      "box-shadow:0 6px 24px rgba(255,215,0,.14),inset 0 1px 0 rgba(255,215,0,.15);",
+      "animation:anniNotifIn .5s ease}",
+      "@keyframes anniNotifIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}",
+      ".anni-notif-icon{font-size:1.3rem;flex-shrink:0;animation:anniHeartBeat 1.4s ease-in-out infinite}",
+      ".anni-notif-text strong{color:#FFD700;font-weight:800}",
+      ".anni-notif-close{margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15);",
+      "color:rgba(255,255,255,.75);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:.75rem;",
+      "line-height:1;flex-shrink:0;transition:all .2s;font-family:inherit}",
+      ".anni-notif-close:hover{background:rgba(255,215,0,.25);border-color:rgba(255,215,0,.5);color:#FFD700}",
+      "@media(max-width:480px){.anni-notif-banner{font-size:.82rem;padding:11px 12px}}",
       /* ── Countdown ── */
       ".anni-display{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:0}",
       ".anni-time-block{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:68px;",
@@ -937,6 +960,22 @@
       ".anni-daily-label{font-size:.9rem;font-weight:600;color:rgba(255,215,0,.8);margin:0 0 10px}",
       ".anni-daily-msg{font-size:1rem;color:rgba(255,255,255,.85);line-height:1.75;font-style:italic;",
       "margin:0;padding-left:14px;border-left:3px solid rgba(255,215,0,.4)}",
+      /* ── Word Cloud ── */
+      ".anni-cloud-section{margin-bottom:24px}",
+      ".anni-cloud-card{background:linear-gradient(135deg,rgba(60,0,20,.35),rgba(30,0,60,.3));",
+      "border:1px solid rgba(255,215,0,.12);border-radius:24px;padding:16px;overflow:hidden;",
+      "box-shadow:0 4px 24px rgba(139,0,0,.15)}",
+      ".anni-cloud{position:relative;width:100%;height:420px;overflow:hidden;",
+      "background:radial-gradient(ellipse at center,rgba(255,215,0,.06),transparent 70%)}",
+      "@media(max-width:480px){.anni-cloud{height:340px}}",
+      ".anni-cloud-word{position:absolute;font-weight:700;white-space:nowrap;line-height:1.1;cursor:default;",
+      "transform:rotate(var(--anni-rot,0deg));transition:transform .25s ease,text-shadow .25s ease;opacity:.9}",
+      ".anni-cloud-word:hover{transform:scale(1.18) rotate(var(--anni-rot,0deg));z-index:5;opacity:1;",
+      "text-shadow:0 0 12px rgba(255,215,0,.5)}",
+      ".anni-cloud-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;",
+      "gap:8px;color:rgba(255,255,255,.4);font-size:.85rem}",
+      ".anni-cloud-empty i{font-size:1.2rem;color:rgba(255,215,0,.5)}",
+      ".anni-cloud-note{font-size:.72rem;color:rgba(255,255,255,.4);text-align:center;margin-top:14px;font-style:italic;line-height:1.5}",
       /* ── Timeline ── */
       ".anni-timeline-section{margin-bottom:24px}",
       ".anni-section-title{font-size:1rem;font-weight:700;color:#FFD700;",
@@ -1189,6 +1228,43 @@
           '</div>' +
         '</div>' +
       '</div>';
+  }
+
+  /* ─── SƏHİFƏ İÇİ BİLDİRİŞ (son 7 gün) ───────────────────── */
+  function injectMainScreenNotification() {
+    let ph = document.getElementById("main-screen-anni-placeholder");
+    if (!ph) return;
+
+    let now = new Date();
+    let yr = now.getFullYear();
+    let candidate = new Date(yr, 7, 3, 0, 0, 0);
+    if (candidate <= now) candidate = new Date(yr + 1, 7, 3, 0, 0, 0);
+    let daysLeft = Math.ceil((candidate - now) / 86400000);
+
+    if (daysLeft < 1 || daysLeft > 7) return;
+    if (localStorage.getItem("anni_notif_dismissed") === now.toDateString()) return;
+
+    let banner = document.createElement("div");
+    banner.className = "anni-notif-banner";
+    banner.id = "anni-notif-banner";
+    banner.innerHTML =
+      '<span class="anni-notif-icon"><i class="fa-solid fa-cake-candles"></i></span>' +
+      '<span class="anni-notif-text">' +
+        (daysLeft === 1
+          ? 'Sabah <strong>İl Dönümümüzdür</strong>! Səni görməyə saniyələr qaldı <i class="fa-solid fa-heart" style="color:#ff4d6d"></i>'
+          : 'İl dönümümüzə <strong>' + daysLeft + ' gün</strong> qaldı! <i class="fa-solid fa-heart" style="color:#ff4d6d"></i>') +
+      '</span>' +
+      '<button class="anni-notif-close" id="anni-notif-close" aria-label="Bağla">✕</button>';
+
+    ph.parentNode.insertBefore(banner, ph);
+
+    document.getElementById("anni-notif-close").addEventListener("click", function () {
+      localStorage.setItem("anni_notif_dismissed", now.toDateString());
+      banner.style.transition = "opacity .4s, transform .4s";
+      banner.style.opacity = "0";
+      banner.style.transform = "translateY(-8px)";
+      setTimeout(function () { banner.remove(); }, 400);
+    });
   }
 
   /* ─── XATİRƏ SLAYDŞOu ───────────────────────────────────── */
@@ -1679,6 +1755,114 @@
     requestAnimationFrame(step);
   }
 
+  /* ─── SÖZ BULUDU ────────────────────────────────────────── */
+  let CLOUD_STOP_WORDS = new Set([
+    "üçün","bir","və","bu","o","ki","ilə","kimi","daha","çox","mən","sən","məni","səni",
+    "mənim","sənin","mənə","sənə","məndə","səndə","məndən","səndən","olan","olmaq","oldu",
+    "olur","olub","olacaq","idi","imiş","deyil","yox","hər","bütün","heç","sonra","əvvəl",
+    "qədər","öz","özüm","özün","özünü","özümü","onun","ona","onu","ondan","onunla","biz",
+    "bizim","siz","sizin","onlar","onların","amma","lakin","çünki","ancaq","belə","elə",
+    "necə","nə","nəyə","neçə","indi","artıq","yenə","həmişə","hərdən","bəzən","deyə",
+    "edir","edirəm","edirsən","etmək","gün","gündə","həftə","il","ildə","ay","ayda","saat",
+    "dəfə","ilk","son","birlikdə","birlikdəyik","birlikdəyəm","səninlə","mənimlə","sənsiz",
+    "mənsiz","qədər","başqa","özümüzə","özümüzdə","üçüncü","birinci","ikinci","üçüncü",
+    "sevgi","sevə","sevirəm","sevir","sənin","səni","sənsiz","məni","mən","sən"
+  ]);
+
+  function initWordCloud(retries) {
+    if (retries === undefined) retries = 0;
+    if (retries > 25) return;
+    let container = document.getElementById("anni-wordcloud");
+    if (!container) return;
+    if (!Array.isArray(window.currentNotes) || window.currentNotes.length === 0) {
+      setTimeout(function () { initWordCloud(retries + 1); }, 1500);
+      return;
+    }
+    buildWordCloud(container);
+  }
+
+  function buildWordCloud(container) {
+    let text = "";
+    (window.currentNotes || []).forEach(function (n) {
+      if (n.title) text += " " + n.title;
+      if (n.content) text += " " + n.content;
+    });
+
+    let freq = {};
+    let tokens = text.toLowerCase().match(/[a-zçəğıöşü]+/g) || [];
+    tokens.forEach(function (w) {
+      if (w.length < 3 || CLOUD_STOP_WORDS.has(w)) return;
+      freq[w] = (freq[w] || 0) + 1;
+    });
+
+    let top = Object.keys(freq)
+      .map(function (w) { return { text: w, count: freq[w] }; })
+      .sort(function (a, b) { return b.count - a.count; })
+      .slice(0, 34);
+
+    if (top.length === 0) {
+      container.innerHTML =
+        '<div class="anni-cloud-empty"><i class="fa-solid fa-heart-crack"></i> Hələ ki, bulud üçün söz yığılmayıb</div>';
+      return;
+    }
+
+    let maxC = top[0].count;
+    let W = container.clientWidth || 600;
+    let H = container.clientHeight || 420;
+    let scale = Math.min((W * 0.92) / 32, (H * 0.94) / 22);
+    let cx = W / 2;
+    let cy = H / 2 + 6 * scale;
+    let palette = ["#FFD700", "#FF6B6B", "#FF69B4", "#FFA500", "#FFE4B5", "#FF8C69"];
+    let placed = [];
+    let placedCount = 0;
+
+    top.forEach(function (w) {
+      let size = 13 + (w.count / maxC) * 25;
+      let estW = w.text.length * size * 0.62;
+      let estH = size * 1.2;
+      let ok = false;
+      for (let a = 0; a < 80 && !ok; a++) {
+        let t = Math.random() * Math.PI * 2;
+        let r = Math.sqrt(Math.random()) * 0.95;
+        let s = Math.sin(t);
+        let hx = 16 * s * s * s;
+        let hy = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+        let px = cx + hx * r * scale;
+        let py = cy - hy * r * scale;
+        ok = true;
+        for (let i = 0; i < placed.length; i++) {
+          let p = placed[i];
+          if (Math.abs(px - p.x) < (estW + p.w) / 2 + 2 &&
+              Math.abs(py - p.y) < (estH + p.h) / 2 + 2) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) {
+          let rot = (Math.random() * 24 - 12).toFixed(1);
+          let el = document.createElement("span");
+          el.className = "anni-cloud-word";
+          el.textContent = w.text;
+          el.title = w.text + " — " + w.count + " dəfə";
+          el.style.cssText =
+            "left:" + (px - estW / 2).toFixed(0) + "px;" +
+            "top:" + (py - estH / 2).toFixed(0) + "px;" +
+            "font-size:" + size.toFixed(1) + "px;" +
+            "color:" + palette[Math.floor(Math.random() * palette.length)] + ";" +
+            "--anni-rot:" + rot + "deg;";
+          container.appendChild(el);
+          placed.push({ x: px, y: py, w: estW, h: estH });
+          placedCount++;
+        }
+      }
+    });
+
+    if (placedCount === 0) {
+      container.innerHTML =
+        '<div class="anni-cloud-empty"><i class="fa-solid fa-heart-crack"></i> Sözləri yerləşdirmək mümkün olmadı</div>';
+    }
+  }
+
   /* ─── TEST REJİMİ (telefon üçün) ────────────────────────── */
   function isTestMode() {
     return window.location.search.indexOf("il_donumu=test") > -1 ||
@@ -1721,10 +1905,12 @@
     injectStyles();
     injectCountdownWidget();
     injectMainScreenCountdown();
+    injectMainScreenNotification();
     patchDailyMessage();
     setTimeout(initAnniSlideshow, 300);
     setTimeout(initTimeCapsule, 600);
     setTimeout(initVirtualCandle, 400);
+    setTimeout(initWordCloud, 800);
 
     document.getElementById('close-capsule-btn')?.addEventListener('click', function () {
       let modal = document.getElementById('timecapsule-modal');
