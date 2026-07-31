@@ -142,139 +142,162 @@ exports.handler = async (event) => {
       return { statusCode: 403, body: "Unauthorized" };
     }
 
-    // ---- Supabase-dən görüş tarixini al ----
-    const supabaseRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/site_settings?id=eq.1&select=next_meeting_date`,
-      {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-        },
-      },
-    );
-    const settings = await supabaseRes.json();
-    if (
-      !supabaseRes.ok ||
-      !Array.isArray(settings) ||
-      !settings[0]?.next_meeting_date
-    ) {
-      console.error("Supabase-dən görüş tarixi alına bilmədi");
-      return { statusCode: 500, body: "Görüş tarixi tapılmadı" };
-    }
-
-    const meetingDate = new Date(settings[0].next_meeting_date);
     const now = new Date();
+    const todayStartUTC = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    );
+    const results = { reminders: false, daily: false, anniversary_countdown: false };
 
-    if (isNaN(meetingDate.getTime())) {
-      console.error("Yanlış tarix formatı");
-      return { statusCode: 500, body: "Tarix formatı səhvdir" };
+    // ---- Supabase-dən görüş tarixini al (uğursuz olsa yalnız xatırlatma atlanır) ----
+    let meetingDate = null;
+    try {
+      const supabaseRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/site_settings?id=eq.1&select=next_meeting_date`,
+        {
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+          },
+        },
+      );
+      const settings = await supabaseRes.json();
+      if (supabaseRes.ok && Array.isArray(settings) && settings[0]?.next_meeting_date) {
+        meetingDate = new Date(settings[0].next_meeting_date);
+      } else {
+        console.error(`Supabase-dən görüş tarixi alına bilmədi (status: ${supabaseRes.status})`);
+      }
+    } catch (e) {
+      console.error("Supabase xətası — xatırlatma bloku atlanır:", e.message);
     }
-
-    const hoursUntil = Math.floor((meetingDate - now) / (60 * 60 * 1000));
-    console.log(`Görüşə qalan saat (UTC): ${hoursUntil}`);
 
     // ---- Görüş xatırlatmaları ----
-    if (hoursUntil > 0 && REMINDER_HOURS.includes(hoursUntil)) {
-      const { data: logData } = await readLog();
-      const lastSent = logData.reminders[hoursUntil] || 0;
-      const canSend = Date.now() - lastSent > 24 * 60 * 60 * 1000;
-      if (canSend) {
-        // Qalan tam vaxtı hesabla (saat, dəqiqə, saniyə)
-        const diffMs = meetingDate - now;
-        const h = Math.floor(diffMs / 3600000);
-        const m = Math.floor((diffMs % 3600000) / 60000);
-        const s = Math.floor((diffMs % 60000) / 1000);
+    if (meetingDate && !isNaN(meetingDate.getTime())) {
+      try {
+        const hoursUntil = Math.floor((meetingDate - now) / (60 * 60 * 1000));
+        console.log(`Görüşə qalan saat (UTC): ${hoursUntil}`);
 
-        const reminderTitle = `💖 Görüşümüzə az qaldı!`;
-        const reminderMsg = `Görüşümüzə ${h} saat ${m} dəqiqə ${s} saniyə qaldı!\nSəni görmək üçün saniyələr sayılır, Cəmaləm ❤️`;
-        const success = await sendOneSignalNotification(
-          reminderTitle,
-          reminderMsg,
-        );
-        if (success) await markReminderSent(hoursUntil);
-        else console.error("Xatırlatma göndərilmədi");
-      } else {
-        console.log(`Xatırlatma artıq göndərilib: ${hoursUntil}h`);
+        if (hoursUntil > 0 && REMINDER_HOURS.includes(hoursUntil)) {
+          const { data: logData } = await readLog();
+          const lastSent = logData.reminders[hoursUntil] || 0;
+          const canSend = Date.now() - lastSent > 24 * 60 * 60 * 1000;
+          if (canSend) {
+            // Qalan tam vaxtı hesabla (saat, dəqiqə, saniyə)
+            const diffMs = meetingDate - now;
+            const h = Math.floor(diffMs / 3600000);
+            const m = Math.floor((diffMs % 3600000) / 60000);
+            const s = Math.floor((diffMs % 60000) / 1000);
+
+            const reminderTitle = `💖 Görüşümüzə az qaldı!`;
+            const reminderMsg = `Görüşümüzə ${h} saat ${m} dəqiqə ${s} saniyə qaldı!\nSəni görmək üçün saniyələr sayılır, Cəmaləm ❤️`;
+            const success = await sendOneSignalNotification(
+              reminderTitle,
+              reminderMsg,
+            );
+            if (success) {
+              await markReminderSent(hoursUntil);
+              results.reminders = true;
+            } else {
+              console.error("Xatırlatma göndərilmədi");
+            }
+          } else {
+            console.log(`Xatırlatma artıq göndərilib: ${hoursUntil}h`);
+          }
+        }
+      } catch (e) {
+        console.error("Xatırlatma bloku xətası:", e.message);
       }
     }
 
     // ---- Günlük sevgi mesajı (AZT 13:00 = UTC 09:00) ----
-    const startDate = new Date(START_DATE);
-    const daysTogether = Math.floor((now - startDate) / (24 * 60 * 60 * 1000));
-    const { data: logDataDaily } = await readLog();
-    const lastDaily = logDataDaily.daily_love?.lastSent || 0;
-    const lastDate = new Date(lastDaily);
-    const todayStartUTC = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-    );
+    try {
+      const startDate = new Date(START_DATE);
+      const daysTogether = Math.floor((now - startDate) / (24 * 60 * 60 * 1000));
+      const { data: logDataDaily } = await readLog();
+      const lastDaily = logDataDaily.daily_love?.lastSent || 0;
+      const lastDate = new Date(lastDaily);
 
-    // AZT 13:00 = UTC 09:00 olduğuna görə, cari saat UTC 9-dan böyük bərabər olduqda və bu gün göndərilməyibsə göndər.
-    if (lastDate < todayStartUTC && now.getUTCHours() >= 9) {
-      // ---- İl dönümü yoxlaması (3 Avqust, AZT = UTC+4) ----
-      const bakuNow = new Date(now.getTime() + 4 * 60 * 60 * 1000);
-      const isAnniversary =
-        bakuNow.getUTCMonth() === 7 && bakuNow.getUTCDate() === 3;
+      // AZT 13:00 = UTC 09:00 olduğuna görə, cari saat UTC 9-dan böyük bərabər olduqda və bu gün göndərilməyibsə göndər.
+      if (lastDate < todayStartUTC && now.getUTCHours() >= 9) {
+        // ---- İl dönümü yoxlaması (3 Avqust, AZT = UTC+4) ----
+        const bakuNow = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+        const isAnniversary =
+          bakuNow.getUTCMonth() === 7 && bakuNow.getUTCDate() === 3;
 
-      let title, msg;
-      if (isAnniversary) {
-        const years =
-          now.getUTCFullYear() -
-          startDate.getUTCFullYear() -
-          (now.getUTCMonth() < startDate.getUTCMonth() ||
-          (now.getUTCMonth() === startDate.getUTCMonth() &&
-            now.getUTCDate() < startDate.getUTCDate())
-            ? 1
-            : 0);
-        title = `🎉 İl dönümümüz mübarək!`;
-        msg = `${years} il əvvəl bu gün yolumuza birlikdə başladıq və o gündən hər səhərim səninlə mənalanır. ${years} il keçdi, amma ürəyim hələ də sənə ilk günki kimi atır. Bütün il dönümlərimizi, bütün ömrü səninlə keçirməyi arzulayıram. İl dönümümüz mübarək, Hərşeyim, səni sonsuza qədər sevirəm 🤍`;
+        let title, msg;
+        if (isAnniversary) {
+          const years =
+            now.getUTCFullYear() -
+            startDate.getUTCFullYear() -
+            (now.getUTCMonth() < startDate.getUTCMonth() ||
+            (now.getUTCMonth() === startDate.getUTCMonth() &&
+              now.getUTCDate() < startDate.getUTCDate())
+              ? 1
+              : 0);
+          title = `🎉 İl dönümümüz mübarək!`;
+          msg = `${years} il əvvəl bu gün yolumuza birlikdə başladıq və o gündən hər səhərim səninlə mənalanır. ${years} il keçdi, amma ürəyim hələ də sənə ilk günki kimi atır. Bütün il dönümlərimizi, bütün ömrü səninlə keçirməyi arzulayıram. İl dönümümüz mübarək, Hərşeyim, səni sonsuza qədər sevirəm 🤍`;
+        } else {
+          title = `✨ ${daysTogether}. günümüz!`;
+          msg = `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`;
+        }
+
+        const success = await sendOneSignalNotification(title, msg);
+        if (success) {
+          await markDailyLoveSent();
+          results.daily = true;
+        } else {
+          console.error("Günlük mesaj göndərilmədi");
+        }
       } else {
-        title = `✨ ${daysTogether}. günümüz!`;
-        msg = `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`;
+        if (lastDate >= todayStartUTC) {
+          console.log("Günlük mesaj artıq göndərilib.");
+        } else {
+          console.log(
+            `Gündəlik mesaj üçün hələ tezdir (Hazırkı UTC saatı: ${now.getUTCHours()}, Hədəf: 9)`,
+          );
+        }
       }
-
-      const success = await sendOneSignalNotification(title, msg);
-      if (success) await markDailyLoveSent();
-      else console.error("Günlük mesaj göndərilmədi");
-    } else {
-      if (lastDate >= todayStartUTC) {
-        console.log("Günlük mesaj artıq göndərilib.");
-      } else {
-        console.log(
-          `Gündəlik mesaj üçün hələ tezdir (Hazırkı UTC saatı: ${now.getUTCHours()}, Hədəf: 9)`,
-        );
-      }
+    } catch (e) {
+      console.error("Günlük mesaj bloku xətası:", e.message);
     }
 
     // ---- İl dönümünə geri sayım bildirişi (son 7 gün) ----
-    const bakuNowC = new Date(now.getTime() + 4 * 60 * 60 * 1000);
-    const annivThisYearC = new Date(Date.UTC(bakuNowC.getUTCFullYear(), 7, 3));
-    const annivEndThisYearC = new Date(Date.UTC(bakuNowC.getUTCFullYear(), 7, 4));
-    let nextAnnivC = annivThisYearC;
-    if (bakuNowC.getTime() >= annivEndThisYearC.getTime()) {
-      nextAnnivC = new Date(Date.UTC(bakuNowC.getUTCFullYear() + 1, 7, 3));
-    }
-    const daysUntilC = Math.ceil((nextAnnivC - bakuNowC) / (24 * 60 * 60 * 1000));
-
-    if (daysUntilC >= 1 && daysUntilC <= 7) {
-      const { data: logDataC } = await readLog();
-      const lastC = logDataC.anniversary_countdown?.lastSent || 0;
-      const lastCDate = new Date(lastC);
-      if (lastCDate < todayStartUTC) {
-        const cdTitle =
-          daysUntilC === 1
-            ? `🎉 Sabah il dönümümüzdür!`
-            : `🎉 İl dönümümüzə ${daysUntilC} gün qaldı!`;
-        const cdMsg =
-          daysUntilC === 1
-            ? `Sabah bizim üçün ən xüsusi gündür! Gözlədiyim gün gəldi çatdı`
-            : `İl dönümümüzə ${daysUntilC} gün qaldı! O günü səbrsizliklə gözləyirəm, Hərşeyim🤍`;
-        const successC = await sendOneSignalNotification(cdTitle, cdMsg);
-        if (successC) await markAnniversaryCountdownSent();
-        else console.error("İl dönümü sayacı bildirişi göndərilmədi");
+    try {
+      const bakuNowC = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+      const annivThisYearC = new Date(Date.UTC(bakuNowC.getUTCFullYear(), 7, 3));
+      const annivEndThisYearC = new Date(Date.UTC(bakuNowC.getUTCFullYear(), 7, 4));
+      let nextAnnivC = annivThisYearC;
+      if (bakuNowC.getTime() >= annivEndThisYearC.getTime()) {
+        nextAnnivC = new Date(Date.UTC(bakuNowC.getUTCFullYear() + 1, 7, 3));
       }
+      const daysUntilC = Math.ceil((nextAnnivC - bakuNowC) / (24 * 60 * 60 * 1000));
+
+      if (daysUntilC >= 1 && daysUntilC <= 7) {
+        const { data: logDataC } = await readLog();
+        const lastC = logDataC.anniversary_countdown?.lastSent || 0;
+        const lastCDate = new Date(lastC);
+        if (lastCDate < todayStartUTC) {
+          const cdTitle =
+            daysUntilC === 1
+              ? `🎉 Sabah il dönümümüzdür!`
+              : `🎉 İl dönümümüzə ${daysUntilC} gün qaldı!`;
+          const cdMsg =
+            daysUntilC === 1
+              ? `Sabah bizim üçün ən xüsusi gündür! Gözlədiyim gün gəldi çatdı`
+              : `İl dönümümüzə ${daysUntilC} gün qaldı! O günü səbrsizliklə gözləyirəm, Hərşeyim🤍`;
+          const successC = await sendOneSignalNotification(cdTitle, cdMsg);
+          if (successC) {
+            await markAnniversaryCountdownSent();
+            results.anniversary_countdown = true;
+          } else {
+            console.error("İl dönümü sayacı bildirişi göndərilmədi");
+          }
+        }
+      }
+    } catch (e) {
+      console.error("İl dönümü sayacı bloku xətası:", e.message);
     }
 
-    return { statusCode: 200, body: JSON.stringify({ success: true }) };
+    return { statusCode: 200, body: JSON.stringify({ success: true, results }) };
   } catch (err) {
     console.error("Funksiya xətası:", err);
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
