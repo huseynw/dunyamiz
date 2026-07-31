@@ -1271,7 +1271,7 @@
             ? 'Sabah <strong>İl Dönümümüzdür</strong>!'
             : 'İl Dönümümüzə <strong>' + daysLeft + '</strong> gün qaldı!') +
         '</h3>' +
-        '<p class="anni-modal-text">Səni görmək üçün saniyələr sayıram, Cəmaləm ❤️</p>' +
+        '<p class="anni-modal-text">SSəbrsizliklə gözləyirəm, Hərşeyim🤍</p>' +
         '<div class="anni-modal-hearts"><i class="fa-solid fa-heart" style="color:#ff4d6d"></i><i class="fa-solid fa-heart" style="color:#ff4d6d"></i><i class="fa-solid fa-heart" style="color:#ff4d6d"></i></div>' +
         '<div class="anni-modal-actions">' +
           '<button class="anni-modal-close" id="anni-modal-close"><i class="fa-solid fa-heart"></i> Bağla</button>' +
