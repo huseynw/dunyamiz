@@ -226,7 +226,7 @@ exports.handler = async (event) => {
             ? 1
             : 0);
         title = `🎉 İl dönümümüz mübarək!`;
-        msg = `${years} il əvvəl bu gün yolumuza birlikdə başladıq və o gündən hər səhərim səninlə mənalanır. ${years} il keçdi, amma ürəyim hələ də sənə ilk günki kimi atır. Bütün il dönümlərimizi, bütün ömrü səninlə keçirməyi arzulayıram. İl dönümümüz mübarək, Cəmaləm, səni sonsuza qədər sevirəm ❤️`;
+        msg = `${years} il əvvəl bu gün yolumuza birlikdə başladıq və o gündən hər səhərim səninlə mənalanır. ${years} il keçdi, amma ürəyim hələ də sənə ilk günki kimi atır. Bütün il dönümlərimizi, bütün ömrü səninlə keçirməyi arzulayıram. İl dönümümüz mübarək, Hərşeyim, səni sonsuza qədər sevirəm 🤍`;
       } else {
         title = `✨ ${daysTogether}. günümüz!`;
         msg = `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`;
@@ -266,8 +266,8 @@ exports.handler = async (event) => {
             : `🎉 İl dönümümüzə ${daysUntilC} gün qaldı!`;
         const cdMsg =
           daysUntilC === 1
-            ? `Sabah bizim üçün ən xüsusi gündür! Səni görmək üçün saniyələr sayıram, Cəmaləm ❤️`
-            : `İl dönümümüzə ${daysUntilC} gün qaldı! Səni görmək üçün saniyələr sayıram, Cəmaləm ❤️`;
+            ? `Sabah bizim üçün ən xüsusi gündür! Gözlədiyim gün gəldi çatdı`
+            : `İl dönümümüzə ${daysUntilC} gün qaldı! O günü səbrsizliklə gözləyirəm, Hərşeyim🤍`;
         const successC = await sendOneSignalNotification(cdTitle, cdMsg);
         if (successC) await markAnniversaryCountdownSent();
         else console.error("İl dönümü sayacı bildirişi göndərilmədi");
