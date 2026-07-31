@@ -907,20 +907,35 @@
       ".anni-h2{animation:anniHeartBeat 1.2s ease-in-out infinite .2s}",
       ".anni-h3{animation:anniHeartBeat 1.2s ease-in-out infinite .4s}",
       "@keyframes anniHeartBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}",
-      /* ── In-page Notification Banner ── */
-      ".anni-notif-banner{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:18px;",
-      "margin-bottom:20px;background:linear-gradient(135deg,rgba(255,215,0,.16),rgba(255,100,100,.12));",
-      "border:1px solid rgba(255,215,0,.35);color:rgba(255,255,255,.9);font-size:.9rem;line-height:1.5;",
-      "box-shadow:0 6px 24px rgba(255,215,0,.14),inset 0 1px 0 rgba(255,215,0,.15);",
-      "animation:anniNotifIn .5s ease}",
-      "@keyframes anniNotifIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}",
-      ".anni-notif-icon{font-size:1.3rem;flex-shrink:0;animation:anniHeartBeat 1.4s ease-in-out infinite}",
-      ".anni-notif-text strong{color:#FFD700;font-weight:800}",
-      ".anni-notif-close{margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15);",
-      "color:rgba(255,255,255,.75);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:.75rem;",
-      "line-height:1;flex-shrink:0;transition:all .2s;font-family:inherit}",
-      ".anni-notif-close:hover{background:rgba(255,215,0,.25);border-color:rgba(255,215,0,.5);color:#FFD700}",
-      "@media(max-width:480px){.anni-notif-banner{font-size:.82rem;padding:11px 12px}}",
+      /* ── Anniversary Countdown Modal ── */
+      ".anni-modal-overlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;",
+      "padding:20px;background:rgba(0,0,0,.65);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);",
+      "animation:anniModalFade .3s ease}",
+      "@keyframes anniModalFade{from{opacity:0}to{opacity:1}}",
+      ".anni-modal-card{width:100%;max-width:400px;text-align:center;padding:38px 26px 30px;border-radius:30px;",
+      "background:linear-gradient(160deg,#1c000a,#260019 55%,#2b0a32);position:relative;overflow:hidden;",
+      "border:1px solid rgba(255,215,0,.25);box-shadow:0 0 70px rgba(255,215,0,.18),0 28px 90px rgba(0,0,0,.65),",
+      "inset 0 1px 0 rgba(255,215,0,.15);animation:anniModalPop .5s cubic-bezier(.16,1,.3,1)}",
+      ".anni-modal-card::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);",
+      "width:200px;height:200px;background:radial-gradient(circle,rgba(255,215,0,.18),transparent 70%);pointer-events:none}",
+      "@keyframes anniModalPop{from{opacity:0;transform:translateY(28px) scale(.93)}to{opacity:1;transform:translateY(0) scale(1)}}",
+      ".anni-modal-icon{font-size:3rem;margin-bottom:10px;line-height:1;animation:anniHeartBeat 1.3s ease-in-out infinite}",
+      ".anni-modal-badge{display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.16em;color:#FFD700;",
+      "text-transform:uppercase;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);",
+      "border-radius:100px;padding:5px 14px;margin-bottom:16px}",
+      ".anni-modal-title{font-size:1.35rem;font-weight:800;color:rgba(255,255,255,.95);margin:0 0 10px;line-height:1.45}",
+      ".anni-modal-title strong{color:#FFD700;font-size:1.55rem}",
+      ".anni-modal-text{font-size:.9rem;color:rgba(255,255,255,.65);margin:0 0 14px;line-height:1.7}",
+      ".anni-modal-hearts{display:flex;justify-content:center;gap:10px;font-size:1.1rem;margin-bottom:22px}",
+      ".anni-modal-hearts i{animation:anniHeartBeat 1.2s ease-in-out infinite}",
+      ".anni-modal-hearts i:nth-child(2){animation-delay:.2s}.anni-modal-hearts i:nth-child(3){animation-delay:.4s}",
+      ".anni-modal-actions{display:flex;justify-content:center}",
+      ".anni-modal-close{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#FFD700,#FF6B6B);",
+      "border:none;border-radius:100px;padding:13px 38px;color:#000;font-weight:800;font-size:.9rem;cursor:pointer;",
+      "font-family:inherit;box-shadow:0 6px 26px rgba(255,215,0,.35);transition:transform .2s,box-shadow .2s}",
+      ".anni-modal-close:hover{transform:scale(1.05);box-shadow:0 8px 34px rgba(255,215,0,.5)}",
+      ".anni-modal-close:active{transform:scale(.97)}",
+      "@media(max-width:480px){.anni-modal-card{padding:32px 20px 24px}.anni-modal-title{font-size:1.15rem}}",
       /* ── Countdown ── */
       ".anni-display{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:0}",
       ".anni-time-block{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:68px;",
@@ -1230,10 +1245,9 @@
       '</div>';
   }
 
-  /* ─── SƏHİFƏ İÇİ BİLDİRİŞ (son 7 gün) ───────────────────── */
-  function injectMainScreenNotification() {
-    let ph = document.getElementById("main-screen-anni-placeholder");
-    if (!ph) return;
+  /* ─── İL DÖNÜMÜ MODAL BİLDİRİŞİ (son 7 gün, şifrə ilə daxil olandan sonra) ─── */
+  function showAnniversaryCountdownModal() {
+    if (window.anniCountdownModalShown) return;
 
     let now = new Date();
     let yr = now.getFullYear();
@@ -1243,29 +1257,44 @@
 
     if (daysLeft < 1 || daysLeft > 7) return;
     if (localStorage.getItem("anni_notif_dismissed") === now.toDateString()) return;
+    window.anniCountdownModalShown = true;
 
-    let banner = document.createElement("div");
-    banner.className = "anni-notif-banner";
-    banner.id = "anni-notif-banner";
-    banner.innerHTML =
-      '<span class="anni-notif-icon"><i class="fa-solid fa-cake-candles"></i></span>' +
-      '<span class="anni-notif-text">' +
-        (daysLeft === 1
-          ? 'Sabah <strong>İl Dönümümüzdür</strong>! Səni görməyə saniyələr qaldı <i class="fa-solid fa-heart" style="color:#ff4d6d"></i>'
-          : 'İl dönümümüzə <strong>' + daysLeft + ' gün</strong> qaldı! <i class="fa-solid fa-heart" style="color:#ff4d6d"></i>') +
-      '</span>' +
-      '<button class="anni-notif-close" id="anni-notif-close" aria-label="Bağla">✕</button>';
+    let ov = document.createElement("div");
+    ov.className = "anni-modal-overlay";
+    ov.id = "anni-countdown-modal";
+    ov.innerHTML =
+      '<div class="anni-modal-card">' +
+        '<div class="anni-modal-icon">' + (daysLeft === 1 ? '🥂' : '🎉') + '</div>' +
+        '<div class="anni-modal-badge">HƏR İL 3 AVQUST</div>' +
+        '<h3 class="anni-modal-title">' +
+          (daysLeft === 1
+            ? 'Sabah <strong>İl Dönümümüzdür</strong>!'
+            : 'İl Dönümümüzə <strong>' + daysLeft + '</strong> gün qaldı!') +
+        '</h3>' +
+        '<p class="anni-modal-text">Səni görmək üçün saniyələr sayıram, Cəmaləm ❤️</p>' +
+        '<div class="anni-modal-hearts"><i class="fa-solid fa-heart" style="color:#ff4d6d"></i><i class="fa-solid fa-heart" style="color:#ff4d6d"></i><i class="fa-solid fa-heart" style="color:#ff4d6d"></i></div>' +
+        '<div class="anni-modal-actions">' +
+          '<button class="anni-modal-close" id="anni-modal-close"><i class="fa-solid fa-heart"></i> Bağla</button>' +
+        '</div>' +
+      '</div>';
 
-    ph.parentNode.insertBefore(banner, ph);
+    document.body.appendChild(ov);
 
-    document.getElementById("anni-notif-close").addEventListener("click", function () {
+    function dismiss() {
       localStorage.setItem("anni_notif_dismissed", now.toDateString());
-      banner.style.transition = "opacity .4s, transform .4s";
-      banner.style.opacity = "0";
-      banner.style.transform = "translateY(-8px)";
-      setTimeout(function () { banner.remove(); }, 400);
+      ov.style.transition = "opacity .35s ease";
+      ov.style.opacity = "0";
+      setTimeout(function () { ov.remove(); }, 350);
+    }
+
+    document.getElementById("anni-modal-close").addEventListener("click", dismiss);
+    ov.addEventListener("click", function (e) { if (e.target === ov) dismiss(); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && document.getElementById("anni-countdown-modal")) dismiss();
     });
   }
+
+  window.showAnniversaryCountdownModal = showAnniversaryCountdownModal;
 
   /* ─── XATİRƏ SLAYDŞOu ───────────────────────────────────── */
   function initAnniSlideshow() {
@@ -1905,7 +1934,6 @@
     injectStyles();
     injectCountdownWidget();
     injectMainScreenCountdown();
-    injectMainScreenNotification();
     patchDailyMessage();
     setTimeout(initAnniSlideshow, 300);
     setTimeout(initTimeCapsule, 600);

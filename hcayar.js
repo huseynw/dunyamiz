@@ -909,6 +909,9 @@ verifyBtn?.addEventListener("click", async () => {
         document.getElementById("welcome-screen").style.display = "none";
         const mainContent = document.getElementById("main-content");
         mainContent.classList.remove("hidden");
+        if (typeof window.showAnniversaryCountdownModal === "function") {
+          window.showAnniversaryCountdownModal();
+        }
 
         // Animasiyalar
         // setTimeout içində isLocked = false edirik ki, mainContent 'display: block' olduqdan sonra dəyərlər yenilənsin
