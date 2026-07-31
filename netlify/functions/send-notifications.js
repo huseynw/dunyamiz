@@ -203,10 +203,29 @@ exports.handler = async (event) => {
 
     // AZT 13:00 = UTC 09:00 olduğuna görə, cari saat UTC 9-dan böyük bərabər olduqda və bu gün göndərilməyibsə göndər.
     if (lastDate < todayStartUTC && now.getUTCHours() >= 9) {
-      const success = await sendOneSignalNotification(
-        `✨ ${daysTogether}. günümüz!`,
-        `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`,
-      );
+      // ---- İl dönümü yoxlaması (3 Avqust, AZT = UTC+4) ----
+      const bakuNow = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+      const isAnniversary =
+        bakuNow.getUTCMonth() === 7 && bakuNow.getUTCDate() === 3;
+
+      let title, msg;
+      if (isAnniversary) {
+        const years =
+          now.getUTCFullYear() -
+          startDate.getUTCFullYear() -
+          (now.getUTCMonth() < startDate.getUTCMonth() ||
+          (now.getUTCMonth() === startDate.getUTCMonth() &&
+            now.getUTCDate() < startDate.getUTCDate())
+            ? 1
+            : 0);
+        title = `🎉 İl dönümümüz mübarək!`;
+        msg = `${years} il əvvəl bu gün yolumuza birlikdə başladıq və o gündən hər səhərim səninlə mənalanır. ${years} il keçdi, amma ürəyim hələ də sənə ilk günki kimi atır. Bütün il dönümlərimizi, bütün ömrü səninlə keçirməyi arzulayıram. İl dönümümüz mübarək, Cəmaləm, səni sonsuza qədər sevirəm ❤️`;
+      } else {
+        title = `✨ ${daysTogether}. günümüz!`;
+        msg = `Birlikdə olduğumuz ${daysTogether}. gün. Səni hər gün daha çox sevirəm, Cəmaləm 🤍`;
+      }
+
+      const success = await sendOneSignalNotification(title, msg);
       if (success) await markDailyLoveSent();
       else console.error("Günlük mesaj göndərilmədi");
     } else {
