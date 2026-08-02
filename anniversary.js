@@ -592,7 +592,7 @@
       '<div class="anni-candle-section">' +
         '<div class="anni-capsule-header">' +
           '<span class="anni-capsule-badge"><i class="fa-solid fa-candle-holder"></i> ARZU ŞAMI</span>' +
-          '<span style="font-size:.7rem;color:rgba(255,255,255,.4)">Üfür və ya toxun</span>' +
+          '<span style="font-size:.7rem;color:rgba(255,255,255,.4)">Üfürərək söndür</span>' +
         '</div>' +
         '<div class="anni-candle-scene" id="anni-candle-scene">' +
           '<div class="anni-candle-body" id="anni-candle-body">' +
@@ -601,7 +601,7 @@
             '<div class="anni-flame" id="anni-flame"></div>' +
           '</div>' +
           '<div class="anni-candle-smoke" id="anni-candle-smoke"></div>' +
-          '<p class="anni-candle-hint" id="anni-candle-hint">Şamı üfürmək üçün mikrofona üfür və ya şama toxun 🕯️</p>' +
+          '<p class="anni-candle-hint" id="anni-candle-hint">Şamı söndürmək üçün mikrofona üfür 🕯️</p>' +
           '<div class="anni-candle-surprise" id="anni-candle-surprise">' +
             '<div class="anni-candle-hearts">🎉💖✨</div>' +
             '<h3>Arzun Qəbul Oldu! 🎊</h3>' +
@@ -1130,7 +1130,7 @@
       /* ── Virtual Candle ── */
       ".anni-candle-section{background:linear-gradient(135deg,rgba(80,0,30,.4),rgba(30,0,60,.35));",
       "border:1px solid rgba(255,215,0,.15);border-radius:24px;padding:32px 20px;margin-bottom:20px;text-align:center;position:relative;overflow:hidden}",
-      ".anni-candle-scene{position:relative;width:100%;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}",
+      ".anni-candle-scene{position:relative;width:100%;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center}",
       ".anni-candle-body{position:relative;width:60px;height:100px;background:linear-gradient(180deg,#fff5e6,#f5d6b8);",
       "border-radius:8px 8px 4px 4px;box-shadow:0 4px 20px rgba(255,200,150,.3),inset 0 -8px 12px rgba(0,0,0,.1);z-index:2}",
       ".anni-candle-wax{position:absolute;top:-6px;left:50%;transform:translateX(-50%);",
@@ -1508,11 +1508,6 @@
       let smoke = document.getElementById("anni-candle-smoke");
       if (smoke) { smoke.style.display = ""; smoke.classList.remove("active"); }
     }
-
-    scene.addEventListener("click", function (e) {
-      if (e.target.closest(".anni-candle-btn") || e.target.closest(".anni-candle-blow-btn")) return;
-      blowCandle();
-    });
 
     if (reloadBtn) {
       reloadBtn.addEventListener("click", function (e) {
