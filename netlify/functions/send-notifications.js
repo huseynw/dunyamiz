@@ -208,7 +208,7 @@ exports.handler = async (event) => {
       }
     }
 
-    // ---- Günlük sevgi mesajı (AZT 13:00 = UTC 09:00) ----
+    // ---- Günlük sevgi mesajı (adi günlər AZT 13:00, il dönümü günü AZT 00:25) ----
     try {
       const startDate = new Date(START_DATE);
       const daysTogether = Math.floor((now - startDate) / (24 * 60 * 60 * 1000));
@@ -216,21 +216,31 @@ exports.handler = async (event) => {
       const lastDaily = logDataDaily.daily_love?.lastSent || 0;
       const lastDate = new Date(lastDaily);
 
-      // AZT 13:00 = UTC 09:00 olduğuna görə, cari saat UTC 9-dan böyük bərabər olduqda və bu gün göndərilməyibsə göndər.
-      if (lastDate < todayStartUTC && now.getUTCHours() >= 9) {
-        // ---- İl dönümü yoxlaması (3 Avqust, AZT = UTC+4) ----
-        const bakuNow = new Date(now.getTime() + 4 * 60 * 60 * 1000);
-        const isAnniversary =
-          bakuNow.getUTCMonth() === 7 && bakuNow.getUTCDate() === 3;
+      const bakuNow = new Date(now.getTime() + 4 * 60 * 60 * 1000); // AZT = UTC+4
+      const isAnniversary = bakuNow.getUTCMonth() === 7 && bakuNow.getUTCDate() === 3;
+      const bakuMinuteOfDay = bakuNow.getUTCHours() * 60 + bakuNow.getUTCMinutes();
 
+      // İl dönümü günü AZT 00:25-dən, digər günlər AZT 13:00-dan etibarən göndər.
+      const reachedSendTime = isAnniversary
+        ? bakuMinuteOfDay >= 25
+        : bakuMinuteOfDay >= 13 * 60;
+
+      // "Bu gün göndərilibmi" yoxlaması AZT tarixinə görə aparılır.
+      const lastBaku = new Date(lastDate.getTime() + 4 * 60 * 60 * 1000);
+      const sentTodayAZT =
+        lastBaku.getUTCFullYear() === bakuNow.getUTCFullYear() &&
+        lastBaku.getUTCMonth() === bakuNow.getUTCMonth() &&
+        lastBaku.getUTCDate() === bakuNow.getUTCDate();
+
+      if (!sentTodayAZT && reachedSendTime) {
         let title, msg;
         if (isAnniversary) {
           const years =
-            now.getUTCFullYear() -
+            bakuNow.getUTCFullYear() -
             startDate.getUTCFullYear() -
-            (now.getUTCMonth() < startDate.getUTCMonth() ||
-            (now.getUTCMonth() === startDate.getUTCMonth() &&
-              now.getUTCDate() < startDate.getUTCDate())
+            (bakuNow.getUTCMonth() < startDate.getUTCMonth() ||
+            (bakuNow.getUTCMonth() === startDate.getUTCMonth() &&
+              bakuNow.getUTCDate() < startDate.getUTCDate())
               ? 1
               : 0);
           title = `🎉 İl dönümümüz mübarək!`;
@@ -248,11 +258,11 @@ exports.handler = async (event) => {
           console.error("Günlük mesaj göndərilmədi");
         }
       } else {
-        if (lastDate >= todayStartUTC) {
+        if (sentTodayAZT) {
           console.log("Günlük mesaj artıq göndərilib.");
         } else {
           console.log(
-            `Gündəlik mesaj üçün hələ tezdir (Hazırkı UTC saatı: ${now.getUTCHours()}, Hədəf: 9)`,
+            `Gündəlik mesaj üçün hələ tezdir (Hazırkı AZT: ${bakuNow.getUTCHours()}:${String(bakuNow.getUTCMinutes()).padStart(2, "0")})`,
           );
         }
       }

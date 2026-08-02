@@ -455,10 +455,9 @@
     let pc = page.querySelector(".page-content");
     if (!pc) return;
 
-    let nextY = ANNIVERSARY_DATE.getFullYear();
-    let yearsNum = nextY - RELATIONSHIP_START.getFullYear();
-    let yearsOrd = yearsNum + ". İl";
     let completed = getAnniversaryYearsCompleted();
+    let yearsNum = isAnniversaryDay() ? completed : completed + 1;
+    let yearsOrd = yearsNum + ". İl";
 
     pc.innerHTML =
       /* ── HERO ── */
@@ -1211,8 +1210,8 @@
       return; 
     }
 
-    let nextY = ANNIVERSARY_DATE.getFullYear();
-    let yearsNum = nextY - RELATIONSHIP_START.getFullYear();
+    let completed = getAnniversaryYearsCompleted();
+    let yearsNum = isAnniversaryDay() ? completed : completed + 1;
     let yearsOrd = yearsNum + ". İl";
 
     placeholder.innerHTML =
