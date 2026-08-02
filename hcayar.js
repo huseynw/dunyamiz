@@ -2777,12 +2777,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener("click", () => {
-        const modal = document.getElementById("letter-modal");
-        // Sizin letters obyektinizdən məlumatları çəkir
-        document.getElementById("letter-title").textContent =
-          letters[type].title;
-        document.getElementById("letter-text").textContent = letters[type].text;
-        modal.style.display = "flex";
+        window.openLetter(type);
       });
     }
   }
