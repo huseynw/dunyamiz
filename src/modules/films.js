@@ -48,6 +48,7 @@ function formatFilmDate(dateStr) {
   ];
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
+window.formatFilmDate = formatFilmDate;
 
 function updateFilmStats(films) {
   const totalEl = document.getElementById("film-total-count");

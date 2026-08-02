@@ -5844,7 +5844,7 @@ function openCapsuleModal(monthData) {
           <div class="capsule-item-icon"><i class="fas fa-clapperboard"></i></div>
           <div class="capsule-item-info">
             <strong class="capsule-item-title">${item.data.title}</strong>
-            <span class="capsule-item-date"><i class="far fa-clock"></i> ${formatFilmDate(item.data.watchDate || item.data.dateIso)}</span>
+            <span class="capsule-item-date"><i class="far fa-clock"></i> ${typeof formatFilmDate === 'function' ? formatFilmDate(item.data.watchDate || item.data.dateIso) : ''}</span>
             <span class="capsule-film-rating"><i class="fas fa-star"></i> ${item.data.rating || '-'}/10</span>
           </div>
         </div>
