@@ -2,6 +2,7 @@ window.showNote = function (i) {
   try {
     if (!window.currentNotes || !window.currentNotes[i]) return;
     const n = window.currentNotes[i];
+    window.currentViewingNote = n;
 
     document.getElementById("view-note-title").textContent = n.title;
     document.getElementById("view-note-author").textContent =
@@ -22,6 +23,48 @@ window.showNote = function (i) {
   }
 };
 
+window.deleteNote = async function () {
+  const n = window.currentViewingNote;
+  if (!n || !n._fileName) return;
+  const pass = prompt("Notu silmək üçün admin şifrəsini daxil edin:");
+  if (!pass) return;
+  if (!confirm(`"${n.title}" notunu silməyə əminsən?`)) return;
+
+  const btn = document.getElementById("delete-note-btn");
+  const origText = btn.innerHTML;
+  btn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Silinir...";
+  btn.disabled = true;
+  try {
+    const res = await fetch("/.netlify/functions/admin-proxy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "delete_note",
+        password: pass,
+        payload: { path: `notlar/${n._fileName}` },
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
+      alert("Not silindi! 🤍");
+      const viewModal = document.getElementById("view-note-modal");
+      if (viewModal) {
+        viewModal.classList.add("hidden");
+        viewModal.style.display = "none";
+      }
+      try { await loadNotes(); } catch (_) {}
+    } else {
+      alert("Xəta: " + (data.error || "Şifrə yanlış ola bilər."));
+    }
+  } catch (e) {
+    console.error("Not silmə xətası:", e);
+    alert("Sistem xətası baş verdi.");
+  } finally {
+    btn.innerHTML = origText;
+    btn.disabled = false;
+  }
+};
+
 async function loadNotes() {
   const container = document.getElementById("notes-container");
   if (!container) return;
@@ -39,7 +82,9 @@ async function loadNotes() {
 
     for (let f of jsonFiles) {
       const dataRes = await fetch(f.download_url);
-      notesData.push(await dataRes.json());
+      const note = await dataRes.json();
+      note._fileName = f.name;
+      notesData.push(note);
     }
 
     notesData.sort((a, b) => new Date(b.dateIso) - new Date(a.dateIso));
@@ -87,6 +132,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("close-view-note-btn").onclick = () => {
     viewModal.classList.add("hidden");
     viewModal.style.display = "none";
+  };
+  document.getElementById("delete-note-btn").onclick = () => {
+    window.deleteNote();
   };
   document.getElementById("view-note-modal")?.addEventListener("click", (e) => {
     if (e.target === viewModal) {

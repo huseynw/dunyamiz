@@ -101,8 +101,12 @@ function buildErrorResponse(statusCode, error, extra = {}) {
     };
 }
 
+function encodeGithubPath(path = '') {
+    return String(path).split('/').filter(Boolean).map(encodeURIComponent).join('/');
+}
+
 async function getExistingFileSha({ repoOwner, repoName, token, path }) {
-    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
+    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeGithubPath(path)}`;
     const response = await fetch(url, {
         headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github+json" }
     });
@@ -113,7 +117,7 @@ async function getExistingFileSha({ repoOwner, repoName, token, path }) {
 }
 
 async function putGitHubFile({ repoOwner, repoName, token, path, content, message }) {
-    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
+    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeGithubPath(path)}`;
     const existingSha = await getExistingFileSha({ repoOwner, repoName, token, path });
     const response = await fetch(url, {
         method: 'PUT',
@@ -194,6 +198,67 @@ function createPresignedR2PutUrl({ key, expiresIn = 900 }) {
     const finalQuery = `${canonicalQuery}&X-Amz-Signature=${signature}`;
     return { uploadUrl: `https://${cfg.host}${canonicalUri}?${finalQuery}`, publicUrl: `${cfg.publicBaseUrl}/${encodeKeyPath(key)}`, key, bucket: cfg.bucket, publicBaseUrl: cfg.publicBaseUrl, expiresIn };
 }
+async function deleteGitHubFile({ repoOwner, repoName, token, path, message }) {
+    const sha = await getExistingFileSha({ repoOwner, repoName, token, path });
+    if (!sha) return { skipped: true, path };
+    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeGithubPath(path)}`;
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: { "Authorization": `token ${token}`, "Content-Type": "application/json", "Accept": "application/vnd.github+json" },
+        body: JSON.stringify({ message, sha })
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(data?.message || `GitHub silmə xətası: ${path}`);
+    return data;
+}
+
+async function getGitHubFileContent({ repoOwner, repoName, token, path }) {
+    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeGithubPath(path)}`;
+    const response = await fetch(url, {
+        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github+json" }
+    });
+    if (response.status === 404) return null;
+    const data = await response.json();
+    if (!response.ok) throw new Error(data?.message || `GitHub faylı oxunmadı: ${path}`);
+    return data;
+}
+
+async function deleteR2Object({ key }) {
+    if (!key) return { skipped: true, key };
+    const cfg = getR2Config();
+    const emptyHash = sha256Hex(Buffer.alloc(0));
+    const { amzDate, shortDate } = getAmzDates();
+    const canonicalUri = `/${cfg.bucket}/${encodeKeyPath(key)}`;
+    const canonicalHeaders = [`host:${cfg.host}`, `x-amz-content-sha256:${emptyHash}`, `x-amz-date:${amzDate}`].join('\n') + '\n';
+    const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
+    const canonicalRequest = ['DELETE', canonicalUri, '', canonicalHeaders, signedHeaders, emptyHash].join('\n');
+    const credentialScope = `${shortDate}/${cfg.region}/${cfg.service}/aws4_request`;
+    const stringToSign = ['AWS4-HMAC-SHA256', amzDate, credentialScope, sha256Hex(canonicalRequest)].join('\n');
+    const kDate = hmac(`AWS4${cfg.secretAccessKey}`, shortDate);
+    const kRegion = hmac(kDate, cfg.region);
+    const kService = hmac(kRegion, cfg.service);
+    const kSigning = hmac(kService, 'aws4_request');
+    const signature = hmac(kSigning, stringToSign, 'hex');
+    const authorization = `AWS4-HMAC-SHA256 Credential=${cfg.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+    const response = await fetch(`https://${cfg.host}${canonicalUri}`, {
+        method: 'DELETE',
+        headers: { 'x-amz-content-sha256': emptyHash, 'x-amz-date': amzDate, 'Authorization': authorization }
+    });
+    if (!response.ok && response.status !== 404) {
+        const raw = await response.text();
+        throw new Error(`R2 silmə xətası (${response.status}): ${raw || response.statusText}`);
+    }
+    return { key, deleted: true };
+}
+
+function resolveRepoMediaPath(value) {
+    const v = String(value || '').trim();
+    if (!v) return null;
+    if (/^https?:\/\//i.test(v)) return null;
+    const normalized = v.replace(/^\/+/, '');
+    return normalized.startsWith('musiqiler/') ? normalized : `musiqiler/${normalized}`;
+}
+
 function normalizeMeetingDateTime(value) {
     if (!value) return null;
     let normalized = String(value).trim().replace(' ', 'T');
@@ -210,7 +275,7 @@ exports.handler = async (event) => {
         const GH_TOKEN = process.env.GH_TOKEN;
         const repoOwner = "huseynw";
         const repoName = "dunyamiz";
-        const githubNeededTypes = new Set(["upload_image", "upload_note", "upload_film", "upload_music_json", "upload_music", "upload_music_r2", "prepare_r2_music_upload", "finalize_r2_music_upload", "migrate_music_to_r2"]);
+        const githubNeededTypes = new Set(["upload_image", "upload_note", "upload_film", "upload_music_json", "upload_music", "upload_music_r2", "prepare_r2_music_upload", "finalize_r2_music_upload", "migrate_music_to_r2", "delete_film", "delete_note", "delete_image", "delete_music"]);
 
         // Rate limiting: password attempts stricter, general ops more lenient
         const isVerifyType = type === "verify_site";
@@ -283,6 +348,56 @@ exports.handler = async (event) => {
             } catch(e) {}
             await notifyAdminAction('upload_film', { filmTitle });
             return { statusCode: 200, body: JSON.stringify({ success: true, details: result }) };
+        }
+
+        // ================= DELETE FILM / NOTE / IMAGE =================
+        if (type === "delete_film" || type === "delete_note" || type === "delete_image") {
+            const allowedPrefix = type === "delete_film" ? "filmler/" : type === "delete_note" ? "notlar/" : "gallery/";
+            const rawPath = String(payload?.path || "").replace(/^\/+/, "");
+            if (!rawPath || !rawPath.startsWith(allowedPrefix) || rawPath.includes("..")) {
+                return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "Yanlış fayl yolu." }) };
+            }
+            const label = type === "delete_film" ? "Film" : type === "delete_note" ? "Not" : "Şəkil";
+            const result = await deleteGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: rawPath, message: `Admin: ${label} silindi` });
+            return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: true, details: result }) };
+        }
+
+        // ================= DELETE MUSIC (JSON + media) =================
+        if (type === "delete_music") {
+            const rawPath = String(payload?.path || "").replace(/^\/+/, "");
+            if (!rawPath || !rawPath.startsWith("musiqiler/") || !rawPath.endsWith(".json") || rawPath.includes("..")) {
+                return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: false, error: "Yanlış musiqi fayl yolu." }) };
+            }
+            let meta = null;
+            try {
+                const fileData = await getGitHubFileContent({ repoOwner, repoName, token: GH_TOKEN, path: rawPath });
+                if (fileData && fileData.content) {
+                    const decoded = Buffer.from(fileData.content, 'base64').toString('utf8');
+                    try { meta = JSON.parse(decoded); } catch (_) {}
+                }
+            } catch (_) {}
+
+            const deleted = { json: null, media: [], mediaErrors: [] };
+            deleted.json = await deleteGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: rawPath, message: "Admin: Mahnı silindi" });
+
+            const safeMediaDelete = async (fn, label) => {
+                try { deleted.media.push(await fn()); }
+                catch (e) { deleted.mediaErrors.push({ label, error: e?.message || String(e) }); }
+            };
+
+            if (payload?.removeMedia !== false && meta) {
+                if (meta.storage && meta.storage.provider === 'r2') {
+                    if (meta.storage.audioKey) await safeMediaDelete(() => deleteR2Object({ key: meta.storage.audioKey }), 'r2-audio');
+                    if (meta.storage.coverKey) await safeMediaDelete(() => deleteR2Object({ key: meta.storage.coverKey }), 'r2-cover');
+                } else {
+                    const audioPath = resolveRepoMediaPath(meta.file || meta.audio);
+                    const coverPath = resolveRepoMediaPath(meta.cover);
+                    if (audioPath) await safeMediaDelete(() => deleteGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: audioPath, message: "Admin: Mahnı audio faylı silindi" }), 'github-audio');
+                    if (coverPath) await safeMediaDelete(() => deleteGitHubFile({ repoOwner, repoName, token: GH_TOKEN, path: coverPath, message: "Admin: Mahnı cover faylı silindi" }), 'github-cover');
+                }
+            }
+
+            return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: true, details: deleted }) };
         }
 
         if (type === "upload_music_json") {

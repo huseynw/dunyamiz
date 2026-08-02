@@ -1157,9 +1157,18 @@
           <p id="image-date">
             <i class="far fa-calendar-alt"></i> Tarix alınır...
           </p>
-          <button id="download-btn" class="download-btn">
-            <i class="fas fa-download"></i> Şəkli Yüklə
-          </button>
+          <div class="lightbox-actions">
+            <button id="download-btn" class="download-btn">
+              <i class="fas fa-download"></i> Şəkli Yüklə
+            </button>
+            <button
+              id="delete-image-btn"
+              class="delete-btn delete-btn--danger"
+              type="button"
+            >
+              <i class="fas fa-trash"></i> Şəkli Sil
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1216,9 +1225,18 @@
         <p id="view-note-author" class="note-view-author">Hüseyn tərəfindən</p>
         <p id="view-note-text" class="note-view-text">Məzmun...</p>
         <div class="note-view-footer">
-          <span id="view-note-date" class="note-view-date"
-            ><i class="far fa-clock"></i> Tarix</span
-          >
+          <div class="note-view-footer-row">
+            <span id="view-note-date" class="note-view-date"
+              ><i class="far fa-clock"></i> Tarix</span
+            >
+            <button
+              id="delete-note-btn"
+              class="delete-btn delete-btn--danger"
+              type="button"
+            >
+              <i class="fas fa-trash"></i> Notu Sil
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1346,10 +1364,19 @@
         <p id="view-film-addedby" class="note-view-author"></p>
         <p id="view-film-review" class="note-view-text"></p>
         <div class="note-view-footer">
-          <span id="view-film-date" class="note-view-date"
-            ><i class="far fa-clock"></i> Tarix</span
-          >
-          <span id="view-film-score" class="film-view-score"></span>
+          <div class="note-view-footer-row">
+            <span id="view-film-date" class="note-view-date"
+              ><i class="far fa-clock"></i> Tarix</span
+            >
+            <span id="view-film-score" class="film-view-score"></span>
+            <button
+              id="delete-film-btn"
+              class="delete-btn delete-btn--danger"
+              type="button"
+            >
+              <i class="fas fa-trash"></i> Filmi Sil
+            </button>
+          </div>
         </div>
       </div>
     </div>

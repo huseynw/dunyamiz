@@ -3299,6 +3299,41 @@ header {
   font-size: 0.95rem;
 }
 
+.yt-track-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition: 0.25s ease;
+  font-size: 0.8rem;
+  opacity: 0;
+  transform: translateX(4px);
+}
+
+.yt-track-item:hover .yt-track-delete,
+.yt-track-delete:focus-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.yt-track-delete:hover {
+  background: #c0392b;
+  color: #fff;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .yt-track-delete {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .music-loading-state,
 .music-empty-state {
   display: flex;
@@ -8394,6 +8429,79 @@ body.dark-ui .gallery-timeline .photo-frame {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+}
+
+/* Silmə düymələri */
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: 0.28s ease;
+  border: 1px solid transparent;
+  background: rgba(0, 0, 0, 0.06);
+  color: #555;
+}
+
+.delete-btn:hover {
+  transform: translateY(-2px);
+}
+
+.delete-btn--danger {
+  background: rgba(192, 57, 43, 0.12);
+  color: #c0392b;
+  border-color: rgba(192, 57, 43, 0.25);
+}
+
+.delete-btn--danger:hover {
+  background: #c0392b;
+  color: #fff;
+  border-color: #c0392b;
+  box-shadow: 0 4px 16px rgba(192, 57, 43, 0.35);
+}
+
+.delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.note-view-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lightbox-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+body.dark-ui .delete-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+body.dark-ui .delete-btn--danger {
+  background: rgba(192, 57, 43, 0.18);
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.3);
+}
+
+body.dark-ui .delete-btn--danger:hover {
+  background: #c0392b;
+  color: #fff;
+  border-color: #c0392b;
 }
 
 .hidden {

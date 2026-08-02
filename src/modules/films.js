@@ -136,6 +136,7 @@ function renderFilms(films) {
 window.showFilm = function (f) {
   const modal = document.getElementById("view-film-modal");
   if (!modal) return;
+  window.currentViewingFilm = f;
   const rating = Number(f.rating) || 0;
   document.getElementById("view-film-title").textContent = f.title || "";
   document.getElementById("view-film-genre").textContent = f.genre || "Film";
@@ -156,6 +157,48 @@ window.showFilm = function (f) {
   modal.style.display = "flex";
 };
 
+window.deleteFilm = async function () {
+  const f = window.currentViewingFilm;
+  if (!f || !f._fileName) return;
+  const pass = prompt("Filmi silmək üçün admin şifrəsini daxil edin:");
+  if (!pass) return;
+  if (!confirm(`"${f.title}" filmini silməyə əminsən?`)) return;
+
+  const btn = document.getElementById("delete-film-btn");
+  const origText = btn.innerHTML;
+  btn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Silinir...";
+  btn.disabled = true;
+  try {
+    const res = await fetch("/.netlify/functions/admin-proxy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "delete_film",
+        password: pass,
+        payload: { path: `filmler/${f._fileName}` },
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
+      showFilmToast("🎬 Film silindi!");
+      const viewModal = document.getElementById("view-film-modal");
+      if (viewModal) {
+        viewModal.classList.add("hidden");
+        viewModal.style.display = "none";
+      }
+      try { await loadFilms(); } catch (_) {}
+    } else {
+      alert("Xəta: " + (data.error || "Şifrə yanlış ola bilər."));
+    }
+  } catch (e) {
+    console.error("Film silmə xətası:", e);
+    alert("Sistem xətası baş verdi. İnternet bağlantınızı yoxlayın.");
+  } finally {
+    btn.innerHTML = origText;
+    btn.disabled = false;
+  }
+};
+
 async function loadFilms() {
   const container = document.getElementById("films-container");
   if (!container) return;
@@ -171,7 +214,9 @@ async function loadFilms() {
     for (const f of jsonFiles) {
       try {
         const dataRes = await fetch(f.download_url);
-        filmsData.push(await dataRes.json());
+        const film = await dataRes.json();
+        film._fileName = f.name;
+        filmsData.push(film);
       } catch (e) {}
     }
     filmsData.sort(
@@ -249,6 +294,10 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("close-view-film-btn")?.addEventListener("click", () => {
     viewModal.classList.add("hidden");
     viewModal.style.display = "none";
+  });
+
+  document.getElementById("delete-film-btn")?.addEventListener("click", () => {
+    window.deleteFilm();
   });
 
   const starSelector = document.getElementById("film-star-selector");

@@ -1255,6 +1255,49 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!imgData) return;
     downloadImageFile(imgData.download_url, imgData.name);
   });
+
+  // Silmək
+  document.getElementById("delete-image-btn")?.addEventListener("click", async () => {
+    const imgData = window.allImages[currentImgIdx];
+    if (!imgData || !imgData.name) return;
+    const pass = prompt("Şəkli silmək üçün admin şifrəsini daxil edin:");
+    if (!pass) return;
+    if (!confirm("Bu şəkli silməyə əminsən?")) return;
+
+    const btn = document.getElementById("delete-image-btn");
+    const origText = btn.innerHTML;
+    btn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Silinir...";
+    btn.disabled = true;
+    try {
+      const res = await fetch("/.netlify/functions/admin-proxy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "delete_image",
+          password: pass,
+          payload: { path: `gallery/${imgData.name}` },
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        const lb = document.getElementById("lightbox");
+        if (lb) {
+          lb.style.display = "none";
+          lb.classList.remove("active");
+        }
+        try { localStorage.removeItem("dunyamiz-cache:gallery-list"); } catch (_) {}
+        fetchImages();
+      } else {
+        alert("Xəta: " + (data.error || "Şifrə yanlış ola bilər."));
+      }
+    } catch (e) {
+      console.error("Şəkil silmə xətası:", e);
+      alert("Sistem xətası baş verdi.");
+    } finally {
+      btn.innerHTML = origText;
+      btn.disabled = false;
+    }
+  });
 });
 document.addEventListener("keydown", (e) => {
   const lb = document.getElementById("lightbox");
@@ -3424,6 +3467,9 @@ function renderMusicPlaylist() {
                 </div>
                 <div class="yt-track-meta">
                     <i class="fas ${isActive ? "fa-volume-high" : "fa-play"}"></i>
+                    <button class="yt-track-delete" type="button" data-music-delete="${index}" aria-label="Mahnını sil" title="Mahnını sil">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             </div>
         `;
@@ -3443,7 +3489,64 @@ function renderMusicPlaylist() {
       openMusicTrack(index);
     });
   });
+
+  playlist.querySelectorAll(".yt-track-delete").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      event.preventDefault();
+      const index = Number(btn.dataset.musicDelete);
+      const track = window.musicLibrary[index];
+      if (track) window.deleteMusicTrack(track);
+    });
+  });
 }
+
+window.deleteMusicTrack = async function (track) {
+  if (!track || !track.jsonName) return;
+  const pass = prompt("Mahnını silmək üçün admin şifrəsini daxil edin:");
+  if (!pass) return;
+  if (!confirm(`"${track.title}" - ${track.artist} mahnısını silməyə əminsən?\nMedia faylları (MP3/cover) da silinəcək.`)) return;
+
+  try {
+    const res = await fetch("/.netlify/functions/admin-proxy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "delete_music",
+        password: pass,
+        payload: { path: `musiqiler/${track.jsonName}`, removeMedia: true },
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
+      if (window.currentMusicIndex >= 0 && window.musicLibrary[window.currentMusicIndex] === track) {
+        closeActivePlayer({ resetTrack: true });
+      }
+      try {
+        localStorage.removeItem("dunyamiz-cache:music-json-list");
+        localStorage.removeItem("dunyamiz-cache:music-file-list");
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("dunyamiz-cache:music-meta:")) {
+            localStorage.removeItem(key);
+            i--;
+          }
+        }
+      } catch (_) {}
+      window.musicLibrary = window.musicLibrary.filter((t) => t !== track);
+      renderMusicPlaylist();
+      syncAdminOverview();
+      try { window.musicLibrary = await fetchMusicJsonList(); } catch (_) {}
+      renderMusicPlaylist();
+      syncAdminOverview();
+    } else {
+      alert("Xəta: " + (data.error || "Şifrə yanlış ola bilər."));
+    }
+  } catch (e) {
+    console.error("Mahnı silmə xətası:", e);
+    alert("Sistem xətası baş verdi. İnternet bağlantınızı yoxlayın.");
+  }
+};
 function renderPlainLyrics(text = "") {
   const { lyricsContainer } = getMusicDom();
   if (!lyricsContainer) return;
