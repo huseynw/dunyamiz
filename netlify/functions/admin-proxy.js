@@ -25,8 +25,8 @@ const ONE_SIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY;
 // Sizin cihaz ID-ləriniz (OneSignal-dən götürdüyünüz)
 const SUBSCRIPTION_IDS = [
     '5f14228d-24e3-4bd8-b219-1a317bce7a88',
+    '4c97553b-afe6-4c61-ba7e-37cc2e9e3e14',
     '32643469-8969-44f7-8ec7-222f2913ca44',
-    'e6a596c3-67ec-4432-8739-ec5aeb513e71'
 ];
 
 async function sendOneSignalNotification(title, message, subscriptionIds = null) {
