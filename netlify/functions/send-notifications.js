@@ -15,7 +15,7 @@ const CRON_SECRET = process.env.CRON_SECRET;
 // ========== SUBSCRIPTION ID-LƏR (admin-proxy ilə eyni) ==========
 const SUBSCRIPTION_IDS = [
   "5f14228d-24e3-4bd8-b219-1a317bce7a88",
-  "32643469-8969-44f7-8ec7-222f2913ca44",
+  "4c97553b-afe6-4c61-ba7e-37cc2e9e3e14",
   "e6a596c3-67ec-4432-8739-ec5aeb513e71"
 ];
 
