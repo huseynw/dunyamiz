@@ -16,8 +16,7 @@ const CRON_SECRET = process.env.CRON_SECRET;
 const SUBSCRIPTION_IDS = [
   "5f14228d-24e3-4bd8-b219-1a317bce7a88",
   "32643469-8969-44f7-8ec7-222f2913ca44",
-  "ad9633d9-6213-4618-96a6-258dc59ead61",
-  "cd25bdd9-6622-463c-84d5-5974bdcb8a25",
+  "e6a596c3-67ec-4432-8739-ec5aeb513e71"
 ];
 
 const REMINDER_HOURS = [3, 2, 1];
