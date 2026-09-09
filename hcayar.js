@@ -632,6 +632,9 @@ function initSPANavigation() {
 
       if (!targetElement || targetElement.classList.contains("active")) return;
 
+      const pageTitle = pageLabelMap[targetPage] || targetPage;
+      addActivity(`🧭 ${pageTitle} səhifəsinə keçdi`);
+
       // Update active states
       pillItems.forEach((nav) => nav.classList.remove("active"));
       item.classList.add("active");
@@ -870,6 +873,7 @@ const passInput = document.getElementById("pass-input");
 const errorMsg = document.getElementById("error-msg");
 
 enterBtn?.addEventListener("click", () => {
+  addActivity("🔑 Giriş düyməsinə basdı");
   enterBtn.classList.add("hidden-by-js");
   enterBtn.style.display = "none";
   if (passPanel) {
@@ -903,6 +907,7 @@ verifyBtn?.addEventListener("click", async () => {
     const data = await res.json();
 
     if (data.success) {
+      addActivity("✅ Şifrə daxil edib sayta girdi");
       await loadSiteSettings(true);
       document.getElementById("welcome-screen").style.opacity = "0";
       setTimeout(() => {
@@ -945,6 +950,7 @@ verifyBtn?.addEventListener("click", async () => {
       throw new Error();
     }
   } catch (err) {
+    addActivity("❌ Səhv şifrə daxil etdi");
     errorMsg.style.display = "block";
     passInput.value = "";
     passInput.animate(
@@ -4915,6 +4921,7 @@ function formatAdminDateTimeLocal(dateLike) {
 function openAdminPanel() {
   const adminPanel = document.getElementById("admin-panel");
   if (!adminPanel) return;
+  addActivity("⚙️ Gizli Admin panelini açdı");
   adminPanel.classList.remove("hidden");
   adminPanel.style.display = "flex";
   syncAdminOverview();
@@ -5128,8 +5135,120 @@ let exitNotificationSent = false;
 
 const AppState = {
   visitorIp: "Naməlum IP",
+  telegramMessageId: null,
+  activityLog: [],
+  editQueue: Promise.resolve(),
+  deviceInfoCache: null,
 };
 
+// Bakı vaxtını formatla (AZT = UTC+4)
+function getBakuTime() {
+  return new Date().toLocaleString("az-AZ", {
+    timeZone: "Asia/Baku",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+}
+
+function getBakuDateTime() {
+  return new Date().toLocaleString("az-AZ", {
+    timeZone: "Asia/Baku",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+}
+
+// Tam Telegram mesaj mətnini yarat
+function buildTelegramText() {
+  const ip = AppState.visitorIp || "Naməlum IP";
+  const info = AppState.deviceInfoCache || getDeviceInfo();
+  const isActive = !exitNotificationSent;
+
+  let text = "";
+  text += isActive ? "🟢 Ziyarətçi Aktiv" : "🔴 Ziyarətçi Çıxdı";
+  text += ` — ${ip}\n`;
+  text += `${info}\n`;
+  text += `\n━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  text += `📋 Hərəkətlər:\n`;
+  text += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
+
+  for (const entry of AppState.activityLog) {
+    text += `⏰ ${entry.time} — ${entry.text}\n`;
+  }
+
+  return text;
+}
+
+// Telegram-a yeni mesaj göndər (ilk dəfə)
+async function sendTelegramSession() {
+  const text = buildTelegramText();
+  try {
+    const res = await fetch("/.netlify/functions/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, action: "send" }),
+    });
+    const data = await res.json();
+    if (data.success && data.message_id) {
+      AppState.telegramMessageId = data.message_id;
+    } else {
+      console.error("Telegram session göndərilmədi:", data.error || data);
+    }
+  } catch (e) {
+    console.error("Telegram session xətası:", e);
+  }
+}
+
+// Mövcud mesajı düzənlə
+async function editTelegramSession(keepalive = false) {
+  if (!AppState.telegramMessageId) return;
+  const text = buildTelegramText();
+  try {
+    const res = await fetch("/.netlify/functions/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text,
+        action: "edit",
+        message_id: AppState.telegramMessageId,
+      }),
+      keepalive,
+    });
+    // keepalive ilə response oxumaq mümkün olmaya bilər
+    if (!keepalive) {
+      const data = await res.json();
+      if (!data.success) {
+        console.error("Telegram edit uğursuz:", data.error || data);
+      }
+    }
+  } catch (e) {
+    if (!keepalive) {
+      console.error("Telegram edit xətası:", e);
+    }
+  }
+}
+
+// Yeni hərəkət əlavə et və mesajı yenilə
+function addActivity(text, keepalive = false) {
+  const time = getBakuTime();
+  AppState.activityLog.push({ time, text });
+
+  // Edit queue — ardıcıl edit sorğuları üçün
+  AppState.editQueue = AppState.editQueue.then(() => {
+    if (AppState.telegramMessageId) {
+      return editTelegramSession(keepalive);
+    }
+  }).catch(() => {});
+}
+
+// Köhnə sendTelegramMessage funksiyasını saxla (admin panel bildirişi üçün lazım ola bilər)
 async function sendTelegramMessage(text, keepalive = false) {
   const temizMetn = String(text || "").trim();
 
@@ -5200,28 +5319,31 @@ function getDeviceInfo() {
   else if (/Safari/i.test(ua)) browser = "Safari";
   else if (/Firefox/i.test(ua)) browser = "Firefox";
 
-  return `📱 Cihaz: ${device}
-🏷 Marka: ${brand}
-🌐 Brauzer: ${browser}
-💻 Platforma: ${platform || "Naməlum"}
-🗣 Dil: ${language}`;
+  const result = `📱 Cihaz: ${device} | 🏷 ${brand} | 🌐 ${browser}\n🗣 Dil: ${language}`;
+  AppState.deviceInfoCache = result;
+  return result;
 }
 async function initAnalytics() {
+  // Cihaz məlumatlarını cache-lə
+  getDeviceInfo();
+
   try {
     const response = await fetch("https://api.ipify.org?format=json");
     const data = await response.json();
     AppState.visitorIp = data.ip || "Naməlum IP";
-
-    await sendTelegramMessage(
-      `🟢 Sayta giriş oldu!
-        📍 IP: ${AppState.visitorIp}
-        ${getDeviceInfo()}
-        ⏰ Vaxt: ${new Date().toLocaleString("az-AZ")}`,
-    );
   } catch (e) {
     console.error("IP alma xətası:", e);
     AppState.visitorIp = "Naməlum IP";
   }
+
+  // İlk hərəkət — sayta giriş
+  AppState.activityLog.push({
+    time: getBakuTime(),
+    text: "🟢 Sayta daxil oldu",
+  });
+
+  // İlk mesajı göndər
+  await sendTelegramSession();
 
   window.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
@@ -5244,15 +5366,10 @@ function sendExitNotification() {
 
   let timeString = "";
   if (hours > 0) timeString += `${hours} saat `;
-  if (minutes > 0) timeString += `${minutes} dəqiqə `;
-  timeString += `${seconds} saniyə`;
+  if (minutes > 0) timeString += `${minutes} dəq `;
+  timeString += `${seconds} san`;
 
-  const ip = AppState.visitorIp || "Naməlum IP";
-
-  sendTelegramMessage(
-    `🔴 Saytdan çıxış!\n📍 IP: ${ip}\n⏳ Keçirilən vaxt: ${timeString}`,
-    true,
-  );
+  addActivity(`🔴 Saytdan çıxdı (${timeString})`, true);
 }
 function initPlayerSwipeToClose() {
   return;

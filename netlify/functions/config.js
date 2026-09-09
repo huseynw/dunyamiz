@@ -1,5 +1,5 @@
 const rateLimitMap = new Map();
-function checkRateLimit(ip, maxRequests = 10, windowMs = 60000) {
+function checkRateLimit(ip, maxRequests = 30, windowMs = 60000) {
   const now = Date.now();
   const key = `${ip}`;
   const entry = rateLimitMap.get(key);
@@ -17,7 +17,7 @@ function checkRateLimit(ip, maxRequests = 10, windowMs = 60000) {
 exports.handler = async (event) => {
   try {
     const clientIp = event.headers['client-ip'] || event.headers['x-forwarded-for']?.split(',')[0]?.trim() || event.headers['x-nf-client-connection-ip'] || 'unknown';
-    const rateLimit = checkRateLimit(clientIp, 10, 60000);
+    const rateLimit = checkRateLimit(clientIp, 30, 60000);
     if (!rateLimit.allowed) {
       return {
         statusCode: 429,
@@ -25,7 +25,8 @@ exports.handler = async (event) => {
         body: JSON.stringify({ success: false, error: "Çox sayda sorğu.", retryAfter: rateLimit.retryAfter })
       };
     }
-    const { text } = JSON.parse(event.body || "{}");
+
+    const { text, action, message_id } = JSON.parse(event.body || "{}");
     const temizMetn = String(text || "").trim();
 
     if (!temizMetn) {
@@ -41,6 +42,31 @@ exports.handler = async (event) => {
     const bot = process.env.TOKEN;
     const silgi = process.env.ID;
 
+    // Edit mövcud mesajı
+    if (action === "edit" && message_id) {
+      const tgRes = await fetch(`https://api.telegram.org/bot${bot}/editMessageText`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: silgi,
+          message_id: message_id,
+          text: temizMetn
+        })
+      });
+
+      const tgData = await tgRes.json();
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          success: tgData.ok,
+          message_id: tgData.result?.message_id || message_id,
+          tgData
+        })
+      };
+    }
+
+    // Yeni mesaj göndər (default)
     const tgRes = await fetch(`https://api.telegram.org/bot${bot}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -56,6 +82,7 @@ exports.handler = async (event) => {
       statusCode: 200,
       body: JSON.stringify({
         success: tgData.ok,
+        message_id: tgData.result?.message_id || null,
         tgData
       })
     };
