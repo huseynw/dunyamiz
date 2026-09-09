@@ -4190,7 +4190,7 @@ async function openMusicTrack(index, options = {}) {
   const { pushHistory = true } = options;
   if (!track || !dom.audio) return;
   if (typeof addActivity === "function") {
-    addActivity(`🎵 Musiqi dinləyir: ${track.artist} - ${track.name}`);
+    addActivity(`🎵 Musiqi dinləyir: ${track.artist} - ${track.title}`);
   }
 
   const wasExpanded = dom.activePlayer?.classList.contains("expanded") || false;
@@ -5250,6 +5250,8 @@ function addActivity(text, keepalive = false) {
     }
   }).catch(() => {});
 }
+// Modullardan (letters.js, notes.js, films.js) istifadə üçün qlobal et
+window.addActivity = addActivity;
 
 // Köhnə sendTelegramMessage funksiyasını saxla (admin panel bildirişi üçün lazım ola bilər)
 async function sendTelegramMessage(text, keepalive = false) {

@@ -17,8 +17,8 @@ window.showNote = function (i) {
       noteModal.classList.remove("hidden");
       noteModal.style.display = "flex";
     }
-    if (typeof addActivity === "function") {
-      addActivity(`📝 Not oxuyur: ${n.title}`);
+    if (typeof window.addActivity === "function") {
+      window.addActivity(`📝 Not oxuyur: ${n.title}`);
     }
   } catch (err) {
     console.error("Not açılarkən xəta baş verdi:", err);
