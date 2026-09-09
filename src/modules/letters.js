@@ -23,6 +23,9 @@ window.openLetter = function (type) {
   document.getElementById("letter-title").textContent = letters[type].title;
   document.getElementById("letter-text").textContent = letters[type].text;
   modal.style.display = "flex";
+  if (typeof addActivity === "function") {
+    addActivity(`💌 Məktub oxuyur: ${letters[type].title}`);
+  }
 };
 
 window.closeLetter = function () {

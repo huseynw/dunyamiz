@@ -156,6 +156,9 @@ window.showFilm = function (f) {
   document.getElementById("view-film-rating-stars").innerHTML = buildStarsHtml(rating, "big");
   modal.classList.remove("hidden");
   modal.style.display = "flex";
+  if (typeof addActivity === "function") {
+    addActivity(`🎬 Filmə baxır: ${f.title}`);
+  }
 };
 
 window.deleteFilm = async function () {

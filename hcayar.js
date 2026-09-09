@@ -4189,6 +4189,9 @@ async function openMusicTrack(index, options = {}) {
   const dom = getMusicDom();
   const { pushHistory = true } = options;
   if (!track || !dom.audio) return;
+  if (typeof addActivity === "function") {
+    addActivity(`🎵 Musiqi dinləyir: ${track.artist} - ${track.name}`);
+  }
 
   const wasExpanded = dom.activePlayer?.classList.contains("expanded") || false;
   const previousTab =
