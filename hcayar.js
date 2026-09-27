@@ -830,7 +830,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   initSPANavigation();
   initWelcomeAnimations();
   initRevealAnimations();
-  initIOSVolumeFix();
+  
+  const unlockAudioOnGesture = () => {
+    initIOSVolumeFix();
+    resumeAudioContextSafely();
+    window.removeEventListener("pointerdown", unlockAudioOnGesture);
+    window.removeEventListener("keydown", unlockAudioOnGesture);
+  };
+  window.addEventListener("pointerdown", unlockAudioOnGesture, { once: true, passive: true });
+  window.addEventListener("keydown", unlockAudioOnGesture, { once: true, passive: true });
 
   const volumeSlider = document.getElementById("volume-slider");
   const volumeValue = document.getElementById("volume-value");
