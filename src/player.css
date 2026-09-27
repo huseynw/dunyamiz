@@ -540,6 +540,24 @@ body.player-expanded .yt-active-player,
 .yt-player-kicker {
   display: none !important;
 }
+#yt-lyrics-panel,
+.yt-lyrics-panel,
+#yt-up-next-panel,
+.yt-up-next-panel,
+#yt-lyrics-panel-wrap,
+#yt-up-next-panel-wrap,
+.yt-player-tab-panel,
+.yt-player-tab-panels,
+.yt-player-right-col {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
 
 .yt-lyrics-container {
   overflow-y: auto !important;
@@ -562,6 +580,9 @@ body.player-expanded .yt-active-player,
   ) !important;
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .yt-lyrics-container::-webkit-scrollbar {
@@ -575,9 +596,11 @@ body.player-expanded .yt-active-player,
   border-radius: 16px !important;
   font-family: var(--blyrics-font-family) !important;
   font-size: var(--blyrics-font-size-desktop) !important;
-  font-weight: var(--blyrics-font-weight) !important;
+  font-weight: 600 !important;
   line-height: var(--blyrics-line-height) !important;
   letter-spacing: -0.02em !important;
+  color: rgba(255, 255, 255, 0.38) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.38) !important;
   background: transparent !important;
   background-color: transparent !important;
   box-shadow: none !important;
@@ -585,12 +608,15 @@ body.player-expanded .yt-active-player,
   outline: none !important;
   filter: blur(1.5px) !important;
   opacity: 0.38 !important;
-  transform: scale(0.972) translateZ(0) !important;
+  transform: scale(0.975) translateZ(0) !important;
   transform-origin: left center !important;
   transition:
-    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-    filter 0.45s ease,
-    opacity 0.45s ease !important;
+    color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    -webkit-text-fill-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.4s ease,
+    opacity 0.4s ease,
+    text-shadow 0.4s ease !important;
   cursor: pointer;
   user-select: none;
   margin-bottom: 6px !important;
@@ -598,82 +624,38 @@ body.player-expanded .yt-active-player,
 
 /* Passed lines */
 .yt-lyrics-line.passed {
+  color: rgba(255, 255, 255, 0.42) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.42) !important;
   opacity: 0.42 !important;
   filter: blur(1.2px) !important;
   transform: scale(0.985) translateZ(0) !important;
+  text-shadow: none !important;
 }
 
-/* Active Line (Even Better Lyrics Plus focus & luminous spring) */
+/* Active Line (Even Better Lyrics Plus signature crisp pure white glow) */
 .yt-lyrics-line.active {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-weight: 750 !important;
   opacity: 1 !important;
   filter: blur(0px) !important;
   transform: scale(1.045) translateX(6px) translateZ(0) !important;
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.5), 0 0 50px rgba(255, 255, 255, 0.22) !important;
 }
 
 /* Hover line */
 .yt-lyrics-line:hover {
   opacity: 0.88 !important;
   filter: blur(0px) !important;
-  transform: scale(1.01) translateX(3px) translateZ(0) !important;
+  transform: scale(var(--blyrics-hover-scale)) translateX(3px) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.9) !important;
 }
 
-/* Left-to-right sentence wipe fill effect (Better Lyrics / Apple Music karaoke fill) */
 .yt-lyrics-text {
   display: inline !important;
-  color: transparent !important;
-  background-image: linear-gradient(
-    90deg,
-    #ffffff 0%,
-    #ffffff 49%,
-    rgba(255, 255, 255, 0.38) 51%,
-    rgba(255, 255, 255, 0.38) 100%
-  ) !important;
-  background-size: 200% 100% !important;
-  background-position: 100% 0 !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-  will-change: background-position;
-}
-
-.yt-lyrics-line.active .yt-lyrics-text {
-  animation: blyrics-wipe-fill var(--line-duration, 3.5s) linear forwards !important;
-  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.36)) !important;
-}
-
-.yt-lyrics-line.passed .yt-lyrics-text {
-  background-position: 0% 0 !important;
-}
-
-/* Fallback for line elements without .yt-lyrics-text wrapper */
-.yt-lyrics-line:not(.yt-lyrics-line--word):not(:has(.yt-lyrics-text)) {
-  color: transparent !important;
-  background-image: linear-gradient(
-    90deg,
-    #ffffff 0%,
-    #ffffff 49%,
-    rgba(255, 255, 255, 0.38) 51%,
-    rgba(255, 255, 255, 0.38) 100%
-  ) !important;
-  background-size: 200% 100% !important;
-  background-position: 100% 0 !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-  will-change: background-position;
-}
-
-.yt-lyrics-line:not(.yt-lyrics-line--word):not(:has(.yt-lyrics-text)).active {
-  animation: blyrics-wipe-fill var(--line-duration, 3.5s) linear forwards !important;
-  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.36)) !important;
-}
-
-.yt-lyrics-line:not(.yt-lyrics-line--word):not(:has(.yt-lyrics-text)).passed {
-  background-position: 0% 0 !important;
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
 }
 
 /* Word-by-word synced karaoke highlights */
@@ -686,42 +668,30 @@ body.player-expanded .yt-active-player,
 .yt-lyrics-word {
   display: inline-block !important;
   color: transparent !important;
-  background: linear-gradient(
-    90deg,
-    #ffffff 0%,
-    #ffffff 49%,
-    rgba(255, 255, 255, 0.38) 51%,
-    rgba(255, 255, 255, 0.38) 100%
-  ) !important;
+  background: linear-gradient(90deg, #ffffff 50%, rgba(255, 255, 255, 0.38) 50%) !important;
   background-size: 200% 100% !important;
   background-position: 100% 0 !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
   font-family: var(--blyrics-font-family) !important;
   transition:
     transform 0.18s ease,
     background-position 0.2s ease,
-    filter 0.2s ease !important;
-  will-change: background-position;
+    text-shadow 0.2s ease !important;
 }
 
 .yt-lyrics-word.active {
-  animation: blyrics-wipe-fill var(--word-duration, 0.45s) linear forwards !important;
-  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.42)) !important;
+  animation: blyrics-fill var(--word-duration, 0.45s) linear forwards !important;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.4) !important;
 }
 
 .yt-lyrics-word.passed {
   background-position: 0 0 !important;
 }
 
-@keyframes blyrics-wipe-fill {
-  0% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: 0% 0;
-  }
+@keyframes blyrics-fill {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
 }
 
 .yt-lyrics-empty {

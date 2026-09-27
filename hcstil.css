@@ -3881,18 +3881,15 @@ header {
 }
 
 .yt-lyrics-panel {
-  background: var(--blyrics-background-color);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 18px;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  transition:
-    background 1s ease,
-    box-shadow 0.5s ease;
-  background-size: 200% 200%;
-  outline: 1px solid rgba(175, 175, 175, 0.1);
   overflow: hidden;
 }
 
@@ -4071,8 +4068,11 @@ header {
   .yt-player-main,
   .yt-lyrics-panel,
   .yt-up-next-panel {
-    border-radius: 20px;
-    padding: 16px;
+    border-radius: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
   }
 
   .yt-player-tab-btn {
@@ -5670,11 +5670,11 @@ body.dark-ui .yt-active-player {
 body.dark-ui .yt-player-main,
 body.dark-ui .yt-lyrics-panel,
 body.dark-ui .yt-up-next-panel {
-  background: rgba(14, 14, 18, 0.28) !important;
-  backdrop-filter: blur(24px) saturate(1.2) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(1.2) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* Bir az daha premium görünüş */
