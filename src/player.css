@@ -45,6 +45,13 @@
 
 /* Morphing state during smooth GSAP expand/collapse */
 .yt-active-player.is-player-morphing {
+  position: fixed !important;
+  margin: 0 !important;
+  transform: none !important;
+  right: auto !important;
+  bottom: auto !important;
+  max-width: none !important;
+  max-height: none !important;
   transition: none !important;
   animation: none !important;
   will-change: top, left, width, height, border-radius !important;
@@ -89,6 +96,14 @@
   box-sizing: border-box !important;
 }
 
+body.player-is-morphing .spa-navbar,
+body.player-is-morphing .pill-nav {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateX(-50%) translateY(24px) !important;
+  transition: opacity 0.22s ease, transform 0.22s ease !important;
+}
+
 /* Mini State: Floating Pill Docked above nav */
 .yt-active-player.player-mini,
 .yt-active-player:not(.expanded):not(.is-player-morphing) {
@@ -115,8 +130,8 @@
 }
 
 /* Expanded State: Full Immersion Canvas Locked to viewport (Zero rightward shift) */
-body.player-expanded .yt-active-player,
-.yt-active-player.expanded {
+body.player-expanded .yt-active-player:not(.is-player-morphing),
+.yt-active-player.expanded:not(.is-player-morphing) {
   position: fixed !important;
   inset: 0 !important;
   top: 0 !important;

@@ -5410,21 +5410,29 @@ function animatePlayerExpand(complete) {
   const initHeight = firstRect.height > 0 ? firstRect.height : defaultMiniH;
   const initRadius = isMobile ? 18 : 22;
 
-  // 2. Add morphing class so CSS transitions don't fight and both top & body are displayed absolute
+  // 2. Add morphing class and body morphing class (DO NOT add player-expanded or expanded yet!)
   player.classList.add("is-player-morphing");
   player.classList.remove("player-mini", "player-collapsing", "player-hiding");
+  document.body.classList.add("player-is-morphing");
 
   // Lock player container to the exact pixel bounds of the mini pill
   gsap.set(player, {
     position: "fixed",
+    inset: "auto",
     top: initTop,
     left: initLeft,
+    right: "auto",
+    bottom: "auto",
     width: initWidth,
     height: initHeight,
+    maxWidth: "none",
+    maxHeight: "none",
     borderRadius: initRadius,
     transform: "none",
     margin: 0,
     zIndex: 9999,
+    boxShadow: "0 16px 42px rgba(0,0,0,0.55)",
+    border: "1px solid rgba(255,255,255,0.09)",
   });
 
   // Prepare mini bar: pinned at top of the player
@@ -5452,15 +5460,15 @@ function animatePlayerExpand(complete) {
   backdrop.style.display = "block";
   gsap.set(backdrop, { opacity: 0 });
 
-  // Document class for expanded layout (locks body scroll)
-  document.body.classList.add("player-expanded");
-
   // Create smooth choreographed GSAP timeline
   const tl = gsap.timeline({
     defaults: { ease: "power3.out" },
     onComplete: () => {
+      document.body.classList.remove("player-is-morphing");
+      document.body.classList.add("player-expanded");
       player.classList.add("expanded");
       player.classList.remove("is-player-morphing", "is-transitioning");
+
       // Clean up inline styles so CSS takes over
       gsap.set(player, { clearProps: "all" });
       if (miniBar) gsap.set(miniBar, { clearProps: "all" });
@@ -5481,6 +5489,8 @@ function animatePlayerExpand(complete) {
       width: window.innerWidth,
       height: window.innerHeight,
       borderRadius: 0,
+      boxShadow: "none",
+      border: "none",
       duration: isMobile ? 0.42 : 0.46,
       ease: "power3.out",
     },
@@ -5559,19 +5569,30 @@ function animatePlayerCollapse(complete) {
   const targetTop = window.innerHeight - miniBottom - miniH;
   const targetRadius = isMobile ? 18 : 22;
 
-  // Add morphing class
+  // Immediately remove expanded class and state so no expanded CSS rules interfere
+  document.body.classList.remove("player-expanded");
+  player.classList.remove("expanded");
   player.classList.add("is-player-morphing");
+  document.body.classList.add("player-is-morphing");
 
   // Lock starting values to full screen
   gsap.set(player, {
     position: "fixed",
+    inset: "auto",
     top: 0,
     left: 0,
+    right: "auto",
+    bottom: "auto",
     width: window.innerWidth,
     height: window.innerHeight,
+    maxWidth: "none",
+    maxHeight: "none",
     borderRadius: 0,
     transform: "none",
     margin: 0,
+    zIndex: 9999,
+    boxShadow: "none",
+    border: "none",
   });
 
   if (fullBody) {
@@ -5591,8 +5612,8 @@ function animatePlayerCollapse(complete) {
 
   const tl = gsap.timeline({
     onComplete: () => {
-      document.body.classList.remove("player-expanded");
-      player.classList.remove("expanded", "is-player-morphing", "is-transitioning");
+      document.body.classList.remove("player-is-morphing");
+      player.classList.remove("is-player-morphing", "is-transitioning");
       player.classList.add("player-mini");
 
       gsap.set(player, { clearProps: "all" });
@@ -5646,6 +5667,8 @@ function animatePlayerCollapse(complete) {
       width: miniW,
       height: miniH,
       borderRadius: targetRadius,
+      boxShadow: "0 16px 42px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.08)",
+      border: "1px solid rgba(255,255,255,0.09)",
       duration: isMobile ? 0.38 : 0.42,
       ease: "power3.inOut",
     },
