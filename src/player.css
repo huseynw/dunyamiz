@@ -40,19 +40,58 @@
   -webkit-backdrop-filter: none !important;
   box-sizing: border-box !important;
   margin: 0 !important;
-  transition:
-    bottom 0.44s cubic-bezier(0.16, 1, 0.3, 1),
-    width 0.44s cubic-bezier(0.16, 1, 0.3, 1),
-    height 0.44s cubic-bezier(0.16, 1, 0.3, 1),
-    border-radius 0.44s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.44s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.28s ease !important;
-  will-change: bottom, width, height, border-radius;
+  transition: opacity 0.28s ease !important;
+}
+
+/* Morphing state during smooth GSAP expand/collapse */
+.yt-active-player.is-player-morphing {
+  transition: none !important;
+  animation: none !important;
+  will-change: top, left, width, height, border-radius !important;
+}
+
+.yt-active-player.is-player-morphing .yt-player-top {
+  display: flex !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: 72px !important;
+  pointer-events: none !important;
+  visibility: visible !important;
+  margin: 0 !important;
+  padding: 10px 14px !important;
+  box-sizing: border-box !important;
+  transition: none !important;
+  z-index: 10 !important;
+}
+
+@media (max-width: 768px) {
+  .yt-active-player.is-player-morphing .yt-player-top {
+    height: 68px !important;
+    padding: 8px 12px !important;
+  }
+}
+
+.yt-active-player.is-player-morphing .yt-player-body {
+  display: flex !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  pointer-events: none !important;
+  visibility: visible !important;
+  flex-direction: column !important;
+  transition: none !important;
+  z-index: 5 !important;
+  box-sizing: border-box !important;
 }
 
 /* Mini State: Floating Pill Docked above nav */
 .yt-active-player.player-mini,
-.yt-active-player:not(.expanded) {
+.yt-active-player:not(.expanded):not(.is-player-morphing) {
   left: 50% !important;
   right: auto !important;
   transform: translateX(-50%) translate3d(0, 0, 0) !important;
@@ -66,7 +105,7 @@
 
 @media (max-width: 768px) {
   .yt-active-player.player-mini,
-  .yt-active-player:not(.expanded) {
+  .yt-active-player:not(.expanded):not(.is-player-morphing) {
     bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
     width: calc(100vw - 20px) !important;
     height: 68px !important;
@@ -99,25 +138,24 @@ body.player-expanded .yt-active-player,
 }
 
 /* Visibility Switcher between Mini & Full */
-.yt-active-player.player-mini .yt-player-top {
+.yt-active-player.player-mini:not(.is-player-morphing) .yt-player-top {
   opacity: 1 !important;
   pointer-events: auto !important;
   visibility: visible !important;
   display: flex !important;
-  transition: opacity 0.22s ease 0.14s !important;
+  transition: opacity 0.22s ease !important;
 }
 
-.yt-active-player.player-mini .yt-player-body {
+.yt-active-player.player-mini:not(.is-player-morphing) .yt-player-body {
   opacity: 0 !important;
   pointer-events: none !important;
   visibility: hidden !important;
   height: 0 !important;
   overflow: hidden !important;
   display: none !important;
-  transition: opacity 0.18s ease !important;
 }
 
-.yt-active-player.expanded .yt-player-top {
+.yt-active-player.expanded:not(.is-player-morphing) .yt-player-top {
   opacity: 0 !important;
   pointer-events: none !important;
   visibility: hidden !important;
@@ -126,10 +164,9 @@ body.player-expanded .yt-active-player,
   margin: 0 !important;
   overflow: hidden !important;
   display: none !important;
-  transition: opacity 0.18s ease !important;
 }
 
-.yt-active-player.expanded .yt-player-body {
+.yt-active-player.expanded:not(.is-player-morphing) .yt-player-body {
   opacity: 1 !important;
   pointer-events: auto !important;
   visibility: visible !important;
@@ -138,7 +175,7 @@ body.player-expanded .yt-active-player,
   max-height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
-  transition: opacity 0.32s ease 0.12s !important;
+  transition: opacity 0.22s ease !important;
 }
 
 /* ==================== MINI PROGRESS BAR ==================== */

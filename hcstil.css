@@ -6194,26 +6194,18 @@ main {
   will-change: transform, opacity, border-radius, box-shadow, inset;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  transform: translate3d(-50%, 0, 0) !important;
-  transition:
-    inset 0.38s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.38s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.38s cubic-bezier(0.22, 1, 0.36, 1),
-    max-width 0.38s cubic-bezier(0.22, 1, 0.36, 1),
-    border-radius 0.34s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
-    bottom 0.38s cubic-bezier(0.22, 1, 0.36, 1),
-    left 0.38s cubic-bezier(0.22, 1, 0.36, 1),
-    right 0.38s cubic-bezier(0.22, 1, 0.36, 1),
-    top 0.38s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.34s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.24s ease !important;
+  transition: opacity 0.24s ease !important;
 }
 
+.yt-active-player.is-player-morphing,
 .yt-active-player.is-transitioning {
   overflow: hidden !important;
+  transition: none !important;
+  animation: none !important;
 }
 
+.yt-active-player.is-player-morphing,
+.yt-active-player.is-player-morphing *,
 .yt-active-player.is-transitioning,
 .yt-active-player.is-transitioning * {
   backface-visibility: hidden;
@@ -6350,13 +6342,11 @@ body.player-expanded #page-music .page-content {
 }
 
 .yt-active-player.is-transitioning.expanded:not(.player-collapsing) {
-  transition: none !important;
-  animation: ytExpandToFull 0.58s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+  animation: none !important;
 }
 
 .yt-active-player.player-collapsing {
-  transition: none !important;
-  animation: ytCollapseToMini 0.42s cubic-bezier(0.4, 0, 0.6, 1) both !important;
+  animation: none !important;
 }
 
 @keyframes ytMiniPlayerGlow {
@@ -6607,11 +6597,11 @@ body.player-expanded {
   }
 
   .yt-active-player.player-collapsing {
-    animation: ytCollapseToMiniMobile 0.28s cubic-bezier(0.4, 0, 0.6, 1) both !important;
+    animation: none !important;
   }
 
   .yt-active-player.is-transitioning.expanded:not(.player-collapsing) {
-    animation: ytExpandToFullMobile 0.38s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+    animation: none !important;
   }
 }
 

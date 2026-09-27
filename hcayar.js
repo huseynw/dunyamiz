@@ -3078,7 +3078,7 @@ function showActivePlayerWithAnimation() {
   activePlayer.__appearTimer = window.setTimeout(() => {
     activePlayer.classList.remove("player-appearing");
     activePlayer.style.opacity = "1"; // zəmanətli görünürlük
-    activePlayer.style.transform = "translate3d(-50%, 0, 0)";
+    activePlayer.style.transform = "";
   }, 700);
 
   void activePlayer.offsetHeight;
@@ -4474,6 +4474,20 @@ function initPlayerSwipe() {
       const diffX = endX - startX;
       const diffY = endY - startY;
 
+      // Vertical swipe down to minimize on mobile when expanded
+      if (
+        activePlayer.classList.contains("expanded") &&
+        diffY > 60 &&
+        Math.abs(diffY) > Math.abs(diffX) * 1.2
+      ) {
+        const lyricsWrap = activePlayer.querySelector(".yt-lyrics-scroll-area, .yt-lyrics-container");
+        if (lyricsWrap && lyricsWrap.contains(e.target) && lyricsWrap.scrollTop > 15) {
+          return;
+        }
+        window.togglePlayerMode(false);
+        return;
+      }
+
       if (Math.abs(diffX) < 50) return;
       if (Math.abs(diffY) > Math.abs(diffX)) return;
 
@@ -5380,87 +5394,290 @@ function animatePlayerExpand(complete) {
   if (!player || player._playerAnimating) return;
   player._playerAnimating = true;
 
-  const bodyEl = player.querySelector(".yt-player-body");
-  const isMobile = window.innerWidth <= 760;
-
-  document.body.classList.add("player-expanded");
-
-  player.classList.remove("player-mini", "player-collapsing", "player-hiding");
-  player.classList.add("expanded", "is-transitioning");
-
-  // Backdrop
+  const isMobile = window.innerWidth <= 768;
+  const miniBar = player.querySelector(".yt-player-top");
+  const fullBody = player.querySelector(".yt-player-body");
   const backdrop = getBackdrop();
-  backdrop.style.display = "block";
-  gsap.set(backdrop, { opacity: 0 });
-  gsap.to(backdrop, { opacity: 1, duration: 0.35, ease: "power2.out" });
 
-  if (bodyEl) {
-    bodyEl.style.display = "";
-    bodyEl.style.opacity = "1";
+  // 1. Get exact current rendered bounding rect of the mini pill
+  const firstRect = player.getBoundingClientRect();
+  const defaultMiniW = isMobile ? window.innerWidth - 20 : Math.min(window.innerWidth * 0.92, 760);
+  const defaultMiniH = isMobile ? 68 : 72;
+  const defaultMiniBottom = isMobile ? 76 : 88;
+  const initLeft = firstRect.width > 0 ? firstRect.left : (window.innerWidth - defaultMiniW) / 2;
+  const initTop = firstRect.height > 0 ? firstRect.top : window.innerHeight - defaultMiniBottom - defaultMiniH;
+  const initWidth = firstRect.width > 0 ? firstRect.width : defaultMiniW;
+  const initHeight = firstRect.height > 0 ? firstRect.height : defaultMiniH;
+  const initRadius = isMobile ? 18 : 22;
+
+  // 2. Add morphing class so CSS transitions don't fight and both top & body are displayed absolute
+  player.classList.add("is-player-morphing");
+  player.classList.remove("player-mini", "player-collapsing", "player-hiding");
+
+  // Lock player container to the exact pixel bounds of the mini pill
+  gsap.set(player, {
+    position: "fixed",
+    top: initTop,
+    left: initLeft,
+    width: initWidth,
+    height: initHeight,
+    borderRadius: initRadius,
+    transform: "none",
+    margin: 0,
+    zIndex: 9999,
+  });
+
+  // Prepare mini bar: pinned at top of the player
+  if (miniBar) {
+    gsap.set(miniBar, {
+      opacity: 1,
+      y: 0,
+    });
   }
 
-  const targets = player.querySelectorAll(".yt-player-topbar, .yt-player-tab-buttons, .yt-player-left-col, .yt-player-right-col");
-  gsap.set(targets, { opacity: 0, y: 22 });
+  // Prepare full body: full viewport size, initial opacity 0
+  if (fullBody) {
+    gsap.set(fullBody, {
+      opacity: 0,
+    });
+  }
 
-  gsap.to(targets, {
-    opacity: 1,
-    y: 0,
-    duration: 0.38,
-    stagger: 0.08,
-    delay: isMobile ? 0.06 : 0.1,
-    ease: "power3.out",
+  // Internal targets to animate inside full body
+  const targets = player.querySelectorAll(
+    ".yt-player-topbar, .yt-player-tab-buttons, .yt-player-art-wrap, .yt-player-meta-full, .yt-progress-area, .yt-controls-row, .yt-player-right-col"
+  );
+  gsap.set(targets, { opacity: 0, y: 24 });
+
+  // Prepare backdrop
+  backdrop.style.display = "block";
+  gsap.set(backdrop, { opacity: 0 });
+
+  // Document class for expanded layout (locks body scroll)
+  document.body.classList.add("player-expanded");
+
+  // Create smooth choreographed GSAP timeline
+  const tl = gsap.timeline({
+    defaults: { ease: "power3.out" },
     onComplete: () => {
-      player.classList.remove("is-transitioning");
+      player.classList.add("expanded");
+      player.classList.remove("is-player-morphing", "is-transitioning");
+      // Clean up inline styles so CSS takes over
+      gsap.set(player, { clearProps: "all" });
+      if (miniBar) gsap.set(miniBar, { clearProps: "all" });
+      if (fullBody) gsap.set(fullBody, { clearProps: "all" });
+      if (targets.length) gsap.set(targets, { clearProps: "all" });
       player._playerAnimating = false;
       syncPlayerExpandedState();
       if (typeof complete === "function") complete();
     },
   });
+
+  // 1. Container morphs from mini pill rect to full screen
+  tl.to(
+    player,
+    {
+      top: 0,
+      left: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      borderRadius: 0,
+      duration: isMobile ? 0.42 : 0.46,
+      ease: "power3.out",
+    },
+    0
+  );
+
+  // 2. Mini bar fades out quickly
+  if (miniBar) {
+    tl.to(
+      miniBar,
+      {
+        opacity: 0,
+        y: -10,
+        duration: 0.16,
+        ease: "power2.out",
+      },
+      0
+    );
+  }
+
+  // 3. Full body fades in
+  if (fullBody) {
+    tl.to(
+      fullBody,
+      {
+        opacity: 1,
+        duration: 0.32,
+        ease: "power2.out",
+      },
+      0.08
+    );
+  }
+
+  // 4. Staggered glide-in for interior components
+  if (targets.length) {
+    tl.to(
+      targets,
+      {
+        opacity: 1,
+        y: 0,
+        stagger: 0.035,
+        duration: 0.36,
+        ease: "power3.out",
+      },
+      0.12
+    );
+  }
+
+  // 5. Backdrop fade in
+  tl.to(
+    backdrop,
+    {
+      opacity: 1,
+      duration: 0.4,
+      ease: "power2.out",
+    },
+    0
+  );
 }
 
 function animatePlayerCollapse(complete) {
   const player = getMusicDom().activePlayer;
   if (!player || player._playerAnimating) return;
   player._playerAnimating = true;
-  player.classList.add("is-transitioning");
 
-  const bodyEl = player.querySelector(".yt-player-body");
-  const targets = player.querySelectorAll(".yt-player-topbar, .yt-player-tab-buttons, .yt-player-left-col, .yt-player-right-col");
+  const isMobile = window.innerWidth <= 768;
+  const miniBar = player.querySelector(".yt-player-top");
+  const fullBody = player.querySelector(".yt-player-body");
+  const backdrop = document.getElementById("yt-player-backdrop");
 
-  gsap.to(targets, {
-    opacity: 0,
-    y: 16,
-    duration: 0.16,
-    ease: "power2.in",
+  // Calculate target mini pill position and dimensions
+  const miniW = isMobile ? window.innerWidth - 20 : Math.min(window.innerWidth * 0.92, 760);
+  const miniH = isMobile ? 68 : 72;
+  const miniBottom = isMobile ? 76 : 88;
+  const targetLeft = isMobile ? 10 : (window.innerWidth - miniW) / 2;
+  const targetTop = window.innerHeight - miniBottom - miniH;
+  const targetRadius = isMobile ? 18 : 22;
+
+  // Add morphing class
+  player.classList.add("is-player-morphing");
+
+  // Lock starting values to full screen
+  gsap.set(player, {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: window.innerWidth,
+    height: window.innerHeight,
+    borderRadius: 0,
+    transform: "none",
+    margin: 0,
+  });
+
+  if (fullBody) {
+    gsap.set(fullBody, { opacity: 1 });
+  }
+
+  if (miniBar) {
+    gsap.set(miniBar, {
+      opacity: 0,
+      y: 6,
+    });
+  }
+
+  const targets = player.querySelectorAll(
+    ".yt-player-topbar, .yt-player-tab-buttons, .yt-player-art-wrap, .yt-player-meta-full, .yt-progress-area, .yt-controls-row, .yt-player-right-col"
+  );
+
+  const tl = gsap.timeline({
     onComplete: () => {
-      if (bodyEl) {
-        bodyEl.style.display = "";
-        bodyEl.style.opacity = "";
-      }
-
       document.body.classList.remove("player-expanded");
-      player.classList.remove("expanded");
+      player.classList.remove("expanded", "is-player-morphing", "is-transitioning");
       player.classList.add("player-mini");
-      gsap.set(player, { clearProps: "all" });
 
-      const backdrop = document.getElementById("yt-player-backdrop");
+      gsap.set(player, { clearProps: "all" });
+      if (miniBar) gsap.set(miniBar, { clearProps: "all" });
+      if (fullBody) gsap.set(fullBody, { clearProps: "all" });
+      if (targets.length) gsap.set(targets, { clearProps: "all" });
+
       if (backdrop) {
-        gsap.to(backdrop, {
-          opacity: 0,
-          duration: 0.25,
-          ease: "power2.in",
-          onComplete: () => { backdrop.style.display = "none"; },
-        });
+        backdrop.style.display = "none";
+        gsap.set(backdrop, { clearProps: "all" });
       }
 
-      setTimeout(() => {
-        player.classList.remove("is-transitioning");
-        player._playerAnimating = false;
-        syncPlayerExpandedState();
-        if (typeof complete === "function") complete();
-      }, 350);
+      player._playerAnimating = false;
+      syncPlayerExpandedState();
+      if (typeof complete === "function") complete();
     },
   });
+
+  // 1. Elements inside full body fade out and glide down swiftly
+  if (targets.length) {
+    tl.to(
+      targets,
+      {
+        opacity: 0,
+        y: 18,
+        duration: 0.16,
+        ease: "power2.in",
+      },
+      0
+    );
+  }
+
+  if (fullBody) {
+    tl.to(
+      fullBody,
+      {
+        opacity: 0,
+        duration: 0.18,
+        ease: "power2.in",
+      },
+      0.04
+    );
+  }
+
+  // 2. Container smoothly shrinks back into mini pill dimensions and position
+  tl.to(
+    player,
+    {
+      top: targetTop,
+      left: targetLeft,
+      width: miniW,
+      height: miniH,
+      borderRadius: targetRadius,
+      duration: isMobile ? 0.38 : 0.42,
+      ease: "power3.inOut",
+    },
+    0.04
+  );
+
+  // 3. Mini bar fades in as container reaches pill size
+  if (miniBar) {
+    tl.to(
+      miniBar,
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.22,
+        ease: "power2.out",
+      },
+      0.18
+    );
+  }
+
+  // 4. Backdrop fades out
+  if (backdrop) {
+    tl.to(
+      backdrop,
+      {
+        opacity: 0,
+        duration: 0.32,
+        ease: "power2.inOut",
+      },
+      0.04
+    );
+  }
 }
 // Admin paneldə əl ilə bildiriş göndərmə
 const sendCustomBtn = document.getElementById("send-custom-notif-btn");
