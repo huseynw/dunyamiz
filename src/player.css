@@ -29,17 +29,6 @@
   pointer-events: none !important;
 }
 
-.yt-player-bg {
-  background-image: none !important;
-}
-
-.kawarp-canvas {
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-
 .yt-active-player {
   position: fixed !important;
   z-index: 9999 !important;

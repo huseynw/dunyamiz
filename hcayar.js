@@ -3906,7 +3906,7 @@ async function updateMusicCover(track) {
     if (coverFull) coverFull.src = src;
     if (coverMini) coverMini.src = src;
     if (playerBg) {
-      playerBg.style.backgroundImage = "none";
+      playerBg.style.backgroundImage = `url("${src}")`;
       playerBg.style.setProperty("--blyrics-background-img", `url("${src}")`);
       playerBg.style.setProperty("--player-cover-url", `url("${src}")`);
     }
@@ -3917,6 +3917,7 @@ async function updateMusicCover(track) {
     }
     document.documentElement.style.setProperty("--blyrics-background-img", `url("${src}")`);
     document.documentElement.style.setProperty("--player-cover-url", `url("${src}")`);
+    updateKawarpCover(src);
     getDominantColorFromImage(src).then((color) => {
       currentWaveColor = color;
     });
