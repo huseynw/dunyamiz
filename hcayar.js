@@ -4903,6 +4903,21 @@ async function initMusicPage() {
     updatePlayerModeButtons();
     renderUpNextList();
     syncAdminOverview();
+
+    if (window.musicLibrary && window.musicLibrary.length && window.currentMusicIndex < 0) {
+      const firstTrack = window.musicLibrary[0];
+      window.currentMusicIndex = 0;
+      window.currentMusic = firstTrack;
+      const dom = getMusicDom();
+      if (dom.audio) dom.audio.src = firstTrack.audioUrl;
+      if (dom.titleFull) dom.titleFull.textContent = firstTrack.title || "Adsız mahnı";
+      if (dom.artistFull) dom.artistFull.textContent = firstTrack.artist || "Naməlum artist";
+      if (dom.titleMini) dom.titleMini.textContent = firstTrack.title || "Adsız mahnı";
+      if (dom.artistMini) dom.artistMini.textContent = firstTrack.artist || "Naməlum artist";
+      updateMusicCover(firstTrack);
+      renderCurrentTrackLyrics(firstTrack);
+      setPlayerTab("lyrics");
+    }
   } catch (err) {
     console.error(err);
     const { playlist, trackCount } = getMusicDom();

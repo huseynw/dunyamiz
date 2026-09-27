@@ -6515,12 +6515,11 @@ body.player-visible:not(.player-expanded) .yt-active-player.player-mini {
   max-width: 100vw !important;
   height: 100dvh !important;
   max-height: 100dvh !important;
-  transform: translate3d(0, 0, 0) !important;
-  transform-origin: center bottom !important;
+  transform: none !important;
+  transform-origin: center center !important;
   border-radius: 0 !important;
   z-index: 4000 !important;
-  outline: 1px solid rgba(175, 175, 175, 0.12);
-  outline-offset: -0.5px;
+  outline: none !important;
 }
 
 .yt-active-player.expanded .yt-player-body {
