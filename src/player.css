@@ -193,6 +193,32 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   transition: opacity 0.22s ease !important;
 }
 
+/* ==================== TAB PANELS ISOLATION & SWITCHING ==================== */
+.yt-player-tab-panel[hidden],
+.yt-player-tab-panel[aria-hidden="true"],
+.yt-lyrics-panel.lyrics-hidden,
+.yt-active-player.tab-lyrics #yt-up-next-panel-wrap,
+.yt-active-player.tab-upnext #yt-lyrics-panel-wrap,
+.yt-active-player.tab-track #yt-lyrics-panel-wrap,
+.yt-active-player.tab-track #yt-up-next-panel-wrap {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+}
+
+.yt-active-player.tab-lyrics #yt-lyrics-panel-wrap:not([hidden]),
+.yt-active-player.tab-upnext #yt-up-next-panel-wrap:not([hidden]) {
+  display: flex !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+}
+
 /* ==================== MINI PROGRESS BAR ==================== */
 .yt-mini-progress-track {
   position: absolute;
@@ -906,13 +932,22 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
     flex: 1 !important;
     min-height: 0 !important;
     display: flex !important;
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
   }
 
-  .yt-player-tab-panel {
+  .yt-player-tab-panel:not([hidden]) {
     flex: 1 !important;
     min-height: 0 !important;
     display: flex !important;
     flex-direction: column !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .yt-player-tab-panel[hidden] {
+    display: none !important;
   }
 
   .yt-lyrics-panel {
@@ -1143,13 +1178,18 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
     height: 100% !important;
   }
 
-  .yt-active-player.tab-lyrics .yt-player-tab-panel,
-  .yt-active-player.tab-upnext .yt-player-tab-panel {
+  .yt-active-player.tab-lyrics .yt-player-tab-panel:not([hidden]),
+  .yt-active-player.tab-upnext .yt-player-tab-panel:not([hidden]) {
     flex: 1 !important;
     min-height: 0 !important;
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
+    width: 100% !important;
+  }
+
+  .yt-active-player .yt-player-tab-panel[hidden] {
+    display: none !important;
   }
 
   .yt-active-player.tab-lyrics .yt-lyrics-panel {

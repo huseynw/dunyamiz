@@ -7567,7 +7567,7 @@ nav,
    aşağı hissə kəsilirdi və item-lər ekran kənarına sıxılırdı.
    ========================================================= */
 .yt-active-player.expanded .yt-player-tab-panels,
-.yt-active-player.expanded .yt-player-tab-panel {
+.yt-active-player.expanded .yt-player-tab-panel:not([hidden]) {
   min-height: 0 !important;
   height: auto !important;
 }

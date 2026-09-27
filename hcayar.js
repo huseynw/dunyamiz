@@ -3231,17 +3231,22 @@ function setPlayerTab(tabName = "lyrics") {
   }
 
   if (lyricsTabPanel) {
-    lyricsTabPanel.hidden = resolvedTab !== "lyrics";
+    const isLyrics = resolvedTab === "lyrics";
+    lyricsTabPanel.hidden = !isLyrics;
+    lyricsTabPanel.style.setProperty("display", isLyrics ? "flex" : "none", "important");
   }
 
   if (upNextTabPanel) {
-    upNextTabPanel.hidden = resolvedTab !== "upnext";
+    const isUpNext = resolvedTab === "upnext";
+    upNextTabPanel.hidden = !isUpNext;
+    upNextTabPanel.style.setProperty("display", isUpNext ? "flex" : "none", "important");
   }
 
   if (lyricsPanel) {
     const lyricsHidden = resolvedTab !== "lyrics";
     lyricsPanel.classList.toggle("lyrics-hidden", lyricsHidden);
     lyricsPanel.setAttribute("aria-hidden", String(lyricsHidden));
+    lyricsPanel.style.setProperty("display", lyricsHidden ? "none" : "flex", "important");
   }
 
   if (activePlayer) {
