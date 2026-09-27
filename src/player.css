@@ -325,25 +325,40 @@ body.player-expanded .yt-active-player,
 
 /* ==================== TRACK CONTROLS & VINYL ==================== */
 .yt-player-art-wrap {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  position: relative !important;
+  width: 100% !important;
 }
 
 .yt-rotating-disc {
-  position: relative;
-  border-radius: 26px !important;
+  position: relative !important;
+  width: min(340px, 32vh) !important;
+  height: min(340px, 32vh) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 20px !important;
   overflow: hidden !important;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+  background: transparent !important;
+  padding: 0 !important;
+  animation: none !important;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.4, 1) !important;
 }
 
-.yt-rotating-disc img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.yt-rotating-disc.playing {
+  animation: none !important;
+}
+
+.yt-rotating-disc img,
+#yt-cover-image {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: cover !important;
+  border-radius: 20px !important;
+  display: block !important;
+  box-shadow: none !important;
 }
 
 .yt-progress-area {
@@ -540,6 +555,7 @@ body.player-expanded .yt-active-player,
 .yt-player-kicker {
   display: none !important;
 }
+
 #yt-lyrics-panel,
 .yt-lyrics-panel,
 #yt-up-next-panel,
@@ -744,11 +760,14 @@ body.player-expanded .yt-active-player,
   .yt-player-art-wrap {
     width: min(360px, 34vh) !important;
     height: min(360px, 34vh) !important;
+    aspect-ratio: 1 / 1 !important;
   }
 
   .yt-rotating-disc {
     width: 100% !important;
     height: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 20px !important;
   }
 
   .yt-progress-area {
@@ -871,6 +890,14 @@ body.player-expanded .yt-active-player,
   .yt-active-player:not(.lyrics-open) .yt-player-art-wrap {
     width: min(74vw, 300px) !important;
     height: min(74vw, 300px) !important;
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  .yt-active-player:not(.lyrics-open) .yt-rotating-disc {
+    width: 100% !important;
+    height: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 20px !important;
   }
 
   .yt-active-player:not(.lyrics-open) .yt-player-right-col {
