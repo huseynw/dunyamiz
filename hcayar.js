@@ -3621,9 +3621,7 @@ function renderSyncedLyrics(parsedLyrics = []) {
                 class="yt-lyrics-line yt-lyrics-line--clickable" 
                 data-lyrics-index="${index}"
                 data-line-time="${line.time}"
-            >
-                ${escapeHtmlMusic(line.text.trim())}
-            </div>
+            ><span class="yt-lyrics-text">${escapeHtmlMusic(line.text.trim())}</span></div>
         `;
     })
     .join("");
@@ -3652,8 +3650,7 @@ function renderCurrentTrackLyrics(track) {
 function updateSyncedLyricsByTime(currentTime) {
   if (window.currentMusicLyricsType !== "synced") return;
   if (!window.currentMusicLyricsParsed.length) return;
-  const { lyricsPanel } = getMusicDom();
-  const { lyricsContainer } = getMusicDom();
+  const { lyricsContainer, audio } = getMusicDom();
   if (!lyricsContainer) return;
 
   let activeIndex = -1;
@@ -3678,61 +3675,110 @@ function updateSyncedLyricsByTime(currentTime) {
     }
   }
 
-  if (
-    activeIndex === window.currentLyricsActiveIndex &&
-    activeWordIndex === window.currentLyricsActiveWordIndex
-  ) {
+  const hasLineChanged = activeIndex !== window.currentLyricsActiveIndex;
+  const hasWordChanged = activeWordIndex !== window.currentLyricsActiveWordIndex;
+
+  if (!hasLineChanged && !hasWordChanged) {
     return;
   }
-
 
   window.currentLyricsActiveIndex = activeIndex;
   window.currentLyricsActiveWordIndex = activeWordIndex;
 
+  let currentLineDuration = 3.5;
+  if (activeLine) {
+    if (activeIndex + 1 < window.currentMusicLyricsParsed.length) {
+      const nextTime = window.currentMusicLyricsParsed[activeIndex + 1].time;
+      currentLineDuration = Math.max(0.8, nextTime - activeLine.time);
+    } else if (audio?.duration) {
+      currentLineDuration = Math.max(1.0, audio.duration - activeLine.time);
+    }
+  }
+
   const lines = lyricsContainer.querySelectorAll(".yt-lyrics-line");
   lines.forEach((lineEl, index) => {
-    lineEl.classList.toggle("active", index === activeIndex);
-    lineEl.classList.toggle("passed", index < activeIndex);
+    const isActive = index === activeIndex;
+    const isPassed = index < activeIndex;
+
+    lineEl.classList.toggle("active", isActive);
+    lineEl.classList.toggle("passed", isPassed);
+
+    const textEl = lineEl.querySelector(".yt-lyrics-text") || lineEl;
+
+    if (isActive) {
+      lineEl.style.setProperty("--line-duration", `${currentLineDuration}s`);
+      textEl.style.setProperty("--line-duration", `${currentLineDuration}s`);
+
+      if (hasLineChanged) {
+        const elapsed = Math.max(
+          0,
+          currentTime - (activeLine ? activeLine.time : 0),
+        );
+        textEl.style.animation = "none";
+        void textEl.offsetHeight;
+        textEl.style.animation = "";
+        textEl.style.animationDelay = `-${elapsed}s`;
+      }
+    } else {
+      textEl.style.animationDelay = "";
+    }
 
     const wordEls = lineEl.querySelectorAll(".yt-lyrics-word");
     wordEls.forEach((wordEl, wordIndex) => {
-      const isPassed = index < activeIndex || (index === activeIndex && wordIndex < activeWordIndex);
-      const isActive = index === activeIndex && wordIndex === activeWordIndex;
-      
-      wordEl.classList.toggle("passed", isPassed);
-      wordEl.classList.toggle("active", isActive);
-      
-      if (isActive && activeLine && activeLine.words) {
+      const isWordPassed =
+        index < activeIndex ||
+        (index === activeIndex && wordIndex < activeWordIndex);
+      const isWordActive =
+        index === activeIndex && wordIndex === activeWordIndex;
+
+      wordEl.classList.toggle("passed", isWordPassed);
+      wordEl.classList.toggle("active", isWordActive);
+
+      if (isWordActive && activeLine?.words) {
         let duration = 0.5;
         const lineWords = activeLine.words;
         if (wordIndex + 1 < lineWords.length) {
-           duration = lineWords[wordIndex + 1].time - lineWords[wordIndex].time;
+          duration = lineWords[wordIndex + 1].time - lineWords[wordIndex].time;
         } else if (activeIndex + 1 < window.currentMusicLyricsParsed.length) {
-           duration = window.currentMusicLyricsParsed[activeIndex + 1].time - lineWords[wordIndex].time;
+          duration =
+            window.currentMusicLyricsParsed[activeIndex + 1].time -
+            lineWords[wordIndex].time;
         }
         duration = Math.max(0.1, Math.min(3, duration));
-        wordEl.style.setProperty('--word-duration', `${duration}s`);
+        wordEl.style.setProperty("--word-duration", `${duration}s`);
       } else {
-        wordEl.style.removeProperty('--word-duration');
+        wordEl.style.removeProperty("--word-duration");
       }
     });
   });
 
-  const activeEl = lyricsContainer.querySelector(
-    `.yt-lyrics-line[data-lyrics-index="${activeIndex}"]`,
-  );
-  if (activeEl && !window._lyricsUserScrolling) {
-    const containerRect = lyricsContainer.getBoundingClientRect();
-    const itemRect = activeEl.getBoundingClientRect();
-    const delta =
-      itemRect.top -
-      containerRect.top -
-      containerRect.height / 2 +
-      itemRect.height / 2;
-    lyricsContainer.scrollTo({
-      top: lyricsContainer.scrollTop + delta,
-      behavior: "smooth",
-    });
+  if (hasLineChanged && activeIndex >= 0 && !window._lyricsUserScrolling) {
+    const activeEl = lyricsContainer.querySelector(
+      `.yt-lyrics-line[data-lyrics-index="${activeIndex}"]`,
+    );
+    if (activeEl) {
+      const containerRect = lyricsContainer.getBoundingClientRect();
+      const itemRect = activeEl.getBoundingClientRect();
+      const targetScrollTop =
+        lyricsContainer.scrollTop +
+        (itemRect.top - containerRect.top) -
+        containerRect.height / 2 +
+        itemRect.height / 2;
+
+      if (window.gsap) {
+        window.gsap.to(lyricsContainer, {
+          scrollTop: Math.max(0, targetScrollTop),
+          duration: 0.85,
+          ease: "power3.out",
+          overwrite: "auto",
+        });
+      } else {
+        lyricsContainer.scrollTo({
+          top: Math.max(0, targetScrollTop),
+          behavior: "smooth",
+        });
+      }
+    }
   }
 }
 
@@ -4693,6 +4739,9 @@ function initMusicPlayerEvents() {
   let lyricsUserScrollTimeout = null;
   const onLyricsUserScroll = () => {
     window._lyricsUserScrolling = true;
+    if (window.gsap && dom.lyricsContainer) {
+      window.gsap.killTweensOf(dom.lyricsContainer);
+    }
     clearTimeout(lyricsUserScrollTimeout);
     lyricsUserScrollTimeout = setTimeout(() => {
       window._lyricsUserScrolling = false;
