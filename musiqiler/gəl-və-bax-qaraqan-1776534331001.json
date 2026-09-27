@@ -1,4 +1,4 @@
-{
+﻿{
   "id": "gəl-və-bax-qaraqan-1776534331001",
   "title": "Gəl və Bax",
   "artist": "Qaraqan",
@@ -8,12 +8,12 @@
   },
   "uploadedAt": "2026-04-18T17:45:31.001Z",
   "provider": "r2",
-  "audio": "https://cdn.dunyamiz.me/music/g%C9%99l-v%C9%99-bax-qaraqan-1776534331001.mp3",
-  "cover": "https://cdn.dunyamiz.me/covers/g%C9%99l-v%C9%99-bax-qaraqan-1776534331001.jpg",
+  "audio": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/music/g%C9%99l-v%C9%99-bax-qaraqan-1776534331001.mp3",
+  "cover": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/covers/g%C9%99l-v%C9%99-bax-qaraqan-1776534331001.jpg",
   "storage": {
     "provider": "r2",
     "bucket": "dunyamiz",
-    "publicBaseUrl": "https://cdn.dunyamiz.me",
+    "publicBaseUrl": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev",
     "audioKey": "music/gəl-və-bax-qaraqan-1776534331001.mp3",
     "coverKey": "covers/gəl-və-bax-qaraqan-1776534331001.jpg",
     "mode": "direct-browser-upload",

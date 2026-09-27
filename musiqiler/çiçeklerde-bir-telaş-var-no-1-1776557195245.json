@@ -1,4 +1,4 @@
-{
+﻿{
   "id": "çiçeklerde-bir-telaş-var-no-1-1776557195245",
   "title": "Çiçeklerde Bir Telaş Var",
   "artist": "No.1",
@@ -8,12 +8,12 @@
   },
   "uploadedAt": "2026-04-19T00:06:35.245Z",
   "provider": "r2",
-  "audio": "https://cdn.dunyamiz.me/music/%C3%A7i%C3%A7eklerde-bir-tela%C5%9F-var-no-1-1776557195245.mp3",
-  "cover": "https://cdn.dunyamiz.me/covers/%C3%A7i%C3%A7eklerde-bir-tela%C5%9F-var-no-1-1776557195245.jpg",
+  "audio": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/music/%C3%A7i%C3%A7eklerde-bir-tela%C5%9F-var-no-1-1776557195245.mp3",
+  "cover": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/covers/%C3%A7i%C3%A7eklerde-bir-tela%C5%9F-var-no-1-1776557195245.jpg",
   "storage": {
     "provider": "r2",
     "bucket": "dunyamiz",
-    "publicBaseUrl": "https://cdn.dunyamiz.me",
+    "publicBaseUrl": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev",
     "audioKey": "music/çiçeklerde-bir-telaş-var-no-1-1776557195245.mp3",
     "coverKey": "covers/çiçeklerde-bir-telaş-var-no-1-1776557195245.jpg",
     "mode": "direct-browser-upload",

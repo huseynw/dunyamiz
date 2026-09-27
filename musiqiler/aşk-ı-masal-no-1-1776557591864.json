@@ -1,4 +1,4 @@
-{
+﻿{
   "id": "aşk-ı-masal-no-1-1776557591864",
   "title": "Aşk-ı Masal",
   "artist": "No.1",
@@ -8,12 +8,12 @@
   },
   "uploadedAt": "2026-04-19T00:13:11.864Z",
   "provider": "r2",
-  "audio": "https://cdn.dunyamiz.me/music/a%C5%9Fk-%C4%B1-masal-no-1-1776557591864.mp3",
-  "cover": "https://cdn.dunyamiz.me/covers/a%C5%9Fk-%C4%B1-masal-no-1-1776557591864.jpg",
+  "audio": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/music/a%C5%9Fk-%C4%B1-masal-no-1-1776557591864.mp3",
+  "cover": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/covers/a%C5%9Fk-%C4%B1-masal-no-1-1776557591864.jpg",
   "storage": {
     "provider": "r2",
     "bucket": "dunyamiz",
-    "publicBaseUrl": "https://cdn.dunyamiz.me",
+    "publicBaseUrl": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev",
     "audioKey": "music/aşk-ı-masal-no-1-1776557591864.mp3",
     "coverKey": "covers/aşk-ı-masal-no-1-1776557591864.jpg",
     "mode": "direct-browser-upload",

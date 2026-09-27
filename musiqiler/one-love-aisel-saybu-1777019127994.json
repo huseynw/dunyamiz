@@ -1,4 +1,4 @@
-{
+﻿{
   "id": "one-love-aisel-saybu-1777019127994",
   "title": "One Love",
   "artist": "AISEL & SAYBU",
@@ -8,12 +8,12 @@
   },
   "uploadedAt": "2026-04-24T08:25:27.994Z",
   "provider": "r2",
-  "audio": "https://cdn.dunyamiz.me/music/one-love-aisel-saybu-1777019127994.mp3",
-  "cover": "https://cdn.dunyamiz.me/covers/one-love-aisel-saybu-1777019127994.jpg",
+  "audio": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/music/one-love-aisel-saybu-1777019127994.mp3",
+  "cover": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/covers/one-love-aisel-saybu-1777019127994.jpg",
   "storage": {
     "provider": "r2",
     "bucket": "dunyamiz",
-    "publicBaseUrl": "https://cdn.dunyamiz.me",
+    "publicBaseUrl": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev",
     "audioKey": "music/one-love-aisel-saybu-1777019127994.mp3",
     "coverKey": "covers/one-love-aisel-saybu-1777019127994.jpg",
     "mode": "direct-browser-upload",

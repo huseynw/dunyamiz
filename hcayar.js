@@ -2846,6 +2846,9 @@ function resolveMusicAssetUrl(value, fallback = "") {
 
   // Tam URL-dirsə saxla, amma github-raw linkinin içindəki fayl yolunu təmizlə.
   if (/^https?:\/\//i.test(cleaned)) {
+    if (cleaned.includes("cdn.dunyamiz.me")) {
+      return cleaned.replace(/https?:\/\/cdn\.dunyamiz\.me/i, "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev");
+    }
     try {
       const url = new URL(cleaned);
       const fileParam = url.searchParams.get("file");

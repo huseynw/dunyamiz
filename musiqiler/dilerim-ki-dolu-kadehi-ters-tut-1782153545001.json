@@ -1,4 +1,4 @@
-{
+﻿{
   "id": "dilerim-ki-dolu-kadehi-ters-tut-1782153545001",
   "title": "Dilerim Ki",
   "artist": "Dolu Kadehi Ters Tut",
@@ -8,12 +8,12 @@
   },
   "uploadedAt": "2026-06-22T18:39:05.001Z",
   "provider": "r2",
-  "audio": "https://cdn.dunyamiz.me/music/dilerim-ki-dolu-kadehi-ters-tut-1782153545001.mp3",
-  "cover": "https://cdn.dunyamiz.me/covers/dilerim-ki-dolu-kadehi-ters-tut-1782153545001.jpg",
+  "audio": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/music/dilerim-ki-dolu-kadehi-ters-tut-1782153545001.mp3",
+  "cover": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/covers/dilerim-ki-dolu-kadehi-ters-tut-1782153545001.jpg",
   "storage": {
     "provider": "r2",
     "bucket": "dunyamiz",
-    "publicBaseUrl": "https://cdn.dunyamiz.me",
+    "publicBaseUrl": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev",
     "audioKey": "music/dilerim-ki-dolu-kadehi-ters-tut-1782153545001.mp3",
     "coverKey": "covers/dilerim-ki-dolu-kadehi-ters-tut-1782153545001.jpg",
     "mode": "direct-browser-upload",
