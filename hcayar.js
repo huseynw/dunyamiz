@@ -2986,6 +2986,7 @@ function getMusicDom() {
     expandHitbox: document.getElementById("yt-expand-hitbox"),
     minimizeBtn: document.getElementById("yt-minimize-btn"),
     lyricsToggle: document.getElementById("yt-lyrics-toggle"),
+    tabTrackBtn: document.getElementById("yt-tab-track"),
     tabLyricsBtn: document.getElementById("yt-tab-lyrics"),
     tabUpNextBtn: document.getElementById("yt-tab-upnext"),
     lyricsTabPanel: document.getElementById("yt-lyrics-panel-wrap"),
@@ -3184,14 +3185,44 @@ function setPlayerTab(tabName = "lyrics") {
     activePlayer,
     lyricsPanel,
     lyricsToggle,
+    tabTrackBtn,
     tabLyricsBtn,
     tabUpNextBtn,
     lyricsTabPanel,
     upNextTabPanel,
   } = dom;
 
-  const resolvedTab = tabName === "upnext" ? "upnext" : "lyrics";
+  const isMobile = window.innerWidth < 960;
+  let resolvedTab = tabName;
+  if (!resolvedTab) {
+    resolvedTab = window.currentPlayerTab || (isMobile ? "track" : "lyrics");
+  }
+  if (!["track", "lyrics", "upnext"].includes(resolvedTab)) {
+    resolvedTab = "lyrics";
+  }
+  if (!isMobile && resolvedTab === "track") {
+    resolvedTab = "lyrics";
+  }
+
   window.currentPlayerTab = resolvedTab;
+
+  if (tabTrackBtn) {
+    const isTrack = resolvedTab === "track";
+    tabTrackBtn.classList.toggle("is-active", isTrack);
+    tabTrackBtn.setAttribute("aria-selected", String(isTrack));
+  }
+
+  if (tabLyricsBtn) {
+    const isLyrics = resolvedTab === "lyrics";
+    tabLyricsBtn.classList.toggle("is-active", isLyrics);
+    tabLyricsBtn.setAttribute("aria-selected", String(isLyrics));
+  }
+
+  if (tabUpNextBtn) {
+    const isUpNext = resolvedTab === "upnext";
+    tabUpNextBtn.classList.toggle("is-active", isUpNext);
+    tabUpNextBtn.setAttribute("aria-selected", String(isUpNext));
+  }
 
   if (lyricsTabPanel) {
     lyricsTabPanel.hidden = resolvedTab !== "lyrics";
@@ -3201,18 +3232,6 @@ function setPlayerTab(tabName = "lyrics") {
     upNextTabPanel.hidden = resolvedTab !== "upnext";
   }
 
-  if (tabLyricsBtn) {
-    const isActive = resolvedTab === "lyrics";
-    tabLyricsBtn.classList.toggle("is-active", isActive);
-    tabLyricsBtn.setAttribute("aria-selected", String(isActive));
-  }
-
-  if (tabUpNextBtn) {
-    const isActive = resolvedTab === "upnext";
-    tabUpNextBtn.classList.toggle("is-active", isActive);
-    tabUpNextBtn.setAttribute("aria-selected", String(isActive));
-  }
-
   if (lyricsPanel) {
     const lyricsHidden = resolvedTab !== "lyrics";
     lyricsPanel.classList.toggle("lyrics-hidden", lyricsHidden);
@@ -3220,6 +3239,8 @@ function setPlayerTab(tabName = "lyrics") {
   }
 
   if (activePlayer) {
+    activePlayer.classList.remove("tab-track", "tab-lyrics", "tab-upnext");
+    activePlayer.classList.add(`tab-${resolvedTab}`);
     activePlayer.classList.toggle("lyrics-open", resolvedTab === "lyrics");
   }
 
@@ -4768,6 +4789,15 @@ function initMusicPlayerEvents() {
     window.toggleLyricsPanel();
   });
 
+  dom.tabTrackBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!dom.activePlayer?.classList.contains("expanded")) {
+      window.togglePlayerMode(true);
+    }
+    setPlayerTab("track");
+    updateLyricsToggleState();
+  });
+
   dom.tabLyricsBtn?.addEventListener("click", (e) => {
     e.stopPropagation();
     if (!dom.activePlayer?.classList.contains("expanded")) {
@@ -5507,7 +5537,7 @@ function animatePlayerExpand(complete) {
     bodyEl.style.opacity = "1";
   }
 
-  const targets = player.querySelectorAll(".yt-player-topbar, .yt-player-left-col, .yt-player-right-col");
+  const targets = player.querySelectorAll(".yt-player-topbar, .yt-player-tab-buttons, .yt-player-left-col, .yt-player-right-col");
   gsap.set(targets, { opacity: 0, y: 22 });
 
   gsap.to(targets, {
@@ -5533,7 +5563,7 @@ function animatePlayerCollapse(complete) {
   player.classList.add("is-transitioning");
 
   const bodyEl = player.querySelector(".yt-player-body");
-  const targets = player.querySelectorAll(".yt-player-topbar, .yt-player-left-col, .yt-player-right-col");
+  const targets = player.querySelectorAll(".yt-player-topbar, .yt-player-tab-buttons, .yt-player-left-col, .yt-player-right-col");
 
   gsap.to(targets, {
     opacity: 0,

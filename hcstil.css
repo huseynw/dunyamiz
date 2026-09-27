@@ -4011,22 +4011,11 @@ header {
   padding-bottom: 220px;
 }
 
-@media (max-width: 940px) {
-  .yt-active-player.expanded .yt-player-body {
-    display: block;
-  }
-}
-
 @media (max-width: 760px) {
-  .yt-active-player,
-  .yt-active-player.player-mini {
+  .yt-active-player.player-mini:not(.expanded) {
     width: calc(100vw - 14px);
     bottom: 84px;
     border-radius: 24px;
-  }
-
-  .yt-active-player.expanded {
-    bottom: 6px;
   }
 
   .yt-player-top {
@@ -4591,8 +4580,7 @@ header {
 }
 
 @media (max-width: 768px) {
-  .yt-active-player,
-  .yt-active-player.player-mini {
+  .yt-active-player.player-mini:not(.expanded) {
     width: min(96vw, 96vw);
     left: 50%;
     transform: translateX(-50%);
@@ -5054,74 +5042,6 @@ header {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-@media (max-width: 768px) {
-  .yt-active-player.expanded {
-    top: max(8px, env(safe-area-inset-top));
-    bottom: max(8px, env(safe-area-inset-bottom));
-    max-height: none;
-    height: auto;
-    overflow: hidden;
-  }
-
-  .yt-active-player.expanded .yt-player-body {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-auto-rows: min-content;
-    max-height: calc(
-      100dvh - 140px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
-    );
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom));
-  }
-
-  .yt-lyrics-panel {
-    min-height: 0;
-    height: auto;
-    padding: 14px;
-  }
-
-  .yt-lyrics-container {
-    max-height: none !important;
-    height: auto;
-    min-height: 180px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 8px 12px 24px 8px;
-  }
-
-  .yt-lyrics-line {
-    --blyrics-font-size: 1rem;
-    filter: blur(1.5px);
-    padding: 6px 8px !important;
-  }
-
-  .yt-lyrics-line.active {
-    filter: blur(0px);
-    transform: scale(1.02) translateX(4px);
-  }
-
-  .yt-lyrics-line.passed {
-    filter: blur(0px);
-  }
-}
-
-@media (max-width: 520px) {
-  .yt-lyrics-container {
-    min-height: 220px;
-    padding: 6px 8px 20px 6px;
-  }
-
-  .yt-lyrics-line {
-    --blyrics-font-size: 0.95rem;
-    line-height: 1.5 !important;
-    padding: 5px 6px !important;
-  }
-
-  .yt-lyrics-line.active {
-    transform: scale(1.01) translateX(2px);
-  }
-}
 
 /* ========== ADMIN MUSIC DRAG DROP + SMART META ========== */
 .admin-dropzone {
@@ -6347,14 +6267,8 @@ body.player-expanded #page-music .page-content {
     bottom: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    transform: translate3d(0, 0, 0) !important;
+    transform: none !important;
     border-radius: 0 !important;
-  }
-
-  .yt-active-player.expanded .yt-player-body {
-    min-height: calc(100dvh - 84px) !important;
-    max-height: calc(100dvh - 84px) !important;
-    padding: 0 12px 12px;
   }
 }
 
@@ -6546,8 +6460,7 @@ body.player-expanded #page-music .page-content {
 }
 
 @media (max-width: 760px) {
-  .yt-active-player,
-  .yt-active-player.player-mini {
+  .yt-active-player.player-mini:not(.expanded) {
     width: calc(100vw - 12px) !important;
     max-width: calc(100vw - 12px) !important;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 90px) !important;
@@ -6564,11 +6477,6 @@ body.player-expanded #page-music .page-content {
     right: 0 !important;
     transform: none !important;
     border-radius: 0 !important;
-  }
-
-  .yt-active-player.expanded .yt-player-body {
-    min-height: calc(100dvh - 84px) !important;
-    max-height: calc(100dvh - 84px) !important;
   }
 
   body.player-visible:not(.player-expanded) #page-music .page-content {
