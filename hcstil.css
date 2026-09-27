@@ -4462,6 +4462,8 @@ header {
   pointer-events: none !important;
   z-index: 0 !important;
   background-color: #070709 !important;
+  transform: scale(var(--beat-pulse, 1));
+  transition: transform 0.08s cubic-bezier(0.2, 0.8, 0.4, 1);
 }
 
 .yt-player-bg::before {
@@ -4483,45 +4485,6 @@ header {
   transition: background-image 0.6s ease !important;
 }
 
-.yt-player-bg::after {
-  content: "" !important;
-  position: absolute !important;
-  inset: 0 !important;
-  background:
-    radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.65) 100%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.58) 100%) !important;
-  pointer-events: none !important;
-}
-
-.yt-waveform {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  height: 110px;
-  z-index: 1;
-  opacity: 0.85;
-  pointer-events: none;
-}
-
-.yt-active-player::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 42px;
-  background: linear-gradient(to top, rgba(255, 77, 109, 0.1), transparent);
-  z-index: 1;
-  pointer-events: none;
-}
-
-.yt-active-player > *:not(.yt-player-bg):not(.yt-waveform) {
-  position: relative;
-  z-index: 2;
-}
-
 .kawarp-canvas {
   position: absolute;
   inset: 0;
@@ -4529,8 +4492,21 @@ header {
   height: 100%;
   display: block;
   pointer-events: none;
-  opacity: 0.65;
+  opacity: 0.82;
   mix-blend-mode: screen;
+  z-index: 1;
+  filter: saturate(1.4) brightness(0.9);
+}
+
+.yt-player-bg::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2 !important;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.62) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.52) 100%) !important;
+  pointer-events: none !important;
 }
 
 #visualizer {

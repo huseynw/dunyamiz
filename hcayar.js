@@ -4572,6 +4572,20 @@ function drawYTWaveform() {
       !ytWaveFallbackMode
     ) {
       ytWaveAnalyser.getByteFrequencyData(ytWaveDataArray);
+
+      // Better Lyrics Shaders — Audio-Reactive Beat Detection
+      let bassTotal = 0;
+      const bassCount = Math.min(8, ytWaveDataArray.length);
+      for (let b = 0; b < bassCount; b++) {
+        bassTotal += ytWaveDataArray[b];
+      }
+      const bassIntensity = bassTotal / (bassCount * 255);
+      const beatPulse = (1 + bassIntensity * 0.045).toFixed(3);
+      const bgEl = document.getElementById("yt-player-bg");
+      if (bgEl) {
+        bgEl.style.setProperty("--beat-pulse", beatPulse);
+      }
+
       ctx.shadowBlur = PERF_MOBILE ? 0 : 12;
       ctx.shadowColor = currentWaveColor;
 

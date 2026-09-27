@@ -3,6 +3,34 @@ import { Kawarp } from "@kawarp/core";
 let instance = null;
 let canvas = null;
 let imageUrl = null;
+let pendingImageUrl = null;
+let resizeObserver = null;
+
+async function loadSourceIntoKawarp(src) {
+  if (!instance || !src) return;
+  try {
+    if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("/")) {
+      try {
+        const response = await fetch(src, { mode: "cors", cache: "force-cache" });
+        if (response.ok) {
+          const blob = await response.blob();
+          instance.loadBlob(blob);
+          return;
+        }
+      } catch (_) {
+        // Fallback to direct URL if fetch fails
+      }
+    }
+    const promise = instance.loadImage(src);
+    if (promise && typeof promise.catch === "function") {
+      promise.catch((err) => {
+        console.warn("Kawarp loadImage fallback xətası:", err);
+      });
+    }
+  } catch (err) {
+    console.warn("Kawarp loadSource error:", err);
+  }
+}
 
 export function initKawarp() {
   const bg = document.getElementById("yt-player-bg");
@@ -13,38 +41,53 @@ export function initKawarp() {
     canvas.className = "kawarp-canvas";
     bg.prepend(canvas);
 
+    // Better Lyrics Shaders tuned parameters
     instance = new Kawarp(canvas, {
-      warpIntensity: 0.8,
-      blurPasses: 6,
-      animationSpeed: 0.6,
-      transitionDuration: 800,
-      saturation: 1.3,
-      tintColor: [0.16, 0.12, 0.2],
-      tintIntensity: 0.12,
-      dithering: 0.006,
-      scale: 1,
+      warpIntensity: 1.0,
+      blurPasses: 8,
+      animationSpeed: 0.85,
+      transitionDuration: 1200,
+      saturation: 1.5,
+      tintColor: [0.12, 0.1, 0.18],
+      tintIntensity: 0.1,
+      dithering: 0.008,
+      scale: 1.0,
     });
 
     instance.start();
+
+    // ResizeObserver: Player mini <-> expanded keçidlərində avtomatik dəqiq ölçü
+    if (window.ResizeObserver) {
+      resizeObserver = new ResizeObserver(() => {
+        requestAnimationFrame(() => {
+          if (instance) instance.resize();
+        });
+      });
+      resizeObserver.observe(bg);
+    }
+
+    // Əgər cover artıq təyin olunubsa, dərhal yüklə
+    if (pendingImageUrl) {
+      loadSourceIntoKawarp(pendingImageUrl);
+    }
   } catch (e) {
     console.warn("Kawarp init xətası (CSS ambient fallback aktivdir):", e);
   }
 }
 
 export function updateKawarpCover(src) {
-  if (!instance) return;
+  if (!src) return;
+  pendingImageUrl = src;
+
+  if (!instance) {
+    // İnstansiya hələ yaranmayıbsa, init etməyə cəhd et
+    initKawarp();
+    if (!instance) return;
+  }
+
   if (src === imageUrl) return;
   imageUrl = src;
-  try {
-    const promise = instance.loadImage(src);
-    if (promise && typeof promise.catch === "function") {
-      promise.catch((err) => {
-        console.warn("Kawarp loadImage xətası:", err);
-      });
-    }
-  } catch (err) {
-    console.warn("Kawarp loadImage sync xətası:", err);
-  }
+  loadSourceIntoKawarp(src);
 }
 
 export function resizeKawarp() {
@@ -64,6 +107,10 @@ export function startKawarp() {
 }
 
 export function destroyKawarp() {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
   if (instance) {
     instance.stop();
     instance.dispose();
