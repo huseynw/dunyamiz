@@ -3735,7 +3735,7 @@ function updateSyncedLyricsByTime(currentTime) {
   const activeEl = lyricsContainer.querySelector(
     `.yt-lyrics-line[data-lyrics-index="${activeIndex}"]`,
   );
-  if (activeEl) {
+  if (activeEl && !window._lyricsUserScrolling) {
     const containerRect = lyricsContainer.getBoundingClientRect();
     const itemRect = activeEl.getBoundingClientRect();
     const delta =
@@ -4703,6 +4703,17 @@ function initMusicPlayerEvents() {
       seekToLyricsTime(lineTime);
     }
   });
+
+  let lyricsUserScrollTimeout = null;
+  const onLyricsUserScroll = () => {
+    window._lyricsUserScrolling = true;
+    clearTimeout(lyricsUserScrollTimeout);
+    lyricsUserScrollTimeout = setTimeout(() => {
+      window._lyricsUserScrolling = false;
+    }, 2500);
+  };
+  dom.lyricsContainer?.addEventListener("wheel", onLyricsUserScroll, { passive: true });
+  dom.lyricsContainer?.addEventListener("touchmove", onLyricsUserScroll, { passive: true });
   dom.openFullBtn?.addEventListener("click", (e) => {
     e.stopPropagation();
     window.togglePlayerMode(true);
@@ -4822,14 +4833,21 @@ function initMusicPlayerEvents() {
   });
 
   dom.audio.addEventListener("timeupdate", () => {
+    const curTime = dom.audio.currentTime || 0;
+    const dur = dom.audio.duration || 1;
+    const percent = Math.min(100, Math.max(0, (curTime / dur) * 100));
+
     if (dom.seekbar) {
-      dom.seekbar.value = dom.audio.currentTime || 0;
-      const percent = (dom.audio.currentTime / (dom.audio.duration || 1)) * 100;
+      dom.seekbar.value = curTime;
       dom.seekbar.style.setProperty("--yt-progress", `${percent}%`);
     }
+    const miniFill = document.getElementById("yt-mini-progress-fill");
+    if (miniFill) {
+      miniFill.style.width = `${percent}%`;
+    }
     if (dom.currentTime)
-      dom.currentTime.textContent = formatMusicTime(dom.audio.currentTime);
-    updateSyncedLyricsByTime(dom.audio.currentTime);
+      dom.currentTime.textContent = formatMusicTime(curTime);
+    updateSyncedLyricsByTime(curTime);
     updateMediaSessionPlaybackState();
   });
 
@@ -4861,6 +4879,10 @@ function initMusicPlayerEvents() {
     dom.audio.currentTime = Number(dom.seekbar.value);
     const percent = (dom.audio.currentTime / (dom.audio.duration || 1)) * 100;
     dom.seekbar.style.setProperty("--yt-progress", `${percent}%`);
+    const miniFill = document.getElementById("yt-mini-progress-fill");
+    if (miniFill) {
+      miniFill.style.width = `${percent}%`;
+    }
     updateSyncedLyricsByTime(dom.audio.currentTime);
   });
 
@@ -5432,12 +5454,10 @@ function animatePlayerExpand(complete) {
   player._playerAnimating = true;
 
   const bodyEl = player.querySelector(".yt-player-body");
-  const mainEl = player.querySelector(".yt-player-main");
   const isMobile = window.innerWidth <= 760;
 
   document.body.classList.add("player-expanded");
 
-  // Player-i fullscreen CLASS ile birbasa kecir (CSS !important GSAP-i bloklayir)
   player.classList.remove("player-mini", "player-collapsing", "player-hiding");
   player.classList.add("expanded", "is-transitioning");
 
@@ -5445,113 +5465,75 @@ function animatePlayerExpand(complete) {
   const backdrop = getBackdrop();
   backdrop.style.display = "block";
   gsap.set(backdrop, { opacity: 0 });
-  gsap.to(backdrop, { opacity: 1, duration: 0.25, ease: "power2.out" });
+  gsap.to(backdrop, { opacity: 1, duration: 0.35, ease: "power2.out" });
 
-  // Body content CSS .expanded .yt-player-body qaydasi ile gorsenir
   if (bodyEl) {
     bodyEl.style.display = "";
     bodyEl.style.opacity = "1";
   }
 
-  const children = mainEl ? [...mainEl.children].filter(c => c.tagName !== "STYLE") : [];
-  gsap.set(children, { opacity: 0, y: 24 });
+  const targets = player.querySelectorAll(".yt-player-topbar, .yt-player-left-col, .yt-player-right-col");
+  gsap.set(targets, { opacity: 0, y: 22 });
 
-  // Content-i stag ile goster (fullscreen snap-dan sonra)
-  if (children.length) {
-    gsap.to(children, {
-      opacity: 1,
-      y: 0,
-      duration: 0.35,
-      stagger: 0.06,
-      delay: isMobile ? 0.08 : 0.12,
-      ease: "power3.out",
-      onComplete: () => {
-        player.classList.remove("is-transitioning");
-        player._playerAnimating = false;
-        syncPlayerExpandedState();
-        if (typeof complete === "function") complete();
-      },
-    });
-  } else {
-    setTimeout(() => {
+  gsap.to(targets, {
+    opacity: 1,
+    y: 0,
+    duration: 0.38,
+    stagger: 0.08,
+    delay: isMobile ? 0.06 : 0.1,
+    ease: "power3.out",
+    onComplete: () => {
       player.classList.remove("is-transitioning");
       player._playerAnimating = false;
       syncPlayerExpandedState();
       if (typeof complete === "function") complete();
-    }, 300);
-  }
+    },
+  });
 }
 
 function animatePlayerCollapse(complete) {
   const player = getMusicDom().activePlayer;
   if (!player || player._playerAnimating) return;
   player._playerAnimating = true;
+  player.classList.add("is-transitioning");
 
   const bodyEl = player.querySelector(".yt-player-body");
-  const mainEl = player.querySelector(".yt-player-main");
-  const isMobile = window.innerWidth <= 760;
+  const targets = player.querySelectorAll(".yt-player-topbar, .yt-player-left-col, .yt-player-right-col");
 
-  // 1. Body content-i gizlet (opacity 0)
-  const children = mainEl ? [...mainEl.children].filter(c => c.tagName !== "STYLE") : [];
-  if (children.length) {
-    gsap.to(children, {
-      opacity: 0,
-      y: 20,
-      duration: 0.12,
-      ease: "power2.in",
-      onComplete: () => {
-        // Content gizlendi, indi player-i mini veziyyete kecir
-        if (bodyEl) {
-          bodyEl.style.display = "";
-          bodyEl.style.opacity = "";
-        }
+  gsap.to(targets, {
+    opacity: 0,
+    y: 16,
+    duration: 0.16,
+    ease: "power2.in",
+    onComplete: () => {
+      if (bodyEl) {
+        bodyEl.style.display = "";
+        bodyEl.style.opacity = "";
+      }
 
-        document.body.classList.remove("player-expanded");
-        player.classList.remove("expanded");
-        player.classList.add("player-mini");
-        gsap.set(player, { clearProps: "all" });
+      document.body.classList.remove("player-expanded");
+      player.classList.remove("expanded");
+      player.classList.add("player-mini");
+      gsap.set(player, { clearProps: "all" });
 
-        // Backdrop fade out
-        const backdrop = document.getElementById("yt-player-backdrop");
-        if (backdrop) {
-          gsap.to(backdrop, {
-            opacity: 0,
-            duration: 0.2,
-            ease: "power2.in",
-            onComplete: () => { backdrop.style.display = "none"; },
-          });
-        }
+      const backdrop = document.getElementById("yt-player-backdrop");
+      if (backdrop) {
+        gsap.to(backdrop, {
+          opacity: 0,
+          duration: 0.25,
+          ease: "power2.in",
+          onComplete: () => { backdrop.style.display = "none"; },
+        });
+      }
 
+      setTimeout(() => {
+        player.classList.remove("is-transitioning");
         player._playerAnimating = false;
         syncPlayerExpandedState();
         if (typeof complete === "function") complete();
-      },
-    });
-  } else {
-    if (bodyEl) {
-      bodyEl.style.display = "";
-      bodyEl.style.opacity = "";
-    }
-
-    document.body.classList.remove("player-expanded");
-    player.classList.remove("expanded");
-    player.classList.add("player-mini");
-    gsap.set(player, { clearProps: "all" });
-
-    const backdrop = document.getElementById("yt-player-backdrop");
-    if (backdrop) {
-      gsap.to(backdrop, {
-        opacity: 0,
-        duration: 0.2,
-        ease: "power2.in",
-        onComplete: () => { backdrop.style.display = "none"; },
-      });
-    }
-
-    player._playerAnimating = false;
-    syncPlayerExpandedState();
-    if (typeof complete === "function") complete();
-  }
+      }, 350);
+    },
+  });
 }
 // Admin paneldə əl ilə bildiriş göndərmə
 const sendCustomBtn = document.getElementById("send-custom-notif-btn");

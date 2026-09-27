@@ -1,0 +1,862 @@
+/* ==========================================================================
+   EVEN BETTER LYRICS PLUS & MODERN YT MUSIC PLAYER
+   Full Desktop 2-Column Split + Mobile Responsive Sheet + Smooth Morph
+   ========================================================================== */
+
+:root {
+  --blyrics-font-family: "Switzer", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+  --blyrics-font-weight: 600;
+  --blyrics-active-weight: 750;
+  --blyrics-font-size-desktop: 2.2rem;
+  --blyrics-font-size-mobile: 1.48rem;
+  --blyrics-line-height: 1.42;
+  --blyrics-hover-scale: 1.018;
+  --blyrics-active-glow: rgba(255, 255, 255, 0.45);
+  --blyrics-wobble-duration: 0.9s;
+}
+
+/* ==================== BASE PLAYER SHELL ==================== */
+.yt-active-player {
+  position: fixed !important;
+  left: 50% !important;
+  transform: translateX(-50%) translate3d(0, 0, 0) !important;
+  z-index: 3000 !important;
+  overflow: hidden !important;
+  touch-action: pan-y;
+  background: rgba(13, 14, 18, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  backdrop-filter: blur(30px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(1.4) !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  transition:
+    bottom 0.44s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.44s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.44s cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 0.44s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.44s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.28s ease !important;
+  will-change: bottom, width, height, border-radius;
+}
+
+/* Mini State: Floating Pill Docked above nav */
+.yt-active-player.player-mini {
+  bottom: 88px !important;
+  width: min(92vw, 760px) !important;
+  height: 72px !important;
+  max-height: 72px !important;
+  border-radius: 22px !important;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+@media (max-width: 768px) {
+  .yt-active-player.player-mini {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    width: calc(100vw - 20px) !important;
+    height: 68px !important;
+    max-height: 68px !important;
+    border-radius: 18px !important;
+  }
+}
+
+/* Expanded State: Full Immersion Canvas */
+.yt-active-player.expanded {
+  bottom: 0 !important;
+  top: 0 !important;
+  left: 50% !important;
+  right: auto !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Visibility Switcher between Mini & Full */
+.yt-active-player.player-mini .yt-player-top {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  display: flex !important;
+  transition: opacity 0.22s ease 0.14s !important;
+}
+
+.yt-active-player.player-mini .yt-player-body {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  display: none !important;
+  transition: opacity 0.18s ease !important;
+}
+
+.yt-active-player.expanded .yt-player-top {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  display: none !important;
+  transition: opacity 0.18s ease !important;
+}
+
+.yt-active-player.expanded .yt-player-body {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transition: opacity 0.32s ease 0.12s !important;
+}
+
+/* ==================== MINI PROGRESS BAR ==================== */
+.yt-mini-progress-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.yt-mini-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #ff4d6d, #ff758c);
+  transition: width 0.15s linear;
+}
+
+/* ==================== MINI PLAYER BAR ==================== */
+.yt-player-top {
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.yt-cover-button {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  cursor: pointer;
+  border: none !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+}
+
+.yt-cover-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.yt-now-playing {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+#yt-now-label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--primary, #ff4d6d);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+#yt-player-title-mini {
+  display: block;
+  color: #fff;
+  font-size: 0.94rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--blyrics-font-family);
+}
+
+#yt-player-artist-mini {
+  display: block;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.yt-mini-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.yt-chip-btn {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background 0.2s ease !important;
+}
+
+.yt-chip-btn:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+  transform: scale(1.06) !important;
+}
+
+.yt-chip-btn--play {
+  background: #ff4d6d !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(255, 77, 109, 0.4) !important;
+}
+
+.yt-chip-btn--play:hover {
+  background: #ff6584 !important;
+  transform: scale(1.08) !important;
+}
+
+.yt-player-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.yt-mini-btn {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background 0.2s ease !important;
+}
+
+.yt-mini-btn:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  transform: scale(1.06) !important;
+}
+
+/* ==================== EXPANDED TOPBAR ==================== */
+.yt-player-topbar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  flex-shrink: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 12px;
+}
+
+.yt-player-heading {
+  text-align: center;
+  min-width: 0;
+}
+
+.yt-player-kicker {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+#yt-player-title {
+  display: block;
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--blyrics-font-family);
+}
+
+#yt-player-artist {
+  display: block;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==================== TRACK CONTROLS & VINYL ==================== */
+.yt-player-art-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.yt-rotating-disc {
+  position: relative;
+  border-radius: 26px !important;
+  overflow: hidden !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
+}
+
+.yt-rotating-disc img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.yt-progress-area {
+  width: 100%;
+}
+
+#yt-seekbar {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    #ff4d6d 0%,
+    #ff4d6d var(--yt-progress, 0%),
+    rgba(255, 255, 255, 0.16) var(--yt-progress, 0%),
+    rgba(255, 255, 255, 0.16) 100%
+  );
+  outline: none;
+  cursor: pointer;
+  transition: height 0.15s ease;
+}
+
+#yt-seekbar:hover {
+  height: 7px;
+}
+
+#yt-seekbar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+#yt-seekbar:hover::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+
+.yt-time-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+.yt-controls-row.main-controls {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16px;
+}
+
+.yt-control-btn {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 1.05rem !important;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease !important;
+  position: relative;
+}
+
+.yt-control-btn:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #fff !important;
+  transform: scale(1.08) !important;
+}
+
+.yt-play-btn {
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: #ff4d6d !important;
+  color: #fff !important;
+  font-size: 1.4rem !important;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(255, 77, 109, 0.45) !important;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.yt-play-btn:hover {
+  background: #ff6584 !important;
+  transform: scale(1.08) !important;
+  box-shadow: 0 12px 36px rgba(255, 77, 109, 0.6) !important;
+}
+
+.yt-repeat-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: none;
+}
+
+.yt-control-btn[data-mode="one"] .yt-repeat-badge {
+  display: block;
+}
+
+.yt-control-btn.is-active,
+.yt-control-btn[data-mode="all"],
+.yt-control-btn[data-mode="one"] {
+  color: #ff4d6d !important;
+  background: rgba(255, 77, 109, 0.16) !important;
+}
+
+.yt-volume-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+}
+
+#volume-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  outline: none;
+  cursor: pointer;
+}
+
+#volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* Tabs buttons */
+.yt-player-tab-buttons {
+  display: flex !important;
+  gap: 8px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  width: fit-content;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 12px;
+}
+
+.yt-player-tab-btn {
+  border: none !important;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  padding: 8px 18px !important;
+  border-radius: 999px !important;
+  font-family: var(--blyrics-font-family) !important;
+  font-size: 0.92rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.yt-player-tab-btn:hover {
+  color: #fff !important;
+}
+
+.yt-player-tab-btn.is-active,
+.yt-player-tab-btn[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* ==================== EVEN BETTER LYRICS PLUS (EBLP) ==================== */
+.yt-lyrics-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.yt-lyrics-head strong {
+  color: #fff;
+  font-size: 1.1rem;
+  font-family: var(--blyrics-font-family);
+  font-weight: 700;
+}
+
+.yt-lyrics-container {
+  overflow-y: auto !important;
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: 26vh 24px 34vh 24px !important;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 14%,
+    black 84%,
+    transparent 100%
+  ) !important;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 14%,
+    black 84%,
+    transparent 100%
+  ) !important;
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+.yt-lyrics-container::-webkit-scrollbar {
+  display: none !important;
+}
+
+.yt-lyrics-line {
+  display: block !important;
+  padding: 10px 14px !important;
+  border-radius: 16px !important;
+  font-family: var(--blyrics-font-family) !important;
+  font-size: var(--blyrics-font-size-desktop) !important;
+  font-weight: var(--blyrics-font-weight) !important;
+  line-height: var(--blyrics-line-height) !important;
+  letter-spacing: -0.02em !important;
+  color: rgba(255, 255, 255, 0.36) !important;
+  filter: blur(2.2px) !important;
+  opacity: 0.35 !important;
+  transform: scale(0.975) !important;
+  transform-origin: left center !important;
+  transition:
+    filter 0.38s cubic-bezier(0.2, 0.8, 0.4, 1),
+    opacity 0.38s cubic-bezier(0.2, 0.8, 0.4, 1),
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.4, 1),
+    color 0.3s ease !important;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 4px !important;
+}
+
+/* Passed lines */
+.yt-lyrics-line.passed {
+  color: rgba(255, 255, 255, 0.45) !important;
+  opacity: 0.42 !important;
+  filter: blur(1.4px) !important;
+  transform: scale(0.985) !important;
+}
+
+/* Active Line (Even Better Lyrics Plus signature glow & focus) */
+.yt-lyrics-line.active {
+  color: #ffffff !important;
+  font-weight: var(--blyrics-active-weight) !important;
+  opacity: 1 !important;
+  filter: blur(0px) !important;
+  transform: scale(1.03) translateX(6px) !important;
+  text-shadow: 0 0 24px var(--blyrics-active-glow), 0 0 50px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Hover line */
+.yt-lyrics-line:hover {
+  opacity: 0.88 !important;
+  filter: blur(0px) !important;
+  transform: scale(var(--blyrics-hover-scale)) translateX(3px) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Word-by-word synced karaoke highlights */
+.yt-lyrics-line--word {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.25em !important;
+}
+
+.yt-lyrics-word {
+  display: inline-block !important;
+  color: transparent !important;
+  background: linear-gradient(90deg, #ffffff 50%, rgba(255, 255, 255, 0.38) 50%) !important;
+  background-size: 200% 100% !important;
+  background-position: 100% 0 !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  font-family: var(--blyrics-font-family) !important;
+  transition:
+    transform 0.18s ease,
+    background-position 0.2s ease,
+    text-shadow 0.2s ease !important;
+}
+
+.yt-lyrics-word.active {
+  animation: blyrics-fill var(--word-duration, 0.45s) linear forwards !important;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.4) !important;
+}
+
+.yt-lyrics-word.passed {
+  background-position: 0 0 !important;
+}
+
+@keyframes blyrics-fill {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}
+
+.yt-lyrics-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--blyrics-font-family);
+  font-size: 1.1rem;
+}
+
+/* ==================== DESKTOP 2-COLUMN SPLIT SCREEN (>= 960px) ==================== */
+@media (min-width: 960px) {
+  .yt-player-main {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100dvh !important;
+    padding: 24px 56px 32px !important;
+    box-sizing: border-box !important;
+    max-width: 1540px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+  }
+
+  .yt-player-topbar {
+    height: 52px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .yt-player-content-grid {
+    display: grid !important;
+    grid-template-columns: 420px 1fr !important;
+    gap: 56px !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    align-items: center !important;
+  }
+
+  .yt-player-left-col {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 20px !important;
+    max-width: 420px !important;
+    width: 100% !important;
+  }
+
+  .yt-player-art-wrap {
+    width: min(360px, 34vh) !important;
+    height: min(360px, 34vh) !important;
+  }
+
+  .yt-rotating-disc {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .yt-progress-area {
+    width: 100% !important;
+  }
+
+  .yt-volume-area {
+    width: 80% !important;
+  }
+
+  .yt-player-right-col {
+    height: 100% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .yt-player-tab-panels {
+    flex: 1 !important;
+    min-height: 0 !important;
+    display: flex !important;
+  }
+
+  .yt-player-tab-panel {
+    flex: 1 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .yt-lyrics-panel {
+    flex: 1 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0 !important;
+  }
+
+  .yt-lyrics-container {
+    flex: 1 !important;
+    height: 100% !important;
+    max-height: none !important;
+  }
+
+  .btn-close-lyrics {
+    display: none !important;
+  }
+}
+
+/* ==================== MOBILE RESPONSIVE SHEET (< 960px) ==================== */
+@media (max-width: 959px) {
+  .yt-player-main {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100dvh !important;
+    padding: 16px 20px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+  }
+
+  .yt-player-topbar {
+    height: 48px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .yt-player-content-grid {
+    flex: 1 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  /* When lyrics is open on mobile: lyrics fills screen, compact controls at bottom */
+  .yt-active-player.lyrics-open .yt-player-left-col {
+    display: flex !important;
+    flex-direction: column !important;
+    order: 2 !important;
+    padding-top: 8px !important;
+    gap: 10px !important;
+    flex-shrink: 0 !important;
+    width: 100% !important;
+  }
+
+  .yt-active-player.lyrics-open .yt-player-art-wrap {
+    display: none !important;
+  }
+
+  .yt-active-player.lyrics-open .yt-volume-area {
+    display: none !important;
+  }
+
+  .yt-active-player.lyrics-open .yt-player-right-col {
+    order: 1 !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* When lyrics is NOT open on mobile: display large artwork & full controls */
+  .yt-active-player:not(.lyrics-open) .yt-player-left-col {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: space-evenly !important;
+    width: 100% !important;
+  }
+
+  .yt-active-player:not(.lyrics-open) .yt-player-art-wrap {
+    width: min(74vw, 300px) !important;
+    height: min(74vw, 300px) !important;
+  }
+
+  .yt-active-player:not(.lyrics-open) .yt-player-right-col {
+    display: none !important;
+  }
+
+  .yt-lyrics-panel {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .yt-lyrics-container {
+    flex: 1 !important;
+    max-height: none !important;
+    padding: 20vh 12px 26vh 12px !important;
+  }
+
+  .yt-lyrics-line {
+    font-size: var(--blyrics-font-size-mobile) !important;
+    padding: 8px 10px !important;
+    filter: blur(1.8px) !important;
+  }
+}

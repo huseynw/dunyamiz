@@ -3,6 +3,7 @@
 
 // CSS import
 import '../hcstil.css';
+import './player.css';
 
 // GSAP is loaded globally via script tag in index.html
 

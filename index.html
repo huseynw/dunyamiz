@@ -798,6 +798,9 @@
         <div class="yt-player-bg" id="yt-player-bg"></div>
         <canvas class="yt-waveform" id="yt-waveform"></canvas>
         <div class="yt-player-top" data-player-expand="true">
+          <div class="yt-mini-progress-track">
+            <div class="yt-mini-progress-fill" id="yt-mini-progress-fill"></div>
+          </div>
           <button
             class="yt-cover-button"
             id="yt-open-full-btn"
@@ -892,173 +895,177 @@
               </button>
             </div>
 
-            <div class="yt-player-art-wrap">
-              <div class="yt-rotating-disc" id="yt-rotating-disc">
-                <img
-                  id="yt-cover-image"
-                  src="assets/music-cover.jpg"
-                  alt="Cover"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-            </div>
-
-            <div class="yt-progress-area">
-              <input
-                type="range"
-                id="yt-seekbar"
-                min="0"
-                value="0"
-                step="0.1"
-              />
-              <div class="yt-time-row">
-                <span id="yt-current-time">00:00</span>
-                <span id="yt-duration">00:00</span>
-              </div>
-            </div>
-
-            <div class="yt-controls-row main-controls">
-              <button
-                id="yt-prev-btn"
-                class="yt-control-btn"
-                type="button"
-                aria-label="Əvvəlki mahnı"
-              >
-                <i class="fas fa-backward-step"></i>
-              </button>
-              <button
-                id="yt-shuffle-btn"
-                class="yt-control-btn yt-mode-btn"
-                type="button"
-                aria-label="Shuffle"
-              >
-                <i class="fas fa-shuffle"></i>
-              </button>
-              <button
-                id="yt-play-btn"
-                class="yt-play-btn"
-                type="button"
-                aria-label="Play/Pause"
-              >
-                <i class="fas fa-play"></i>
-              </button>
-              <button
-                id="yt-next-btn"
-                class="yt-control-btn"
-                type="button"
-                aria-label="Növbəti mahnı"
-              >
-                <i class="fas fa-forward-step"></i>
-              </button>
-              <button
-                id="yt-repeat-btn"
-                class="yt-control-btn yt-mode-btn"
-                type="button"
-                aria-label="Repeat"
-                data-mode="off"
-              >
-                <i class="fas fa-repeat"></i>
-                <span class="yt-repeat-badge">1</span>
-              </button>
-            </div>
-
-            <div class="yt-volume-area volume-area">
-              <i class="fas fa-volume-low"></i>
-              <input
-                type="range"
-                id="volume-slider"
-                min="0"
-                max="1"
-                step="0.01"
-                value="0.85"
-              />
-              <span id="volume-value">85%</span>
-            </div>
-
-            <div class="yt-player-tabs">
-              <div
-                class="yt-player-tab-buttons"
-                role="tablist"
-                aria-label="Player bölmələri"
-              >
-                <button
-                  id="yt-tab-lyrics"
-                  class="yt-player-tab-btn"
-                  type="button"
-                  role="tab"
-                  aria-selected="true"
-                  aria-controls="yt-lyrics-panel-wrap"
-                  data-player-tab="lyrics"
-                >
-                  <i class="fas fa-microphone-lines"></i>
-                  <span>Sözlər</span>
-                </button>
-                <button
-                  id="yt-tab-upnext"
-                  class="yt-player-tab-btn"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                  aria-controls="yt-up-next-panel-wrap"
-                  data-player-tab="upnext"
-                >
-                  <i class="fas fa-list-ul"></i>
-                  <span>Sıradakı</span>
-                </button>
-              </div>
-
-              <div class="yt-player-tab-panels">
-                <div
-                  id="yt-lyrics-panel-wrap"
-                  class="yt-player-tab-panel"
-                  data-tab-panel="lyrics"
-                >
-                  <aside
-                    id="yt-lyrics-panel"
-                    class="yt-lyrics-panel"
-                    aria-hidden="false"
-                  >
-                    <div class="yt-lyrics-head">
-                      <div>
-                        <span class="yt-player-kicker">SYNCED LYRICS</span>
-                        <strong>Sözlər</strong>
-                      </div>
-                      <button
-                        class="yt-mini-btn btn-close-lyrics"
-                        type="button"
-                        aria-label="Sözləri bağla"
-                      >
-                        <i class="fas fa-xmark"></i>
-                      </button>
-                    </div>
-                    <div id="yt-lyrics-container" class="yt-lyrics-container">
-                      <div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>
-                    </div>
-                  </aside>
+            <div class="yt-player-content-grid">
+              <div class="yt-player-left-col">
+                <div class="yt-player-art-wrap">
+                  <div class="yt-rotating-disc" id="yt-rotating-disc">
+                    <img
+                      id="yt-cover-image"
+                      src="assets/music-cover.jpg"
+                      alt="Cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
                 </div>
 
-                <div
-                  id="yt-up-next-panel-wrap"
-                  class="yt-player-tab-panel"
-                  data-tab-panel="upnext"
-                  hidden
-                >
-                  <section
-                    class="yt-up-next-panel"
-                    aria-label="Sonrakı mahnılar"
+                <div class="yt-progress-area">
+                  <input
+                    type="range"
+                    id="yt-seekbar"
+                    min="0"
+                    value="0"
+                    step="0.1"
+                  />
+                  <div class="yt-time-row">
+                    <span id="yt-current-time">00:00</span>
+                    <span id="yt-duration">00:00</span>
+                  </div>
+                </div>
+
+                <div class="yt-controls-row main-controls">
+                  <button
+                    id="yt-shuffle-btn"
+                    class="yt-control-btn yt-mode-btn"
+                    type="button"
+                    aria-label="Shuffle"
                   >
-                    <div class="yt-up-next-head">
-                      <div>
-                        <span class="yt-player-kicker">UP NEXT</span>
-                        <strong>Sonrakı Mahnılar</strong>
+                    <i class="fas fa-shuffle"></i>
+                  </button>
+                  <button
+                    id="yt-prev-btn"
+                    class="yt-control-btn"
+                    type="button"
+                    aria-label="Əvvəlki mahnı"
+                  >
+                    <i class="fas fa-backward-step"></i>
+                  </button>
+                  <button
+                    id="yt-play-btn"
+                    class="yt-play-btn"
+                    type="button"
+                    aria-label="Play/Pause"
+                  >
+                    <i class="fas fa-play"></i>
+                  </button>
+                  <button
+                    id="yt-next-btn"
+                    class="yt-control-btn"
+                    type="button"
+                    aria-label="Növbəti mahnı"
+                  >
+                    <i class="fas fa-forward-step"></i>
+                  </button>
+                  <button
+                    id="yt-repeat-btn"
+                    class="yt-control-btn yt-mode-btn"
+                    type="button"
+                    aria-label="Repeat"
+                    data-mode="off"
+                  >
+                    <i class="fas fa-repeat"></i>
+                    <span class="yt-repeat-badge">1</span>
+                  </button>
+                </div>
+
+                <div class="yt-volume-area volume-area">
+                  <i class="fas fa-volume-low"></i>
+                  <input
+                    type="range"
+                    id="volume-slider"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value="0.85"
+                  />
+                  <span id="volume-value">85%</span>
+                </div>
+              </div>
+
+              <div class="yt-player-right-col yt-player-tabs">
+                <div
+                  class="yt-player-tab-buttons"
+                  role="tablist"
+                  aria-label="Player bölmələri"
+                >
+                  <button
+                    id="yt-tab-lyrics"
+                    class="yt-player-tab-btn is-active"
+                    type="button"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="yt-lyrics-panel-wrap"
+                    data-player-tab="lyrics"
+                  >
+                    <i class="fas fa-microphone-lines"></i>
+                    <span>Sözlər</span>
+                  </button>
+                  <button
+                    id="yt-tab-upnext"
+                    class="yt-player-tab-btn"
+                    type="button"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="yt-up-next-panel-wrap"
+                    data-player-tab="upnext"
+                  >
+                    <i class="fas fa-list-ul"></i>
+                    <span>Sıradakı</span>
+                  </button>
+                </div>
+
+                <div class="yt-player-tab-panels">
+                  <div
+                    id="yt-lyrics-panel-wrap"
+                    class="yt-player-tab-panel"
+                    data-tab-panel="lyrics"
+                  >
+                    <aside
+                      id="yt-lyrics-panel"
+                      class="yt-lyrics-panel"
+                      aria-hidden="false"
+                    >
+                      <div class="yt-lyrics-head">
+                        <div>
+                          <span class="yt-player-kicker">EVEN BETTER LYRICS PLUS</span>
+                          <strong>Sözlər</strong>
+                        </div>
+                        <button
+                          class="yt-mini-btn btn-close-lyrics"
+                          type="button"
+                          aria-label="Sözləri bağla"
+                        >
+                          <i class="fas fa-xmark"></i>
+                        </button>
                       </div>
-                      <small id="yt-up-next-count">0 mahnı</small>
-                    </div>
-                    <div id="yt-up-next-list" class="yt-up-next-list">
-                      <div class="yt-up-next-empty">Növbədə mahnı yoxdur.</div>
-                    </div>
-                  </section>
+                      <div id="yt-lyrics-container" class="yt-lyrics-container">
+                        <div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>
+                      </div>
+                    </aside>
+                  </div>
+
+                  <div
+                    id="yt-up-next-panel-wrap"
+                    class="yt-player-tab-panel"
+                    data-tab-panel="upnext"
+                    hidden
+                  >
+                    <section
+                      class="yt-up-next-panel"
+                      aria-label="Sonrakı mahnılar"
+                    >
+                      <div class="yt-up-next-head">
+                        <div>
+                          <span class="yt-player-kicker">UP NEXT</span>
+                          <strong>Sonrakı Mahnılar</strong>
+                        </div>
+                        <small id="yt-up-next-count">0 mahnı</small>
+                      </div>
+                      <div id="yt-up-next-list" class="yt-up-next-list">
+                        <div class="yt-up-next-empty">Növbədə mahnı yoxdur.</div>
+                      </div>
+                    </section>
+                  </div>
                 </div>
               </div>
             </div>
