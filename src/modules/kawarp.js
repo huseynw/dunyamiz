@@ -8,30 +8,43 @@ export function initKawarp() {
   const bg = document.getElementById("yt-player-bg");
   if (!bg || instance) return;
 
-  canvas = document.createElement("canvas");
-  canvas.className = "kawarp-canvas";
-  bg.prepend(canvas);
+  try {
+    canvas = document.createElement("canvas");
+    canvas.className = "kawarp-canvas";
+    bg.prepend(canvas);
 
-  instance = new Kawarp(canvas, {
-    warpIntensity: 0.8,
-    blurPasses: 6,
-    animationSpeed: 0.6,
-    transitionDuration: 800,
-    saturation: 1.3,
-    tintColor: [0.16, 0.12, 0.2],
-    tintIntensity: 0.12,
-    dithering: 0.006,
-    scale: 1,
-  });
+    instance = new Kawarp(canvas, {
+      warpIntensity: 0.8,
+      blurPasses: 6,
+      animationSpeed: 0.6,
+      transitionDuration: 800,
+      saturation: 1.3,
+      tintColor: [0.16, 0.12, 0.2],
+      tintIntensity: 0.12,
+      dithering: 0.006,
+      scale: 1,
+    });
 
-  instance.start();
+    instance.start();
+  } catch (e) {
+    console.warn("Kawarp init xətası (CSS ambient fallback aktivdir):", e);
+  }
 }
 
 export function updateKawarpCover(src) {
   if (!instance) return;
   if (src === imageUrl) return;
   imageUrl = src;
-  instance.loadImage(src);
+  try {
+    const promise = instance.loadImage(src);
+    if (promise && typeof promise.catch === "function") {
+      promise.catch((err) => {
+        console.warn("Kawarp loadImage xətası:", err);
+      });
+    }
+  } catch (err) {
+    console.warn("Kawarp loadImage sync xətası:", err);
+  }
 }
 
 export function resizeKawarp() {
