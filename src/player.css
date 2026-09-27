@@ -29,6 +29,26 @@
   pointer-events: none !important;
 }
 
+.yt-player-bg {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+  background: radial-gradient(circle at 35% 30%, rgba(28, 32, 42, 0.7) 0%, rgba(13, 14, 18, 0.98) 75%), #0d0e12 !important;
+}
+
+.yt-player-bg::before,
+.yt-player-bg::after,
+.kawarp-canvas {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 .yt-active-player {
   position: fixed !important;
   z-index: 9999 !important;

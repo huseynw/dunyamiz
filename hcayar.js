@@ -3906,21 +3906,17 @@ async function updateMusicCover(track) {
     if (coverFull) coverFull.src = src;
     if (coverMini) coverMini.src = src;
     if (playerBg) {
-      playerBg.style.backgroundImage = `url("${src}")`;
-      playerBg.style.setProperty("--blyrics-background-img", `url("${src}")`);
-      playerBg.style.setProperty("--player-cover-url", `url("${src}")`);
+      playerBg.style.backgroundImage = "none";
+      playerBg.style.removeProperty("--blyrics-background-img");
+      playerBg.style.removeProperty("--player-cover-url");
     }
     const activePlayer = document.getElementById("yt-active-player");
     if (activePlayer) {
-      activePlayer.style.setProperty("--blyrics-background-img", `url("${src}")`);
-      activePlayer.style.setProperty("--player-cover-url", `url("${src}")`);
+      activePlayer.style.removeProperty("--blyrics-background-img");
+      activePlayer.style.removeProperty("--player-cover-url");
     }
-    document.documentElement.style.setProperty("--blyrics-background-img", `url("${src}")`);
-    document.documentElement.style.setProperty("--player-cover-url", `url("${src}")`);
-    updateKawarpCover(src);
-    getDominantColorFromImage(src).then((color) => {
-      currentWaveColor = color;
-    });
+    document.documentElement.style.removeProperty("--blyrics-background-img");
+    document.documentElement.style.removeProperty("--player-cover-url");
     const playlistThumb = document.querySelector(
       `.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`,
     );
