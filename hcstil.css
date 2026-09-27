@@ -3926,11 +3926,10 @@ header {
   line-height: 1.5;
   white-space: pre-wrap;
   transform-origin: left center;
-  filter: blur(2px);
+  filter: none !important;
   opacity: 0.55;
   transition:
-    filter 0.4s ease 0.15s,
-    opacity 0.5s ease 0.1s,
+    opacity 0.4s ease 0.05s,
     transform 0.2s ease,
     color 0.3s ease;
 }
@@ -3939,7 +3938,7 @@ header {
   color: #fff;
   font-weight: 700;
   opacity: 1;
-  filter: blur(0px);
+  filter: none !important;
   transform: scale(1.04) translateX(6px);
   text-shadow: 0 0 24px rgba(255, 255, 255, 0.4);
 }
@@ -3947,13 +3946,13 @@ header {
 .yt-lyrics-line.passed {
   color: rgba(255, 255, 255, 0.72);
   opacity: 0.75;
-  filter: blur(0px);
+  filter: none !important;
 }
 
 /* Hover effect — always show clearly on hover */
 .yt-lyrics-line:hover {
   opacity: 1 !important;
-  filter: blur(0px) !important;
+  filter: none !important;
   transform: scale(var(--blyrics-hover-scale));
   transition: all 0.25s ease;
 }
@@ -6683,7 +6682,7 @@ body.player-expanded {
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(24px) saturate(1.2);
   -webkit-backdrop-filter: blur(24px) saturate(1.2);
-  z-index: 3499;
+  z-index: 1500 !important;
   display: none;
   pointer-events: none;
   will-change: opacity;

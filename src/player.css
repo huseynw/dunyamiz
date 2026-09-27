@@ -16,15 +16,20 @@
 }
 
 /* ==================== BASE PLAYER SHELL ==================== */
+#yt-player-backdrop {
+  z-index: 1500 !important;
+  pointer-events: none !important;
+}
+
 .yt-active-player {
   position: fixed !important;
-  z-index: 3000 !important;
+  z-index: 9999 !important;
   overflow: hidden !important;
   touch-action: pan-y;
-  background: rgba(13, 14, 18, 0.94) !important;
+  background: rgba(13, 14, 18, 0.95) !important;
   border: 1px solid rgba(255, 255, 255, 0.09) !important;
-  backdrop-filter: blur(30px) saturate(1.4) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(1.4) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   box-sizing: border-box !important;
   margin: 0 !important;
   transition:
@@ -80,7 +85,9 @@ body.player-expanded .yt-active-player,
   border-radius: 0 !important;
   border: none !important;
   box-shadow: none !important;
-  z-index: 3000 !important;
+  z-index: 9999 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 /* Visibility Switcher between Mini & Full */
@@ -506,7 +513,11 @@ body.player-expanded .yt-active-player,
   border-radius: 999px;
   width: fit-content;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 12px;
+  margin: 0 auto 16px auto !important;
+}
+
+.yt-mobile-only-tab {
+  display: none !important;
 }
 
 .yt-player-tab-btn {
@@ -587,16 +598,15 @@ body.player-expanded .yt-active-player,
   font-weight: var(--blyrics-font-weight) !important;
   line-height: var(--blyrics-line-height) !important;
   letter-spacing: -0.02em !important;
-  color: rgba(255, 255, 255, 0.36) !important;
-  filter: blur(2.2px) !important;
-  opacity: 0.35 !important;
-  transform: scale(0.975) !important;
+  color: rgba(255, 255, 255, 0.42) !important;
+  filter: none !important;
+  opacity: 0.42 !important;
+  transform: scale(0.98) !important;
   transform-origin: left center !important;
   transition:
-    filter 0.38s cubic-bezier(0.2, 0.8, 0.4, 1),
-    opacity 0.38s cubic-bezier(0.2, 0.8, 0.4, 1),
+    opacity 0.35s cubic-bezier(0.2, 0.8, 0.4, 1),
     transform 0.35s cubic-bezier(0.2, 0.8, 0.4, 1),
-    color 0.3s ease !important;
+    color 0.25s ease !important;
   cursor: pointer;
   user-select: none;
   margin-bottom: 4px !important;
@@ -604,9 +614,9 @@ body.player-expanded .yt-active-player,
 
 /* Passed lines */
 .yt-lyrics-line.passed {
-  color: rgba(255, 255, 255, 0.45) !important;
-  opacity: 0.42 !important;
-  filter: blur(1.4px) !important;
+  color: rgba(255, 255, 255, 0.48) !important;
+  opacity: 0.48 !important;
+  filter: none !important;
   transform: scale(0.985) !important;
 }
 
@@ -615,17 +625,17 @@ body.player-expanded .yt-active-player,
   color: #ffffff !important;
   font-weight: var(--blyrics-active-weight) !important;
   opacity: 1 !important;
-  filter: blur(0px) !important;
+  filter: none !important;
   transform: scale(1.03) translateX(6px) !important;
   text-shadow: 0 0 24px var(--blyrics-active-glow), 0 0 50px rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Hover line */
 .yt-lyrics-line:hover {
-  opacity: 0.88 !important;
-  filter: blur(0px) !important;
+  opacity: 0.92 !important;
+  filter: none !important;
   transform: scale(var(--blyrics-hover-scale)) translateX(3px) !important;
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
 }
 
 /* Word-by-word synced karaoke highlights */
@@ -674,10 +684,6 @@ body.player-expanded .yt-active-player,
 
 /* ==================== DESKTOP 2-COLUMN SPLIT SCREEN (>= 960px) ==================== */
 @media (min-width: 960px) {
-  .yt-mobile-only-tab {
-    display: none !important;
-  }
-
   .yt-player-main {
     display: flex !important;
     flex-direction: column !important;
@@ -695,17 +701,6 @@ body.player-expanded .yt-active-player,
   .yt-player-topbar {
     height: 52px !important;
     margin-bottom: 12px !important;
-  }
-
-  .yt-player-tab-buttons {
-    display: flex !important;
-    gap: 8px;
-    padding: 4px;
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 999px;
-    width: fit-content;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    margin: 0 auto 16px auto !important;
   }
 
   .yt-player-content-grid {
@@ -804,6 +799,8 @@ body.player-expanded .yt-active-player,
     background: transparent !important;
     border: none !important;
     outline: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     overflow: hidden !important;
   }
 
@@ -1015,11 +1012,13 @@ body.player-expanded .yt-active-player,
     padding: 8px 10px !important;
     margin-bottom: 2px !important;
     line-height: 1.44 !important;
+    filter: none !important;
   }
 
   .yt-lyrics-line.active {
     font-size: var(--blyrics-font-size-mobile) !important;
     transform: scale(1.03) translateX(4px) !important;
+    filter: none !important;
   }
 
   /* Compact Docked Player Bar when viewing Lyrics or UpNext on Mobile */
@@ -1032,11 +1031,11 @@ body.player-expanded .yt-active-player,
     flex-direction: column !important;
     gap: 4px !important;
     padding: 8px 6px 0 6px !important;
-    background: rgba(13, 14, 18, 0.75) !important;
+    background: rgba(15, 16, 20, 0.95) !important;
     border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 18px 18px 0 0 !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   .yt-active-player.tab-lyrics .yt-player-art-wrap,
