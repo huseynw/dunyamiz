@@ -21,6 +21,14 @@
   pointer-events: none !important;
 }
 
+.yt-waveform,
+#yt-waveform {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 .yt-active-player {
   position: fixed !important;
   z-index: 9999 !important;
@@ -684,6 +692,16 @@ body.player-expanded .yt-active-player,
 
 /* ==================== DESKTOP 2-COLUMN SPLIT SCREEN (>= 960px) ==================== */
 @media (min-width: 960px) {
+  .yt-mobile-tabs {
+    display: none !important;
+  }
+
+  .yt-desktop-tabs {
+    display: flex !important;
+    margin: 0 auto 16px auto !important;
+    width: fit-content !important;
+  }
+
   .yt-player-main {
     display: flex !important;
     flex-direction: column !important;
@@ -719,31 +737,117 @@ body.player-expanded .yt-active-player,
     gap: 20px !important;
     max-width: 420px !important;
     width: 100% !important;
+    order: 1 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   .yt-player-art-wrap {
+    display: flex !important;
     width: min(360px, 34vh) !important;
     height: min(360px, 34vh) !important;
+    aspect-ratio: 1 / 1 !important;
   }
 
   .yt-rotating-disc {
     width: 100% !important;
     height: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
+    animation: none !important;
+  }
+
+  .yt-player-meta-full {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  #yt-player-title {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+    font-family: var(--blyrics-font-family) !important;
+  }
+
+  #yt-player-artist {
+    font-size: 0.95rem !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+    margin: 0 !important;
   }
 
   .yt-progress-area {
     width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .yt-time-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    font-size: 0.78rem !important;
+    margin-top: 6px !important;
+  }
+
+  .yt-controls-row.main-controls {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 16px !important;
+    width: 100% !important;
+  }
+
+  .yt-control-btn {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 1.05rem !important;
+    display: flex !important;
+  }
+
+  .yt-play-btn {
+    width: 64px !important;
+    height: 64px !important;
+    font-size: 1.4rem !important;
+    display: flex !important;
+  }
+
+  .yt-shuffle-btn,
+  .yt-repeat-btn {
+    display: flex !important;
   }
 
   .yt-volume-area {
+    display: flex !important;
     width: 80% !important;
+    margin: 0 auto !important;
+    align-items: center !important;
+    gap: 12px !important;
   }
 
   .yt-player-right-col {
+    display: flex !important;
+    order: 2 !important;
     height: 100% !important;
     min-height: 0 !important;
-    display: flex !important;
     flex-direction: column !important;
+    width: 100% !important;
   }
 
   .yt-player-tab-panels {
@@ -776,6 +880,12 @@ body.player-expanded .yt-active-player,
     flex: 1 !important;
     height: 100% !important;
     max-height: none !important;
+    padding: 26vh 24px 34vh 24px !important;
+  }
+
+  .yt-lyrics-line {
+    font-size: var(--blyrics-font-size-desktop) !important;
+    padding: 10px 14px !important;
   }
 
   .btn-close-lyrics {
@@ -785,6 +895,25 @@ body.player-expanded .yt-active-player,
 
 /* ==================== MOBILE RESPONSIVE PLAYER (< 960px) ==================== */
 @media (max-width: 959px) {
+  .yt-desktop-tabs {
+    display: none !important;
+  }
+
+  .yt-mobile-tabs {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    padding: 3px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    margin: 4px auto 10px auto !important;
+    width: fit-content !important;
+    max-width: 95% !important;
+    flex-shrink: 0 !important;
+    z-index: 10 !important;
+  }
+
   .yt-mobile-only-tab {
     display: inline-flex !important;
   }
@@ -819,22 +948,6 @@ body.player-expanded .yt-active-player,
   .yt-player-kicker {
     font-size: 0.65rem !important;
     letter-spacing: 1.2px !important;
-  }
-
-  /* Segmented tab switcher on mobile: [🎵 Mahnı | 🎤 Sözlər | ≡ Sıradakı] */
-  .yt-player-tab-buttons {
-    display: flex !important;
-    justify-content: center !important;
-    gap: 4px !important;
-    padding: 3px !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border-radius: 999px !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    margin: 4px auto 10px auto !important;
-    width: fit-content !important;
-    max-width: 95% !important;
-    flex-shrink: 0 !important;
-    z-index: 10 !important;
   }
 
   .yt-player-tab-btn {

@@ -796,7 +796,6 @@
         style="display: none"
       >
         <div class="yt-player-bg" id="yt-player-bg"></div>
-        <canvas class="yt-waveform" id="yt-waveform"></canvas>
         <div class="yt-player-top" data-player-expand="true">
           <div class="yt-mini-progress-track">
             <div class="yt-mini-progress-fill" id="yt-mini-progress-fill"></div>
@@ -894,13 +893,13 @@
             </div>
 
             <div
-              class="yt-player-tab-buttons"
+              class="yt-player-tab-buttons yt-mobile-tabs"
               role="tablist"
               aria-label="Player bölmələri"
             >
               <button
                 id="yt-tab-track"
-                class="yt-player-tab-btn yt-mobile-only-tab"
+                class="yt-player-tab-btn"
                 type="button"
                 role="tab"
                 aria-selected="false"
@@ -910,7 +909,7 @@
                 <span>Mahnı</span>
               </button>
               <button
-                id="yt-tab-lyrics"
+                id="yt-mobile-tab-lyrics"
                 class="yt-player-tab-btn is-active"
                 type="button"
                 role="tab"
@@ -922,7 +921,7 @@
                 <span>Sözlər</span>
               </button>
               <button
-                id="yt-tab-upnext"
+                id="yt-mobile-tab-upnext"
                 class="yt-player-tab-btn"
                 type="button"
                 role="tab"
@@ -1028,6 +1027,37 @@
               </div>
 
               <div class="yt-player-right-col yt-player-tabs">
+                <div
+                  class="yt-player-tab-buttons yt-desktop-tabs"
+                  role="tablist"
+                  aria-label="Player bölmələri"
+                >
+                  <button
+                    id="yt-tab-lyrics"
+                    class="yt-player-tab-btn is-active"
+                    type="button"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="yt-lyrics-panel-wrap"
+                    data-player-tab="lyrics"
+                  >
+                    <i class="fas fa-microphone-lines"></i>
+                    <span>Sözlər</span>
+                  </button>
+                  <button
+                    id="yt-tab-upnext"
+                    class="yt-player-tab-btn"
+                    type="button"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="yt-up-next-panel-wrap"
+                    data-player-tab="upnext"
+                  >
+                    <i class="fas fa-list-ul"></i>
+                    <span>Sıradakı</span>
+                  </button>
+                </div>
+
                 <div class="yt-player-tab-panels">
                   <div
                     id="yt-lyrics-panel-wrap"

@@ -3206,6 +3206,12 @@ function setPlayerTab(tabName = "lyrics") {
 
   window.currentPlayerTab = resolvedTab;
 
+  document.querySelectorAll("[data-player-tab]").forEach((btn) => {
+    const isTarget = btn.getAttribute("data-player-tab") === resolvedTab;
+    btn.classList.toggle("is-active", isTarget);
+    btn.setAttribute("aria-selected", String(isTarget));
+  });
+
   if (tabTrackBtn) {
     const isTrack = resolvedTab === "track";
     tabTrackBtn.classList.toggle("is-active", isTrack);
@@ -4533,161 +4539,25 @@ async function ensureYTAudioReady() {
 }
 
 async function initYTWaveformSafe() {
-  const { audio, waveform } = getMusicDom();
-  if (!audio || !waveform) return false;
-  if (ytWaveInitialized) return true;
-
-  const ready = await ensureYTAudioReady();
-  if (!ready || !ytWaveCtx) {
-    ytWaveFallbackMode = true;
-    return false;
-  }
-
-  try {
-    const sharedNodes = getOrCreateSharedAudioNodes(audio);
-    if (!sharedNodes || !sharedNodes.analyser) {
-      ytWaveFallbackMode = true;
-      return false;
-    }
-
-    ytWaveAnalyser = sharedNodes.analyser;
-    ytWaveSource = sharedNodes.source;
-    ytWaveDataArray = new Uint8Array(ytWaveAnalyser.frequencyBinCount);
-    ytWaveInitialized = true;
-    ytWaveEnabled = true;
-    ytWaveFallbackMode = false;
-
-    drawYTWaveform();
-    return true;
-  } catch (err) {
-    console.error("Waveform init xətası:", err);
-    ytWaveFallbackMode = true;
-    ytWaveEnabled = false;
-    return false;
-  }
+  return false;
 }
 
 async function unlockYTPlayback() {
   const ok = await ensureYTAudioReady();
-  if (!ok) return false;
-  await initYTWaveformSafe();
-  return true;
+  return ok;
 }
 async function initYTWaveform() {
-  return await initYTWaveformSafe();
+  return false;
 }
 function drawYTWaveform() {
-  const { waveform, audio } = getMusicDom();
-  if (!waveform) return;
-
-  const dpr = Math.min(window.devicePixelRatio || 1, PERF_MOBILE ? 1.5 : 2);
-  const rect = waveform.getBoundingClientRect();
-  waveform.width = Math.max(1, Math.floor(rect.width * dpr));
-  waveform.height = Math.max(1, Math.floor(rect.height * dpr));
-
-  const ctx = waveform.getContext("2d");
-  if (!ctx) return;
-
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  let frameSkip = 0;
-
-  const render = () => {
-    if (
-      document.hidden ||
-      !waveform.isConnected ||
-      (audio && audio.paused && ytWaveEnabled && !ytWaveFallbackMode)
-    ) {
-      if (ytWaveAnimationId) cancelAnimationFrame(ytWaveAnimationId);
-      ytWaveAnimationId = null;
-      return;
-    }
-
-    ytWaveAnimationId = requestAnimationFrame(render);
-    if (PERF_MOBILE && ++frameSkip % 2 !== 0) return;
-
-    const width = waveform.clientWidth;
-    const height = waveform.clientHeight;
-    const centerY = height / 2;
-
-    ctx.clearRect(0, 0, width, height);
-
-    const totalBars = PERF_MOBILE ? 20 : 42;
-    const gap = PERF_MOBILE ? 3 : 4;
-    const barWidth = Math.max(3, (width - (totalBars - 1) * gap) / totalBars);
-    const totalWidth = totalBars * barWidth + (totalBars - 1) * gap;
-    let x = (width - totalWidth) / 2;
-
-    const drawBar = (x, y, w, h, radius) => {
-      ctx.beginPath();
-      if (ctx.roundRect) ctx.roundRect(x, y, w, h, radius);
-      else ctx.rect(x, y, w, h);
-      ctx.fill();
-    };
-
-    if (
-      ytWaveEnabled &&
-      ytWaveAnalyser &&
-      ytWaveDataArray &&
-      audio &&
-      !audio.paused &&
-      !ytWaveFallbackMode
-    ) {
-      ytWaveAnalyser.getByteFrequencyData(ytWaveDataArray);
-
-      // Better Lyrics Shaders — Audio-Reactive Beat Detection
-      let bassTotal = 0;
-      const bassCount = Math.min(8, ytWaveDataArray.length);
-      for (let b = 0; b < bassCount; b++) {
-        bassTotal += ytWaveDataArray[b];
-      }
-      const bassIntensity = bassTotal / (bassCount * 255);
-      const beatPulse = (1 + bassIntensity * 0.045).toFixed(3);
-      const bgEl = document.getElementById("yt-player-bg");
-      if (bgEl) {
-        bgEl.style.setProperty("--beat-pulse", beatPulse);
-      }
-
-      ctx.shadowBlur = PERF_MOBILE ? 0 : 12;
-      ctx.shadowColor = currentWaveColor;
-
-      for (let i = 0; i < totalBars; i++) {
-        const sourceIndex = Math.floor(
-          (i / totalBars) * ytWaveDataArray.length,
-        );
-        const value = ytWaveDataArray[sourceIndex] / 255;
-        const falloff =
-          1 - Math.abs((i - totalBars / 2) / (totalBars / 2)) * 0.35;
-        const visual = Math.max(0.18, value * falloff);
-        const barHeight = Math.max(8, visual * height * 0.82);
-        const alpha = 0.22 + visual * 0.9;
-
-        ctx.fillStyle = currentWaveColor
-          .replace("rgb", "rgba")
-          .replace(")", `, ${alpha})`);
-        drawBar(x, centerY - barHeight / 2, barWidth, barHeight, barWidth / 2);
-        x += barWidth + gap;
-      }
-      ctx.shadowBlur = 0;
-    } else {
-      for (let i = 0; i < totalBars; i++) {
-        const phase = Date.now() / 220 + i * 0.35;
-        const idle = 0.18 + ((Math.sin(phase) + 1) / 2) * 0.18;
-        const barHeight = Math.max(5, idle * height * 0.45);
-        ctx.fillStyle = currentWaveColor
-          .replace("rgb", "rgba")
-          .replace(")", ", 0.14)");
-        drawBar(x, centerY - barHeight / 2, barWidth, barHeight, barWidth / 2);
-        x += barWidth + gap;
-      }
-    }
-  };
-
-  if (ytWaveAnimationId) cancelAnimationFrame(ytWaveAnimationId);
-  render();
+  if (ytWaveAnimationId) {
+    cancelAnimationFrame(ytWaveAnimationId);
+    ytWaveAnimationId = null;
+  }
+  return;
 }
 function resizeYTWaveform() {
-  if (!ytWaveAnalyser && !ytWaveFallbackMode) return;
-  drawYTWaveform();
+  return;
 }
 function initMusicPlayerEvents() {
   const dom = getMusicDom();
@@ -4789,31 +4659,23 @@ function initMusicPlayerEvents() {
     window.toggleLyricsPanel();
   });
 
-  dom.tabTrackBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    if (!dom.activePlayer?.classList.contains("expanded")) {
-      window.togglePlayerMode(true);
-    }
-    setPlayerTab("track");
-    updateLyricsToggleState();
+  document.querySelectorAll("[data-player-tab]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!dom.activePlayer?.classList.contains("expanded")) {
+        window.togglePlayerMode(true);
+      }
+      const target = btn.getAttribute("data-player-tab");
+      setPlayerTab(target);
+      updateLyricsToggleState();
+    });
   });
 
-  dom.tabLyricsBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    if (!dom.activePlayer?.classList.contains("expanded")) {
-      window.togglePlayerMode(true);
+  window.addEventListener("resize", () => {
+    const isMobile = window.innerWidth < 960;
+    if (!isMobile && window.currentPlayerTab === "track") {
+      setPlayerTab("lyrics");
     }
-    setPlayerTab("lyrics");
-    updateLyricsToggleState();
-  });
-
-  dom.tabUpNextBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    if (!dom.activePlayer?.classList.contains("expanded")) {
-      window.togglePlayerMode(true);
-    }
-    setPlayerTab("upnext");
-    updateLyricsToggleState();
   });
 
   dom.closeBtnMini?.addEventListener("click", (e) => {

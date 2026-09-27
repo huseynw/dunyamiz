@@ -4353,17 +4353,12 @@ header {
 
 
 
-.yt-waveform {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: calc(100% - 28px);
-  height: 56px;
-  z-index: 1;
-  opacity: 0.9;
-  pointer-events: none;
+.yt-waveform,
+#yt-waveform {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 .yt-active-player > *:not(.yt-player-bg):not(.yt-waveform) {
@@ -4566,8 +4561,10 @@ header {
 
 
 .yt-waveform {
-  opacity: 0.72;
-  pointer-events: none;
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 .yt-active-player.expanded {
