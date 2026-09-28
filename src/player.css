@@ -650,9 +650,9 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
 
 .yt-lyrics-container {
   overflow-y: auto !important;
-  scroll-behavior: smooth !important;
+  scroll-behavior: auto !important;
   -webkit-overflow-scrolling: touch !important;
-  padding: 26vh 24px 34vh 24px !important;
+  padding: 28vh 24px 36vh 24px !important;
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
@@ -684,24 +684,25 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   font-weight: var(--blyrics-font-weight) !important;
   line-height: var(--blyrics-line-height) !important;
   letter-spacing: -0.02em !important;
-  color: rgba(255, 255, 255, 0.42) !important;
+  color: rgba(255, 255, 255, 0.4) !important;
   filter: none !important;
-  opacity: 0.42 !important;
-  transform: scale(0.98) !important;
+  opacity: 0.38 !important;
+  transform: scale(0.975) !important;
   transform-origin: left center !important;
   transition:
-    opacity 0.35s cubic-bezier(0.2, 0.8, 0.4, 1),
-    transform 0.35s cubic-bezier(0.2, 0.8, 0.4, 1),
-    color 0.25s ease !important;
+    opacity 0.65s cubic-bezier(0.25, 1, 0.5, 1),
+    transform 0.65s cubic-bezier(0.25, 1, 0.5, 1),
+    color 0.4s ease !important;
   cursor: pointer;
   user-select: none;
-  margin-bottom: 4px !important;
+  margin-bottom: 6px !important;
+  will-change: transform, opacity;
 }
 
 /* Passed lines */
 .yt-lyrics-line.passed {
-  color: rgba(255, 255, 255, 0.48) !important;
-  opacity: 0.48 !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  opacity: 0.45 !important;
   filter: none !important;
   transform: scale(0.985) !important;
 }
@@ -711,7 +712,7 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   font-weight: var(--blyrics-active-weight) !important;
   opacity: 1 !important;
   filter: none !important;
-  transform: scale(1.025) translateX(6px) !important;
+  transform: scale(1.035) translateX(8px) !important;
   text-shadow: none !important;
 }
 

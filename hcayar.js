@@ -3319,6 +3319,10 @@ function setPlayerTab(tabName = "lyrics") {
       isLyrics ? "Sözlər açıqdır" : "Sözləri aç",
     );
   }
+
+  if (resolvedTab === "lyrics") {
+    requestAnimationFrame(() => scrollLyricsToActiveLine(false));
+  }
 }
 
 window.setPlayerTab = setPlayerTab;
@@ -3727,6 +3731,50 @@ function renderCurrentTrackLyrics(track) {
   }
 }
 
+function scrollLyricsToActiveLine(smooth = true) {
+  if (window._lyricsUserScrolling) return;
+  const { lyricsContainer } = getMusicDom();
+  if (!lyricsContainer) return;
+
+  const activeIndex = window.currentLyricsActiveIndex;
+  if (activeIndex < 0) return;
+
+  const activeEl = lyricsContainer.querySelector(
+    `.yt-lyrics-line[data-lyrics-index="${activeIndex}"]`,
+  );
+  if (!activeEl) return;
+
+  const containerRect = lyricsContainer.getBoundingClientRect();
+  const itemRect = activeEl.getBoundingClientRect();
+  const maxScrollTop = Math.max(
+    0,
+    lyricsContainer.scrollHeight - lyricsContainer.clientHeight,
+  );
+  // Target ratio 0.38 (BetterLyrics / Apple Music signature vertical offset)
+  const targetScrollTop =
+    lyricsContainer.scrollTop +
+    (itemRect.top - containerRect.top) -
+    containerRect.height * 0.38 +
+    itemRect.height / 2;
+  const clampedTarget = Math.max(0, Math.min(maxScrollTop, targetScrollTop));
+
+  if (smooth && window.gsap) {
+    window.gsap.to(lyricsContainer, {
+      scrollTop: clampedTarget,
+      duration: 0.85,
+      ease: "power3.out",
+      overwrite: "auto",
+    });
+  } else if (smooth) {
+    lyricsContainer.scrollTo({
+      top: clampedTarget,
+      behavior: "smooth",
+    });
+  } else {
+    lyricsContainer.scrollTop = clampedTarget;
+  }
+}
+
 function updateSyncedLyricsByTime(currentTime) {
   if (window.currentMusicLyricsType !== "synced") return;
   if (!window.currentMusicLyricsParsed.length) return;
@@ -3821,33 +3869,8 @@ function updateSyncedLyricsByTime(currentTime) {
       }
     });
 
-    if (activeIndex >= 0 && !window._lyricsUserScrolling) {
-      const activeEl = lyricsContainer.querySelector(
-        `.yt-lyrics-line[data-lyrics-index="${activeIndex}"]`,
-      );
-      if (activeEl) {
-        const containerRect = lyricsContainer.getBoundingClientRect();
-        const itemRect = activeEl.getBoundingClientRect();
-        const targetScrollTop =
-          lyricsContainer.scrollTop +
-          (itemRect.top - containerRect.top) -
-          containerRect.height / 2 +
-          itemRect.height / 2;
-
-        if (window.gsap) {
-          window.gsap.to(lyricsContainer, {
-            scrollTop: Math.max(0, targetScrollTop),
-            duration: 0.85,
-            ease: "power3.out",
-            overwrite: "auto",
-          });
-        } else {
-          lyricsContainer.scrollTo({
-            top: Math.max(0, targetScrollTop),
-            behavior: "smooth",
-          });
-        }
-      }
+    if (activeIndex >= 0) {
+      scrollLyricsToActiveLine(true);
     }
   }
 
