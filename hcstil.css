@@ -3951,8 +3951,7 @@ header {
   font-family: var(--blyrics-font-family);
   transition:
     transform 0.18s ease,
-    text-shadow 0.18s ease,
-    background-position 0.2s ease;
+    text-shadow 0.18s ease;
 }
 
 .yt-lyrics-word.active {
@@ -4178,7 +4177,6 @@ header {
 }
 
 .yt-lyrics-word {
-  display: inline;
   margin: 0 2px;
 }
 

@@ -805,35 +805,39 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   background-clip: text !important;
   font-family: var(--blyrics-font-family) !important;
   vertical-align: baseline !important;
+  transform-origin: center bottom !important;
   transition:
-    transform 0.28s cubic-bezier(0.25, 1, 0.5, 1),
-    filter 0.28s ease,
-    background-position 0.2s ease !important;
-  will-change: background-position, transform, filter;
+    transform 0.2s ease,
+    filter 0.2s ease,
+    opacity 0.2s ease !important;
+  will-change: background-position;
   cursor: pointer;
 }
 
 /* Active line: inactive upcoming words */
 .yt-lyrics-line.active .yt-lyrics-word {
-  background-position: 100% 0;
-  animation: none;
-  filter: none;
-  transform: scale(1);
+  background-position: 100% 0 !important;
+  animation: none !important;
+  filter: none !important;
+  transform: none !important;
+  opacity: 0.65 !important;
 }
 
 /* Active line: currently singing word */
 .yt-lyrics-line.active .yt-lyrics-word.active {
-  animation: blyrics-fill var(--word-duration, 0.45s) cubic-bezier(0.2, 0, 0.2, 1) forwards;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
-  transform: scale(1.035);
+  animation: blyrics-fill var(--word-duration, 0.45s) linear forwards !important;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8)) !important;
+  transform: scale(1.025) translateY(-1px) !important;
+  opacity: 1 !important;
 }
 
 /* Active line: already sung words */
 .yt-lyrics-line.active .yt-lyrics-word.passed {
   background-position: 0 0 !important;
   animation: none !important;
-  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.25));
-  transform: scale(1);
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.35)) !important;
+  transform: none !important;
+  opacity: 1 !important;
 }
 
 /* Passed lines */
@@ -841,7 +845,8 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   background-position: 0 0 !important;
   animation: none !important;
   filter: none !important;
-  transform: scale(1);
+  transform: none !important;
+  opacity: 0.55 !important;
 }
 
 /* Upcoming lines */
@@ -849,7 +854,8 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   background-position: 100% 0 !important;
   animation: none !important;
   filter: none !important;
-  transform: scale(1);
+  transform: none !important;
+  opacity: 0.4 !important;
 }
 
 @keyframes blyrics-fill {
