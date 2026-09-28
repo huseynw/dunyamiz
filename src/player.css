@@ -866,6 +866,35 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   font-size: 1.1rem;
 }
 
+/* ==================== PLAIN / UNSYNCED LYRICS ==================== */
+.yt-lyrics-line--plain {
+  cursor: pointer;
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), color 0.3s ease;
+}
+
+.yt-lyrics-line--plain.active {
+  opacity: 1 !important;
+  transform: scale(1.025) translateX(6px) !important;
+}
+
+.yt-lyrics-line--plain.active .yt-lyrics-text {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: none !important;
+  animation: none !important;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.45);
+}
+
+.yt-lyrics-line--plain.passed {
+  opacity: 0.5 !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+  transform: scale(0.985) !important;
+}
+
+.yt-lyrics-line--plain:not(.active):not(.passed) {
+  opacity: 0.32 !important;
+}
+
 /* ==================== DESKTOP 2-COLUMN SPLIT SCREEN (>= 960px) ==================== */
 @media (min-width: 960px) {
   .yt-mobile-tabs {

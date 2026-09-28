@@ -3655,21 +3655,76 @@ function renderPlainLyrics(text = "") {
   const { lyricsContainer } = getMusicDom();
   if (!lyricsContainer) return;
 
+  window.currentMusicLyricsType = "plain";
+  window.currentMusicPlainLyricsText = text;
+
   if (!text.trim()) {
     lyricsContainer.innerHTML = `<div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>`;
     return;
   }
 
-  const html = text
+  const lines = text
     .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+
+  const html = lines
     .map(
-      (line) =>
-        `<div class="yt-lyrics-line passed">${escapeHtmlMusic(line) || "&nbsp;"}</div>`,
+      (line, idx) =>
+        `<div class="yt-lyrics-line yt-lyrics-line--plain yt-lyrics-line--clickable" data-plain-index="${idx}"><span class="yt-lyrics-text">${escapeHtmlMusic(line)}</span></div>`,
     )
     .join("");
 
   lyricsContainer.innerHTML =
     html || `<div class="yt-lyrics-empty">Sözlər əlavə edilməyib.</div>`;
+}
+
+function updatePlainLyricsScrollByTime(currentTime) {
+  if (window.currentMusicLyricsType !== "plain") return;
+  const { lyricsContainer, audio } = getMusicDom();
+  if (!lyricsContainer || !audio || !audio.duration) return;
+
+  const duration = audio.duration;
+  const progress = Math.min(1, Math.max(0, currentTime / duration));
+  const plainLines = lyricsContainer.querySelectorAll(".yt-lyrics-line--plain");
+
+  if (plainLines.length > 0) {
+    const activeIndex = Math.min(
+      plainLines.length - 1,
+      Math.floor(progress * plainLines.length),
+    );
+
+    plainLines.forEach((lineEl, idx) => {
+      const isActive = idx === activeIndex;
+      const isPassed = idx < activeIndex;
+      lineEl.classList.toggle("active", isActive);
+      lineEl.classList.toggle("passed", isPassed);
+    });
+  }
+
+  if (window._lyricsUserScrolling) return;
+
+  const maxScroll = Math.max(
+    0,
+    lyricsContainer.scrollHeight - lyricsContainer.clientHeight,
+  );
+  if (maxScroll <= 0) return;
+
+  const targetScrollTop = progress * maxScroll;
+
+  if (window.gsap) {
+    window.gsap.to(lyricsContainer, {
+      scrollTop: targetScrollTop,
+      duration: 1.0,
+      ease: "power1.out",
+      overwrite: "auto",
+    });
+  } else {
+    lyricsContainer.scrollTo({
+      top: targetScrollTop,
+      behavior: "smooth",
+    });
+  }
 }
 
 function renderSyncedLyrics(parsedLyrics = []) {
@@ -3734,32 +3789,65 @@ async function fetchLrcLibLyrics(track) {
   try {
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
-      if (window.musicLibrary[window.currentMusicIndex] === currentTrackRef) {
-        window.currentMusicLyricsType = "synced";
-        window.currentLyricsActiveIndex = -1;
-        window.currentLyricsActiveWordIndex = -1;
-        const parsed = parseSyncedLyrics(cached);
-        window.currentMusicLyricsParsed = parsed;
-        renderSyncedLyrics(parsed);
-        const badge = document.getElementById("yt-lyrics-lrclib-badge");
-        if (badge) badge.style.display = "inline-flex";
-        const dom = getMusicDom();
-        if (dom.audio) updateSyncedLyricsByTime(dom.audio.currentTime || 0);
+      let cachedSynced = null;
+      let cachedPlain = null;
+
+      try {
+        const parsedJson = JSON.parse(cached);
+        if (typeof parsedJson === "object" && parsedJson !== null) {
+          cachedSynced = parsedJson.syncedLyrics || null;
+          cachedPlain = parsedJson.plainLyrics || null;
+        }
+      } catch (_) {
+        if (cached.startsWith("[")) cachedSynced = cached;
+        else cachedPlain = cached;
       }
-      return;
+
+      if (window.musicLibrary[window.currentMusicIndex] === currentTrackRef) {
+        if (cachedSynced) {
+          window.currentMusicLyricsType = "synced";
+          window.currentLyricsActiveIndex = -1;
+          window.currentLyricsActiveWordIndex = -1;
+          const parsed = parseSyncedLyrics(cachedSynced);
+          window.currentMusicLyricsParsed = parsed;
+          renderSyncedLyrics(parsed);
+          const badge = document.getElementById("yt-lyrics-lrclib-badge");
+          if (badge) badge.style.display = "inline-flex";
+          const dom = getMusicDom();
+          if (dom.audio) updateSyncedLyricsByTime(dom.audio.currentTime || 0);
+          return;
+        } else if (cachedPlain && window.currentMusicLyricsType !== "synced") {
+          window.currentMusicLyricsType = "plain";
+          window.currentLyricsActiveIndex = -1;
+          window.currentLyricsActiveWordIndex = -1;
+          window.currentMusicLyricsParsed = [];
+          renderPlainLyrics(cachedPlain);
+          const badge = document.getElementById("yt-lyrics-lrclib-badge");
+          if (badge) badge.style.display = "inline-flex";
+          const dom = getMusicDom();
+          if (dom.audio) updatePlainLyricsScrollByTime(dom.audio.currentTime || 0);
+          return;
+        }
+      }
     }
   } catch (_) {}
 
   try {
     let synced = null;
+    let plain = null;
+
     if (cleanArtist) {
       const getUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanTitle)}&artist_name=${encodeURIComponent(cleanArtist)}`;
       const res = await fetch(getUrl, { headers: { "Lrclib-Client": "DunyamizPlayer/1.0" } });
       if (res.ok) {
         const data = await res.json();
-        if (data && data.syncedLyrics) synced = data.syncedLyrics;
+        if (data) {
+          if (data.syncedLyrics) synced = data.syncedLyrics;
+          if (data.plainLyrics) plain = data.plainLyrics;
+        }
       }
     }
+
     if (!synced) {
       const query = cleanArtist ? `${cleanArtist} ${cleanTitle}` : cleanTitle;
       const sUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(query)}`;
@@ -3767,25 +3855,45 @@ async function fetchLrcLibLyrics(track) {
       if (sRes.ok) {
         const items = await sRes.json();
         if (Array.isArray(items)) {
-          const hit = items.find((item) => item.syncedLyrics);
-          if (hit) synced = hit.syncedLyrics;
+          const hitSynced = items.find((item) => item.syncedLyrics);
+          if (hitSynced) {
+            synced = hitSynced.syncedLyrics;
+            if (!plain && hitSynced.plainLyrics) plain = hitSynced.plainLyrics;
+          } else {
+            const hitPlain = items.find((item) => item.plainLyrics);
+            if (hitPlain && !plain) plain = hitPlain.plainLyrics;
+          }
         }
       }
     }
 
-    if (synced) {
-      try { localStorage.setItem(cacheKey, synced); } catch (_) {}
+    if (synced || plain) {
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify({ syncedLyrics: synced, plainLyrics: plain }));
+      } catch (_) {}
+
       if (window.musicLibrary[window.currentMusicIndex] === currentTrackRef) {
-        window.currentMusicLyricsType = "synced";
-        window.currentLyricsActiveIndex = -1;
-        window.currentLyricsActiveWordIndex = -1;
-        const parsed = parseSyncedLyrics(synced);
-        window.currentMusicLyricsParsed = parsed;
-        renderSyncedLyrics(parsed);
         const badge = document.getElementById("yt-lyrics-lrclib-badge");
         if (badge) badge.style.display = "inline-flex";
-        const dom = getMusicDom();
-        if (dom.audio) updateSyncedLyricsByTime(dom.audio.currentTime || 0);
+
+        if (synced) {
+          window.currentMusicLyricsType = "synced";
+          window.currentLyricsActiveIndex = -1;
+          window.currentLyricsActiveWordIndex = -1;
+          const parsed = parseSyncedLyrics(synced);
+          window.currentMusicLyricsParsed = parsed;
+          renderSyncedLyrics(parsed);
+          const dom = getMusicDom();
+          if (dom.audio) updateSyncedLyricsByTime(dom.audio.currentTime || 0);
+        } else if (plain && window.currentMusicLyricsType !== "synced") {
+          window.currentMusicLyricsType = "plain";
+          window.currentLyricsActiveIndex = -1;
+          window.currentLyricsActiveWordIndex = -1;
+          window.currentMusicLyricsParsed = [];
+          renderPlainLyrics(plain);
+          const dom = getMusicDom();
+          if (dom.audio) updatePlainLyricsScrollByTime(dom.audio.currentTime || 0);
+        }
       }
     }
   } catch (e) {
@@ -3795,10 +3903,16 @@ async function fetchLrcLibLyrics(track) {
 
 function renderCurrentTrackLyrics(track) {
   const lyrics = track?.lyrics || {};
-  const type = lyrics.type || "none";
+  let type = lyrics.type || "none";
   const text = lyrics.text || "";
 
+  // Auto-detect plain or synced if type is unset or "none"
+  if ((type === "none" || !type) && text.trim()) {
+    type = /\[\d{1,2}:\d{2}/.test(text) ? "synced" : "plain";
+  }
+
   window.currentMusicLyricsType = type;
+  window.currentMusicPlainLyricsText = type === "plain" ? text : "";
   window.currentLyricsActiveIndex = -1;
   window.currentLyricsActiveWordIndex = -1;
   window.currentMusicLyricsParsed = [];
@@ -4905,19 +5019,29 @@ function initMusicPlayerEvents() {
     updateMediaSessionPlaybackState();
   };
   dom.lyricsContainer?.addEventListener("click", (e) => {
-    if (window.currentMusicLyricsType !== "synced") return;
+    if (window.currentMusicLyricsType === "synced") {
+      const wordEl = e.target.closest(".yt-lyrics-word");
+      if (wordEl) {
+        const wordTime = Number(wordEl.dataset.wordTime);
+        seekToLyricsTime(wordTime);
+        return;
+      }
 
-    const wordEl = e.target.closest(".yt-lyrics-word");
-    if (wordEl) {
-      const wordTime = Number(wordEl.dataset.wordTime);
-      seekToLyricsTime(wordTime);
-      return;
-    }
-
-    const lineEl = e.target.closest(".yt-lyrics-line");
-    if (lineEl) {
-      const lineTime = Number(lineEl.dataset.lineTime);
-      seekToLyricsTime(lineTime);
+      const lineEl = e.target.closest(".yt-lyrics-line");
+      if (lineEl) {
+        const lineTime = Number(lineEl.dataset.lineTime);
+        seekToLyricsTime(lineTime);
+      }
+    } else if (window.currentMusicLyricsType === "plain") {
+      const lineEl = e.target.closest(".yt-lyrics-line--plain");
+      if (lineEl && dom.audio && dom.audio.duration) {
+        const plainLines = dom.lyricsContainer.querySelectorAll(".yt-lyrics-line--plain");
+        const idx = Number(lineEl.dataset.plainIndex);
+        if (plainLines.length > 0 && !isNaN(idx)) {
+          const targetTime = (idx / plainLines.length) * dom.audio.duration;
+          seekToLyricsTime(targetTime);
+        }
+      }
     }
   });
 
@@ -5068,7 +5192,11 @@ function initMusicPlayerEvents() {
     }
     if (dom.currentTime)
       dom.currentTime.textContent = formatMusicTime(curTime);
-    updateSyncedLyricsByTime(curTime);
+    if (window.currentMusicLyricsType === "synced") {
+      updateSyncedLyricsByTime(curTime);
+    } else if (window.currentMusicLyricsType === "plain") {
+      updatePlainLyricsScrollByTime(curTime);
+    }
     updateMediaSessionPlaybackState();
   });
 
@@ -5114,7 +5242,11 @@ function initMusicPlayerEvents() {
     }
     window.currentLyricsActiveIndex = -1;
     window.currentLyricsActiveWordIndex = -1;
-    updateSyncedLyricsByTime(dom.audio.currentTime);
+    if (window.currentMusicLyricsType === "synced") {
+      updateSyncedLyricsByTime(dom.audio.currentTime);
+    } else if (window.currentMusicLyricsType === "plain") {
+      updatePlainLyricsScrollByTime(dom.audio.currentTime);
+    }
   });
 
   dom.volumeSlider?.addEventListener("input", (e) => {
@@ -5512,8 +5644,14 @@ function initLyricsShareModal() {
     let lines = [];
     if (parsed.length) {
       lines = parsed.map((p) => p.text).filter((t) => t && t !== "…" && t !== "...");
-    } else if (track.lyrics?.text) {
-      lines = track.lyrics.text.split(/\r?\n/).filter((t) => t.trim());
+    } else {
+      const plainText = window.currentMusicPlainLyricsText || track.lyrics?.text || "";
+      if (plainText) {
+        lines = plainText
+          .split(/\r?\n/)
+          .map((t) => t.trim())
+          .filter((t) => t.length > 0 && t !== "…" && t !== "...");
+      }
     }
 
     if (!lines.length) {
@@ -5594,53 +5732,153 @@ function initLyricsShareModal() {
     const ctx = c.getContext("2d");
     if (!ctx) return;
 
-    const bgGrad = ctx.createLinearGradient(0, 0, 800, 1000);
-    bgGrad.addColorStop(0, "#16161f");
-    bgGrad.addColorStop(0.5, "#0d0d12");
-    bgGrad.addColorStop(1, "#070709");
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, 800, 1000);
+    const toRgba = (cStr, alpha) => {
+      if (!cStr) return `rgba(123, 44, 191, ${alpha})`;
+      const str = cStr.trim();
+      if (str.startsWith("rgb(")) {
+        return str.replace("rgb(", "rgba(").replace(")", `, ${alpha})`);
+      }
+      if (str.startsWith("rgba(")) {
+        return str.replace(/[\d\.]+\)$/, `${alpha})`);
+      }
+      if (str.startsWith("#")) {
+        const hex = str.slice(1);
+        let r = 0, g = 0, b = 0;
+        if (hex.length === 3) {
+          r = parseInt(hex[0] + hex[0], 16);
+          g = parseInt(hex[1] + hex[1], 16);
+          b = parseInt(hex[2] + hex[2], 16);
+        } else if (hex.length >= 6) {
+          r = parseInt(hex.slice(0, 2), 16);
+          g = parseInt(hex.slice(2, 4), 16);
+          b = parseInt(hex.slice(4, 6), 16);
+        }
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+      return str;
+    };
 
-    const rad = ctx.createRadialGradient(200, 200, 20, 200, 200, 450);
-    rad.addColorStop(0, "rgba(123, 44, 191, 0.45)");
-    rad.addColorStop(1, "rgba(0, 0, 0, 0)");
-    ctx.fillStyle = rad;
-    ctx.fillRect(0, 0, 800, 1000);
+    const wrapText = (context, text, maxWidth) => {
+      const words = text.split(/\s+/);
+      const lines = [];
+      let currentLine = "";
 
-    const rad2 = ctx.createRadialGradient(650, 750, 20, 650, 750, 450);
-    rad2.addColorStop(0, "rgba(247, 37, 133, 0.35)");
-    rad2.addColorStop(1, "rgba(0, 0, 0, 0)");
-    ctx.fillStyle = rad2;
-    ctx.fillRect(0, 0, 800, 1000);
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        const metrics = context.measureText(testLine);
+        if (metrics.width > maxWidth && currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+      return lines;
+    };
+
+    const fitText = (context, text, maxWidth) => {
+      if (!text) return "";
+      if (context.measureText(text).width <= maxWidth) return text;
+      let truncated = text;
+      while (truncated.length > 3 && context.measureText(truncated + "…").width > maxWidth) {
+        truncated = truncated.slice(0, -1);
+      }
+      return truncated + "…";
+    };
+
+    const rootStyle = getComputedStyle(document.documentElement);
+    const color1 = rootStyle.getPropertyValue("--player-color-1").trim() || "rgb(123, 44, 191)";
+    const color2 = rootStyle.getPropertyValue("--player-color-2").trim() || "rgb(58, 12, 163)";
+    const color3 = rootStyle.getPropertyValue("--player-color-3").trim() || "rgb(67, 97, 238)";
+    const color4 = rootStyle.getPropertyValue("--player-color-4").trim() || "rgb(247, 37, 133)";
 
     const coverImg = new Image();
     coverImg.crossOrigin = "anonymous";
     const src = track.coverUrl || DEFAULT_MUSIC_COVER;
     const absoluteImgSrc = /^https?:\/\//i.test(src) ? src : new URL(src, window.location.origin).href;
-    coverImg.src = `/.netlify/functions/cover-proxy?src=${encodeURIComponent(absoluteImgSrc)}`;
+    const proxiedSrc = `/.netlify/functions/cover-proxy?src=${encodeURIComponent(absoluteImgSrc)}`;
 
     const renderCardContent = () => {
+      // 1. Base dark background
+      ctx.fillStyle = "#0c0d12";
+      ctx.fillRect(0, 0, 800, 1000);
+
+      // 2. Dynamic ambient lights matching track's album cover colors
+      const rad1 = ctx.createRadialGradient(200, 240, 20, 200, 240, 520);
+      rad1.addColorStop(0, toRgba(color1, 0.65));
+      rad1.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = rad1;
+      ctx.fillRect(0, 0, 800, 1000);
+
+      const rad2 = ctx.createRadialGradient(660, 780, 20, 660, 780, 520);
+      rad2.addColorStop(0, toRgba(color4 || color2, 0.55));
+      rad2.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = rad2;
+      ctx.fillRect(0, 0, 800, 1000);
+
+      const rad3 = ctx.createRadialGradient(680, 220, 10, 680, 220, 400);
+      rad3.addColorStop(0, toRgba(color3, 0.35));
+      rad3.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = rad3;
+      ctx.fillRect(0, 0, 800, 1000);
+
+      // 3. Overlay blurred album cover for ultimate Apple Music aesthetics
       try {
-        ctx.save();
-        ctx.beginPath();
-        if (typeof ctx.roundRect === "function") {
-          ctx.roundRect(80, 80, 96, 96, 20);
-        } else {
-          ctx.rect(80, 80, 96, 96);
+        if (coverImg && coverImg.complete && coverImg.naturalWidth > 0) {
+          ctx.save();
+          if (typeof ctx.filter !== "undefined") {
+            ctx.filter = "blur(65px) saturate(1.8) brightness(0.48)";
+          }
+          ctx.globalAlpha = 0.65;
+          ctx.drawImage(coverImg, -60, -60, 920, 1120);
+          ctx.restore();
         }
-        ctx.clip();
-        ctx.drawImage(coverImg, 80, 80, 96, 96);
-        ctx.restore();
       } catch (_) {}
 
+      // 4. Subtle dark vignette gradient overlay for contrast and clarity
+      const vigGrad = ctx.createLinearGradient(0, 0, 0, 1000);
+      vigGrad.addColorStop(0, "rgba(10, 12, 16, 0.45)");
+      vigGrad.addColorStop(0.35, "rgba(10, 12, 16, 0.2)");
+      vigGrad.addColorStop(1, "rgba(10, 12, 16, 0.75)");
+      ctx.fillStyle = vigGrad;
+      ctx.fillRect(0, 0, 800, 1000);
+
+      // 5. Header: Cover Art (rounded pill box)
+      ctx.save();
+      ctx.beginPath();
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(80, 80, 96, 96, 20);
+      } else {
+        ctx.rect(80, 80, 96, 96);
+      }
+      ctx.clip();
+      try {
+        if (coverImg && coverImg.complete && coverImg.naturalWidth > 0) {
+          ctx.drawImage(coverImg, 80, 80, 96, 96);
+        } else {
+          ctx.fillStyle = "#1e222a";
+          ctx.fillRect(80, 80, 96, 96);
+        }
+      } catch (_) {
+        ctx.fillStyle = "#1e222a";
+        ctx.fillRect(80, 80, 96, 96);
+      }
+      ctx.restore();
+
+      // Header: Song Title & Artist (fit with ellipsis)
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 34px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-      ctx.fillText((track.title || "Mahnı").substring(0, 28), 200, 125);
+      ctx.fillText(fitText(ctx, track.title || "Mahnı", 500), 200, 125);
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.68)";
       ctx.font = "24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-      ctx.fillText((track.artist || "Artist").substring(0, 32), 200, 162);
+      ctx.fillText(fitText(ctx, track.artist || "Artist", 500), 200, 162);
 
+      // Separator Line
       ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
@@ -5648,21 +5886,66 @@ function initLyricsShareModal() {
       ctx.lineTo(720, 220);
       ctx.stroke();
 
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 38px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-      let startY = 360;
-      const lineHeight = 75;
-
+      // 6. Lyrics Content: Responsive Word Wrapping & Dynamic Centering
+      const maxTextWidth = 640;
       const linesToDraw = selectedLines.length ? selectedLines : [track.title || ""];
-      linesToDraw.forEach((l) => {
-        ctx.fillText(`“${l}”`, 80, startY);
-        startY += lineHeight;
-      });
 
+      const getWrappedBlocks = (fSize) => {
+        ctx.font = `bold ${fSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+        return linesToDraw.map((l) => {
+          const clean = l.replace(/^[“"']+|[”"']+$/g, "").trim();
+          return wrapText(ctx, `“${clean}”`, maxTextWidth);
+        });
+      };
+
+      let fontSize = 36;
+      let lineHeight = 54;
+      let blockGap = 26;
+      let wrappedBlocks = getWrappedBlocks(fontSize);
+      let totalLines = wrappedBlocks.reduce((acc, b) => acc + b.length, 0);
+
+      if (totalLines > 4) {
+        fontSize = 31;
+        lineHeight = 46;
+        blockGap = 20;
+        wrappedBlocks = getWrappedBlocks(fontSize);
+        totalLines = wrappedBlocks.reduce((acc, b) => acc + b.length, 0);
+      }
+      if (totalLines > 6) {
+        fontSize = 26;
+        lineHeight = 38;
+        blockGap = 16;
+        wrappedBlocks = getWrappedBlocks(fontSize);
+        totalLines = wrappedBlocks.reduce((acc, b) => acc + b.length, 0);
+      }
+
+      ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+      ctx.shadowBlur = 14;
+
+      const totalHeight = wrappedBlocks.reduce((sum, b, idx) => {
+        return sum + b.length * lineHeight + (idx < wrappedBlocks.length - 1 ? blockGap : 0);
+      }, 0);
+
+      const centerY = 230 + (650 / 2);
+      let currentY = Math.max(260, centerY - (totalHeight / 2) + (fontSize * 0.8));
+
+      wrappedBlocks.forEach((block) => {
+        block.forEach((lineStr) => {
+          ctx.fillText(lineStr, 80, currentY);
+          currentY += lineHeight;
+        });
+        currentY += blockGap;
+      });
+      ctx.shadowBlur = 0;
+
+      // 7. Footer: Brand
       ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
       ctx.font = "bold 22px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
       ctx.fillText("DUNYAMIZ PLAYER", 80, 930);
 
+      // 8. Download
       const link = document.createElement("a");
       link.download = `${(track.title || "mahni-sozleri").replace(/\s+/g, "-")}-lyrics.png`;
       link.href = c.toDataURL("image/png");
@@ -5670,8 +5953,23 @@ function initLyricsShareModal() {
       showHotkeyHud("fas fa-download", "Şəkil yükləndi!");
     };
 
-    coverImg.onload = renderCardContent;
-    coverImg.onerror = renderCardContent;
+    let rendered = false;
+    const safeRender = () => {
+      if (rendered) return;
+      rendered = true;
+      renderCardContent();
+    };
+
+    coverImg.onload = safeRender;
+    coverImg.onerror = () => {
+      if (coverImg.src !== absoluteImgSrc) {
+        coverImg.src = absoluteImgSrc;
+      } else {
+        safeRender();
+      }
+    };
+    coverImg.src = proxiedSrc;
+    setTimeout(safeRender, 1200);
   });
 
   nativeBtn?.addEventListener("click", () => {
