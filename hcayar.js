@@ -3735,12 +3735,13 @@ function updatePlainLyricsScrollByTime(currentTime) {
       Math.floor(progress * plainLines.length),
     );
 
-    plainLines.forEach((lineEl, idx) => {
-      const isActive = idx === activeIndex;
-      const isPassed = idx < activeIndex;
-      lineEl.classList.toggle("active", isActive);
-      lineEl.classList.toggle("passed", isPassed);
-    });
+    if (activeIndex !== window.currentPlainLyricsActiveIndex) {
+      window.currentPlainLyricsActiveIndex = activeIndex;
+      plainLines.forEach((lineEl, idx) => {
+        lineEl.classList.toggle("active", idx === activeIndex);
+        lineEl.classList.toggle("passed", idx < activeIndex);
+      });
+    }
   }
 
   if (window._lyricsUserScrolling) return;
@@ -3756,7 +3757,7 @@ function updatePlainLyricsScrollByTime(currentTime) {
   if (window.gsap) {
     window.gsap.to(lyricsContainer, {
       scrollTop: targetScrollTop,
-      duration: 1.0,
+      duration: 0.6,
       ease: "power1.out",
       overwrite: "auto",
     });
@@ -4058,38 +4059,30 @@ function updateSyncedLyricsByTime(currentTime) {
 
   const activeLine =
     activeIndex >= 0 ? window.currentMusicLyricsParsed[activeIndex] : null;
+
   let activeWordIndex = -1;
   if (activeLine?.words?.length) {
     const words = activeLine.words;
-    const lastIdx = words.length - 1;
-    const nextLine = window.currentMusicLyricsParsed[activeIndex + 1];
-
-    for (let i = 0; i <= lastIdx; i++) {
+    for (let i = 0; i < words.length; i++) {
       const w = words[i];
       const nextW = words[i + 1];
-      let wordDuration = 0.45;
-      let wordEndTime = w.time + 0.45;
+      const gap = nextW ? (nextW.time - w.time) : (w.duration || 0.5);
+      const dur = (gap > 0 && gap <= 1.2)
+        ? gap
+        : Math.max(0.2, Math.min(gap, w.duration || 0.45));
 
-      if (nextW) {
-        const gap = Math.max(0.12, nextW.time - w.time);
-        if (gap <= 1.4) {
-          wordDuration = gap;
-          wordEndTime = nextW.time;
-        } else {
-          wordDuration = Math.max(0.2, Math.min(1.4, w.duration || 0.6));
-          wordEndTime = w.time + wordDuration;
+      if (currentTime >= w.time) {
+        if (currentTime < w.time + dur) {
+          activeWordIndex = i;
+          break;
+        } else if (!nextW) {
+          activeWordIndex = words.length;
+        } else if (currentTime < nextW.time) {
+          activeWordIndex = i + 0.5;
+          break;
         }
       } else {
-        const gap = nextLine ? Math.max(0.3, nextLine.time - w.time) : 2.5;
-        wordDuration = Math.max(0.25, Math.min(2.0, w.duration || Math.min(1.5, gap * 0.75)));
-        wordEndTime = w.time + wordDuration;
-      }
-
-      if (currentTime >= w.time && currentTime < wordEndTime) {
-        activeWordIndex = i;
         break;
-      } else if (currentTime >= wordEndTime && i === lastIdx) {
-        activeWordIndex = words.length;
       }
     }
   }
@@ -4162,7 +4155,7 @@ function updateSyncedLyricsByTime(currentTime) {
     }
   }
 
-  // Update words for the active line smoothly
+  // Update words for the active line
   if (activeIndex >= 0 && activeLine?.words?.length) {
     const activeLineEl = lyricsContainer.querySelector(
       `.yt-lyrics-line[data-lyrics-index="${activeIndex}"]`,
@@ -4170,48 +4163,25 @@ function updateSyncedLyricsByTime(currentTime) {
     if (activeLineEl) {
       const wordEls = activeLineEl.querySelectorAll(".yt-lyrics-word");
       const words = activeLine.words;
-      const lastIdx = words.length - 1;
-      const nextLine = window.currentMusicLyricsParsed[activeIndex + 1];
 
       wordEls.forEach((wordEl, wordIndex) => {
         const wordObj = words[wordIndex];
-        if (!wordObj) return;
+        const isWordPassed = wordIndex < activeWordIndex;
+        const isWordActive = wordIndex === activeWordIndex;
 
-        const nextWord = words[wordIndex + 1];
-        let wordDuration = 0.45;
-        let wordEndTime = wordObj.time + 0.45;
-
-        if (nextWord) {
-          const gap = Math.max(0.12, nextWord.time - wordObj.time);
-          if (gap <= 1.4) {
-            wordDuration = gap;
-            wordEndTime = nextWord.time;
-          } else {
-            wordDuration = Math.max(0.2, Math.min(1.4, wordObj.duration || 0.6));
-            wordEndTime = wordObj.time + wordDuration;
-          }
-        } else {
-          const gap = nextLine ? Math.max(0.3, nextLine.time - wordObj.time) : 2.5;
-          wordDuration = Math.max(0.25, Math.min(2.0, wordObj.duration || Math.min(1.5, gap * 0.75)));
-          wordEndTime = wordObj.time + wordDuration;
-        }
-
-        const isWordPassed = currentTime >= wordEndTime;
-        const isWordActive = currentTime >= wordObj.time && currentTime < wordEndTime;
-
+        wordEl.classList.toggle("passed", isWordPassed);
         const wasActive = wordEl.classList.contains("active");
-        const wasPassed = wordEl.classList.contains("passed");
+        wordEl.classList.toggle("active", isWordActive);
 
-        if (isWordActive !== wasActive) {
-          wordEl.classList.toggle("active", isWordActive);
-        }
-        if (isWordPassed !== wasPassed) {
-          wordEl.classList.toggle("passed", isWordPassed);
-        }
-
-        if (isWordActive) {
+        if (isWordActive && wordObj) {
+          const nextW = words[wordIndex + 1];
+          const gap = nextW ? (nextW.time - wordObj.time) : (wordObj.duration || 0.5);
+          const duration = (gap > 0 && gap <= 1.2)
+            ? gap
+            : Math.max(0.2, Math.min(gap, wordObj.duration || 0.45));
           const elapsed = Math.max(0, currentTime - wordObj.time);
-          wordEl.style.setProperty("--word-duration", `${wordDuration}s`);
+
+          wordEl.style.setProperty("--word-duration", `${duration}s`);
           if (!wasActive) {
             wordEl.style.animation = "none";
             void wordEl.offsetHeight;
@@ -4452,7 +4422,20 @@ async function updateMusicCover(track) {
 
   const directCover = track?.coverUrl || track?.cover;
   if (directCover) {
-    setCover(resolveMusicAssetUrl(directCover, DEFAULT_MUSIC_COVER));
+    const resolved = resolveMusicAssetUrl(directCover, DEFAULT_MUSIC_COVER);
+    if (track) {
+      track.coverUrl = resolved;
+      track.cover = resolved;
+    }
+    if (window.currentMusic) {
+      window.currentMusic.coverUrl = resolved;
+      window.currentMusic.cover = resolved;
+    }
+    if (window.currentMusicIndex >= 0 && window.musicLibrary[window.currentMusicIndex]) {
+      window.musicLibrary[window.currentMusicIndex].coverUrl = resolved;
+      window.musicLibrary[window.currentMusicIndex].cover = resolved;
+    }
+    setCover(resolved);
     return;
   }
 
@@ -4463,7 +4446,20 @@ async function updateMusicCover(track) {
     const currentTrackStillSame =
       window.currentMusic && window.currentMusic.id === track.id;
     if (!currentTrackStillSame) return;
-    setCover(coverSrc || DEFAULT_MUSIC_COVER);
+    const resolved = coverSrc || DEFAULT_MUSIC_COVER;
+    if (track) {
+      track.coverUrl = resolved;
+      track.cover = resolved;
+    }
+    if (window.currentMusic) {
+      window.currentMusic.coverUrl = resolved;
+      window.currentMusic.cover = resolved;
+    }
+    if (window.currentMusicIndex >= 0 && window.musicLibrary[window.currentMusicIndex]) {
+      window.musicLibrary[window.currentMusicIndex].coverUrl = resolved;
+      window.musicLibrary[window.currentMusicIndex].cover = resolved;
+    }
+    setCover(resolved);
   } catch {
     setCover(DEFAULT_MUSIC_COVER);
   }
@@ -5321,11 +5317,9 @@ function initMusicPlayerEvents() {
         lyricsRafId = null;
         return;
       }
-      const curTime = dom.audio.currentTime || 0;
       if (window.currentMusicLyricsType === "synced") {
+        const curTime = dom.audio.currentTime || 0;
         updateSyncedLyricsByTime(curTime);
-      } else if (window.currentMusicLyricsType === "plain") {
-        updatePlainLyricsScrollByTime(curTime);
       }
       lyricsRafId = requestAnimationFrame(loop);
     };
@@ -5372,6 +5366,7 @@ function initMusicPlayerEvents() {
   dom.audio.addEventListener("seeked", () => {
     window.currentLyricsActiveIndex = -999;
     window.currentLyricsActiveWordIndex = -999;
+    window.currentPlainLyricsActiveIndex = -999;
     const curTime = dom.audio.currentTime || 0;
     if (window.currentMusicLyricsType === "synced") {
       updateSyncedLyricsByTime(curTime);
@@ -5818,8 +5813,18 @@ function initLyricsShareModal() {
     cardLyrics.innerHTML = selectedLines.map((l) => `<p>${escapeHtmlMusic(l)}</p>`).join("");
   };
 
+  const getShareTrackCover = (trackObj) => {
+    const current = trackObj || window.currentMusic || window.musicLibrary[window.currentMusicIndex] || {};
+    const playerImg = document.getElementById("yt-cover-image") || document.getElementById("yt-mini-cover");
+    const playerCoverSrc = (playerImg && playerImg.src && !playerImg.src.endsWith(DEFAULT_MUSIC_COVER) && !playerImg.src.includes("music-cover.jpg"))
+      ? playerImg.src
+      : null;
+    const raw = current.coverUrl || current.cover || playerCoverSrc || DEFAULT_MUSIC_COVER;
+    return resolveMusicAssetUrl(raw, DEFAULT_MUSIC_COVER);
+  };
+
   const openShareModal = () => {
-    const track = window.musicLibrary[window.currentMusicIndex] || {};
+    const track = window.currentMusic || window.musicLibrary[window.currentMusicIndex] || {};
     const parsed = window.currentMusicLyricsParsed || [];
     let lines = [];
     if (parsed.length) {
@@ -5841,7 +5846,7 @@ function initLyricsShareModal() {
 
     if (cardTitle) cardTitle.textContent = track.title || "Mahnı";
     if (cardArtist) cardArtist.textContent = track.artist || "Artist";
-    const coverSrc = track.coverUrl || DEFAULT_MUSIC_COVER;
+    const coverSrc = getShareTrackCover(track);
     if (cardCover) {
       cardCover.onerror = () => {
         cardCover.onerror = null;
@@ -5850,7 +5855,7 @@ function initLyricsShareModal() {
       };
       cardCover.src = coverSrc;
     }
-    if (cardBg) cardBg.style.backgroundImage = `url("${encodeURI(coverSrc)}")`;
+    if (cardBg) cardBg.style.backgroundImage = `url("${coverSrc}")`;
 
     linesList.innerHTML = lines.map((line, idx) => `
       <div class="yt-share-line-item" data-line-index="${idx}">
@@ -5898,8 +5903,8 @@ function initLyricsShareModal() {
   });
 
   copyBtn?.addEventListener("click", () => {
-    const track = window.musicLibrary[window.currentMusicIndex] || {};
-    const textToCopy = `"${selectedLines.join("\n")}"\n\n🎵 ${track.title} - ${track.artist}\nDUNYAMIZ`;
+    const track = window.currentMusic || window.musicLibrary[window.currentMusicIndex] || {};
+    const textToCopy = `"${selectedLines.join("\n")}"\n\n🎵 ${track.title || "Mahnı"} - ${track.artist || "Artist"}\nDUNYAMIZ`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(textToCopy).then(() => {
         showHotkeyHud("fas fa-check", "Kopyalandı!");
@@ -5996,7 +6001,7 @@ function initLyricsShareModal() {
 
   downloadBtn?.addEventListener("click", async () => {
     if (downloadBtn.disabled) return;
-    const track = window.musicLibrary[window.currentMusicIndex] || {};
+    const track = window.currentMusic || window.musicLibrary[window.currentMusicIndex] || {};
     const origHtml = downloadBtn.innerHTML;
     downloadBtn.disabled = true;
     downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Hazırlanır...';
@@ -6071,7 +6076,7 @@ function initLyricsShareModal() {
 
     let cleanCover = null;
     try {
-      const coverSrc = track.coverUrl || DEFAULT_MUSIC_COVER;
+      const coverSrc = getShareTrackCover(track);
       cleanCover = await loadCleanCanvasImage(coverSrc);
       if (!cleanCover && coverSrc !== DEFAULT_MUSIC_COVER) {
         cleanCover = await loadCleanCanvasImage(DEFAULT_MUSIC_COVER);
@@ -6085,9 +6090,9 @@ function initLyricsShareModal() {
       if (cleanCover && cleanCover.naturalWidth > 0) {
         ctx.save();
         if (typeof ctx.filter !== "undefined") {
-          ctx.filter = "blur(35px) saturate(200%)";
+          ctx.filter = "blur(35px) saturate(220%)";
         }
-        ctx.globalAlpha = 0.65;
+        ctx.globalAlpha = 0.72;
         const imgW = cleanCover.naturalWidth || cleanCover.width;
         const imgH = cleanCover.naturalHeight || cleanCover.height;
         const imgAspect = imgW / imgH;
@@ -6272,11 +6277,11 @@ function initLyricsShareModal() {
   });
 
   nativeBtn?.addEventListener("click", () => {
-    const track = window.musicLibrary[window.currentMusicIndex] || {};
-    const textToShare = `“${selectedLines.join("\n")}”\n\n🎵 ${track.title} - ${track.artist}`;
+    const track = window.currentMusic || window.musicLibrary[window.currentMusicIndex] || {};
+    const textToShare = `“${selectedLines.join("\n")}”\n\n🎵 ${track.title || "Mahnı"} - ${track.artist || "Artist"}`;
     if (navigator.share) {
       navigator.share({
-        title: `${track.title} - ${track.artist}`,
+        title: `${track.title || "Mahnı"} - ${track.artist || "Artist"}`,
         text: textToShare,
         url: window.location.href,
       }).catch(() => {});

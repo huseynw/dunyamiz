@@ -18,20 +18,7 @@ async function loadSourceIntoKawarp(src) {
           return;
         }
       } catch (_) {
-        // Fallback to direct URL or proxy if fetch fails
-      }
-
-      // If direct fetch fails for cross-origin cover, try netlify proxy
-      const isSameOrigin = !/^https?:\/\//i.test(src) || (typeof window !== "undefined" && src.startsWith(window.location.origin));
-      if (!isSameOrigin && !src.includes("cover-proxy")) {
-        try {
-          const proxyRes = await fetch(`/.netlify/functions/cover-proxy?src=${encodeURIComponent(src)}`, { cache: "force-cache" });
-          if (proxyRes.ok) {
-            const blob = await proxyRes.blob();
-            instance.loadBlob(blob);
-            return;
-          }
-        } catch (_) {}
+        // Fallback to direct URL if fetch fails
       }
     }
     const promise = instance.loadImage(src);
