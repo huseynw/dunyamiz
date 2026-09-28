@@ -1494,6 +1494,9 @@ function initVisualizer(audioElement) {
     const dataArray = new Uint8Array(bufferLength);
     let frameSkip = 0;
 
+    const activeBars = PERF_MOBILE ? 16 : 28;
+    const smoothedBars = new Float32Array(activeBars);
+
     const draw = () => {
       if (document.hidden || audioElement.paused || !canvas || !ctx) {
         stopVisualizer();
@@ -1510,29 +1513,62 @@ function initVisualizer(audioElement) {
       analyser.getByteFrequencyData(dataArray);
       ctx.clearRect(0, 0, width, height);
 
+      let sum = 0;
+      for (let j = 0; j < 32; j++) sum += dataArray[j];
+      const hasRealAudio = sum > 0;
+
       const centerY = height / 2;
-      const activeBars = Math.min(PERF_MOBILE ? 12 : 22, bufferLength);
-      const barWidth = Math.max(4, Math.floor(width / (activeBars * 1.9)));
-      const gap = Math.max(2, Math.floor(barWidth * 0.55));
+      const barWidth = Math.max(3, Math.floor(width / (activeBars * 1.85)));
+      const gap = Math.max(2, Math.floor(barWidth * 0.45));
       const totalWidth = activeBars * barWidth + (activeBars - 1) * gap;
       let x = Math.max(0, (width - totalWidth) / 2);
 
-      ctx.shadowBlur = PERF_MOBILE ? 0 : 12;
-      ctx.shadowColor = currentWaveColor || "rgba(255,255,255,0.8)";
+      const rootStyle = getComputedStyle(document.documentElement);
+      const c1 = rootStyle.getPropertyValue("--player-color-1").trim() || currentWaveColor || "#ff2d55";
+      const c2 = rootStyle.getPropertyValue("--player-color-2").trim() || "#5856d6";
+      const c3 = rootStyle.getPropertyValue("--player-color-4").trim() || currentWaveColor || "#af52de";
+
+      ctx.shadowBlur = PERF_MOBILE ? 0 : 8;
+      ctx.shadowColor = c1;
+
+      const curTime = audioElement.currentTime || 0;
+      const halfBars = (activeBars - 1) / 2;
 
       for (let i = 0; i < activeBars; i++) {
-        const mirroredIndex = Math.floor((i / activeBars) * bufferLength);
-        const value = dataArray[mirroredIndex] / 255;
-        const barHeight = Math.max(6, value * height * 0.82);
+        let targetValue = 0;
+        if (hasRealAudio) {
+          // Symmetrical mapping: bass in center, mids and highs on flanks
+          const dist = Math.abs(i - halfBars) / halfBars;
+          const bin = Math.min(bufferLength - 1, Math.floor(Math.pow(dist, 1.3) * (bufferLength * 0.4)));
+          targetValue = (dataArray[bin] || 0) / 255;
+        } else {
+          // Dynamic musical rhythm simulation when Web Audio is silent/cross-origin
+          const beat1 = Math.sin(curTime * 8) * 0.4 + 0.5;
+          const beat2 = Math.cos(curTime * 4 + i * 0.45) * 0.3 + 0.35;
+          const centerWeight = 1 - (Math.abs(i - halfBars) / halfBars) * 0.5;
+          targetValue = Math.min(1, Math.max(0.12, (beat1 * 0.6 + beat2 * 0.4) * centerWeight));
+        }
+
+        smoothedBars[i] = smoothedBars[i] * 0.74 + targetValue * 0.26;
+        const value = smoothedBars[i];
+
+        const barHeight = Math.max(6, value * height * 0.88);
         const y = centerY - barHeight / 2;
-        const radius = Math.min(barWidth / 2, 8);
+        const radius = barWidth / 2;
+
+        const grad = ctx.createLinearGradient(0, y, 0, y + barHeight);
+        grad.addColorStop(0, c1);
+        grad.addColorStop(0.5, "rgba(255, 255, 255, 0.95)");
+        grad.addColorStop(1, c2 || c3);
 
         ctx.beginPath();
-        if (typeof ctx.roundRect === "function")
+        if (typeof ctx.roundRect === "function") {
           ctx.roundRect(x, y, barWidth, barHeight, radius);
-        else ctx.rect(x, y, barWidth, barHeight);
+        } else {
+          ctx.rect(x, y, barWidth, barHeight);
+        }
 
-        ctx.fillStyle = currentWaveColor || "rgba(255,255,255,0.9)";
+        ctx.fillStyle = grad;
         ctx.fill();
         x += barWidth + gap;
       }
@@ -2852,7 +2888,7 @@ function resolveMusicAssetUrl(value, fallback = "") {
   const cleaned = String(value).trim();
   if (!cleaned) return fallback;
 
-  // Tam URL-dirsə saxla, amma github-raw linkinin içindəki fayl yolunu təmizlə.
+  // Tam URL-dirsə saxla, amma cdn.dunyamiz.me əvəzinə r2.dev istifadə et
   if (/^https?:\/\//i.test(cleaned)) {
     if (cleaned.includes("cdn.dunyamiz.me")) {
       return cleaned.replace(/https?:\/\/cdn\.dunyamiz\.me/i, "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev");
@@ -2864,7 +2900,9 @@ function resolveMusicAssetUrl(value, fallback = "") {
         url.pathname.includes("/.netlify/functions/github-raw") &&
         fileParam
       ) {
-        return `${GITHUB_RAW_BASE}${encodeURIComponent(fileParam.replace(/^\/+/, ""))}`;
+        const pathPart = fileParam.replace(/^\/+/, "");
+        const segments = pathPart.split("/").map(seg => encodeURIComponent(decodeURIComponent(seg)));
+        return `/${segments.join("/")}`;
       }
     } catch (_) {}
     return cleaned;
@@ -2872,8 +2910,6 @@ function resolveMusicAssetUrl(value, fallback = "") {
 
   let normalized = cleaned.replace(/^\/+/, "");
 
-  // Əvvəlki bug: ".netlify/functions/github-raw?file=musiqiler/xxx" yenidən github-raw içinə salınırdı.
-  // Burada iç file parametrini çıxarıb backend-in icazə verdiyi təmiz path-ə çeviririk.
   if (normalized.includes(".netlify/functions/github-raw")) {
     try {
       const fakeUrl = new URL(normalized, window.location.origin);
@@ -2882,11 +2918,13 @@ function resolveMusicAssetUrl(value, fallback = "") {
     } catch (_) {}
   }
 
-  if (!normalized.includes("/")) {
+  if (!normalized.startsWith("musiqiler/") && !normalized.startsWith("assets/")) {
     normalized = `musiqiler/${normalized}`;
   }
 
-  return `${GITHUB_RAW_BASE}${encodeURIComponent(normalized)}`;
+  // Statik fayl yolu kimi birbaşa qaytar (Vite/Netlify dist içində musiqiler/ qovluğu birbaşa mövcuddur)
+  const segments = normalized.split("/").map(seg => encodeURIComponent(decodeURIComponent(seg)));
+  return `/${segments.join("/")}`;
 }
 function normalizeTrackMeta(meta = {}) {
   const audioValue = meta.audio || (meta.file ? `musiqiler/${meta.file}` : "");
@@ -3385,7 +3423,10 @@ async function fetchMusicJsonList() {
         const cacheKey = `music-meta:${file.name}:${file.sha || file.git_date || ""}`;
         let data = perfGetCached(cacheKey, PERF_GITHUB_TTL);
         if (!data) {
-          const res = await fetch(file.download_url, { cache: "force-cache" });
+          let res = await fetch(file.download_url, { cache: "force-cache" });
+          if (!res || !res.ok) {
+            res = await fetch(`/musiqiler/${encodeURIComponent(file.name)}`, { cache: "force-cache" });
+          }
           if (!res.ok) return null;
           data = await res.json();
           perfSetCached(cacheKey, data);
@@ -4175,16 +4216,17 @@ function getDominantColorFromImage(imgSrc) {
       return;
     }
 
-    const img = new Image();
-    img.crossOrigin = "anonymous";
+    const isSameOrigin = !/^https?:\/\//i.test(imgSrc) || imgSrc.startsWith(window.location.origin);
     const absoluteImgSrc = /^https?:\/\//i.test(imgSrc)
       ? imgSrc
       : new URL(imgSrc, window.location.origin).href;
-    const proxiedSrc = `/.netlify/functions/cover-proxy?src=${encodeURIComponent(absoluteImgSrc)}`;
 
-    img.src = proxiedSrc;
+    const img = new Image();
+    if (!isSameOrigin) {
+      img.crossOrigin = "anonymous";
+    }
 
-    img.onload = () => {
+    const processLoadedImage = () => {
       try {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d", { willReadFrequently: true });
@@ -4193,55 +4235,81 @@ function getDominantColorFromImage(imgSrc) {
           return;
         }
 
-        canvas.width = 50;
-        canvas.height = 50;
-        ctx.drawImage(img, 0, 0, 50, 50);
+        canvas.width = 64;
+        canvas.height = 64;
+        ctx.drawImage(img, 0, 0, 64, 64);
 
-        const data = ctx.getImageData(0, 0, 50, 50).data;
+        const data = ctx.getImageData(0, 0, 64, 64).data;
 
-        let r = 0,
-          g = 0,
-          b = 0;
-        let count = 0;
-
+        let r = 0, g = 0, b = 0, count = 0;
         for (let i = 0; i < data.length; i += 4) {
-          r += data[i];
-          g += data[i + 1];
-          b += data[i + 2];
-          count++;
+          const pr = data[i], pg = data[i + 1], pb = data[i + 2];
+          const brightness = (pr + pg + pb) / 3;
+          if (brightness > 8 && brightness < 248) {
+            r += pr; g += pg; b += pb; count++;
+          }
         }
 
         if (!count) {
-          resolve("rgb(255,255,255)");
-          return;
+          for (let i = 0; i < data.length; i += 4) {
+            r += data[i]; g += data[i + 1]; b += data[i + 2]; count++;
+          }
         }
 
-        r = Math.floor(r / count);
-        g = Math.floor(g / count);
-        b = Math.floor(b / count);
+        r = Math.floor(r / count) || 120;
+        g = Math.floor(g / count) || 60;
+        b = Math.floor(b / count) || 200;
 
         // Sample 4 quadrants for Apple Music fluid ambient mesh
-        const qSize = 25;
+        const qSize = 32;
         const getQuadrantAvg = (sx, sy) => {
           const d = ctx.getImageData(sx, sy, qSize, qSize).data;
           let qr = 0, qg = 0, qb = 0, qcnt = 0;
           for (let qi = 0; qi < d.length; qi += 4) {
-            qr += d[qi]; qg += d[qi + 1]; qb += d[qi + 2]; qcnt++;
+            const br = (d[qi] + d[qi + 1] + d[qi + 2]) / 3;
+            if (br > 6 && br < 250) {
+              qr += d[qi]; qg += d[qi + 1]; qb += d[qi + 2]; qcnt++;
+            }
           }
-          return qcnt ? [Math.round(qr / qcnt), Math.round(qg / qcnt), Math.round(qb / qcnt)] : [120, 60, 200];
+          if (!qcnt) {
+            for (let qi = 0; qi < d.length; qi += 4) {
+              qr += d[qi]; qg += d[qi + 1]; qb += d[qi + 2]; qcnt++;
+            }
+          }
+          return qcnt ? [Math.round(qr / qcnt), Math.round(qg / qcnt), Math.round(qb / qcnt)] : [r, g, b];
         };
 
         const c1 = getQuadrantAvg(0, 0);
-        const c2 = getQuadrantAvg(25, 0);
-        const c3 = getQuadrantAvg(0, 25);
-        const c4 = getQuadrantAvg(25, 25);
+        const c2 = getQuadrantAvg(32, 0);
+        const c3 = getQuadrantAvg(0, 32);
+        const c4 = getQuadrantAvg(32, 32);
+
+        // Boost saturation and brightness slightly so darker artwork glows with Apple-like vibrancy
+        const boostColor = ([cr, cg, cb]) => {
+          const lum = 0.299 * cr + 0.587 * cg + 0.114 * cb;
+          if (lum < 40) {
+            const factor = 42 / Math.max(lum, 1);
+            return [
+              Math.min(255, Math.round(cr * factor + 18)),
+              Math.min(255, Math.round(cg * factor + 18)),
+              Math.min(255, Math.round(cb * factor + 18))
+            ];
+          }
+          return [cr, cg, cb];
+        };
+
+        const b1 = boostColor(c1);
+        const b2 = boostColor(c2);
+        const b3 = boostColor(c3);
+        const b4 = boostColor(c4);
 
         const root = document.documentElement;
         const activePlayer = document.getElementById("yt-active-player");
-        const rgb1 = `rgb(${c1[0]}, ${c1[1]}, ${c1[2]})`;
-        const rgb2 = `rgb(${c2[0]}, ${c2[1]}, ${c2[2]})`;
-        const rgb3 = `rgb(${c3[0]}, ${c3[1]}, ${c3[2]})`;
-        const rgb4 = `rgb(${c4[0]}, ${c4[1]}, ${c4[2]})`;
+        const rgb1 = `rgb(${b1[0]}, ${b1[1]}, ${b1[2]})`;
+        const rgb2 = `rgb(${b2[0]}, ${b2[1]}, ${b2[2]})`;
+        const rgb3 = `rgb(${b3[0]}, ${b3[1]}, ${b3[2]})`;
+        const rgb4 = `rgb(${b4[0]}, ${b4[1]}, ${b4[2]})`;
+        const dominant = `rgb(${r}, ${g}, ${b})`;
 
         root.style.setProperty("--player-color-1", rgb1);
         root.style.setProperty("--player-color-2", rgb2);
@@ -4255,14 +4323,29 @@ function getDominantColorFromImage(imgSrc) {
           activePlayer.style.setProperty("--player-color-4", rgb4);
         }
 
-        resolve(`rgb(${r}, ${g}, ${b})`);
+        if (window.currentMusic) {
+          window.currentMusic.extractedColors = { color1: rgb1, color2: rgb2, color3: rgb3, color4: rgb4, dominant };
+        }
+        currentWaveColor = dominant;
+
+        resolve(dominant);
       } catch (err) {
         console.error("Dominant color çıxarılmadı:", err);
         resolve("rgb(255,255,255)");
       }
     };
 
-    img.onerror = () => resolve("rgb(255,255,255)");
+    img.onload = processLoadedImage;
+    img.onerror = () => {
+      // If direct cross-origin failed, try netlify cover-proxy as fallback
+      if (!isSameOrigin && !img.src.includes("/.netlify/functions/cover-proxy")) {
+        img.src = `/.netlify/functions/cover-proxy?src=${encodeURIComponent(absoluteImgSrc)}`;
+      } else {
+        resolve("rgb(255,255,255)");
+      }
+    };
+
+    img.src = absoluteImgSrc;
   });
 }
 
@@ -4629,12 +4712,10 @@ function updateMediaSessionMetadata(track) {
     artist: track.artist || "Naməlum artist",
     album: "Hüseyn və Cəmalənin Dünyası",
     artwork: [
-      { src: absoluteArtwork, sizes: "96x96", type: mimeType },
-      { src: absoluteArtwork, sizes: "128x128", type: mimeType },
-      { src: absoluteArtwork, sizes: "192x192", type: mimeType },
-      { src: absoluteArtwork, sizes: "256x256", type: mimeType },
-      { src: absoluteArtwork, sizes: "384x384", type: mimeType },
       { src: absoluteArtwork, sizes: "512x512", type: mimeType },
+      { src: absoluteArtwork, sizes: "256x256", type: mimeType },
+      { src: absoluteArtwork, sizes: "128x128", type: mimeType },
+      { src: absoluteArtwork }
     ],
   });
 }
@@ -5791,18 +5872,58 @@ function initLyricsShareModal() {
     };
 
     const rootStyle = getComputedStyle(document.documentElement);
-    const color1 = rootStyle.getPropertyValue("--player-color-1").trim() || "rgb(123, 44, 191)";
-    const color2 = rootStyle.getPropertyValue("--player-color-2").trim() || "rgb(58, 12, 163)";
-    const color3 = rootStyle.getPropertyValue("--player-color-3").trim() || "rgb(67, 97, 238)";
-    const color4 = rootStyle.getPropertyValue("--player-color-4").trim() || "rgb(247, 37, 133)";
+    const trackColors = track.extractedColors || (window.currentMusic && window.currentMusic.extractedColors);
+    let color1 = trackColors?.color1 || rootStyle.getPropertyValue("--player-color-1").trim() || "rgb(123, 44, 191)";
+    let color2 = trackColors?.color2 || rootStyle.getPropertyValue("--player-color-2").trim() || "rgb(58, 12, 163)";
+    let color3 = trackColors?.color3 || rootStyle.getPropertyValue("--player-color-3").trim() || "rgb(67, 97, 238)";
+    let color4 = trackColors?.color4 || rootStyle.getPropertyValue("--player-color-4").trim() || "rgb(247, 37, 133)";
+
+    const domCover = (cardCover && cardCover.complete && cardCover.naturalWidth > 0)
+      ? cardCover
+      : (document.getElementById("yt-cover-image")?.complete && document.getElementById("yt-cover-image")?.naturalWidth > 0)
+        ? document.getElementById("yt-cover-image")
+        : null;
 
     const coverImg = new Image();
-    coverImg.crossOrigin = "anonymous";
     const src = track.coverUrl || DEFAULT_MUSIC_COVER;
+    const isSameOrigin = !/^https?:\/\//i.test(src) || src.startsWith(window.location.origin);
     const absoluteImgSrc = /^https?:\/\//i.test(src) ? src : new URL(src, window.location.origin).href;
-    const proxiedSrc = `/.netlify/functions/cover-proxy?src=${encodeURIComponent(absoluteImgSrc)}`;
+    const proxiedSrc = isSameOrigin ? absoluteImgSrc : `/.netlify/functions/cover-proxy?src=${encodeURIComponent(absoluteImgSrc)}`;
+
+    if (!isSameOrigin) {
+      coverImg.crossOrigin = "anonymous";
+    }
 
     const renderCardContent = () => {
+      const activeCover = (coverImg && coverImg.complete && coverImg.naturalWidth > 0)
+        ? coverImg
+        : domCover;
+
+      // Extract colors from active cover if trackColors was not yet cached
+      if (activeCover && !trackColors) {
+        try {
+          const sampleCanvas = document.createElement("canvas");
+          sampleCanvas.width = 16;
+          sampleCanvas.height = 16;
+          const sCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+          if (sCtx) {
+            sCtx.drawImage(activeCover, 0, 0, 16, 16);
+            const sd = sCtx.getImageData(0, 0, 16, 16).data;
+            let r = 0, g = 0, b = 0, cnt = 0;
+            for (let p = 0; p < sd.length; p += 4) {
+              const br = (sd[p] + sd[p+1] + sd[p+2]) / 3;
+              if (br > 10 && br < 245) {
+                r += sd[p]; g += sd[p+1]; b += sd[p+2]; cnt++;
+              }
+            }
+            if (cnt) {
+              color1 = `rgb(${Math.round(r/cnt)}, ${Math.round(g/cnt)}, ${Math.round(b/cnt)})`;
+              color2 = `rgb(${Math.max(10, Math.round(r/cnt*0.6))}, ${Math.max(10, Math.round(g/cnt*0.6))}, ${Math.max(20, Math.round(b/cnt*0.7))})`;
+            }
+          }
+        } catch (_) {}
+      }
+
       // 1. Base dark background
       ctx.fillStyle = "#0c0d12";
       ctx.fillRect(0, 0, 800, 1000);
@@ -5828,13 +5949,13 @@ function initLyricsShareModal() {
 
       // 3. Overlay blurred album cover for ultimate Apple Music aesthetics
       try {
-        if (coverImg && coverImg.complete && coverImg.naturalWidth > 0) {
+        if (activeCover && activeCover.complete && activeCover.naturalWidth > 0) {
           ctx.save();
           if (typeof ctx.filter !== "undefined") {
-            ctx.filter = "blur(65px) saturate(1.8) brightness(0.48)";
+            ctx.filter = "blur(65px) saturate(1.8) brightness(0.42)";
           }
-          ctx.globalAlpha = 0.65;
-          ctx.drawImage(coverImg, -60, -60, 920, 1120);
+          ctx.globalAlpha = 0.5;
+          ctx.drawImage(activeCover, -60, -60, 920, 1120);
           ctx.restore();
         }
       } catch (_) {}
@@ -5857,8 +5978,8 @@ function initLyricsShareModal() {
       }
       ctx.clip();
       try {
-        if (coverImg && coverImg.complete && coverImg.naturalWidth > 0) {
-          ctx.drawImage(coverImg, 80, 80, 96, 96);
+        if (activeCover && activeCover.complete && activeCover.naturalWidth > 0) {
+          ctx.drawImage(activeCover, 80, 80, 96, 96);
         } else {
           ctx.fillStyle = "#1e222a";
           ctx.fillRect(80, 80, 96, 96);
@@ -5960,16 +6081,20 @@ function initLyricsShareModal() {
       renderCardContent();
     };
 
-    coverImg.onload = safeRender;
-    coverImg.onerror = () => {
-      if (coverImg.src !== absoluteImgSrc) {
-        coverImg.src = absoluteImgSrc;
-      } else {
-        safeRender();
-      }
-    };
-    coverImg.src = proxiedSrc;
-    setTimeout(safeRender, 1200);
+    if (domCover && domCover.complete && domCover.naturalWidth > 0) {
+      safeRender();
+    } else {
+      coverImg.onload = safeRender;
+      coverImg.onerror = () => {
+        if (!isSameOrigin && !coverImg.src.includes("cover-proxy")) {
+          coverImg.src = proxiedSrc;
+        } else {
+          safeRender();
+        }
+      };
+      coverImg.src = isSameOrigin ? absoluteImgSrc : proxiedSrc;
+      setTimeout(safeRender, 1500);
+    }
   });
 
   nativeBtn?.addEventListener("click", () => {
