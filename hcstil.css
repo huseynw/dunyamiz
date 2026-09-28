@@ -3958,9 +3958,7 @@ header {
 .yt-lyrics-word.active {
   transform: translateY(-1px);
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.25);
-  animation: 
-    blyrics-wobble var(--blyrics-wobble-duration) ease-in-out infinite alternate,
-    blyrics-fill var(--word-duration, 0.5s) linear forwards;
+  animation: blyrics-fill var(--word-duration, 0.5s) linear forwards;
 }
 
 .yt-lyrics-word.passed {
@@ -4192,9 +4190,7 @@ header {
 }
 
 .yt-lyrics-word.active {
-  animation: 
-    blyrics-wobble var(--blyrics-wobble-duration) ease-in-out infinite alternate,
-    blyrics-fill var(--word-duration, 0.5s) linear forwards;
+  animation: blyrics-fill var(--word-duration, 0.5s) linear forwards;
 }
 
 .track-switch-anim {

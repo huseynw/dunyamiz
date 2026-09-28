@@ -794,9 +794,9 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   background-image: linear-gradient(
     90deg,
     #ffffff 0%,
-    #ffffff calc(50% - 3px),
-    rgba(255, 255, 255, 0.88) 50%,
-    rgba(255, 255, 255, 0.38) calc(50% + 3px),
+    #ffffff calc(50% - 4px),
+    rgba(255, 255, 255, 0.92) 50%,
+    rgba(255, 255, 255, 0.38) calc(50% + 4px),
     rgba(255, 255, 255, 0.38) 100%
   ) !important;
   background-size: 200% 100% !important;
@@ -806,8 +806,9 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   font-family: var(--blyrics-font-family) !important;
   vertical-align: baseline !important;
   transition:
-    transform 0.22s cubic-bezier(0.2, 0.8, 0.4, 1),
-    filter 0.22s ease !important;
+    transform 0.28s cubic-bezier(0.25, 1, 0.5, 1),
+    filter 0.28s ease,
+    background-position 0.2s ease !important;
   will-change: background-position, transform, filter;
   cursor: pointer;
 }
@@ -816,11 +817,13 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
 .yt-lyrics-line.active .yt-lyrics-word {
   background-position: 100% 0;
   animation: none;
+  filter: none;
+  transform: scale(1);
 }
 
 /* Active line: currently singing word */
 .yt-lyrics-line.active .yt-lyrics-word.active {
-  animation: blyrics-fill var(--word-duration, 0.45s) linear forwards;
+  animation: blyrics-fill var(--word-duration, 0.45s) cubic-bezier(0.2, 0, 0.2, 1) forwards;
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
   transform: scale(1.035);
 }
@@ -830,7 +833,7 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   background-position: 0 0 !important;
   animation: none !important;
   filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.25));
-  transform: none !important;
+  transform: scale(1);
 }
 
 /* Passed lines */
@@ -838,7 +841,7 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   background-position: 0 0 !important;
   animation: none !important;
   filter: none !important;
-  transform: none !important;
+  transform: scale(1);
 }
 
 /* Upcoming lines */
@@ -846,7 +849,7 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   background-position: 100% 0 !important;
   animation: none !important;
   filter: none !important;
-  transform: none !important;
+  transform: scale(1);
 }
 
 @keyframes blyrics-fill {

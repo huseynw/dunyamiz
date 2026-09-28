@@ -4060,14 +4060,20 @@ function updateSyncedLyricsByTime(currentTime) {
     activeIndex >= 0 ? window.currentMusicLyricsParsed[activeIndex] : null;
   let activeWordIndex = -1;
   if (activeLine?.words?.length) {
-    for (let i = 0; i < activeLine.words.length; i++) {
-      const w = activeLine.words[i];
-      const dur = w.duration || 0.45;
+    const words = activeLine.words;
+    const lastIdx = words.length - 1;
+    for (let i = 0; i <= lastIdx; i++) {
+      const w = words[i];
+      const nextW = words[i + 1];
+      // Söz növbəti söz başlayan ana qədər aktiv qalır, beləliklə sözlər arasında heç bir boşluq/taxılma olmur
+      const wordEndTime = nextW ? nextW.time : (w.time + (w.duration || 0.45));
+
       if (currentTime >= w.time) {
-        if (currentTime < w.time + dur) {
+        if (currentTime < wordEndTime) {
           activeWordIndex = i;
-        } else {
-          activeWordIndex = i + 0.5;
+          break;
+        } else if (i === lastIdx) {
+          activeWordIndex = words.length;
         }
       } else {
         break;
@@ -4143,7 +4149,7 @@ function updateSyncedLyricsByTime(currentTime) {
     }
   }
 
-  // Update words for the active line
+  // Update words for the active line smoothly without forced layout thrashing
   if (activeIndex >= 0 && activeLine?.words?.length) {
     const activeLineEl = lyricsContainer.querySelector(
       `.yt-lyrics-line[data-lyrics-index="${activeIndex}"]`,
@@ -4155,26 +4161,31 @@ function updateSyncedLyricsByTime(currentTime) {
         const isWordPassed = wordIndex < activeWordIndex;
         const isWordActive = wordIndex === activeWordIndex;
 
-        wordEl.classList.toggle("passed", isWordPassed);
-        wordEl.classList.toggle("active", isWordActive);
+        const wasActive = wordEl.classList.contains("active");
+        const wasPassed = wordEl.classList.contains("passed");
+
+        if (isWordActive !== wasActive) {
+          wordEl.classList.toggle("active", isWordActive);
+        }
+        if (isWordPassed !== wasPassed) {
+          wordEl.classList.toggle("passed", isWordPassed);
+        }
 
         if (isWordActive && wordObj) {
-          const duration = wordObj.duration || 0.45;
+          const duration = Math.max(0.15, wordObj.duration || 0.45);
           const elapsed = Math.max(0, currentTime - wordObj.time);
 
           wordEl.style.setProperty("--word-duration", `${duration}s`);
-          wordEl.style.animation = "none";
-          void wordEl.offsetHeight; // force reflow
-          wordEl.style.animation = "";
-          wordEl.style.animationDelay = `-${elapsed}s`;
-          wordEl.style.animationPlayState = (audio && audio.paused) ? "paused" : "running";
+          if (!wasActive) {
+            wordEl.style.animationDelay = `-${elapsed}s`;
+            wordEl.style.animationPlayState = (audio && audio.paused) ? "paused" : "running";
+          }
         } else if (isWordPassed) {
-          wordEl.style.removeProperty("--word-duration");
-          wordEl.style.animation = "none";
-          wordEl.style.animationDelay = "";
+          if (wasActive) {
+            wordEl.style.animationDelay = "";
+          }
         } else {
           wordEl.style.removeProperty("--word-duration");
-          wordEl.style.animation = "none";
           wordEl.style.animationDelay = "";
         }
       });
@@ -5258,6 +5269,32 @@ function initMusicPlayerEvents() {
     updatePlayerModeButtons();
   });
 
+  let lyricsRafId = null;
+  const startLyricsAnimationLoop = () => {
+    if (lyricsRafId) return;
+    const loop = () => {
+      if (!dom.audio || dom.audio.paused || dom.audio.ended) {
+        lyricsRafId = null;
+        return;
+      }
+      const curTime = dom.audio.currentTime || 0;
+      if (window.currentMusicLyricsType === "synced") {
+        updateSyncedLyricsByTime(curTime);
+      } else if (window.currentMusicLyricsType === "plain") {
+        updatePlainLyricsScrollByTime(curTime);
+      }
+      lyricsRafId = requestAnimationFrame(loop);
+    };
+    lyricsRafId = requestAnimationFrame(loop);
+  };
+
+  const stopLyricsAnimationLoop = () => {
+    if (lyricsRafId) {
+      cancelAnimationFrame(lyricsRafId);
+      lyricsRafId = null;
+    }
+  };
+
   dom.audio.addEventListener("timeupdate", () => {
     const curTime = dom.audio.currentTime || 0;
     const dur = dom.audio.duration || 1;
@@ -5292,6 +5329,7 @@ function initMusicPlayerEvents() {
     if (audio && !audio.paused) {
       audio.pause();
     }
+    startLyricsAnimationLoop();
     updateMusicPlayButtonState();
     updateMediaSessionPlaybackState();
     const activeLyrics = dom.lyricsContainer?.querySelectorAll(".yt-lyrics-line.active .yt-lyrics-text, .yt-lyrics-line.active .yt-lyrics-word.active");
@@ -5299,7 +5337,11 @@ function initMusicPlayerEvents() {
       el.style.animationPlayState = "running";
     });
   });
+  dom.audio.addEventListener("playing", () => {
+    startLyricsAnimationLoop();
+  });
   dom.audio.addEventListener("pause", () => {
+    stopLyricsAnimationLoop();
     updateMusicPlayButtonState();
     updateMediaSessionPlaybackState();
     const activeLyrics = dom.lyricsContainer?.querySelectorAll(".yt-lyrics-line.active .yt-lyrics-text, .yt-lyrics-line.active .yt-lyrics-word.active");
@@ -5308,6 +5350,7 @@ function initMusicPlayerEvents() {
     });
   });
   dom.audio.addEventListener("ended", () => {
+    stopLyricsAnimationLoop();
     updateMusicPlayButtonState();
     updateMediaSessionPlaybackState();
     playNextMusic();
