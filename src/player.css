@@ -711,8 +711,8 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   font-weight: var(--blyrics-active-weight) !important;
   opacity: 1 !important;
   filter: none !important;
-  transform: scale(1.03) translateX(6px) !important;
-  text-shadow: 0 0 24px var(--blyrics-active-glow), 0 0 50px rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.025) translateX(6px) !important;
+  text-shadow: none !important;
 }
 
 /* Base lyrics text styling */
@@ -725,7 +725,7 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   transition: color 0.3s ease, -webkit-text-fill-color 0.3s ease;
 }
 
-/* Active Line: progressive left-to-right white fill animation */
+/* Active Line fallback (for lines without word timing) */
 .yt-lyrics-line.active .yt-lyrics-text {
   display: inline !important;
   color: transparent !important;
@@ -733,21 +733,21 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   background-image: linear-gradient(
     90deg,
     #ffffff 0%,
-    #ffffff calc(50% - 6px),
+    #ffffff calc(50% - 4px),
     rgba(255, 255, 255, 0.88) 50%,
-    rgba(255, 255, 255, 0.42) calc(50% + 6px),
+    rgba(255, 255, 255, 0.42) calc(50% + 4px),
     rgba(255, 255, 255, 0.42) 100%
   ) !important;
   background-size: 200% 100% !important;
-  background-position: 100% 0 !important;
+  background-position: 100% 0;
   -webkit-background-clip: text !important;
   background-clip: text !important;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
-  animation: blyrics-line-fill var(--line-duration, 3.5s) linear forwards !important;
+  animation: blyrics-line-fill var(--line-duration, 3.5s) linear forwards;
 }
 
-/* Passed lines */
+/* Passed lines fallback */
 .yt-lyrics-line.passed .yt-lyrics-text {
   color: rgba(255, 255, 255, 0.48) !important;
   -webkit-text-fill-color: rgba(255, 255, 255, 0.48) !important;
@@ -772,40 +772,83 @@ body.player-expanded .yt-active-player:not(.is-player-morphing),
   color: rgba(255, 255, 255, 0.95) !important;
 }
 
-/* Word-by-word synced karaoke highlights */
+/* Word-by-word synced karaoke highlights (BetterLyrics / Apple Music style) */
 .yt-lyrics-line--word {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 0.25em !important;
+  display: block !important;
+  line-height: var(--blyrics-line-height) !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
 }
 
 .yt-lyrics-word {
   display: inline-block !important;
   color: transparent !important;
-  background: linear-gradient(90deg, #ffffff 50%, rgba(255, 255, 255, 0.38) 50%) !important;
+  -webkit-text-fill-color: transparent !important;
+  background-image: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #ffffff calc(50% - 3px),
+    rgba(255, 255, 255, 0.88) 50%,
+    rgba(255, 255, 255, 0.38) calc(50% + 3px),
+    rgba(255, 255, 255, 0.38) 100%
+  ) !important;
   background-size: 200% 100% !important;
-  background-position: 100% 0 !important;
+  background-position: 100% 0;
   -webkit-background-clip: text !important;
   background-clip: text !important;
   font-family: var(--blyrics-font-family) !important;
+  vertical-align: baseline !important;
   transition:
-    transform 0.18s ease,
-    background-position 0.2s ease,
-    text-shadow 0.2s ease !important;
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.4, 1),
+    filter 0.22s ease !important;
+  will-change: background-position, transform, filter;
+  cursor: pointer;
 }
 
-.yt-lyrics-word.active {
-  animation: blyrics-fill var(--word-duration, 0.45s) linear forwards !important;
-  text-shadow: 0 0 18px rgba(255, 255, 255, 0.4) !important;
+/* Active line: inactive upcoming words */
+.yt-lyrics-line.active .yt-lyrics-word {
+  background-position: 100% 0;
+  animation: none;
 }
 
-.yt-lyrics-word.passed {
+/* Active line: currently singing word */
+.yt-lyrics-line.active .yt-lyrics-word.active {
+  animation: blyrics-fill var(--word-duration, 0.45s) linear forwards;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+  transform: scale(1.035);
+}
+
+/* Active line: already sung words */
+.yt-lyrics-line.active .yt-lyrics-word.passed {
   background-position: 0 0 !important;
+  animation: none !important;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.25));
+  transform: none !important;
+}
+
+/* Passed lines */
+.yt-lyrics-line.passed .yt-lyrics-word {
+  background-position: 0 0 !important;
+  animation: none !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+/* Upcoming lines */
+.yt-lyrics-line:not(.active):not(.passed) .yt-lyrics-word {
+  background-position: 100% 0 !important;
+  animation: none !important;
+  filter: none !important;
+  transform: none !important;
 }
 
 @keyframes blyrics-fill {
-  0% { background-position: 100% 0; }
-  100% { background-position: 0 0; }
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
 }
 
 .yt-lyrics-empty {

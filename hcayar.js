@@ -2967,12 +2967,68 @@ function parseSyncedLyrics(lrcText = "") {
         id: `${lineTime}-${lineIndex}`,
         time: lineTime,
         text: lineText || "…",
-        words,
+        words: words.length ? words : null,
       });
     });
   });
 
   parsed.sort((a, b) => a.time - b.time);
+
+  // Synthesize word timings for line-synced lyrics (BetterLyrics / Apple Music karaoke model)
+  for (let i = 0; i < parsed.length; i++) {
+    const line = parsed[i];
+    const nextLine = parsed[i + 1];
+
+    if (line.words && line.words.length) {
+      // Calculate duration for each word if not present
+      for (let w = 0; w < line.words.length; w++) {
+        if (!line.words[w].duration) {
+          if (w + 1 < line.words.length) {
+            line.words[w].duration = Math.max(0.15, line.words[w + 1].time - line.words[w].time);
+          } else if (nextLine) {
+            line.words[w].duration = Math.max(0.2, Math.min(3.0, nextLine.time - line.words[w].time));
+          } else {
+            line.words[w].duration = 0.5;
+          }
+        }
+      }
+      continue;
+    }
+
+    const cleanText = (line.text || "").trim();
+    if (!cleanText || cleanText === "…") {
+      line.words = [];
+      continue;
+    }
+
+    const wordList = cleanText.split(/\s+/).filter(Boolean);
+    if (!wordList.length) {
+      line.words = [];
+      continue;
+    }
+
+    // Determine line singing duration
+    const gap = nextLine ? Math.max(0.8, nextLine.time - line.time) : 3.5;
+    const naturalSingingDuration = Math.max(1.5, Math.min(gap * 0.85, wordList.length * 0.65));
+    const effectiveDuration = Math.min(gap, naturalSingingDuration);
+
+    const totalWeight = wordList.reduce((acc, w) => acc + Math.max(1, w.length), 0);
+
+    let curTime = line.time;
+    line.words = wordList.map((wordStr, wIndex) => {
+      const weight = Math.max(1, wordStr.length) / totalWeight;
+      const wDuration = Math.max(0.15, effectiveDuration * weight);
+      const wTime = curTime;
+      curTime += wDuration;
+      return {
+        index: wIndex,
+        text: wordStr,
+        time: wTime,
+        duration: wDuration,
+      };
+    });
+  }
+
   return parsed;
 }
 
@@ -3626,25 +3682,17 @@ function renderSyncedLyrics(parsedLyrics = []) {
       if (line.words && line.words.length) {
         const wordsHtml = line.words
           .map(
-            (word, wordIndex) => `
-                <span 
-                    class="yt-lyrics-word" 
-                    data-lyrics-index="${index}" 
-                    data-word-index="${wordIndex}" 
-                    data-word-time="${word.time}"
-                >${escapeHtmlMusic(word.text)}</span>
-            `,
+            (word, wordIndex) =>
+              `<span class="yt-lyrics-word" data-lyrics-index="${index}" data-word-index="${wordIndex}" data-word-time="${word.time}" data-word-duration="${word.duration || 0.45}">${escapeHtmlMusic(word.text)}</span>`,
           )
-          .join("");
+          .join(" ");
 
         return `
                 <div 
                     class="yt-lyrics-line yt-lyrics-line--word yt-lyrics-line--clickable" 
                     data-lyrics-index="${index}"
                     data-line-time="${line.time}"
-                >
-                    ${wordsHtml}
-                </div>
+                >${wordsHtml}</div>
             `;
       }
 
@@ -3699,8 +3747,14 @@ function updateSyncedLyricsByTime(currentTime) {
   let activeWordIndex = -1;
   if (activeLine?.words?.length) {
     for (let i = 0; i < activeLine.words.length; i++) {
-      if (currentTime >= activeLine.words[i].time) {
-        activeWordIndex = i;
+      const w = activeLine.words[i];
+      const dur = w.duration || 0.45;
+      if (currentTime >= w.time) {
+        if (currentTime < w.time + dur) {
+          activeWordIndex = i;
+        } else {
+          activeWordIndex = i + 0.5;
+        }
       } else {
         break;
       }
@@ -3728,90 +3782,110 @@ function updateSyncedLyricsByTime(currentTime) {
   }
 
   const lines = lyricsContainer.querySelectorAll(".yt-lyrics-line");
-  lines.forEach((lineEl, index) => {
-    const isActive = index === activeIndex;
-    const isPassed = index < activeIndex;
 
-    lineEl.classList.toggle("active", isActive);
-    lineEl.classList.toggle("passed", isPassed);
+  if (hasLineChanged) {
+    lines.forEach((lineEl, index) => {
+      const isActive = index === activeIndex;
+      const isPassed = index < activeIndex;
 
-    const textEl = lineEl.querySelector(".yt-lyrics-text") || lineEl;
+      lineEl.classList.toggle("active", isActive);
+      lineEl.classList.toggle("passed", isPassed);
 
-    if (isActive) {
-      lineEl.style.setProperty("--line-duration", `${currentLineDuration}s`);
-      textEl.style.setProperty("--line-duration", `${currentLineDuration}s`);
-
-      const elapsed = Math.max(
-        0,
-        currentTime - (activeLine ? activeLine.time : 0),
-      );
-
-      if (hasLineChanged) {
-        textEl.style.animation = "none";
-        void textEl.offsetHeight;
-        textEl.style.animation = "";
-      }
-      textEl.style.animationDelay = `-${elapsed}s`;
-      textEl.style.animationPlayState = (audio && audio.paused) ? "paused" : "running";
-    } else {
-      textEl.style.animationDelay = "";
-    }
-
-    const wordEls = lineEl.querySelectorAll(".yt-lyrics-word");
-    wordEls.forEach((wordEl, wordIndex) => {
-      const isWordPassed =
-        index < activeIndex ||
-        (index === activeIndex && wordIndex < activeWordIndex);
-      const isWordActive =
-        index === activeIndex && wordIndex === activeWordIndex;
-
-      wordEl.classList.toggle("passed", isWordPassed);
-      wordEl.classList.toggle("active", isWordActive);
-
-      if (isWordActive && activeLine?.words) {
-        let duration = 0.5;
-        const lineWords = activeLine.words;
-        if (wordIndex + 1 < lineWords.length) {
-          duration = lineWords[wordIndex + 1].time - lineWords[wordIndex].time;
-        } else if (activeIndex + 1 < window.currentMusicLyricsParsed.length) {
-          duration =
-            window.currentMusicLyricsParsed[activeIndex + 1].time -
-            lineWords[wordIndex].time;
+      const textEl = lineEl.querySelector(".yt-lyrics-text");
+      if (textEl) {
+        if (isActive) {
+          textEl.style.setProperty("--line-duration", `${currentLineDuration}s`);
+          const elapsed = Math.max(
+            0,
+            currentTime - (activeLine ? activeLine.time : 0),
+          );
+          textEl.style.animation = "none";
+          void textEl.offsetHeight;
+          textEl.style.animation = "";
+          textEl.style.animationDelay = `-${elapsed}s`;
+          textEl.style.animationPlayState = (audio && audio.paused) ? "paused" : "running";
+        } else {
+          textEl.style.animationDelay = "";
         }
-        duration = Math.max(0.1, Math.min(3, duration));
-        wordEl.style.setProperty("--word-duration", `${duration}s`);
-      } else {
-        wordEl.style.removeProperty("--word-duration");
+      }
+
+      if (!isActive) {
+        const wordEls = lineEl.querySelectorAll(".yt-lyrics-word");
+        wordEls.forEach((wordEl) => {
+          wordEl.classList.toggle("passed", isPassed);
+          wordEl.classList.remove("active");
+          wordEl.style.removeProperty("--word-duration");
+          wordEl.style.animation = "none";
+          wordEl.style.animationDelay = "";
+        });
       }
     });
-  });
 
-  if (hasLineChanged && activeIndex >= 0 && !window._lyricsUserScrolling) {
-    const activeEl = lyricsContainer.querySelector(
+    if (activeIndex >= 0 && !window._lyricsUserScrolling) {
+      const activeEl = lyricsContainer.querySelector(
+        `.yt-lyrics-line[data-lyrics-index="${activeIndex}"]`,
+      );
+      if (activeEl) {
+        const containerRect = lyricsContainer.getBoundingClientRect();
+        const itemRect = activeEl.getBoundingClientRect();
+        const targetScrollTop =
+          lyricsContainer.scrollTop +
+          (itemRect.top - containerRect.top) -
+          containerRect.height / 2 +
+          itemRect.height / 2;
+
+        if (window.gsap) {
+          window.gsap.to(lyricsContainer, {
+            scrollTop: Math.max(0, targetScrollTop),
+            duration: 0.85,
+            ease: "power3.out",
+            overwrite: "auto",
+          });
+        } else {
+          lyricsContainer.scrollTo({
+            top: Math.max(0, targetScrollTop),
+            behavior: "smooth",
+          });
+        }
+      }
+    }
+  }
+
+  // Update words for the active line
+  if (activeIndex >= 0 && activeLine?.words?.length) {
+    const activeLineEl = lyricsContainer.querySelector(
       `.yt-lyrics-line[data-lyrics-index="${activeIndex}"]`,
     );
-    if (activeEl) {
-      const containerRect = lyricsContainer.getBoundingClientRect();
-      const itemRect = activeEl.getBoundingClientRect();
-      const targetScrollTop =
-        lyricsContainer.scrollTop +
-        (itemRect.top - containerRect.top) -
-        containerRect.height / 2 +
-        itemRect.height / 2;
+    if (activeLineEl) {
+      const wordEls = activeLineEl.querySelectorAll(".yt-lyrics-word");
+      wordEls.forEach((wordEl, wordIndex) => {
+        const wordObj = activeLine.words[wordIndex];
+        const isWordPassed = wordIndex < activeWordIndex;
+        const isWordActive = wordIndex === activeWordIndex;
 
-      if (window.gsap) {
-        window.gsap.to(lyricsContainer, {
-          scrollTop: Math.max(0, targetScrollTop),
-          duration: 0.85,
-          ease: "power3.out",
-          overwrite: "auto",
-        });
-      } else {
-        lyricsContainer.scrollTo({
-          top: Math.max(0, targetScrollTop),
-          behavior: "smooth",
-        });
-      }
+        wordEl.classList.toggle("passed", isWordPassed);
+        wordEl.classList.toggle("active", isWordActive);
+
+        if (isWordActive && wordObj) {
+          const duration = wordObj.duration || 0.45;
+          const elapsed = Math.max(0, currentTime - wordObj.time);
+
+          wordEl.style.setProperty("--word-duration", `${duration}s`);
+          wordEl.style.animation = "none";
+          void wordEl.offsetHeight; // force reflow
+          wordEl.style.animation = "";
+          wordEl.style.animationDelay = `-${elapsed}s`;
+          wordEl.style.animationPlayState = (audio && audio.paused) ? "paused" : "running";
+        } else if (isWordPassed) {
+          wordEl.style.removeProperty("--word-duration");
+          wordEl.style.animation = "none";
+          wordEl.style.animationDelay = "";
+        } else {
+          wordEl.style.removeProperty("--word-duration");
+          wordEl.style.animation = "none";
+          wordEl.style.animationDelay = "";
+        }
+      });
     }
   }
 }
@@ -4840,6 +4914,7 @@ function initMusicPlayerEvents() {
       miniFill.style.width = `${percent}%`;
     }
     window.currentLyricsActiveIndex = -1;
+    window.currentLyricsActiveWordIndex = -1;
     updateSyncedLyricsByTime(dom.audio.currentTime);
   });
 
@@ -4882,6 +4957,7 @@ function seekToLyricsTime(time) {
   const safeTime = Math.max(0, Number(time));
   audio.currentTime = safeTime;
   window.currentLyricsActiveIndex = -1;
+  window.currentLyricsActiveWordIndex = -1;
   updateSyncedLyricsByTime(safeTime);
   if (audio.paused) {
     audio.play().catch((err) => console.error("Lyrics seek play error:", err));
