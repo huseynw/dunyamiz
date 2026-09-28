@@ -3741,16 +3741,18 @@ function updateSyncedLyricsByTime(currentTime) {
       lineEl.style.setProperty("--line-duration", `${currentLineDuration}s`);
       textEl.style.setProperty("--line-duration", `${currentLineDuration}s`);
 
+      const elapsed = Math.max(
+        0,
+        currentTime - (activeLine ? activeLine.time : 0),
+      );
+
       if (hasLineChanged) {
-        const elapsed = Math.max(
-          0,
-          currentTime - (activeLine ? activeLine.time : 0),
-        );
         textEl.style.animation = "none";
         void textEl.offsetHeight;
         textEl.style.animation = "";
-        textEl.style.animationDelay = `-${elapsed}s`;
       }
+      textEl.style.animationDelay = `-${elapsed}s`;
+      textEl.style.animationPlayState = (audio && audio.paused) ? "paused" : "running";
     } else {
       textEl.style.animationDelay = "";
     }
@@ -4810,10 +4812,18 @@ function initMusicPlayerEvents() {
     }
     updateMusicPlayButtonState();
     updateMediaSessionPlaybackState();
+    const activeLyrics = dom.lyricsContainer?.querySelectorAll(".yt-lyrics-line.active .yt-lyrics-text, .yt-lyrics-line.active .yt-lyrics-word.active");
+    activeLyrics?.forEach((el) => {
+      el.style.animationPlayState = "running";
+    });
   });
   dom.audio.addEventListener("pause", () => {
     updateMusicPlayButtonState();
     updateMediaSessionPlaybackState();
+    const activeLyrics = dom.lyricsContainer?.querySelectorAll(".yt-lyrics-line.active .yt-lyrics-text, .yt-lyrics-line.active .yt-lyrics-word.active");
+    activeLyrics?.forEach((el) => {
+      el.style.animationPlayState = "paused";
+    });
   });
   dom.audio.addEventListener("ended", () => {
     updateMusicPlayButtonState();
@@ -4829,6 +4839,7 @@ function initMusicPlayerEvents() {
     if (miniFill) {
       miniFill.style.width = `${percent}%`;
     }
+    window.currentLyricsActiveIndex = -1;
     updateSyncedLyricsByTime(dom.audio.currentTime);
   });
 
@@ -4870,6 +4881,7 @@ function seekToLyricsTime(time) {
   if (!audio || Number.isNaN(Number(time))) return;
   const safeTime = Math.max(0, Number(time));
   audio.currentTime = safeTime;
+  window.currentLyricsActiveIndex = -1;
   updateSyncedLyricsByTime(safeTime);
   if (audio.paused) {
     audio.play().catch((err) => console.error("Lyrics seek play error:", err));
