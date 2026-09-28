@@ -795,7 +795,14 @@
         class="yt-active-player player-mini"
         style="display: none"
       >
-        <div class="yt-player-bg" id="yt-player-bg"></div>
+        <div class="yt-player-bg" id="yt-player-bg">
+          <div class="yt-ambient-mesh" id="yt-ambient-mesh">
+            <div class="yt-ambient-blob blob-1"></div>
+            <div class="yt-ambient-blob blob-2"></div>
+            <div class="yt-ambient-blob blob-3"></div>
+            <div class="yt-ambient-blob blob-4"></div>
+          </div>
+        </div>
         <div class="yt-player-top" data-player-expand="true">
           <div class="yt-mini-progress-track">
             <div class="yt-mini-progress-fill" id="yt-mini-progress-fill"></div>
@@ -953,6 +960,10 @@
                   <small id="yt-player-artist" class="yt-track-artist">Artist</small>
                 </div>
 
+                <div class="yt-visualizer-wrap" id="yt-visualizer-wrap">
+                  <canvas id="yt-audio-visualizer" class="yt-audio-visualizer" width="300" height="24"></canvas>
+                </div>
+
                 <div class="yt-progress-area">
                   <input
                     type="range"
@@ -1069,6 +1080,25 @@
                       class="yt-lyrics-panel"
                       aria-hidden="false"
                     >
+                      <div class="yt-lyrics-toolbar">
+                        <div class="yt-lyrics-status-wrap">
+                          <span id="yt-lyrics-lrclib-badge" class="yt-lyrics-badge" style="display: none;">
+                            <i class="fas fa-sparkles"></i> LRCLIB
+                          </span>
+                        </div>
+                        <div class="yt-lyrics-actions">
+                          <button
+                            id="yt-lyrics-share-btn"
+                            class="yt-lyrics-action-btn"
+                            type="button"
+                            title="Sözləri Paylaş"
+                            aria-label="Sözləri Paylaş"
+                          >
+                            <i class="fas fa-arrow-up-from-bracket"></i>
+                            <span>Paylaş</span>
+                          </button>
+                        </div>
+                      </div>
                       <div class="yt-lyrics-head" style="display: none !important;">
                         <button
                           class="yt-mini-btn btn-close-lyrics"
@@ -1112,6 +1142,62 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Lyrics Share Modal -->
+      <div id="yt-lyrics-share-modal" class="yt-share-modal" style="display: none;">
+        <div class="yt-share-modal-backdrop" id="yt-share-modal-backdrop"></div>
+        <div class="yt-share-modal-dialog">
+          <div class="yt-share-modal-header">
+            <div class="yt-share-modal-title">
+              <i class="fas fa-quote-left"></i> Sözləri Paylaş
+            </div>
+            <button id="yt-share-modal-close" class="yt-share-close-btn" type="button" aria-label="Bağla">
+              <i class="fas fa-xmark"></i>
+            </button>
+          </div>
+          <div class="yt-share-modal-body">
+            <div class="yt-share-lines-selector">
+              <p class="yt-share-hint">Paylaşmaq istədiyiniz misraları seçin (maksimum 4):</p>
+              <div id="yt-share-lines-list" class="yt-share-lines-list"></div>
+            </div>
+            <div class="yt-share-preview-wrap">
+              <div id="yt-share-card-preview" class="yt-share-card">
+                <div class="yt-share-card-bg" id="yt-share-card-bg"></div>
+                <div class="yt-share-card-header">
+                  <img id="yt-share-card-cover" src="assets/music-cover.jpg" alt="Cover" crossorigin="anonymous" />
+                  <div class="yt-share-card-meta">
+                    <strong id="yt-share-card-title">Mahnı adı</strong>
+                    <small id="yt-share-card-artist">Artist</small>
+                  </div>
+                </div>
+                <div class="yt-share-card-lyrics" id="yt-share-card-lyrics">
+                  <p>Misra seçilməyib</p>
+                </div>
+                <div class="yt-share-card-footer">
+                  <span class="yt-share-card-brand"><i class="fas fa-music"></i> DUNYAMIZ</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="yt-share-modal-footer">
+            <button id="yt-share-download-btn" class="yt-share-btn yt-share-btn--primary" type="button">
+              <i class="fas fa-download"></i> Şəkli Yüklə
+            </button>
+            <button id="yt-share-copy-btn" class="yt-share-btn yt-share-btn--secondary" type="button">
+              <i class="fas fa-copy"></i> Mətni Kopyala
+            </button>
+            <button id="yt-share-native-btn" class="yt-share-btn yt-share-btn--accent" type="button">
+              <i class="fas fa-share-nodes"></i> Paylaş
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hotkey HUD Toast -->
+      <div id="yt-hotkey-hud" class="yt-hotkey-hud" style="display: none;">
+        <i id="yt-hotkey-hud-icon" class="fas fa-play"></i>
+        <span id="yt-hotkey-hud-text">Oynadılır</span>
       </div>
 
       <!-- 3D Adaptive Pill Navigation -->

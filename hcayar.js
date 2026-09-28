@@ -3681,7 +3681,20 @@ function renderSyncedLyrics(parsedLyrics = []) {
     return;
   }
 
-  lyricsContainer.innerHTML = parsedLyrics
+  let introHtml = "";
+  if (parsedLyrics.length > 0 && parsedLyrics[0].time >= 3.5) {
+    introHtml = `
+      <div class="yt-lyrics-line yt-lyrics-line--intro active" data-lyrics-index="-1" data-intro-target="${parsedLyrics[0].time}">
+        <div class="yt-lyrics-intro-dots">
+          <span class="yt-intro-dot dot-1" data-dot="1"></span>
+          <span class="yt-intro-dot dot-2" data-dot="2"></span>
+          <span class="yt-intro-dot dot-3" data-dot="3"></span>
+        </div>
+      </div>
+    `;
+  }
+
+  lyricsContainer.innerHTML = introHtml + parsedLyrics
     .map((line, index) => {
       if (line.words && line.words.length) {
         const wordsHtml = line.words
@@ -3710,6 +3723,76 @@ function renderSyncedLyrics(parsedLyrics = []) {
     })
     .join("");
 }
+
+async function fetchLrcLibLyrics(track) {
+  if (!track || !track.title) return;
+  const currentTrackRef = track;
+  const cleanTitle = (track.title || "").replace(/\([^)]*\)|\[[^\]]*\]/g, "").trim();
+  const cleanArtist = (track.artist || "").replace(/\([^)]*\)|\[[^\]]*\]/g, "").trim();
+  const cacheKey = `dunyamiz-lrc-cache:${cleanTitle}:${cleanArtist}`.toLowerCase();
+
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      if (window.musicLibrary[window.currentMusicIndex] === currentTrackRef) {
+        window.currentMusicLyricsType = "synced";
+        window.currentLyricsActiveIndex = -1;
+        window.currentLyricsActiveWordIndex = -1;
+        const parsed = parseSyncedLyrics(cached);
+        window.currentMusicLyricsParsed = parsed;
+        renderSyncedLyrics(parsed);
+        const badge = document.getElementById("yt-lyrics-lrclib-badge");
+        if (badge) badge.style.display = "inline-flex";
+        const dom = getMusicDom();
+        if (dom.audio) updateSyncedLyricsByTime(dom.audio.currentTime || 0);
+      }
+      return;
+    }
+  } catch (_) {}
+
+  try {
+    let synced = null;
+    if (cleanArtist) {
+      const getUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanTitle)}&artist_name=${encodeURIComponent(cleanArtist)}`;
+      const res = await fetch(getUrl, { headers: { "Lrclib-Client": "DunyamizPlayer/1.0" } });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.syncedLyrics) synced = data.syncedLyrics;
+      }
+    }
+    if (!synced) {
+      const query = cleanArtist ? `${cleanArtist} ${cleanTitle}` : cleanTitle;
+      const sUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(query)}`;
+      const sRes = await fetch(sUrl, { headers: { "Lrclib-Client": "DunyamizPlayer/1.0" } });
+      if (sRes.ok) {
+        const items = await sRes.json();
+        if (Array.isArray(items)) {
+          const hit = items.find((item) => item.syncedLyrics);
+          if (hit) synced = hit.syncedLyrics;
+        }
+      }
+    }
+
+    if (synced) {
+      try { localStorage.setItem(cacheKey, synced); } catch (_) {}
+      if (window.musicLibrary[window.currentMusicIndex] === currentTrackRef) {
+        window.currentMusicLyricsType = "synced";
+        window.currentLyricsActiveIndex = -1;
+        window.currentLyricsActiveWordIndex = -1;
+        const parsed = parseSyncedLyrics(synced);
+        window.currentMusicLyricsParsed = parsed;
+        renderSyncedLyrics(parsed);
+        const badge = document.getElementById("yt-lyrics-lrclib-badge");
+        if (badge) badge.style.display = "inline-flex";
+        const dom = getMusicDom();
+        if (dom.audio) updateSyncedLyricsByTime(dom.audio.currentTime || 0);
+      }
+    }
+  } catch (e) {
+    console.debug("LRCLIB fetch error:", e);
+  }
+}
+
 function renderCurrentTrackLyrics(track) {
   const lyrics = track?.lyrics || {};
   const type = lyrics.type || "none";
@@ -3720,6 +3803,9 @@ function renderCurrentTrackLyrics(track) {
   window.currentLyricsActiveWordIndex = -1;
   window.currentMusicLyricsParsed = [];
 
+  const lrclibBadge = document.getElementById("yt-lyrics-lrclib-badge");
+  if (lrclibBadge) lrclibBadge.style.display = "none";
+
   if (type === "plain") {
     renderPlainLyrics(text);
   } else if (type === "synced") {
@@ -3728,6 +3814,10 @@ function renderCurrentTrackLyrics(track) {
     renderSyncedLyrics(parsed);
   } else {
     renderPlainLyrics("");
+  }
+
+  if (type !== "synced" && track?.title) {
+    fetchLrcLibLyrics(track);
   }
 }
 
@@ -3780,6 +3870,27 @@ function updateSyncedLyricsByTime(currentTime) {
   if (!window.currentMusicLyricsParsed.length) return;
   const { lyricsContainer, audio } = getMusicDom();
   if (!lyricsContainer) return;
+
+  const firstLyricTime = window.currentMusicLyricsParsed[0]?.time;
+  const introEl = lyricsContainer.querySelector(".yt-lyrics-line--intro");
+  if (introEl && typeof firstLyricTime === "number" && firstLyricTime >= 3.5) {
+    if (currentTime < firstLyricTime) {
+      const remaining = firstLyricTime - currentTime;
+      introEl.style.display = "flex";
+      introEl.classList.add("active");
+      introEl.classList.remove("passed");
+      const d1 = introEl.querySelector('[data-dot="1"]');
+      const d2 = introEl.querySelector('[data-dot="2"]');
+      const d3 = introEl.querySelector('[data-dot="3"]');
+      if (d1) d1.classList.toggle("lit", remaining <= 3.0);
+      if (d2) d2.classList.toggle("lit", remaining <= 2.0);
+      if (d3) d3.classList.toggle("lit", remaining <= 1.0);
+    } else {
+      introEl.classList.remove("active");
+      introEl.classList.add("passed");
+      introEl.style.display = "none";
+    }
+  }
 
   let activeIndex = -1;
   for (let i = 0; i < window.currentMusicLyricsParsed.length; i++) {
@@ -3992,6 +4103,41 @@ function getDominantColorFromImage(imgSrc) {
         g = Math.floor(g / count);
         b = Math.floor(b / count);
 
+        // Sample 4 quadrants for Apple Music fluid ambient mesh
+        const qSize = 25;
+        const getQuadrantAvg = (sx, sy) => {
+          const d = ctx.getImageData(sx, sy, qSize, qSize).data;
+          let qr = 0, qg = 0, qb = 0, qcnt = 0;
+          for (let qi = 0; qi < d.length; qi += 4) {
+            qr += d[qi]; qg += d[qi + 1]; qb += d[qi + 2]; qcnt++;
+          }
+          return qcnt ? [Math.round(qr / qcnt), Math.round(qg / qcnt), Math.round(qb / qcnt)] : [120, 60, 200];
+        };
+
+        const c1 = getQuadrantAvg(0, 0);
+        const c2 = getQuadrantAvg(25, 0);
+        const c3 = getQuadrantAvg(0, 25);
+        const c4 = getQuadrantAvg(25, 25);
+
+        const root = document.documentElement;
+        const activePlayer = document.getElementById("yt-active-player");
+        const rgb1 = `rgb(${c1[0]}, ${c1[1]}, ${c1[2]})`;
+        const rgb2 = `rgb(${c2[0]}, ${c2[1]}, ${c2[2]})`;
+        const rgb3 = `rgb(${c3[0]}, ${c3[1]}, ${c3[2]})`;
+        const rgb4 = `rgb(${c4[0]}, ${c4[1]}, ${c4[2]})`;
+
+        root.style.setProperty("--player-color-1", rgb1);
+        root.style.setProperty("--player-color-2", rgb2);
+        root.style.setProperty("--player-color-3", rgb3);
+        root.style.setProperty("--player-color-4", rgb4);
+
+        if (activePlayer) {
+          activePlayer.style.setProperty("--player-color-1", rgb1);
+          activePlayer.style.setProperty("--player-color-2", rgb2);
+          activePlayer.style.setProperty("--player-color-3", rgb3);
+          activePlayer.style.setProperty("--player-color-4", rgb4);
+        }
+
         resolve(`rgb(${r}, ${g}, ${b})`);
       } catch (err) {
         console.error("Dominant color çıxarılmadı:", err);
@@ -4022,6 +4168,12 @@ async function updateMusicCover(track) {
     document.documentElement.style.setProperty("--blyrics-background-img", `url("${src}")`);
     document.documentElement.style.setProperty("--player-cover-url", `url("${src}")`);
     updateKawarpCover(src);
+
+    const shareCardBg = document.getElementById("yt-share-card-bg");
+    if (shareCardBg) shareCardBg.style.backgroundImage = `url("${src}")`;
+    const shareCardCover = document.getElementById("yt-share-card-cover");
+    if (shareCardCover) shareCardCover.src = src;
+
     getDominantColorFromImage(src).then((color) => {
       currentWaveColor = color;
     });
@@ -4950,9 +5102,463 @@ function initMusicPlayerEvents() {
   updateMediaSessionPlaybackState();
 }
 
+/* ==================== AUDIO VISUALIZER ENGINE ==================== */
+let ytVisualizerCanvas = null;
+let ytVisualizerCtx = null;
+let ytVisualizerAnimId = null;
+let ytVisualizerAnalyser = null;
+let ytVisualizerDataArray = null;
+
+function initAudioVisualizer() {
+  ytVisualizerCanvas = document.getElementById("yt-audio-visualizer");
+  if (!ytVisualizerCanvas) return;
+  ytVisualizerCtx = ytVisualizerCanvas.getContext("2d");
+  if (!ytVisualizerCtx) return;
+
+  const dom = getMusicDom();
+  if (!dom.audio) return;
+
+  const startVisualizer = () => {
+    if (ytWaveCtx && ytWaveCtx.state === "suspended") {
+      ytWaveCtx.resume().catch(() => {});
+    }
+    if (!ytVisualizerAnimId) {
+      drawAudioVisualizer();
+    }
+  };
+
+  const stopVisualizer = () => {
+    if (ytVisualizerAnimId) {
+      cancelAnimationFrame(ytVisualizerAnimId);
+      ytVisualizerAnimId = null;
+    }
+    if (ytVisualizerCtx && ytVisualizerCanvas) {
+      ytVisualizerCtx.clearRect(0, 0, ytVisualizerCanvas.width, ytVisualizerCanvas.height);
+    }
+  };
+
+  dom.audio.addEventListener("play", startVisualizer);
+  dom.audio.addEventListener("playing", startVisualizer);
+  dom.audio.addEventListener("pause", stopVisualizer);
+  dom.audio.addEventListener("ended", stopVisualizer);
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopVisualizer();
+    else if (!dom.audio.paused) startVisualizer();
+  });
+
+  if (!dom.audio.paused) {
+    startVisualizer();
+  }
+}
+
+function drawAudioVisualizer() {
+  const dom = getMusicDom();
+  if (!ytVisualizerCanvas || !ytVisualizerCtx || !dom.audio || dom.audio.paused) {
+    ytVisualizerAnimId = null;
+    return;
+  }
+
+  ytVisualizerAnimId = requestAnimationFrame(drawAudioVisualizer);
+
+  const width = ytVisualizerCanvas.width;
+  const height = ytVisualizerCanvas.height;
+  ytVisualizerCtx.clearRect(0, 0, width, height);
+
+  const numBars = 28;
+  const gap = 3;
+  const totalGaps = (numBars - 1) * gap;
+  const barWidth = Math.max(3, Math.floor((width - totalGaps) / numBars));
+  const now = performance.now() * 0.003;
+
+  let hasRealData = false;
+  if (!ytVisualizerAnalyser && ytWaveCtx) {
+    try {
+      const nodes = getOrCreateSharedAudioNodes(dom.audio);
+      if (nodes && nodes.analyser) {
+        ytVisualizerAnalyser = nodes.analyser;
+        ytVisualizerDataArray = new Uint8Array(ytVisualizerAnalyser.frequencyBinCount);
+      }
+    } catch (_) {}
+  }
+
+  if (ytVisualizerAnalyser && ytVisualizerDataArray) {
+    ytVisualizerAnalyser.getByteFrequencyData(ytVisualizerDataArray);
+    hasRealData = ytVisualizerDataArray.some((v) => v > 0);
+  }
+
+  const primaryColor = getComputedStyle(document.documentElement).getPropertyValue("--player-color-1").trim() || "#7b2cbf";
+
+  for (let i = 0; i < numBars; i++) {
+    let norm = 0;
+    if (hasRealData && ytVisualizerDataArray) {
+      const binIdx = Math.floor((i / numBars) * (ytVisualizerDataArray.length * 0.7));
+      norm = ytVisualizerDataArray[binIdx] / 255;
+    } else {
+      const wave1 = Math.sin(now * 1.8 + i * 0.32);
+      const wave2 = Math.cos(now * 2.4 - i * 0.45);
+      norm = Math.max(0.12, wave1 * 0.35 + wave2 * 0.28 + 0.35);
+    }
+
+    const barHeight = Math.max(3, Math.min(height, norm * height));
+    const x = i * (barWidth + gap);
+    const y = height - barHeight;
+
+    const grad = ytVisualizerCtx.createLinearGradient(0, y, 0, height);
+    grad.addColorStop(0, "#ffffff");
+    grad.addColorStop(0.45, primaryColor);
+    grad.addColorStop(1, "rgba(255, 255, 255, 0.25)");
+
+    ytVisualizerCtx.fillStyle = grad;
+    ytVisualizerCtx.shadowBlur = 6;
+    ytVisualizerCtx.shadowColor = "rgba(255, 255, 255, 0.4)";
+
+    ytVisualizerCtx.beginPath();
+    const r = Math.min(barWidth / 2, barHeight / 2);
+    if (typeof ytVisualizerCtx.roundRect === "function") {
+      ytVisualizerCtx.roundRect(x, y, barWidth, barHeight, [r, r, 1, 1]);
+    } else {
+      ytVisualizerCtx.rect(x, y, barWidth, barHeight);
+    }
+    ytVisualizerCtx.fill();
+  }
+}
+
+/* ==================== HOTKEYS & HUD ==================== */
+let hotkeyHudTimeout = null;
+function showHotkeyHud(iconClass, text) {
+  const hud = document.getElementById("yt-hotkey-hud");
+  const icon = document.getElementById("yt-hotkey-hud-icon");
+  const textEl = document.getElementById("yt-hotkey-hud-text");
+  if (!hud || !icon || !textEl) return;
+
+  icon.className = iconClass;
+  textEl.textContent = text;
+  hud.style.display = "flex";
+  hud.classList.add("is-visible");
+
+  if (hotkeyHudTimeout) clearTimeout(hotkeyHudTimeout);
+  hotkeyHudTimeout = setTimeout(() => {
+    hud.classList.remove("is-visible");
+    setTimeout(() => {
+      hud.style.display = "none";
+    }, 200);
+  }, 1200);
+}
+
+function initMusicHotkeys() {
+  window.addEventListener("keydown", (e) => {
+    const activeEl = document.activeElement;
+    if (
+      activeEl &&
+      (activeEl.tagName === "INPUT" ||
+        activeEl.tagName === "TEXTAREA" ||
+        activeEl.tagName === "SELECT" ||
+        activeEl.isContentEditable ||
+        activeEl.closest("input, textarea, [contenteditable='true'], .search-container, #admin-modal, #login-modal, #yt-lyrics-share-modal"))
+    ) {
+      return;
+    }
+
+    const dom = getMusicDom();
+    if (!dom.audio) return;
+
+    switch (e.code) {
+      case "Space":
+        e.preventDefault();
+        if (dom.audio.paused) {
+          dom.audio.play().catch(() => {});
+          showHotkeyHud("fas fa-play", "Oynadılır");
+        } else {
+          dom.audio.pause();
+          showHotkeyHud("fas fa-pause", "Pauza");
+        }
+        break;
+
+      case "ArrowRight":
+        e.preventDefault();
+        dom.audio.currentTime = Math.min(dom.audio.duration || 0, (dom.audio.currentTime || 0) + 5);
+        showHotkeyHud("fas fa-forward", "+5s");
+        break;
+
+      case "ArrowLeft":
+        e.preventDefault();
+        dom.audio.currentTime = Math.max(0, (dom.audio.currentTime || 0) - 5);
+        showHotkeyHud("fas fa-backward", "-5s");
+        break;
+
+      case "ArrowUp":
+        e.preventDefault();
+        const curVolUp = dom.audio.volume || 0.85;
+        const newVolUp = Math.min(1, Math.round((curVolUp + 0.05) * 100) / 100);
+        updateVolumeUi(newVolUp);
+        showHotkeyHud("fas fa-volume-high", `${Math.round(newVolUp * 100)}%`);
+        break;
+
+      case "ArrowDown":
+        e.preventDefault();
+        const curVolDown = dom.audio.volume || 0.85;
+        const newVolDown = Math.max(0, Math.round((curVolDown - 0.05) * 100) / 100);
+        updateVolumeUi(newVolDown);
+        showHotkeyHud("fas fa-volume-low", `${Math.round(newVolDown * 100)}%`);
+        break;
+
+      case "KeyM":
+        e.preventDefault();
+        dom.audio.muted = !dom.audio.muted;
+        showHotkeyHud(dom.audio.muted ? "fas fa-volume-xmark" : "fas fa-volume-high", dom.audio.muted ? "Səssiz" : "Səsli");
+        break;
+
+      case "KeyL":
+        e.preventDefault();
+        if (!dom.activePlayer?.classList.contains("expanded")) {
+          window.togglePlayerMode?.(true);
+        }
+        setPlayerTab("lyrics");
+        updateLyricsToggleState();
+        showHotkeyHud("fas fa-microphone-lines", "Sözlər");
+        break;
+
+      case "KeyN":
+        e.preventDefault();
+        playNextMusic();
+        showHotkeyHud("fas fa-forward-step", "Növbəti");
+        break;
+
+      case "KeyP":
+        e.preventDefault();
+        playPrevMusic();
+        showHotkeyHud("fas fa-backward-step", "Əvvəlki");
+        break;
+
+      case "KeyF":
+        e.preventDefault();
+        const isExp = dom.activePlayer?.classList.contains("expanded");
+        window.togglePlayerMode?.(!isExp);
+        showHotkeyHud(isExp ? "fas fa-compress" : "fas fa-expand", isExp ? "Kiçildildi" : "Genişləndirildi");
+        break;
+    }
+  });
+}
+
+/* ==================== LYRICS SHARE MODAL ==================== */
+function initLyricsShareModal() {
+  const shareBtn = document.getElementById("yt-lyrics-share-btn");
+  const modal = document.getElementById("yt-lyrics-share-modal");
+  const closeBtn = document.getElementById("yt-share-modal-close");
+  const backdrop = document.getElementById("yt-share-modal-backdrop");
+  const linesList = document.getElementById("yt-share-lines-list");
+  const cardTitle = document.getElementById("yt-share-card-title");
+  const cardArtist = document.getElementById("yt-share-card-artist");
+  const cardCover = document.getElementById("yt-share-card-cover");
+  const cardBg = document.getElementById("yt-share-card-bg");
+  const cardLyrics = document.getElementById("yt-share-card-lyrics");
+  const downloadBtn = document.getElementById("yt-share-download-btn");
+  const copyBtn = document.getElementById("yt-share-copy-btn");
+  const nativeBtn = document.getElementById("yt-share-native-btn");
+
+  if (!shareBtn || !modal) return;
+
+  let selectedLines = [];
+
+  const updateShareCardPreview = () => {
+    if (!cardLyrics) return;
+    if (!selectedLines.length) {
+      cardLyrics.innerHTML = "<p>Misra seçilməyib</p>";
+      return;
+    }
+    cardLyrics.innerHTML = selectedLines.map((l) => `<p>${escapeHtmlMusic(l)}</p>`).join("");
+  };
+
+  const openShareModal = () => {
+    const track = window.musicLibrary[window.currentMusicIndex] || {};
+    const parsed = window.currentMusicLyricsParsed || [];
+    let lines = [];
+    if (parsed.length) {
+      lines = parsed.map((p) => p.text).filter((t) => t && t !== "…" && t !== "...");
+    } else if (track.lyrics?.text) {
+      lines = track.lyrics.text.split(/\r?\n/).filter((t) => t.trim());
+    }
+
+    if (!lines.length) {
+      alert("Bu mahnı üçün söz tapılmadı.");
+      return;
+    }
+
+    if (cardTitle) cardTitle.textContent = track.title || "Mahnı";
+    if (cardArtist) cardArtist.textContent = track.artist || "Artist";
+    const coverSrc = track.coverUrl || DEFAULT_MUSIC_COVER;
+    if (cardCover) cardCover.src = coverSrc;
+    if (cardBg) cardBg.style.backgroundImage = `url("${coverSrc}")`;
+
+    linesList.innerHTML = lines.map((line, idx) => `
+      <div class="yt-share-line-item" data-line-index="${idx}">
+        ${escapeHtmlMusic(line)}
+      </div>
+    `).join("");
+
+    selectedLines = [];
+    const activeIdx = Math.max(0, window.currentLyricsActiveIndex);
+    const initialLine = lines[activeIdx] || lines[0];
+    if (initialLine) {
+      selectedLines = [initialLine];
+      const targetEl = linesList.querySelector(`[data-line-index="${activeIdx}"]`) || linesList.children[0];
+      if (targetEl) targetEl.classList.add("selected");
+    }
+
+    updateShareCardPreview();
+    modal.style.display = "flex";
+  };
+
+  const closeShareModal = () => {
+    modal.style.display = "none";
+  };
+
+  shareBtn.addEventListener("click", openShareModal);
+  closeBtn?.addEventListener("click", closeShareModal);
+  backdrop?.addEventListener("click", closeShareModal);
+
+  linesList?.addEventListener("click", (e) => {
+    const item = e.target.closest(".yt-share-line-item");
+    if (!item) return;
+    const text = item.textContent.trim();
+    if (item.classList.contains("selected")) {
+      item.classList.remove("selected");
+      selectedLines = selectedLines.filter((l) => l !== text);
+    } else {
+      if (selectedLines.length >= 4) {
+        showHotkeyHud("fas fa-info-circle", "Maks. 4 misra");
+        return;
+      }
+      item.classList.add("selected");
+      selectedLines.push(text);
+    }
+    updateShareCardPreview();
+  });
+
+  copyBtn?.addEventListener("click", () => {
+    const track = window.musicLibrary[window.currentMusicIndex] || {};
+    const textToCopy = `"${selectedLines.join("\n")}"\n\n🎵 ${track.title} - ${track.artist}\nDUNYAMIZ`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showHotkeyHud("fas fa-check", "Kopyalandı!");
+      }).catch(() => {
+        showHotkeyHud("fas fa-check", "Kopyalandı!");
+      });
+    } else {
+      showHotkeyHud("fas fa-check", "Kopyalandı!");
+    }
+  });
+
+  downloadBtn?.addEventListener("click", () => {
+    const track = window.musicLibrary[window.currentMusicIndex] || {};
+    const c = document.createElement("canvas");
+    c.width = 800;
+    c.height = 1000;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+
+    const bgGrad = ctx.createLinearGradient(0, 0, 800, 1000);
+    bgGrad.addColorStop(0, "#16161f");
+    bgGrad.addColorStop(0.5, "#0d0d12");
+    bgGrad.addColorStop(1, "#070709");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 800, 1000);
+
+    const rad = ctx.createRadialGradient(200, 200, 20, 200, 200, 450);
+    rad.addColorStop(0, "rgba(123, 44, 191, 0.45)");
+    rad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = rad;
+    ctx.fillRect(0, 0, 800, 1000);
+
+    const rad2 = ctx.createRadialGradient(650, 750, 20, 650, 750, 450);
+    rad2.addColorStop(0, "rgba(247, 37, 133, 0.35)");
+    rad2.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = rad2;
+    ctx.fillRect(0, 0, 800, 1000);
+
+    const coverImg = new Image();
+    coverImg.crossOrigin = "anonymous";
+    const src = track.coverUrl || DEFAULT_MUSIC_COVER;
+    const absoluteImgSrc = /^https?:\/\//i.test(src) ? src : new URL(src, window.location.origin).href;
+    coverImg.src = `/.netlify/functions/cover-proxy?src=${encodeURIComponent(absoluteImgSrc)}`;
+
+    const renderCardContent = () => {
+      try {
+        ctx.save();
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(80, 80, 96, 96, 20);
+        } else {
+          ctx.rect(80, 80, 96, 96);
+        }
+        ctx.clip();
+        ctx.drawImage(coverImg, 80, 80, 96, 96);
+        ctx.restore();
+      } catch (_) {}
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 34px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      ctx.fillText((track.title || "Mahnı").substring(0, 28), 200, 125);
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+      ctx.font = "24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      ctx.fillText((track.artist || "Artist").substring(0, 32), 200, 162);
+
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(80, 220);
+      ctx.lineTo(720, 220);
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 38px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      let startY = 360;
+      const lineHeight = 75;
+
+      const linesToDraw = selectedLines.length ? selectedLines : [track.title || ""];
+      linesToDraw.forEach((l) => {
+        ctx.fillText(`“${l}”`, 80, startY);
+        startY += lineHeight;
+      });
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+      ctx.font = "bold 22px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      ctx.fillText("DUNYAMIZ PLAYER", 80, 930);
+
+      const link = document.createElement("a");
+      link.download = `${(track.title || "mahni-sozleri").replace(/\s+/g, "-")}-lyrics.png`;
+      link.href = c.toDataURL("image/png");
+      link.click();
+      showHotkeyHud("fas fa-download", "Şəkil yükləndi!");
+    };
+
+    coverImg.onload = renderCardContent;
+    coverImg.onerror = renderCardContent;
+  });
+
+  nativeBtn?.addEventListener("click", () => {
+    const track = window.musicLibrary[window.currentMusicIndex] || {};
+    const textToShare = `“${selectedLines.join("\n")}”\n\n🎵 ${track.title} - ${track.artist}`;
+    if (navigator.share) {
+      navigator.share({
+        title: `${track.title} - ${track.artist}`,
+        text: textToShare,
+        url: window.location.href,
+      }).catch(() => {});
+    } else {
+      copyBtn?.click();
+    }
+  });
+}
+
 async function initMusicPage() {
   try {
     initMusicPlayerEvents();
+    initAudioVisualizer();
+    initLyricsShareModal();
+    initMusicHotkeys();
     window.musicLibrary = await fetchMusicJsonList();
     renderMusicPlaylist();
     updatePlayerModeButtons();
