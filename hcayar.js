@@ -3524,7 +3524,7 @@ function renderUpNextList() {
       return `
             <button class="yt-up-next-item" type="button" data-up-next-index="${index}">
                 <span class="yt-up-next-order">${orderIndex + 1}</span>
-                <img class="yt-up-next-thumb" src="${thumbSrc}" alt="${escapeHtmlMusic(track?.title || "Mahnı")}">
+                <img class="yt-up-next-thumb" src="${thumbSrc}" alt="${escapeHtmlMusic(track?.title || "Mahnı")}" onerror="this.onerror=null;this.src='${DEFAULT_MUSIC_COVER}';" loading="lazy">
                 <span class="yt-up-next-text">
                     <strong>${escapeHtmlMusic(track?.title || "Adsız mahnı")}</strong>
                     <small>${escapeHtmlMusic(track?.artist || "Naməlum artist")}</small>
@@ -3564,7 +3564,7 @@ function renderMusicPlaylist() {
 
       return `
             <div class="yt-track-item ${isActive ? "active" : ""}" data-music-index="${index}">
-                <img class="yt-track-thumb" src="${thumbSrc}" alt="${escapeHtmlMusic(track.title)}">
+                <img class="yt-track-thumb" src="${thumbSrc}" alt="${escapeHtmlMusic(track.title)}" onerror="this.onerror=null;this.src='${DEFAULT_MUSIC_COVER}';" loading="lazy">
                 <div class="yt-track-text">
                     <div class="yt-track-title">${escapeHtmlMusic(track.title)}</div>
                     <div class="yt-track-artist">${escapeHtmlMusic(track.artist)}</div>
@@ -3940,12 +3940,15 @@ function updateSyncedLyricsByTime(currentTime) {
     }
   }
 
-  const lines = lyricsContainer.querySelectorAll(".yt-lyrics-line");
+  const lines = lyricsContainer.querySelectorAll(
+    ".yt-lyrics-line:not(.yt-lyrics-line--intro)",
+  );
 
   if (hasLineChanged) {
-    lines.forEach((lineEl, index) => {
-      const isActive = index === activeIndex;
-      const isPassed = index < activeIndex;
+    lines.forEach((lineEl) => {
+      const lineIdx = Number(lineEl.dataset.lyricsIndex);
+      const isActive = lineIdx === activeIndex;
+      const isPassed = lineIdx < activeIndex;
 
       lineEl.classList.toggle("active", isActive);
       lineEl.classList.toggle("passed", isPassed);
@@ -4153,38 +4156,51 @@ async function updateMusicCover(track) {
   const { coverFull, coverMini, playerBg } = getMusicDom();
 
   const setCover = (src) => {
-    if (coverFull) coverFull.src = src;
-    if (coverMini) coverMini.src = src;
+    const safeSrc = src || DEFAULT_MUSIC_COVER;
+
+    const attachImgFallback = (imgEl) => {
+      if (!imgEl) return;
+      imgEl.onerror = () => {
+        imgEl.onerror = null;
+        imgEl.src = DEFAULT_MUSIC_COVER;
+      };
+      imgEl.src = safeSrc;
+    };
+
+    attachImgFallback(coverFull);
+    attachImgFallback(coverMini);
+
     if (playerBg) {
-      playerBg.style.backgroundImage = `url("${src}")`;
-      playerBg.style.setProperty("--blyrics-background-img", `url("${src}")`);
-      playerBg.style.setProperty("--player-cover-url", `url("${src}")`);
+      playerBg.style.backgroundImage = `url("${safeSrc}")`;
+      playerBg.style.setProperty("--blyrics-background-img", `url("${safeSrc}")`);
+      playerBg.style.setProperty("--player-cover-url", `url("${safeSrc}")`);
     }
     const activePlayer = document.getElementById("yt-active-player");
     if (activePlayer) {
-      activePlayer.style.setProperty("--blyrics-background-img", `url("${src}")`);
-      activePlayer.style.setProperty("--player-cover-url", `url("${src}")`);
+      activePlayer.style.setProperty("--blyrics-background-img", `url("${safeSrc}")`);
+      activePlayer.style.setProperty("--player-cover-url", `url("${safeSrc}")`);
     }
-    document.documentElement.style.setProperty("--blyrics-background-img", `url("${src}")`);
-    document.documentElement.style.setProperty("--player-cover-url", `url("${src}")`);
-    updateKawarpCover(src);
+    document.documentElement.style.setProperty("--blyrics-background-img", `url("${safeSrc}")`);
+    document.documentElement.style.setProperty("--player-cover-url", `url("${safeSrc}")`);
+    updateKawarpCover(safeSrc);
 
     const shareCardBg = document.getElementById("yt-share-card-bg");
-    if (shareCardBg) shareCardBg.style.backgroundImage = `url("${src}")`;
+    if (shareCardBg) shareCardBg.style.backgroundImage = `url("${safeSrc}")`;
     const shareCardCover = document.getElementById("yt-share-card-cover");
-    if (shareCardCover) shareCardCover.src = src;
+    attachImgFallback(shareCardCover);
 
-    getDominantColorFromImage(src).then((color) => {
+    getDominantColorFromImage(safeSrc).then((color) => {
       currentWaveColor = color;
     });
     const playlistThumb = document.querySelector(
       `.yt-track-item[data-music-index="${window.currentMusicIndex}"] .yt-track-thumb`,
     );
-    if (playlistThumb) playlistThumb.src = src;
+    attachImgFallback(playlistThumb);
   };
 
-  if (track.coverUrl) {
-    setCover(track.coverUrl);
+  const directCover = track?.coverUrl || track?.cover;
+  if (directCover) {
+    setCover(resolveMusicAssetUrl(directCover, DEFAULT_MUSIC_COVER));
     return;
   }
 
@@ -4485,18 +4501,26 @@ function updateMediaSessionMetadata(track) {
 
   const artworkSrc = track.coverUrl || track.cover || DEFAULT_MUSIC_COVER;
   const resolvedArtwork = resolveMusicAssetUrl(artworkSrc, DEFAULT_MUSIC_COVER);
+  let absoluteArtwork = resolvedArtwork;
+  try {
+    absoluteArtwork = new URL(resolvedArtwork, window.location.href).href;
+  } catch (_) {}
+
+  const isPng = /\.png($|\?)/i.test(absoluteArtwork);
+  const isWebp = /\.webp($|\?)/i.test(absoluteArtwork);
+  const mimeType = isPng ? "image/png" : isWebp ? "image/webp" : "image/jpeg";
 
   navigator.mediaSession.metadata = new MediaMetadata({
     title: track.title || "Adsız mahnı",
     artist: track.artist || "Naməlum artist",
     album: "Hüseyn və Cəmalənin Dünyası",
     artwork: [
-      { src: resolvedArtwork, sizes: "96x96", type: "image/png" },
-      { src: resolvedArtwork, sizes: "128x128", type: "image/png" },
-      { src: resolvedArtwork, sizes: "192x192", type: "image/png" },
-      { src: resolvedArtwork, sizes: "256x256", type: "image/png" },
-      { src: resolvedArtwork, sizes: "384x384", type: "image/png" },
-      { src: resolvedArtwork, sizes: "512x512", type: "image/png" },
+      { src: absoluteArtwork, sizes: "96x96", type: mimeType },
+      { src: absoluteArtwork, sizes: "128x128", type: mimeType },
+      { src: absoluteArtwork, sizes: "192x192", type: mimeType },
+      { src: absoluteArtwork, sizes: "256x256", type: mimeType },
+      { src: absoluteArtwork, sizes: "384x384", type: mimeType },
+      { src: absoluteArtwork, sizes: "512x512", type: mimeType },
     ],
   });
 }
@@ -5102,12 +5126,14 @@ function initMusicPlayerEvents() {
   updateMediaSessionPlaybackState();
 }
 
-/* ==================== AUDIO VISUALIZER ENGINE ==================== */
+/* ==================== AUDIO VISUALIZER ENGINE (APPLE MUSIC STYLE) ==================== */
 let ytVisualizerCanvas = null;
 let ytVisualizerCtx = null;
 let ytVisualizerAnimId = null;
 let ytVisualizerAnalyser = null;
 let ytVisualizerDataArray = null;
+const YT_VISUALIZER_BARS = 22;
+let ytSmoothedBars = new Float32Array(YT_VISUALIZER_BARS);
 
 function initAudioVisualizer() {
   ytVisualizerCanvas = document.getElementById("yt-audio-visualizer");
@@ -5128,12 +5154,8 @@ function initAudioVisualizer() {
   };
 
   const stopVisualizer = () => {
-    if (ytVisualizerAnimId) {
-      cancelAnimationFrame(ytVisualizerAnimId);
-      ytVisualizerAnimId = null;
-    }
-    if (ytVisualizerCtx && ytVisualizerCanvas) {
-      ytVisualizerCtx.clearRect(0, 0, ytVisualizerCanvas.width, ytVisualizerCanvas.height);
+    if (!ytVisualizerAnimId) {
+      drawAudioVisualizer();
     }
   };
 
@@ -5143,33 +5165,72 @@ function initAudioVisualizer() {
   dom.audio.addEventListener("ended", stopVisualizer);
 
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) stopVisualizer();
-    else if (!dom.audio.paused) startVisualizer();
+    if (document.hidden) {
+      if (ytVisualizerAnimId) {
+        cancelAnimationFrame(ytVisualizerAnimId);
+        ytVisualizerAnimId = null;
+      }
+    } else if (!dom.audio.paused) {
+      startVisualizer();
+    }
   });
 
-  if (!dom.audio.paused) {
-    startVisualizer();
+  drawIdleVisualizer();
+}
+
+function drawIdleVisualizer() {
+  if (!ytVisualizerCanvas || !ytVisualizerCtx) return;
+  const width = ytVisualizerCanvas.width;
+  const height = ytVisualizerCanvas.height;
+  ytVisualizerCtx.clearRect(0, 0, width, height);
+
+  const numBars = YT_VISUALIZER_BARS;
+  const gap = 3.5;
+  const totalGaps = (numBars - 1) * gap;
+  const barWidth = Math.max(3, (width - totalGaps) / numBars);
+
+  const rootStyle = getComputedStyle(document.documentElement);
+  const color1 = rootStyle.getPropertyValue("--player-color-1").trim() || "#ff2d55";
+  const color3 = rootStyle.getPropertyValue("--player-color-3").trim() || "#af52de";
+
+  const grad = ytVisualizerCtx.createLinearGradient(0, 0, width, 0);
+  grad.addColorStop(0, color1);
+  grad.addColorStop(1, color3);
+  ytVisualizerCtx.fillStyle = grad;
+
+  for (let i = 0; i < numBars; i++) {
+    const barHeight = 3.5;
+    const x = i * (barWidth + gap);
+    const y = (height - barHeight) / 2;
+    const r = barHeight / 2;
+
+    ytVisualizerCtx.beginPath();
+    if (typeof ytVisualizerCtx.roundRect === "function") {
+      ytVisualizerCtx.roundRect(x, y, barWidth, barHeight, [r, r, r, r]);
+    } else {
+      ytVisualizerCtx.rect(x, y, barWidth, barHeight);
+    }
+    ytVisualizerCtx.fill();
   }
 }
 
 function drawAudioVisualizer() {
   const dom = getMusicDom();
-  if (!ytVisualizerCanvas || !ytVisualizerCtx || !dom.audio || dom.audio.paused) {
+  if (!ytVisualizerCanvas || !ytVisualizerCtx || !dom.audio) {
     ytVisualizerAnimId = null;
     return;
   }
 
-  ytVisualizerAnimId = requestAnimationFrame(drawAudioVisualizer);
-
+  const isPlaying = !dom.audio.paused && !dom.audio.ended;
   const width = ytVisualizerCanvas.width;
   const height = ytVisualizerCanvas.height;
   ytVisualizerCtx.clearRect(0, 0, width, height);
 
-  const numBars = 28;
-  const gap = 3;
+  const numBars = YT_VISUALIZER_BARS;
+  const gap = 3.5;
   const totalGaps = (numBars - 1) * gap;
-  const barWidth = Math.max(3, Math.floor((width - totalGaps) / numBars));
-  const now = performance.now() * 0.003;
+  const barWidth = Math.max(3, (width - totalGaps) / numBars);
+  const curTime = dom.audio.currentTime || 0;
 
   let hasRealData = false;
   if (!ytVisualizerAnalyser && ytWaveCtx) {
@@ -5182,45 +5243,120 @@ function drawAudioVisualizer() {
     } catch (_) {}
   }
 
-  if (ytVisualizerAnalyser && ytVisualizerDataArray) {
+  if (ytVisualizerAnalyser && ytVisualizerDataArray && isPlaying) {
     ytVisualizerAnalyser.getByteFrequencyData(ytVisualizerDataArray);
     hasRealData = ytVisualizerDataArray.some((v) => v > 0);
   }
 
-  const primaryColor = getComputedStyle(document.documentElement).getPropertyValue("--player-color-1").trim() || "#7b2cbf";
+  // Apple Music color palette gradient matching the track
+  const rootStyle = getComputedStyle(document.documentElement);
+  const color1 = rootStyle.getPropertyValue("--player-color-1").trim() || "#ff2d55";
+  const color2 = rootStyle.getPropertyValue("--player-color-2").trim() || "#ff375f";
+  const color3 = rootStyle.getPropertyValue("--player-color-3").trim() || "#af52de";
+  const color4 = rootStyle.getPropertyValue("--player-color-4").trim() || "#5856d6";
+
+  const grad = ytVisualizerCtx.createLinearGradient(0, 0, width, 0);
+  grad.addColorStop(0, color1);
+  grad.addColorStop(0.35, color2);
+  grad.addColorStop(0.7, color3);
+  grad.addColorStop(1, color4);
+
+  ytVisualizerCtx.fillStyle = grad;
+  ytVisualizerCtx.shadowBlur = 8;
+  ytVisualizerCtx.shadowColor = color1;
+
+  // Rhythm & Beat Generator when analyser is zeroed (CORS) or to enhance rhythm
+  // Beat tempo ~124 BPM (quarter note = 0.484s)
+  const beatInterval = 0.484;
+  const beatPhase = (curTime % beatInterval) / beatInterval;
+  // Kick drum hit on beat (punchy attack, exponential decay)
+  const kickEnergy = Math.pow(Math.max(0, 1 - beatPhase * 2.2), 3);
+  // Snare hit on backbeat (offset by half beat)
+  const snarePhase = ((curTime + beatInterval * 0.5) % beatInterval) / beatInterval;
+  const snareEnergy = Math.pow(Math.max(0, 1 - snarePhase * 2.8), 2.5);
+  // Hi-hat groove (8th/16th notes)
+  const hatPhase = (curTime % (beatInterval * 0.25)) / (beatInterval * 0.25);
+  const hatEnergy = Math.pow(Math.max(0, 1 - hatPhase * 3.5), 2) * 0.45;
+
+  let allSettled = true;
 
   for (let i = 0; i < numBars; i++) {
-    let norm = 0;
-    if (hasRealData && ytVisualizerDataArray) {
-      const binIdx = Math.floor((i / numBars) * (ytVisualizerDataArray.length * 0.7));
-      norm = ytVisualizerDataArray[binIdx] / 255;
+    let targetNorm = 0;
+
+    if (isPlaying) {
+      if (hasRealData && ytVisualizerDataArray) {
+        // Map frequency bins: bass (bins 1-6), mids (7-24), highs (25-50)
+        let binIdx = 0;
+        if (i < 6) {
+          binIdx = Math.floor(1 + (i / 6) * 6);
+        } else if (i < 15) {
+          binIdx = Math.floor(7 + ((i - 6) / 9) * 18);
+        } else {
+          binIdx = Math.floor(25 + ((i - 15) / 7) * 25);
+        }
+        targetNorm = (ytVisualizerDataArray[binIdx] || 0) / 255;
+        if (i >= 6) targetNorm = Math.min(1, targetNorm * 1.35);
+      } else {
+        // Authentic Apple Music rhythmic soundwave simulation
+        const posRatio = i / (numBars - 1);
+        const waveA = Math.sin(curTime * 7.5 + i * 0.55);
+        const waveB = Math.cos(curTime * 11.2 - i * 0.75);
+
+        // Low bars: react heavily to Kick
+        if (i < 7) {
+          const kickImpact = (1 - (i / 7) * 0.4) * kickEnergy;
+          targetNorm = kickImpact * 0.72 + (waveA * 0.15 + 0.18);
+        }
+        // Mid bars: react to Snare + melody waves
+        else if (i < 15) {
+          const snareImpact = snareEnergy * 0.65;
+          const melody = Math.sin(curTime * 4.2 + (i - 7) * 0.6) * 0.25 + 0.25;
+          targetNorm = snareImpact + melody + waveB * 0.12;
+        }
+        // High bars: react to Hi-hat + high frequencies shimmer
+        else {
+          const hatImpact = hatEnergy * 0.7;
+          const shimmer = Math.sin(curTime * 16.0 + i * 0.9) * 0.2 + 0.22;
+          targetNorm = hatImpact + shimmer;
+        }
+
+        // Add a gentle musical swell across the curve
+        const centerBell = Math.sin(posRatio * Math.PI) * 0.2;
+        targetNorm = Math.max(0.12, Math.min(0.96, targetNorm + centerBell));
+      }
     } else {
-      const wave1 = Math.sin(now * 1.8 + i * 0.32);
-      const wave2 = Math.cos(now * 2.4 - i * 0.45);
-      norm = Math.max(0.12, wave1 * 0.35 + wave2 * 0.28 + 0.35);
+      // Settling down to idle minimum (3.5px height)
+      targetNorm = 0.08;
     }
 
-    const barHeight = Math.max(3, Math.min(height, norm * height));
+    // Spring physics & smoothing
+    const easeFactor = isPlaying ? (targetNorm > ytSmoothedBars[i] ? 0.38 : 0.22) : 0.15;
+    ytSmoothedBars[i] += (targetNorm - ytSmoothedBars[i]) * easeFactor;
+
+    if (Math.abs(ytSmoothedBars[i] - targetNorm) > 0.01) {
+      allSettled = false;
+    }
+
+    const minBarH = 3.5;
+    const barHeight = Math.max(minBarH, Math.min(height, ytSmoothedBars[i] * height));
     const x = i * (barWidth + gap);
-    const y = height - barHeight;
-
-    const grad = ytVisualizerCtx.createLinearGradient(0, y, 0, height);
-    grad.addColorStop(0, "#ffffff");
-    grad.addColorStop(0.45, primaryColor);
-    grad.addColorStop(1, "rgba(255, 255, 255, 0.25)");
-
-    ytVisualizerCtx.fillStyle = grad;
-    ytVisualizerCtx.shadowBlur = 6;
-    ytVisualizerCtx.shadowColor = "rgba(255, 255, 255, 0.4)";
+    // Apple Music centered capsule soundwave
+    const y = (height - barHeight) / 2;
+    const r = Math.min(barWidth / 2, barHeight / 2);
 
     ytVisualizerCtx.beginPath();
-    const r = Math.min(barWidth / 2, barHeight / 2);
     if (typeof ytVisualizerCtx.roundRect === "function") {
-      ytVisualizerCtx.roundRect(x, y, barWidth, barHeight, [r, r, 1, 1]);
+      ytVisualizerCtx.roundRect(x, y, barWidth, barHeight, [r, r, r, r]);
     } else {
       ytVisualizerCtx.rect(x, y, barWidth, barHeight);
     }
     ytVisualizerCtx.fill();
+  }
+
+  if (isPlaying || !allSettled) {
+    ytVisualizerAnimId = requestAnimationFrame(drawAudioVisualizer);
+  } else {
+    ytVisualizerAnimId = null;
   }
 }
 

@@ -3271,6 +3271,8 @@ header {
   border-radius: 14px;
   object-fit: cover;
   background: rgba(255, 255, 255, 0.08);
+  color: transparent;
+  font-size: 0;
 }
 
 .yt-track-text {
@@ -3805,6 +3807,9 @@ header {
   object-fit: cover;
   border-radius: 14px;
   display: block;
+  color: transparent;
+  font-size: 0;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .yt-up-next-text {
