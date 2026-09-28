@@ -4341,6 +4341,10 @@ function getDominantColorFromImage(imgSrc) {
 
         resolve(dominant);
       } catch (err) {
+        if (!isSameOrigin && !img.src.includes("/.netlify/functions/cover-proxy")) {
+          img.src = `/.netlify/functions/cover-proxy?src=${encodeURIComponent(absoluteImgSrc)}`;
+          return;
+        }
         console.error("Dominant color çıxarılmadı:", err);
         resolve("rgb(255,255,255)");
       }
@@ -5786,8 +5790,15 @@ function initLyricsShareModal() {
     if (cardTitle) cardTitle.textContent = track.title || "Mahnı";
     if (cardArtist) cardArtist.textContent = track.artist || "Artist";
     const coverSrc = track.coverUrl || DEFAULT_MUSIC_COVER;
-    if (cardCover) cardCover.src = coverSrc;
-    if (cardBg) cardBg.style.backgroundImage = `url("${coverSrc}")`;
+    if (cardCover) {
+      cardCover.onerror = () => {
+        cardCover.onerror = null;
+        cardCover.src = DEFAULT_MUSIC_COVER;
+        if (cardBg) cardBg.style.backgroundImage = `url("${DEFAULT_MUSIC_COVER}")`;
+      };
+      cardCover.src = coverSrc;
+    }
+    if (cardBg) cardBg.style.backgroundImage = `url("${encodeURI(coverSrc)}")`;
 
     linesList.innerHTML = lines.map((line, idx) => `
       <div class="yt-share-line-item" data-line-index="${idx}">
@@ -5848,13 +5859,105 @@ function initLyricsShareModal() {
     }
   });
 
-  downloadBtn?.addEventListener("click", () => {
+  const loadCleanCanvasImage = async (src) => {
+    if (!src) return null;
+
+    if (src.startsWith("data:") || src.startsWith("blob:")) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = src;
+      });
+    }
+
+    const isSameOrigin = !/^https?:\/\//i.test(src) || src.startsWith(window.location.origin);
+    const absoluteSrc = /^https?:\/\//i.test(src) ? src : new URL(src, window.location.origin).href;
+
+    if (isSameOrigin) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = absoluteSrc;
+      });
+    }
+
+    // 1. Try direct fetch as blob with CORS
+    try {
+      const res = await fetch(absoluteSrc, { mode: "cors", cache: "force-cache" });
+      if (res.ok) {
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            img._blobUrl = blobUrl;
+            resolve(img);
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(blobUrl);
+            resolve(null);
+          };
+          img.src = blobUrl;
+        });
+      }
+    } catch (_) {}
+
+    // 2. Try netlify cover-proxy (same origin proxy)
+    try {
+      const proxyUrl = `/.netlify/functions/cover-proxy?src=${encodeURIComponent(absoluteSrc)}`;
+      const res = await fetch(proxyUrl, { cache: "force-cache" });
+      if (res.ok) {
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            img._blobUrl = blobUrl;
+            resolve(img);
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(blobUrl);
+            resolve(null);
+          };
+          img.src = blobUrl;
+        });
+      }
+    } catch (_) {}
+
+    // 3. Fallback Image with crossOrigin = 'anonymous'
+    try {
+      const img = await new Promise((resolve) => {
+        const i = new Image();
+        i.crossOrigin = "anonymous";
+        i.onload = () => resolve(i);
+        i.onerror = () => resolve(null);
+        i.src = absoluteSrc;
+      });
+      if (img && img.naturalWidth > 0) return img;
+    } catch (_) {}
+
+    return null;
+  };
+
+  downloadBtn?.addEventListener("click", async () => {
+    if (downloadBtn.disabled) return;
     const track = window.musicLibrary[window.currentMusicIndex] || {};
+    const origHtml = downloadBtn.innerHTML;
+    downloadBtn.disabled = true;
+    downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Hazırlanır...';
+
     const c = document.createElement("canvas");
     c.width = 800;
     c.height = 1000;
     const ctx = c.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      downloadBtn.disabled = false;
+      downloadBtn.innerHTML = origHtml;
+      return;
+    }
 
     const toRgba = (cStr, alpha) => {
       if (!cStr) return `rgba(123, 44, 191, ${alpha})`;
@@ -5914,144 +6017,115 @@ function initLyricsShareModal() {
       return truncated + "…";
     };
 
-    const rootStyle = getComputedStyle(document.documentElement);
-    const trackColors = track.extractedColors || (window.currentMusic && window.currentMusic.extractedColors);
-    let color1 = trackColors?.color1 || rootStyle.getPropertyValue("--player-color-1").trim() || "rgb(123, 44, 191)";
-    let color2 = trackColors?.color2 || rootStyle.getPropertyValue("--player-color-2").trim() || "rgb(58, 12, 163)";
-    let color3 = trackColors?.color3 || rootStyle.getPropertyValue("--player-color-3").trim() || "rgb(67, 97, 238)";
-    let color4 = trackColors?.color4 || rootStyle.getPropertyValue("--player-color-4").trim() || "rgb(247, 37, 133)";
-
-    const domCover = (cardCover && cardCover.complete && cardCover.naturalWidth > 0)
-      ? cardCover
-      : (document.getElementById("yt-cover-image")?.complete && document.getElementById("yt-cover-image")?.naturalWidth > 0)
-        ? document.getElementById("yt-cover-image")
-        : null;
-
-    const coverImg = new Image();
-    const src = track.coverUrl || DEFAULT_MUSIC_COVER;
-    const isSameOrigin = !/^https?:\/\//i.test(src) || src.startsWith(window.location.origin);
-    const absoluteImgSrc = /^https?:\/\//i.test(src) ? src : new URL(src, window.location.origin).href;
-    const proxiedSrc = isSameOrigin ? absoluteImgSrc : `/.netlify/functions/cover-proxy?src=${encodeURIComponent(absoluteImgSrc)}`;
-
-    if (!isSameOrigin) {
-      coverImg.crossOrigin = "anonymous";
-    }
-
-    const renderCardContent = () => {
-      const activeCover = (coverImg && coverImg.complete && coverImg.naturalWidth > 0)
-        ? coverImg
-        : domCover;
-
-      // Extract colors from active cover if trackColors was not yet cached
-      if (activeCover && !trackColors) {
-        try {
-          const sampleCanvas = document.createElement("canvas");
-          sampleCanvas.width = 16;
-          sampleCanvas.height = 16;
-          const sCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
-          if (sCtx) {
-            sCtx.drawImage(activeCover, 0, 0, 16, 16);
-            const sd = sCtx.getImageData(0, 0, 16, 16).data;
-            let r = 0, g = 0, b = 0, cnt = 0;
-            for (let p = 0; p < sd.length; p += 4) {
-              const br = (sd[p] + sd[p+1] + sd[p+2]) / 3;
-              if (br > 10 && br < 245) {
-                r += sd[p]; g += sd[p+1]; b += sd[p+2]; cnt++;
-              }
-            }
-            if (cnt) {
-              color1 = `rgb(${Math.round(r/cnt)}, ${Math.round(g/cnt)}, ${Math.round(b/cnt)})`;
-              color2 = `rgb(${Math.max(10, Math.round(r/cnt*0.6))}, ${Math.max(10, Math.round(g/cnt*0.6))}, ${Math.max(20, Math.round(b/cnt*0.7))})`;
-            }
-          }
-        } catch (_) {}
+    let cleanCover = null;
+    try {
+      const coverSrc = track.coverUrl || DEFAULT_MUSIC_COVER;
+      cleanCover = await loadCleanCanvasImage(coverSrc);
+      if (!cleanCover && coverSrc !== DEFAULT_MUSIC_COVER) {
+        cleanCover = await loadCleanCanvasImage(DEFAULT_MUSIC_COVER);
       }
 
-      // 1. Base dark background
-      ctx.fillStyle = "#0c0d12";
+      // 1. Base dark background matching preview (.yt-share-card { background: #121217; })
+      ctx.fillStyle = "#121217";
       ctx.fillRect(0, 0, 800, 1000);
 
-      // 2. Dynamic ambient lights matching track's album cover colors
-      const rad1 = ctx.createRadialGradient(200, 240, 20, 200, 240, 520);
-      rad1.addColorStop(0, toRgba(color1, 0.65));
-      rad1.addColorStop(1, "rgba(0, 0, 0, 0)");
-      ctx.fillStyle = rad1;
-      ctx.fillRect(0, 0, 800, 1000);
-
-      const rad2 = ctx.createRadialGradient(660, 780, 20, 660, 780, 520);
-      rad2.addColorStop(0, toRgba(color4 || color2, 0.55));
-      rad2.addColorStop(1, "rgba(0, 0, 0, 0)");
-      ctx.fillStyle = rad2;
-      ctx.fillRect(0, 0, 800, 1000);
-
-      const rad3 = ctx.createRadialGradient(680, 220, 10, 680, 220, 400);
-      rad3.addColorStop(0, toRgba(color3, 0.35));
-      rad3.addColorStop(1, "rgba(0, 0, 0, 0)");
-      ctx.fillStyle = rad3;
-      ctx.fillRect(0, 0, 800, 1000);
-
-      // 3. Overlay blurred album cover for ultimate Apple Music aesthetics
-      try {
-        if (activeCover && activeCover.complete && activeCover.naturalWidth > 0) {
-          ctx.save();
-          if (typeof ctx.filter !== "undefined") {
-            ctx.filter = "blur(65px) saturate(1.8) brightness(0.42)";
-          }
-          ctx.globalAlpha = 0.5;
-          ctx.drawImage(activeCover, -60, -60, 920, 1120);
-          ctx.restore();
+      // 2. Blurred cover background matching preview (.yt-share-card-bg { filter: blur(35px) saturate(2); opacity: 0.65; transform: scale(1.2); })
+      if (cleanCover && cleanCover.naturalWidth > 0) {
+        ctx.save();
+        if (typeof ctx.filter !== "undefined") {
+          ctx.filter = "blur(35px) saturate(200%)";
         }
-      } catch (_) {}
+        ctx.globalAlpha = 0.65;
+        const imgW = cleanCover.naturalWidth || cleanCover.width;
+        const imgH = cleanCover.naturalHeight || cleanCover.height;
+        const imgAspect = imgW / imgH;
+        const canvasAspect = 800 / 1000;
+        let dw, dh;
+        if (imgAspect > canvasAspect) {
+          dh = 1000 * 1.25;
+          dw = dh * imgAspect;
+        } else {
+          dw = 800 * 1.25;
+          dh = dw / imgAspect;
+        }
+        const dx = (800 - dw) / 2;
+        const dy = (1000 - dh) / 2;
+        ctx.drawImage(cleanCover, dx, dy, dw, dh);
+        ctx.restore();
+      } else {
+        const rootStyle = getComputedStyle(document.documentElement);
+        const trackColors = track.extractedColors || (window.currentMusic && window.currentMusic.extractedColors);
+        const color1 = trackColors?.color1 || rootStyle.getPropertyValue("--player-color-1").trim() || "rgb(123, 44, 191)";
+        const color2 = trackColors?.color2 || rootStyle.getPropertyValue("--player-color-2").trim() || "rgb(58, 12, 163)";
+        const rad1 = ctx.createRadialGradient(200, 240, 20, 200, 240, 520);
+        rad1.addColorStop(0, toRgba(color1, 0.65));
+        rad1.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = rad1;
+        ctx.fillRect(0, 0, 800, 1000);
 
-      // 4. Subtle dark vignette gradient overlay for contrast and clarity
-      const vigGrad = ctx.createLinearGradient(0, 0, 0, 1000);
-      vigGrad.addColorStop(0, "rgba(10, 12, 16, 0.45)");
-      vigGrad.addColorStop(0.35, "rgba(10, 12, 16, 0.2)");
-      vigGrad.addColorStop(1, "rgba(10, 12, 16, 0.75)");
-      ctx.fillStyle = vigGrad;
-      ctx.fillRect(0, 0, 800, 1000);
+        const rad2 = ctx.createRadialGradient(660, 780, 20, 660, 780, 520);
+        rad2.addColorStop(0, toRgba(color2, 0.55));
+        rad2.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = rad2;
+        ctx.fillRect(0, 0, 800, 1000);
+      }
 
-      // 5. Header: Cover Art (rounded pill box)
+      // 3. Header: Cover Art thumbnail (matching .yt-share-card-header #yt-share-card-cover: 44x44, radius 10)
+      const thumbX = 60, thumbY = 60, thumbSize = 104, thumbRadius = 22;
       ctx.save();
       ctx.beginPath();
       if (typeof ctx.roundRect === "function") {
-        ctx.roundRect(80, 80, 96, 96, 20);
+        ctx.roundRect(thumbX, thumbY, thumbSize, thumbSize, thumbRadius);
       } else {
-        ctx.rect(80, 80, 96, 96);
+        ctx.rect(thumbX, thumbY, thumbSize, thumbSize);
       }
       ctx.clip();
-      try {
-        if (activeCover && activeCover.complete && activeCover.naturalWidth > 0) {
-          ctx.drawImage(activeCover, 80, 80, 96, 96);
-        } else {
-          ctx.fillStyle = "#1e222a";
-          ctx.fillRect(80, 80, 96, 96);
-        }
-      } catch (_) {
+      if (cleanCover && cleanCover.naturalWidth > 0) {
+        const sw = cleanCover.naturalWidth || cleanCover.width;
+        const sh = cleanCover.naturalHeight || cleanCover.height;
+        let sSide = Math.min(sw, sh);
+        let sx = (sw - sSide) / 2;
+        let sy = (sh - sSide) / 2;
+        ctx.drawImage(cleanCover, sx, sy, sSide, sSide, thumbX, thumbY, thumbSize, thumbSize);
+      } else {
         ctx.fillStyle = "#1e222a";
-        ctx.fillRect(80, 80, 96, 96);
+        ctx.fillRect(thumbX, thumbY, thumbSize, thumbSize);
       }
       ctx.restore();
 
-      // Header: Song Title & Artist (fit with ellipsis)
+      // Subtle thumbnail border
+      ctx.save();
+      ctx.beginPath();
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(thumbX, thumbY, thumbSize, thumbSize, thumbRadius);
+      } else {
+        ctx.rect(thumbX, thumbY, thumbSize, thumbSize);
+      }
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.restore();
+
+      // 4. Header: Song Title & Artist
+      const textStartX = 184;
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 34px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-      ctx.fillText(fitText(ctx, track.title || "Mahnı", 500), 200, 125);
+      ctx.fillText(fitText(ctx, track.title || "Mahnı", 550), textStartX, 108);
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.68)";
-      ctx.font = "24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-      ctx.fillText(fitText(ctx, track.artist || "Artist", 500), 200, 162);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+      ctx.font = "500 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      ctx.fillText(fitText(ctx, track.artist || "Artist", 550), textStartX, 146);
 
       // Separator Line
       ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(80, 220);
-      ctx.lineTo(720, 220);
+      ctx.moveTo(60, 200);
+      ctx.lineTo(740, 200);
       ctx.stroke();
 
-      // 6. Lyrics Content: Responsive Word Wrapping & Dynamic Centering
-      const maxTextWidth = 640;
+      // 5. Lyrics Content
+      const maxTextWidth = 680;
       const linesToDraw = selectedLines.length ? selectedLines : [track.title || ""];
 
       const getWrappedBlocks = (fSize) => {
@@ -6062,81 +6136,86 @@ function initLyricsShareModal() {
         });
       };
 
-      let fontSize = 36;
-      let lineHeight = 54;
-      let blockGap = 26;
+      let fontSize = 38;
+      let lineHeight = 56;
+      let blockGap = 28;
       let wrappedBlocks = getWrappedBlocks(fontSize);
       let totalLines = wrappedBlocks.reduce((acc, b) => acc + b.length, 0);
 
       if (totalLines > 4) {
-        fontSize = 31;
-        lineHeight = 46;
-        blockGap = 20;
+        fontSize = 32;
+        lineHeight = 48;
+        blockGap = 22;
         wrappedBlocks = getWrappedBlocks(fontSize);
         totalLines = wrappedBlocks.reduce((acc, b) => acc + b.length, 0);
       }
       if (totalLines > 6) {
-        fontSize = 26;
-        lineHeight = 38;
-        blockGap = 16;
+        fontSize = 27;
+        lineHeight = 40;
+        blockGap = 18;
         wrappedBlocks = getWrappedBlocks(fontSize);
         totalLines = wrappedBlocks.reduce((acc, b) => acc + b.length, 0);
       }
 
       ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
       ctx.fillStyle = "#ffffff";
-      ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+      ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
       ctx.shadowBlur = 14;
+      ctx.shadowOffsetY = 3;
 
       const totalHeight = wrappedBlocks.reduce((sum, b, idx) => {
         return sum + b.length * lineHeight + (idx < wrappedBlocks.length - 1 ? blockGap : 0);
       }, 0);
 
-      const centerY = 230 + (650 / 2);
-      let currentY = Math.max(260, centerY - (totalHeight / 2) + (fontSize * 0.8));
+      const centerY = 200 + (700 / 2);
+      let currentY = Math.max(250, centerY - (totalHeight / 2) + (fontSize * 0.8));
 
       wrappedBlocks.forEach((block) => {
         block.forEach((lineStr) => {
-          ctx.fillText(lineStr, 80, currentY);
+          ctx.fillText(lineStr, 60, currentY);
           currentY += lineHeight;
         });
         currentY += blockGap;
       });
+      ctx.shadowColor = "transparent";
       ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
 
-      // 7. Footer: Brand
-      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+      // 6. Footer: Brand
+      ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
       ctx.font = "bold 22px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-      ctx.fillText("DUNYAMIZ PLAYER", 80, 930);
+      ctx.fillText("DUNYAMIZ PLAYER", 60, 940);
 
-      // 8. Download
+      // 7. Outer subtle card border
+      ctx.save();
+      ctx.beginPath();
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(2, 2, 796, 996, 32);
+      } else {
+        ctx.rect(2, 2, 796, 996);
+      }
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.restore();
+
+      // 8. Export to image file
+      const dataUrl = c.toDataURL("image/png");
       const link = document.createElement("a");
-      link.download = `${(track.title || "mahni-sozleri").replace(/\s+/g, "-")}-lyrics.png`;
-      link.href = c.toDataURL("image/png");
+      const safeTitle = (track.title || "mahni-sozleri").replace(/[/\\?%*:|"<>]/g, "").replace(/\s+/g, "-");
+      link.download = `${safeTitle}-lyrics.png`;
+      link.href = dataUrl;
       link.click();
       showHotkeyHud("fas fa-download", "Şəkil yükləndi!");
-    };
-
-    let rendered = false;
-    const safeRender = () => {
-      if (rendered) return;
-      rendered = true;
-      renderCardContent();
-    };
-
-    if (domCover && domCover.complete && domCover.naturalWidth > 0) {
-      safeRender();
-    } else {
-      coverImg.onload = safeRender;
-      coverImg.onerror = () => {
-        if (!isSameOrigin && !coverImg.src.includes("cover-proxy")) {
-          coverImg.src = proxiedSrc;
-        } else {
-          safeRender();
-        }
-      };
-      coverImg.src = isSameOrigin ? absoluteImgSrc : proxiedSrc;
-      setTimeout(safeRender, 1500);
+    } catch (err) {
+      console.error("Şəkil hazırlama xətası:", err);
+      showHotkeyHud("fas fa-exclamation-triangle", "Şəkil yüklənərkən xəta baş verdi");
+    } finally {
+      if (cleanCover && cleanCover._blobUrl) {
+        URL.revokeObjectURL(cleanCover._blobUrl);
+      }
+      downloadBtn.disabled = false;
+      downloadBtn.innerHTML = origHtml;
     }
   });
 
