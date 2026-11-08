@@ -1,0 +1,22 @@
+{
+  "id": "lavinia-dest-chef-bi-1794167560679",
+  "title": "Lavinia",
+  "artist": "Dest & Chef Bi",
+  "lyrics": {
+    "type": "none",
+    "text": ""
+  },
+  "uploadedAt": "2026-11-08T19:52:40.679Z",
+  "provider": "r2",
+  "audio": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/music/lavinia-dest-chef-bi-1794167560679.mp3",
+  "cover": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev/covers/lavinia-dest-chef-bi-1794167560679.jpg",
+  "storage": {
+    "provider": "r2",
+    "bucket": "dunyamiz",
+    "publicBaseUrl": "https://pub-666d6610385a45cfb0c81c9e29a9e45a.r2.dev",
+    "audioKey": "music/lavinia-dest-chef-bi-1794167560679.mp3",
+    "coverKey": "covers/lavinia-dest-chef-bi-1794167560679.jpg",
+    "mode": "direct-browser-upload",
+    "finalizedAt": "2026-11-08T19:52:44.489Z"
+  }
+}
